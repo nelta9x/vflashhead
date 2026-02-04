@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, COLORS, CURSOR_HITBOX } from '../config/constants';
+import { GAME_WIDTH, GAME_HEIGHT, COLORS, CURSOR_HITBOX, SPAWN_AREA } from '../config/constants';
 import { Dish } from '../entities/Dish';
 import { EventBus, GameEvents } from '../utils/EventBus';
 import { ObjectPool } from '../utils/ObjectPool';
@@ -15,6 +15,8 @@ import { SlowMotion } from '../effects/SlowMotion';
 import { DamageText } from '../ui/DamageText';
 import { FeedbackSystem } from '../systems/FeedbackSystem';
 import { SoundSystem } from '../systems/SoundSystem';
+import { InGameUpgradeUI } from '../ui/InGameUpgradeUI';
+import { WaveCountdownUI } from '../ui/WaveCountdownUI';
 
 export class GameScene extends Phaser.Scene {
   private dishPool!: ObjectPool<Dish>;
@@ -31,6 +33,8 @@ export class GameScene extends Phaser.Scene {
 
   // UI & 이펙트
   private hud!: HUD;
+  private inGameUpgradeUI!: InGameUpgradeUI;
+  private waveCountdownUI!: WaveCountdownUI;
   private particleManager!: ParticleManager;
   private screenShake!: ScreenShake;
   private slowMotion!: SlowMotion;
@@ -45,6 +49,9 @@ export class GameScene extends Phaser.Scene {
   private timeStopTimer: number = 0;
   private autoDestroyTimer: number = 0;
   private lastComboHealCombo: number = 0;
+
+  // 웨이브 전환 상태
+  private pendingWaveNumber: number = 1;
 
   // 공격 범위 표시
   private attackRangeIndicator!: Phaser.GameObjects.Graphics;
@@ -76,8 +83,11 @@ export class GameScene extends Phaser.Scene {
     // 입력 설정
     this.setupInput();
 
-    // 게임 시작
-    this.waveSystem.startWave(1);
+    // 게임 시작: 카운트다운과 업그레이드 UI 동시 표시
+    this.pendingWaveNumber = 1;
+    this.waveSystem.startCountdown(this.pendingWaveNumber);
+    this.waveCountdownUI.show(this.pendingWaveNumber);
+    this.inGameUpgradeUI.show();
 
     // 카메라 페이드 인
     this.cameras.main.fadeIn(500);
@@ -109,8 +119,18 @@ export class GameScene extends Phaser.Scene {
 
   private initializeSystems(): void {
     this.comboSystem = new ComboSystem();
-    this.waveSystem = new WaveSystem(this, () => this.dishPool);
     this.upgradeSystem = new UpgradeSystem();
+
+    // 인게임 업그레이드 UI (WaveSystem보다 먼저 생성)
+    this.inGameUpgradeUI = new InGameUpgradeUI(this, this.upgradeSystem);
+
+    this.waveSystem = new WaveSystem(
+      this,
+      () => this.dishPool,
+      () => this.inGameUpgradeUI.isVisible()
+        ? this.inGameUpgradeUI.getBlockedYArea()
+        : SPAWN_AREA.maxY
+    );
     this.healthSystem = new HealthSystem();
     this.healthPackSystem = new HealthPackSystem(this);
 
@@ -132,6 +152,9 @@ export class GameScene extends Phaser.Scene {
 
     // HUD
     this.hud = new HUD(this, this.comboSystem, this.waveSystem, this.healthSystem);
+
+    // 웨이브 카운트다운 UI
+    this.waveCountdownUI = new WaveCountdownUI(this);
   }
 
   private initializeEntities(): void {
@@ -174,21 +197,32 @@ export class GameScene extends Phaser.Scene {
       const waveNumber = args[0] as number;
       this.hud.showWaveComplete(waveNumber);
       this.onWaveCompleted();
-    });
 
-    // 업그레이드 선택
-    EventBus.getInstance().on(GameEvents.UPGRADE_AVAILABLE, () => {
-      this.pauseGame();
-      this.scene.launch('UpgradeScene', {
-        upgradeSystem: this.upgradeSystem,
-        gameScene: this,
+      // 다음 웨이브 번호 저장 후 카운트다운과 업그레이드 UI 동시 표시
+      this.pendingWaveNumber = waveNumber + 1;
+      this.time.delayedCall(500, () => {
+        if (this.isGameOver) return;
+        // 카운트다운과 업그레이드 UI 동시 시작
+        this.waveSystem.startCountdown(this.pendingWaveNumber);
+        this.waveCountdownUI.show(this.pendingWaveNumber);
+        this.inGameUpgradeUI.show();
       });
     });
 
-    // 업그레이드 선택 완료
+    // 업그레이드 선택 완료 → 효과만 적용 (카운트다운은 WAVE_COMPLETED에서 이미 시작됨)
     EventBus.getInstance().on(GameEvents.UPGRADE_SELECTED, () => {
-      this.resumeGame();
       this.applyMaxHpBonus();
+    });
+
+    // 카운트다운 틱
+    EventBus.getInstance().on(GameEvents.WAVE_COUNTDOWN_TICK, (...args: unknown[]) => {
+      const seconds = args[0] as number;
+      this.waveCountdownUI.updateCountdown(seconds);
+    });
+
+    // 웨이브 준비 완료 (카운트다운 끝)
+    EventBus.getInstance().on(GameEvents.WAVE_READY, () => {
+      this.waveCountdownUI.hide();
     });
 
     // 게임 오버
@@ -542,6 +576,8 @@ export class GameScene extends Phaser.Scene {
     EventBus.getInstance().clear();
     this.dishPool.clear();
     this.healthPackSystem.clear();
+    this.inGameUpgradeUI.destroy();
+    this.waveCountdownUI.destroy();
   }
 
   update(_time: number, delta: number): void {
@@ -569,6 +605,9 @@ export class GameScene extends Phaser.Scene {
 
     // HUD 업데이트
     this.hud.update(this.gameTime);
+
+    // 인게임 업그레이드 UI 업데이트
+    this.inGameUpgradeUI.update(delta);
 
     // 커서 범위 기반 공격 처리
     this.updateCursorAttack();

@@ -3,13 +3,12 @@ import { gameConfig } from './config/game.config';
 import { BootScene } from './scenes/BootScene';
 import { MenuScene } from './scenes/MenuScene';
 import { GameScene } from './scenes/GameScene';
-import { UpgradeScene } from './scenes/UpgradeScene';
 import { GameOverScene } from './scenes/GameOverScene';
 
 // 씬 등록
 const config: Phaser.Types.Core.GameConfig = {
   ...gameConfig,
-  scene: [BootScene, MenuScene, GameScene, UpgradeScene, GameOverScene],
+  scene: [BootScene, MenuScene, GameScene, GameOverScene],
 };
 
 // 게임 인스턴스 생성

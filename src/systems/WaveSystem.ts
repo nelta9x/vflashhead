@@ -1,8 +1,10 @@
 import Phaser from 'phaser';
-import { SPAWN_AREA, MIN_DISH_DISTANCE } from '../config/constants';
+import { SPAWN_AREA, MIN_DISH_DISTANCE, WAVE_TRANSITION } from '../config/constants';
 import { EventBus, GameEvents } from '../utils/EventBus';
 import { ObjectPool } from '../utils/ObjectPool';
 import { Dish } from '../entities/Dish';
+
+type WavePhase = 'waiting' | 'countdown' | 'spawning';
 
 interface WaveConfig {
   dishCount: number;
@@ -51,10 +53,17 @@ export class WaveSystem {
   private isFeverTime: boolean = false;
   private totalGameTime: number = 0;
   private getDishPool: () => ObjectPool<Dish>;
+  private getMaxSpawnY: () => number;
 
-  constructor(scene: Phaser.Scene, getDishPool: () => ObjectPool<Dish>) {
+  // 웨이브 페이즈 상태
+  private wavePhase: WavePhase = 'waiting';
+  private countdownTimer: number = 0;
+  private pendingWaveNumber: number = 1;
+
+  constructor(scene: Phaser.Scene, getDishPool: () => ObjectPool<Dish>, getMaxSpawnY?: () => number) {
     this.scene = scene;
     this.getDishPool = getDishPool;
+    this.getMaxSpawnY = getMaxSpawnY || (() => SPAWN_AREA.maxY);
 
     // 접시 파괴 이벤트 리스닝
     EventBus.getInstance().on(GameEvents.DISH_DESTROYED, () => {
@@ -112,6 +121,14 @@ export class WaveSystem {
     ];
   }
 
+  // 카운트다운 시작 (업그레이드 선택 후 호출)
+  startCountdown(waveNumber: number): void {
+    this.pendingWaveNumber = waveNumber;
+    this.wavePhase = 'countdown';
+    this.countdownTimer = WAVE_TRANSITION.COUNTDOWN_DURATION;
+    EventBus.getInstance().emit(GameEvents.WAVE_COUNTDOWN_START, waveNumber);
+  }
+
   startFeverTime(): void {
     this.isFeverTime = true;
     this.waveConfig = FEVER_CONFIG;
@@ -120,8 +137,35 @@ export class WaveSystem {
     this.timeSinceLastSpawn = 0;
   }
 
+  getWavePhase(): WavePhase {
+    return this.wavePhase;
+  }
+
   update(delta: number): void {
     this.totalGameTime += delta;
+
+    // 카운트다운 페이즈 처리
+    if (this.wavePhase === 'countdown') {
+      const prevSecond = Math.ceil(this.countdownTimer / 1000);
+      this.countdownTimer -= delta;
+      const currentSecond = Math.ceil(this.countdownTimer / 1000);
+
+      // 초가 바뀔 때마다 틱 이벤트 발생
+      if (prevSecond !== currentSecond && currentSecond >= 0) {
+        EventBus.getInstance().emit(GameEvents.WAVE_COUNTDOWN_TICK, currentSecond);
+      }
+
+      // 카운트다운 완료
+      if (this.countdownTimer <= 0) {
+        this.wavePhase = 'spawning';
+        this.startWave(this.pendingWaveNumber);
+        EventBus.getInstance().emit(GameEvents.WAVE_READY);
+      }
+      return;
+    }
+
+    // waiting 페이즈면 스폰 안함
+    if (this.wavePhase !== 'spawning') return;
 
     // 무한 생존 모드: 시간 제한 없음, HP 0일 때만 게임 오버
 
@@ -175,10 +219,11 @@ export class WaveSystem {
   private findValidSpawnPosition(): { x: number; y: number } | null {
     const activeDishes = this.getDishPool().getActiveObjects();
     const maxAttempts = 20;
+    const maxY = this.getMaxSpawnY();
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const x = Phaser.Math.Between(SPAWN_AREA.minX, SPAWN_AREA.maxX);
-      const y = Phaser.Math.Between(SPAWN_AREA.minY, SPAWN_AREA.maxY);
+      const y = Phaser.Math.Between(SPAWN_AREA.minY, maxY);
 
       // 실제 활성 접시들과 거리 체크
       let isValid = true;
@@ -224,10 +269,10 @@ export class WaveSystem {
       this.dishesSpawned >= this.waveConfig.dishCount &&
       this.dishesDestroyed >= this.waveConfig.dishCount
     ) {
+      // 대기 상태로 전환 (업그레이드 선택 대기)
+      this.wavePhase = 'waiting';
       EventBus.getInstance().emit(GameEvents.WAVE_COMPLETED, this.currentWave);
-
-      // 다음 웨이브 즉시 시작 (콤보가 끊기지 않도록)
-      this.startWave(this.currentWave + 1);
+      // 자동 다음 웨이브 시작 제거 - GameScene에서 업그레이드 선택 후 카운트다운 시작
     }
   }
 

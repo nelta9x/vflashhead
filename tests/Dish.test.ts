@@ -48,6 +48,9 @@ vi.mock('../src/config/constants', () => ({
     PLAYER_DAMAGE: 10,
     DAMAGE_INTERVAL: 200,
   },
+  CURSOR_HITBOX: {
+    BASE_RADIUS: 30,
+  },
 }));
 
 // Mock Phaser with proper Container and body
@@ -314,9 +317,9 @@ describe('Dish Upgrade Effects', () => {
       // Spawn with 50% cursor size bonus
       dish.spawn(100, 100, 'basic', 1, { cursorSizeBonus: 0.5 });
 
-      // Default size is 30, bonus area is size + 10
-      // With 50% bonus: (30 + 10) * 1.5 = 60
-      expect(dish.getInteractiveRadius()).toBe(60);
+      // interactiveRadius = size + CURSOR_HITBOX.BASE_RADIUS * (1 + cursorSizeBonus)
+      // = 30 + 30 * 1.5 = 30 + 45 = 75
+      expect(dish.getInteractiveRadius()).toBe(75);
     });
 
     it('should use default interactive area when no bonus', async () => {
@@ -325,8 +328,9 @@ describe('Dish Upgrade Effects', () => {
 
       dish.spawn(100, 100, 'basic', 1);
 
-      // Default: size + 10 = 30 + 10 = 40
-      expect(dish.getInteractiveRadius()).toBe(40);
+      // interactiveRadius = size + CURSOR_HITBOX.BASE_RADIUS * (1 + 0)
+      // = 30 + 30 = 60
+      expect(dish.getInteractiveRadius()).toBe(60);
     });
   });
 });

@@ -75,6 +75,20 @@ export const CURSOR_HITBOX = {
   BASE_RADIUS: 30, // 기본 공격 범위
 } as const;
 
+// 인게임 업그레이드 UI
+export const UPGRADE_UI = {
+  BOX_WIDTH: 200,
+  BOX_HEIGHT: 100,
+  BOX_SPACING: 30,
+  HOVER_DURATION: 500, // 0.5초 호버로 선택
+  BOX_Y_OFFSET: 120, // 화면 하단에서의 거리
+} as const;
+
+// 웨이브 전환
+export const WAVE_TRANSITION = {
+  COUNTDOWN_DURATION: 5000, // 5초 카운트다운
+} as const;
+
 // 힐팩 시스템
 export const HEAL_PACK = {
   HEAL_AMOUNT: 1,

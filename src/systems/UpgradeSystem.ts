@@ -1,5 +1,4 @@
-import { UPGRADE_TIMING, RARITY_WEIGHTS_BY_COUNT } from '../config/constants';
-import { EventBus, GameEvents } from '../utils/EventBus';
+import { RARITY_WEIGHTS_BY_COUNT } from '../config/constants';
 
 export interface Upgrade {
   id: string;
@@ -198,8 +197,6 @@ const UPGRADES: Upgrade[] = [
 
 export class UpgradeSystem {
   private upgradeStacks: Map<string, number> = new Map();
-  private upgradeCount: number = 0;
-  private nextUpgradeTime: number = UPGRADE_TIMING.BASE_INTERVAL; // 첫 업그레이드 시간
 
   // 기본 강화
   private damageBonus: number = 0;
@@ -238,8 +235,6 @@ export class UpgradeSystem {
 
   reset(): void {
     this.upgradeStacks.clear();
-    this.upgradeCount = 0;
-    this.nextUpgradeTime = UPGRADE_TIMING.BASE_INTERVAL;
 
     // 기본 강화
     this.damageBonus = 0;
@@ -273,19 +268,9 @@ export class UpgradeSystem {
     this.autoDestroyEnabled = false;
   }
 
-  update(_delta: number, gameTime: number): void {
-    // 동적 간격: 가속 후 감속 (15초 → 20초 → 25초 → 30초 상한)
-    if (gameTime >= this.nextUpgradeTime) {
-      this.upgradeCount++;
-      EventBus.getInstance().emit(GameEvents.UPGRADE_AVAILABLE);
-
-      // 다음 업그레이드 시간 계산
-      const nextInterval = Math.min(
-        UPGRADE_TIMING.BASE_INTERVAL + this.upgradeCount * UPGRADE_TIMING.INCREMENT,
-        UPGRADE_TIMING.MAX_INTERVAL
-      );
-      this.nextUpgradeTime = gameTime + nextInterval;
-    }
+  update(_delta: number, _gameTime: number): void {
+    // 웨이브 기반 업그레이드 시스템으로 변경됨
+    // 시간 기반 업그레이드 트리거 제거
   }
 
   getRandomUpgrades(count: number): Upgrade[] {

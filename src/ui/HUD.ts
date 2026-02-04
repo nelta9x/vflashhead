@@ -12,11 +12,8 @@ export class HUD {
 
   // UI 요소들
   private comboText!: Phaser.GameObjects.Text;
-  private comboBar!: Phaser.GameObjects.Graphics;
   private waveText!: Phaser.GameObjects.Text;
   private timerText!: Phaser.GameObjects.Text;
-  private timerLabel!: Phaser.GameObjects.Text;
-  private multiplierText!: Phaser.GameObjects.Text;
   private feverText!: Phaser.GameObjects.Text;
 
   // HP UI
@@ -42,40 +39,22 @@ export class HUD {
     // 생존 시간 (우측 상단) - 정순 카운트
     this.timerText = this.scene.add.text(GAME_WIDTH - 20, 20, '0:00', {
       fontFamily: 'monospace',
-      fontSize: '48px',
+      fontSize: '32px',
       color: COLORS_HEX.GREEN,
       stroke: '#000000',
       strokeThickness: 4,
     });
     this.timerText.setOrigin(1, 0);
 
-    // 생존 시간 레이블
-    this.timerLabel = this.scene.add.text(GAME_WIDTH - 20, 70, 'SURVIVED', {
+    // 콤보 (우측 상단, 시간 아래)
+    this.comboText = this.scene.add.text(GAME_WIDTH - 20, 55, '', {
       fontFamily: 'monospace',
-      fontSize: '14px',
-      color: COLORS_HEX.WHITE,
-    });
-    this.timerLabel.setOrigin(1, 0);
-    this.timerLabel.setAlpha(0.7);
-
-    // 콤보 (좌측 상단)
-    this.comboText = this.scene.add.text(20, 20, '', {
-      fontFamily: 'monospace',
-      fontSize: '36px',
+      fontSize: '24px',
       color: COLORS_HEX.MAGENTA,
       stroke: '#000000',
       strokeThickness: 4,
     });
-
-    // 콤보 타이머 바
-    this.comboBar = this.scene.add.graphics();
-
-    // 배율 표시
-    this.multiplierText = this.scene.add.text(20, 65, '', {
-      fontFamily: 'monospace',
-      fontSize: '20px',
-      color: COLORS_HEX.YELLOW,
-    });
+    this.comboText.setOrigin(1, 0);
 
     // 웨이브 (중앙 상단)
     this.waveText = this.scene.add.text(GAME_WIDTH / 2, 20, 'WAVE 1', {
@@ -105,19 +84,10 @@ export class HUD {
   private createHpDisplay(): void {
     const maxHp = this.healthSystem?.getMaxHp() ?? INITIAL_HP;
     const startX = 20;
-    const startY = 110;
+    const startY = 25;
     const heartSpacing = 35;
 
     this.hpContainer = this.scene.add.container(startX, startY);
-
-    // HP 레이블
-    const hpLabel = this.scene.add.text(0, -20, 'HP', {
-      fontFamily: 'monospace',
-      fontSize: '14px',
-      color: COLORS_HEX.WHITE,
-    });
-    hpLabel.setAlpha(0.7);
-    this.hpContainer.add(hpLabel);
 
     // 하트 아이콘들 생성
     for (let i = 0; i < maxHp; i++) {
@@ -220,7 +190,6 @@ export class HUD {
     const combo = this.comboSystem.getCombo();
     if (combo > 0) {
       this.comboText.setText(`${combo} COMBO`);
-      this.multiplierText.setText(`x${this.comboSystem.getMultiplier().toFixed(1)}`);
 
       // 콤보 색상 (마일스톤에 따라)
       if (combo >= 50) {
@@ -232,13 +201,8 @@ export class HUD {
       } else {
         this.comboText.setColor(COLORS_HEX.WHITE);
       }
-
-      // 콤보 바 그리기
-      this.drawComboBar();
     } else {
       this.comboText.setText('');
-      this.multiplierText.setText('');
-      this.comboBar.clear();
     }
 
     // 웨이브 업데이트
@@ -266,26 +230,6 @@ export class HUD {
       this.waveText.setColor(COLORS_HEX.WHITE);
       this.feverText.setVisible(false);
     }
-  }
-
-  private drawComboBar(): void {
-    this.comboBar.clear();
-
-    const barWidth = 150;
-    const barHeight = 8;
-    const barX = 20;
-    const barY = 95;
-
-    // 배경
-    this.comboBar.fillStyle(0x333333, 0.8);
-    this.comboBar.fillRect(barX, barY, barWidth, barHeight);
-
-    // 콤보 타이머
-    const ratio = this.comboSystem.getTimeRatio();
-    const color = ratio > 0.5 ? COLORS.MAGENTA : ratio > 0.25 ? COLORS.YELLOW : COLORS.RED;
-
-    this.comboBar.fillStyle(color, 1);
-    this.comboBar.fillRect(barX, barY, barWidth * ratio, barHeight);
   }
 
   showWaveComplete(waveNumber: number): void {

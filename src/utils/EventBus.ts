@@ -98,6 +98,7 @@ export const GameEvents = {
   DISH_DESTROYED: 'dish:destroyed',
   DISH_ESCAPED: 'dish:escaped',
   DISH_SPAWNED: 'dish:spawned',
+  DISH_DAMAGED: 'dish:damaged',
 
   // 콤보 관련
   COMBO_INCREASED: 'combo:increased',
@@ -127,4 +128,9 @@ export const GameEvents = {
   // HP 관련
   DISH_MISSED: 'dish:missed',
   HP_CHANGED: 'hp:changed',
+
+  // 힐팩 관련
+  HEALTH_PACK_SPAWNED: 'healthPack:spawned',
+  HEALTH_PACK_COLLECTED: 'healthPack:collected',
+  HEALTH_PACK_MISSED: 'healthPack:missed',
 } as const;

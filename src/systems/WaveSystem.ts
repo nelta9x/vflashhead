@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
-import { GAME_DURATION, SPAWN_AREA, MIN_DISH_DISTANCE } from '../config/constants';
+import { SPAWN_AREA, MIN_DISH_DISTANCE } from '../config/constants';
 import { EventBus, GameEvents } from '../utils/EventBus';
+import { ObjectPool } from '../utils/ObjectPool';
+import { Dish } from '../entities/Dish';
 
 interface WaveConfig {
   dishCount: number;
@@ -39,12 +41,6 @@ const FEVER_CONFIG: WaveConfig = {
   ],
 };
 
-interface ActiveDishPosition {
-  x: number;
-  y: number;
-  id: number;
-}
-
 export class WaveSystem {
   private scene: Phaser.Scene;
   private currentWave: number = 0;
@@ -54,24 +50,22 @@ export class WaveSystem {
   private waveConfig: WaveConfig | null = null;
   private isFeverTime: boolean = false;
   private totalGameTime: number = 0;
-  private activeDishPositions: ActiveDishPosition[] = [];
-  private nextDishId: number = 0;
+  private getDishPool: () => ObjectPool<Dish>;
 
-  constructor(scene: Phaser.Scene) {
+  constructor(scene: Phaser.Scene, getDishPool: () => ObjectPool<Dish>) {
     this.scene = scene;
+    this.getDishPool = getDishPool;
 
     // 접시 파괴 이벤트 리스닝
-    EventBus.getInstance().on(GameEvents.DISH_DESTROYED, (...args: unknown[]) => {
-      const data = args[0] as { dish: { x: number; y: number } };
-      this.removeDishPosition(data.dish.x, data.dish.y);
+    EventBus.getInstance().on(GameEvents.DISH_DESTROYED, () => {
       this.dishesDestroyed++;
       this.checkWaveComplete();
     });
 
     // 접시 타임아웃 이벤트 리스닝
-    EventBus.getInstance().on(GameEvents.DISH_MISSED, (...args: unknown[]) => {
-      const data = args[0] as { x: number; y: number };
-      this.removeDishPosition(data.x, data.y);
+    EventBus.getInstance().on(GameEvents.DISH_MISSED, () => {
+      this.dishesDestroyed++;
+      this.checkWaveComplete();
     });
   }
 
@@ -81,11 +75,41 @@ export class WaveSystem {
     this.dishesDestroyed = 0;
     this.timeSinceLastSpawn = 0;
 
-    // 웨이브 설정 가져오기
-    const configIndex = Math.min(waveNumber - 1, WAVE_CONFIGS.length - 1);
-    this.waveConfig = WAVE_CONFIGS[configIndex];
+    // 웨이브 설정 가져오기 (12 이후 무한 스케일링)
+    this.waveConfig = this.getScaledWaveConfig(waveNumber);
 
     EventBus.getInstance().emit(GameEvents.WAVE_STARTED, waveNumber);
+  }
+
+  private getScaledWaveConfig(waveNumber: number): WaveConfig {
+    const baseIndex = Math.min(waveNumber - 1, WAVE_CONFIGS.length - 1);
+    const base = WAVE_CONFIGS[baseIndex];
+
+    // 웨이브 12 이하는 기본 설정 사용
+    if (waveNumber <= 12) return base;
+
+    // 웨이브 12 이후: 난이도 점진적 증가
+    const scaleFactor = 1 + (waveNumber - 12) * 0.15; // 15%씩 증가
+    return {
+      dishCount: Math.floor(base.dishCount * scaleFactor),
+      spawnInterval: Math.max(150, base.spawnInterval - (waveNumber - 12) * 20),
+      dishTypes: this.getScaledDishTypes(waveNumber),
+    };
+  }
+
+  private getScaledDishTypes(waveNumber: number): { type: string; weight: number }[] {
+    // 웨이브 증가에 따라 bomb 비율 점진적 증가 (최대 35%)
+    const bombWeight = Math.min(0.35, 0.25 + (waveNumber - 12) * 0.02);
+    const crystalWeight = 0.3;
+    const goldenWeight = 0.35 - (waveNumber - 12) * 0.01; // 골든은 약간 감소
+    const basicWeight = Math.max(0.05, 1 - bombWeight - crystalWeight - goldenWeight);
+
+    return [
+      { type: 'basic', weight: basicWeight },
+      { type: 'golden', weight: Math.max(0.2, goldenWeight) },
+      { type: 'crystal', weight: crystalWeight },
+      { type: 'bomb', weight: bombWeight },
+    ];
   }
 
   startFeverTime(): void {
@@ -99,26 +123,26 @@ export class WaveSystem {
   update(delta: number): void {
     this.totalGameTime += delta;
 
-    // 3분 경과 체크
-    if (!this.isFeverTime && this.totalGameTime >= GAME_DURATION - 60000 && this.totalGameTime < GAME_DURATION) {
-      // 2분 경과 시 피버 타임 시작
-      if (this.totalGameTime >= GAME_DURATION - 60000 && !this.isFeverTime) {
-        this.startFeverTime();
-      }
-    }
-
-    // 3분 경과 시 게임 오버
-    if (this.totalGameTime >= GAME_DURATION) {
-      EventBus.getInstance().emit(GameEvents.GAME_OVER);
-      return;
-    }
+    // 무한 생존 모드: 시간 제한 없음, HP 0일 때만 게임 오버
 
     if (!this.waveConfig) return;
 
     this.timeSinceLastSpawn += delta;
 
+    // 동적 스폰 간격: 화면에 접시가 적으면 더 빠르게 스폰
+    const activeCount = this.getDishPool().getActiveCount();
+    const minActiveDishes = 2; // 최소 유지할 접시 수
+    let effectiveInterval = this.waveConfig.spawnInterval;
+
+    // 활성 접시가 적으면 스폰 간격 단축 (콤보 유지를 위해)
+    if (activeCount < minActiveDishes) {
+      effectiveInterval = Math.min(effectiveInterval, 300); // 최소 300ms
+    } else if (activeCount < minActiveDishes + 2) {
+      effectiveInterval = Math.min(effectiveInterval, 500); // 500ms
+    }
+
     // 스폰 인터벌 체크
-    if (this.timeSinceLastSpawn >= this.waveConfig.spawnInterval) {
+    if (this.timeSinceLastSpawn >= effectiveInterval) {
       if (this.dishesSpawned < this.waveConfig.dishCount || this.isFeverTime) {
         this.spawnDish();
         this.timeSinceLastSpawn = 0;
@@ -131,16 +155,12 @@ export class WaveSystem {
 
     // 유효한 스폰 위치 찾기
     const position = this.findValidSpawnPosition();
-    if (!position) return; // 유효한 위치가 없으면 스폰하지 않음
+    if (!position) return;
 
     // 가중치 기반 타입 선택
     const type = this.selectDishType(this.waveConfig.dishTypes);
 
     const { x, y } = position;
-
-    // 위치 추적에 추가
-    const dishId = this.nextDishId++;
-    this.activeDishPositions.push({ x, y, id: dishId });
 
     // 웨이브별 속도 배율 (타임아웃 방식에서는 사용하지 않지만 호환성 유지)
     const speedMultiplier = this.isFeverTime ? 2.5 : 1 + (this.currentWave - 1) * 0.1;
@@ -153,16 +173,17 @@ export class WaveSystem {
   }
 
   private findValidSpawnPosition(): { x: number; y: number } | null {
+    const activeDishes = this.getDishPool().getActiveObjects();
     const maxAttempts = 20;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const x = Phaser.Math.Between(SPAWN_AREA.minX, SPAWN_AREA.maxX);
       const y = Phaser.Math.Between(SPAWN_AREA.minY, SPAWN_AREA.maxY);
 
-      // 기존 접시들과 거리 체크
+      // 실제 활성 접시들과 거리 체크
       let isValid = true;
-      for (const pos of this.activeDishPositions) {
-        const distance = Phaser.Math.Distance.Between(x, y, pos.x, pos.y);
+      for (const dish of activeDishes) {
+        const distance = Phaser.Math.Distance.Between(x, y, dish.x, dish.y);
         if (distance < MIN_DISH_DISTANCE) {
           isValid = false;
           break;
@@ -177,27 +198,8 @@ export class WaveSystem {
     return null; // 유효한 위치를 찾지 못함
   }
 
-  removeDishPosition(x: number, y: number): void {
-    // 가장 가까운 위치의 접시 제거
-    let closestIndex = -1;
-    let closestDistance = Infinity;
-
-    for (let i = 0; i < this.activeDishPositions.length; i++) {
-      const pos = this.activeDishPositions[i];
-      const distance = Phaser.Math.Distance.Between(x, y, pos.x, pos.y);
-      if (distance < closestDistance) {
-        closestDistance = distance;
-        closestIndex = i;
-      }
-    }
-
-    if (closestIndex !== -1 && closestDistance < 50) {
-      this.activeDishPositions.splice(closestIndex, 1);
-    }
-  }
-
   getActiveDishCount(): number {
-    return this.activeDishPositions.length;
+    return this.getDishPool().getActiveCount();
   }
 
   private selectDishType(types: { type: string; weight: number }[]): string {
@@ -224,10 +226,8 @@ export class WaveSystem {
     ) {
       EventBus.getInstance().emit(GameEvents.WAVE_COMPLETED, this.currentWave);
 
-      // 다음 웨이브 시작 (딜레이)
-      this.scene.time.delayedCall(2000, () => {
-        this.startWave(this.currentWave + 1);
-      });
+      // 다음 웨이브 즉시 시작 (콤보가 끊기지 않도록)
+      this.startWave(this.currentWave + 1);
     }
   }
 

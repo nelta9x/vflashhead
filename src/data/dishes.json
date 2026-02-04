@@ -3,60 +3,66 @@
     "name": "기본 접시",
     "hp": 10,
     "points": 100,
-    "speed": 100,
+    "speed": 110,
     "color": "#00ffff",
     "size": 30,
     "chainReaction": false,
-    "dangerous": false
+    "dangerous": false,
+    "invulnerable": false
   },
   "golden": {
     "name": "골든 접시",
-    "hp": 15,
+    "hp": 20,
     "points": 500,
-    "speed": 150,
+    "speed": 90,
     "color": "#ffd700",
     "size": 35,
     "chainReaction": false,
-    "dangerous": false
+    "dangerous": false,
+    "invulnerable": false
   },
   "crystal": {
     "name": "크리스탈 접시",
-    "hp": 5,
+    "hp": 15,
     "points": 200,
-    "speed": 200,
+    "speed": 150,
     "color": "#ff00ff",
     "size": 25,
     "chainReaction": true,
-    "dangerous": false
+    "dangerous": false,
+    "invulnerable": false
   },
   "bomb": {
     "name": "폭탄 접시",
-    "hp": 20,
-    "points": 50,
-    "speed": 80,
+    "hp": 999,
+    "points": 0,
+    "speed": 85,
     "color": "#ff0044",
     "size": 40,
     "chainReaction": false,
-    "dangerous": true
+    "dangerous": true,
+    "invulnerable": true
   },
   "mini": {
     "name": "미니 접시",
-    "hp": 3,
+    "hp": 5,
     "points": 50,
-    "speed": 250,
+    "speed": 200,
     "color": "#00ff88",
     "size": 15,
     "chainReaction": false,
-    "dangerous": false
+    "dangerous": false,
+    "invulnerable": false
   },
   "boss": {
     "name": "보스 접시",
-    "hp": 100,
+    "hp": 80,
     "points": 2000,
-    "speed": 50,
+    "speed": 55,
     "color": "#ff00ff",
     "size": 60,
     "chainReaction": false,
-    "dangerous": true
+    "dangerous": false,
+    "invulnerable": false
   }
 }

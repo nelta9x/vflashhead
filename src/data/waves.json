@@ -3,8 +3,8 @@
     {
       "number": 1,
       "name": "시작",
-      "dishCount": 5,
-      "spawnInterval": 1500,
+      "dishCount": 3,
+      "spawnInterval": 2500,
       "dishTypes": [
         { "type": "basic", "weight": 1 }
       ]
@@ -12,125 +12,136 @@
     {
       "number": 2,
       "name": "워밍업",
-      "dishCount": 7,
-      "spawnInterval": 1300,
+      "dishCount": 4,
+      "spawnInterval": 2300,
       "dishTypes": [
-        { "type": "basic", "weight": 1 }
+        { "type": "basic", "weight": 0.8 },
+        { "type": "mini", "weight": 0.2 }
       ]
     },
     {
       "number": 3,
       "name": "첫 보상",
-      "dishCount": 8,
-      "spawnInterval": 1200,
+      "dishCount": 5,
+      "spawnInterval": 2100,
       "dishTypes": [
-        { "type": "basic", "weight": 0.9 },
+        { "type": "basic", "weight": 0.7 },
+        { "type": "mini", "weight": 0.2 },
         { "type": "golden", "weight": 0.1 }
       ]
     },
     {
       "number": 4,
       "name": "상승",
-      "dishCount": 10,
-      "spawnInterval": 1100,
+      "dishCount": 5,
+      "spawnInterval": 2000,
       "dishTypes": [
-        { "type": "basic", "weight": 0.7 },
-        { "type": "golden", "weight": 0.2 },
+        { "type": "basic", "weight": 0.6 },
+        { "type": "mini", "weight": 0.2 },
+        { "type": "golden", "weight": 0.1 },
         { "type": "crystal", "weight": 0.1 }
       ]
     },
     {
       "number": 5,
       "name": "다양성",
-      "dishCount": 12,
-      "spawnInterval": 1000,
+      "dishCount": 6,
+      "spawnInterval": 1900,
       "dishTypes": [
-        { "type": "basic", "weight": 0.6 },
-        { "type": "golden", "weight": 0.2 },
-        { "type": "crystal", "weight": 0.2 }
+        { "type": "basic", "weight": 0.5 },
+        { "type": "mini", "weight": 0.2 },
+        { "type": "golden", "weight": 0.15 },
+        { "type": "crystal", "weight": 0.15 }
       ]
     },
     {
       "number": 6,
       "name": "위험 등장",
-      "dishCount": 14,
-      "spawnInterval": 900,
+      "dishCount": 6,
+      "spawnInterval": 1800,
       "dishTypes": [
         { "type": "basic", "weight": 0.5 },
-        { "type": "golden", "weight": 0.2 },
-        { "type": "crystal", "weight": 0.2 },
-        { "type": "bomb", "weight": 0.1 }
+        { "type": "mini", "weight": 0.2 },
+        { "type": "golden", "weight": 0.15 },
+        { "type": "crystal", "weight": 0.1 },
+        { "type": "bomb", "weight": 0.05 }
       ]
     },
     {
       "number": 7,
       "name": "혼돈",
-      "dishCount": 16,
-      "spawnInterval": 800,
+      "dishCount": 7,
+      "spawnInterval": 1700,
       "dishTypes": [
-        { "type": "basic", "weight": 0.4 },
-        { "type": "golden", "weight": 0.25 },
-        { "type": "crystal", "weight": 0.25 },
-        { "type": "bomb", "weight": 0.1 }
+        { "type": "basic", "weight": 0.45 },
+        { "type": "mini", "weight": 0.2 },
+        { "type": "golden", "weight": 0.15 },
+        { "type": "crystal", "weight": 0.12 },
+        { "type": "bomb", "weight": 0.08 }
       ]
     },
     {
       "number": 8,
       "name": "폭풍 전야",
-      "dishCount": 18,
-      "spawnInterval": 700,
+      "dishCount": 8,
+      "spawnInterval": 1600,
       "dishTypes": [
-        { "type": "basic", "weight": 0.3 },
-        { "type": "golden", "weight": 0.3 },
-        { "type": "crystal", "weight": 0.25 },
-        { "type": "bomb", "weight": 0.15 }
+        { "type": "basic", "weight": 0.4 },
+        { "type": "mini", "weight": 0.2 },
+        { "type": "golden", "weight": 0.18 },
+        { "type": "crystal", "weight": 0.12 },
+        { "type": "bomb", "weight": 0.1 }
       ]
     },
     {
       "number": 9,
       "name": "폭풍",
-      "dishCount": 20,
-      "spawnInterval": 600,
+      "dishCount": 9,
+      "spawnInterval": 1500,
       "dishTypes": [
-        { "type": "basic", "weight": 0.25 },
-        { "type": "golden", "weight": 0.3 },
-        { "type": "crystal", "weight": 0.3 },
-        { "type": "bomb", "weight": 0.15 }
+        { "type": "basic", "weight": 0.35 },
+        { "type": "mini", "weight": 0.2 },
+        { "type": "golden", "weight": 0.2 },
+        { "type": "crystal", "weight": 0.13 },
+        { "type": "bomb", "weight": 0.12 }
       ]
     },
     {
       "number": 10,
       "name": "최대",
-      "dishCount": 25,
-      "spawnInterval": 500,
+      "dishCount": 10,
+      "spawnInterval": 1400,
       "dishTypes": [
-        { "type": "basic", "weight": 0.2 },
-        { "type": "golden", "weight": 0.3 },
-        { "type": "crystal", "weight": 0.3 },
-        { "type": "bomb", "weight": 0.2 }
+        { "type": "basic", "weight": 0.3 },
+        { "type": "mini", "weight": 0.2 },
+        { "type": "golden", "weight": 0.2 },
+        { "type": "crystal", "weight": 0.15 },
+        { "type": "bomb", "weight": 0.15 }
       ]
     },
     {
       "number": 11,
       "name": "극한",
-      "dishCount": 30,
-      "spawnInterval": 450,
+      "dishCount": 11,
+      "spawnInterval": 1300,
       "dishTypes": [
-        { "type": "basic", "weight": 0.15 },
-        { "type": "golden", "weight": 0.35 },
-        { "type": "crystal", "weight": 0.3 },
-        { "type": "bomb", "weight": 0.2 }
+        { "type": "basic", "weight": 0.25 },
+        { "type": "mini", "weight": 0.2 },
+        { "type": "golden", "weight": 0.22 },
+        { "type": "crystal", "weight": 0.15 },
+        { "type": "bomb", "weight": 0.18 }
       ]
     },
     {
       "number": 12,
       "name": "마지막",
-      "dishCount": 35,
-      "spawnInterval": 400,
+      "dishCount": 12,
+      "spawnInterval": 1200,
       "dishTypes": [
-        { "type": "basic", "weight": 0.1 },
-        { "type": "golden", "weight": 0.35 },
-        { "type": "crystal", "weight": 0.35 },
+        { "type": "basic", "weight": 0.2 },
+        { "type": "mini", "weight": 0.2 },
+        { "type": "golden", "weight": 0.25 },
+        { "type": "crystal", "weight": 0.15 },
         { "type": "bomb", "weight": 0.2 }
       ]
     }
@@ -138,12 +149,13 @@
   "fever": {
     "name": "피버 타임",
     "dishCount": 999,
-    "spawnInterval": 300,
+    "spawnInterval": 600,
     "dishTypes": [
       { "type": "basic", "weight": 0.1 },
+      { "type": "mini", "weight": 0.15 },
       { "type": "golden", "weight": 0.4 },
-      { "type": "crystal", "weight": 0.35 },
-      { "type": "bomb", "weight": 0.15 }
+      { "type": "crystal", "weight": 0.3 },
+      { "type": "bomb", "weight": 0.05 }
     ]
   }
 }

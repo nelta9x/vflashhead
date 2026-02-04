@@ -25,11 +25,13 @@ export class SoundSystem {
       document.removeEventListener('click', initAudio);
       document.removeEventListener('keydown', initAudio);
       document.removeEventListener('touchstart', initAudio);
+      document.removeEventListener('pointermove', initAudio);
     };
 
     document.addEventListener('click', initAudio);
     document.addEventListener('keydown', initAudio);
     document.addEventListener('touchstart', initAudio);
+    document.addEventListener('pointermove', initAudio);
   }
 
   private ensureContext(): boolean {
@@ -254,6 +256,40 @@ export class SoundSystem {
   }
 
   /**
+   * 히트 사운드 (접시에 데미지)
+   * 짧고 경쾌한 "틱" 사운드
+   */
+  playHitSound(): void {
+    if (!this.ensureContext()) return;
+
+    const ctx = this.audioContext!;
+    const now = ctx.currentTime;
+
+    // 짧은 고주파 틱
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(800, now);
+    osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
+
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+
+    // 로우패스 필터로 부드럽게
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 2000;
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.masterGain!);
+
+    osc.start(now);
+    osc.stop(now + 0.05);
+  }
+
+  /**
    * 놓침 사운드 재생
    */
   playMissSound(): void {
@@ -372,5 +408,51 @@ export class SoundSystem {
    */
   unmute(volume: number = 0.3): void {
     this.setVolume(volume);
+  }
+
+  /**
+   * 힐 사운드 재생 (상승 아르페지오)
+   * 밝고 희망적인 느낌의 회복 사운드
+   */
+  playHealSound(): void {
+    if (!this.ensureContext()) return;
+
+    const ctx = this.audioContext!;
+    const now = ctx.currentTime;
+
+    // 상승 아르페지오 (C-E-G-C)
+    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+    const noteDuration = 0.08;
+
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + i * noteDuration);
+
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.setValueAtTime(0.2, now + i * noteDuration);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + i * noteDuration + noteDuration * 3);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain!);
+
+      osc.start(now);
+      osc.stop(now + (i + 3) * noteDuration);
+    });
+
+    // 부드러운 하모닉 추가
+    const harmonicOsc = ctx.createOscillator();
+    const harmonicGain = ctx.createGain();
+    harmonicOsc.type = 'triangle';
+    harmonicOsc.frequency.setValueAtTime(1046.5, now);
+    harmonicOsc.frequency.exponentialRampToValueAtTime(1318.51, now + 0.3);
+    harmonicGain.gain.setValueAtTime(0.1, now);
+    harmonicGain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+    harmonicOsc.connect(harmonicGain);
+    harmonicGain.connect(this.masterGain!);
+    harmonicOsc.start(now);
+    harmonicOsc.stop(now + 0.4);
   }
 }

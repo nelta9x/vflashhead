@@ -1,23 +1,21 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_DURATION, COLORS, COLORS_HEX, INITIAL_HP } from '../config/constants';
-import { ScoreSystem } from '../systems/ScoreSystem';
+import { GAME_WIDTH, COLORS, COLORS_HEX, INITIAL_HP } from '../config/constants';
 import { ComboSystem } from '../systems/ComboSystem';
 import { WaveSystem } from '../systems/WaveSystem';
 import { HealthSystem } from '../systems/HealthSystem';
 
 export class HUD {
   private scene: Phaser.Scene;
-  private scoreSystem: ScoreSystem;
   private comboSystem: ComboSystem;
   private waveSystem: WaveSystem;
   private healthSystem: HealthSystem | null = null;
 
   // UI 요소들
-  private scoreText!: Phaser.GameObjects.Text;
   private comboText!: Phaser.GameObjects.Text;
   private comboBar!: Phaser.GameObjects.Graphics;
   private waveText!: Phaser.GameObjects.Text;
   private timerText!: Phaser.GameObjects.Text;
+  private timerLabel!: Phaser.GameObjects.Text;
   private multiplierText!: Phaser.GameObjects.Text;
   private feverText!: Phaser.GameObjects.Text;
 
@@ -28,13 +26,11 @@ export class HUD {
 
   constructor(
     scene: Phaser.Scene,
-    scoreSystem: ScoreSystem,
     comboSystem: ComboSystem,
     waveSystem: WaveSystem,
     healthSystem?: HealthSystem
   ) {
     this.scene = scene;
-    this.scoreSystem = scoreSystem;
     this.comboSystem = comboSystem;
     this.waveSystem = waveSystem;
     this.healthSystem = healthSystem || null;
@@ -43,24 +39,24 @@ export class HUD {
   }
 
   private createUI(): void {
-    // 점수 (우측 상단)
-    this.scoreText = this.scene.add.text(GAME_WIDTH - 20, 20, '0', {
+    // 생존 시간 (우측 상단) - 정순 카운트
+    this.timerText = this.scene.add.text(GAME_WIDTH - 20, 20, '0:00', {
       fontFamily: 'monospace',
       fontSize: '48px',
-      color: COLORS_HEX.CYAN,
+      color: COLORS_HEX.GREEN,
       stroke: '#000000',
       strokeThickness: 4,
     });
-    this.scoreText.setOrigin(1, 0);
+    this.timerText.setOrigin(1, 0);
 
-    // 점수 레이블
-    const scoreLabel = this.scene.add.text(GAME_WIDTH - 20, 70, 'SCORE', {
+    // 생존 시간 레이블
+    this.timerLabel = this.scene.add.text(GAME_WIDTH - 20, 70, 'SURVIVED', {
       fontFamily: 'monospace',
       fontSize: '14px',
       color: COLORS_HEX.WHITE,
     });
-    scoreLabel.setOrigin(1, 0);
-    scoreLabel.setAlpha(0.7);
+    this.timerLabel.setOrigin(1, 0);
+    this.timerLabel.setAlpha(0.7);
 
     // 콤보 (좌측 상단)
     this.comboText = this.scene.add.text(20, 20, '', {
@@ -84,20 +80,12 @@ export class HUD {
     // 웨이브 (중앙 상단)
     this.waveText = this.scene.add.text(GAME_WIDTH / 2, 20, 'WAVE 1', {
       fontFamily: 'monospace',
-      fontSize: '24px',
+      fontSize: '28px',
       color: COLORS_HEX.WHITE,
       stroke: '#000000',
       strokeThickness: 3,
     });
     this.waveText.setOrigin(0.5, 0);
-
-    // 타이머 (중앙 상단 아래)
-    this.timerText = this.scene.add.text(GAME_WIDTH / 2, 50, '3:00', {
-      fontFamily: 'monospace',
-      fontSize: '20px',
-      color: COLORS_HEX.GREEN,
-    });
-    this.timerText.setOrigin(0.5, 0);
 
     // 피버 타임 텍스트 (숨김)
     this.feverText = this.scene.add.text(GAME_WIDTH / 2, 100, 'FEVER TIME!', {
@@ -207,11 +195,26 @@ export class HUD {
   }
 
   update(gameTime: number): void {
-    // 점수 업데이트
-    this.scoreText.setText(this.formatNumber(this.scoreSystem.getScore()));
-
     // HP 업데이트
     this.updateHpDisplay();
+
+    // 생존 시간 업데이트 (정순 카운트)
+    this.timerText.setText(this.formatTime(gameTime));
+
+    // 생존 시간에 따라 색상 변경 (오래 버틸수록 밝아짐)
+    if (gameTime >= 180000) {
+      // 3분 이상: 골드
+      this.timerText.setColor(COLORS_HEX.YELLOW);
+    } else if (gameTime >= 120000) {
+      // 2분 이상: 시안
+      this.timerText.setColor(COLORS_HEX.CYAN);
+    } else if (gameTime >= 60000) {
+      // 1분 이상: 밝은 녹색
+      this.timerText.setColor('#44ff88');
+    } else {
+      // 1분 미만: 기본 녹색
+      this.timerText.setColor(COLORS_HEX.GREEN);
+    }
 
     // 콤보 업데이트
     const combo = this.comboSystem.getCombo();
@@ -263,19 +266,6 @@ export class HUD {
       this.waveText.setColor(COLORS_HEX.WHITE);
       this.feverText.setVisible(false);
     }
-
-    // 타이머 업데이트
-    const remainingTime = Math.max(0, GAME_DURATION - gameTime);
-    this.timerText.setText(this.formatTime(remainingTime));
-
-    // 타이머 색상 (시간에 따라)
-    if (remainingTime <= 30000) {
-      this.timerText.setColor(COLORS_HEX.RED);
-    } else if (remainingTime <= 60000) {
-      this.timerText.setColor(COLORS_HEX.YELLOW);
-    } else {
-      this.timerText.setColor(COLORS_HEX.GREEN);
-    }
   }
 
   private drawComboBar(): void {
@@ -316,10 +306,6 @@ export class HUD {
       ease: 'Power2',
       onComplete: () => text.destroy(),
     });
-  }
-
-  private formatNumber(num: number): string {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
   private formatTime(ms: number): string {

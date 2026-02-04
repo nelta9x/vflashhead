@@ -2,7 +2,6 @@ import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS, COLORS_HEX } from '../config/constants';
 
 interface GameStats {
-  score: number;
   maxCombo: number;
   wave: number;
   time: number;
@@ -70,63 +69,49 @@ export class GameOverScene extends Phaser.Scene {
   private createStats(): void {
     const statsContainer = this.add.container(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 30);
 
-    // 점수
-    const scoreLabel = this.add.text(-150, -80, 'FINAL SCORE', {
+    // 생존 시간 (최상단, 가장 큰 폰트)
+    const timeLabel = this.add.text(-150, -80, 'SURVIVED', {
+      fontFamily: 'monospace',
+      fontSize: '24px',
+      color: COLORS_HEX.GREEN,
+    });
+
+    const timeValue = this.add.text(150, -80, this.formatTime(this.stats.time), {
+      fontFamily: 'monospace',
+      fontSize: '48px',
+      color: COLORS_HEX.GREEN,
+    }).setOrigin(1, 0);
+
+    // 도달 웨이브
+    const waveLabel = this.add.text(-150, 0, 'WAVE REACHED', {
       fontFamily: 'monospace',
       fontSize: '20px',
       color: COLORS_HEX.WHITE,
     });
 
-    const scoreValue = this.add.text(150, -80, this.formatNumber(this.stats.score), {
+    const waveValue = this.add.text(150, 0, `${this.stats.wave}`, {
       fontFamily: 'monospace',
-      fontSize: '36px',
-      color: COLORS_HEX.CYAN,
+      fontSize: '32px',
+      color: COLORS_HEX.YELLOW,
     }).setOrigin(1, 0);
 
     // 최대 콤보
-    const comboLabel = this.add.text(-150, -20, 'MAX COMBO', {
+    const comboLabel = this.add.text(-150, 60, 'MAX COMBO', {
       fontFamily: 'monospace',
       fontSize: '20px',
       color: COLORS_HEX.WHITE,
     });
 
-    const comboValue = this.add.text(150, -20, `x${this.stats.maxCombo}`, {
+    const comboValue = this.add.text(150, 60, `x${this.stats.maxCombo}`, {
       fontFamily: 'monospace',
       fontSize: '28px',
       color: COLORS_HEX.MAGENTA,
     }).setOrigin(1, 0);
 
-    // 웨이브
-    const waveLabel = this.add.text(-150, 30, 'WAVE REACHED', {
-      fontFamily: 'monospace',
-      fontSize: '20px',
-      color: COLORS_HEX.WHITE,
-    });
-
-    const waveValue = this.add.text(150, 30, `${this.stats.wave}`, {
-      fontFamily: 'monospace',
-      fontSize: '28px',
-      color: COLORS_HEX.YELLOW,
-    }).setOrigin(1, 0);
-
-    // 생존 시간
-    const timeLabel = this.add.text(-150, 80, 'TIME SURVIVED', {
-      fontFamily: 'monospace',
-      fontSize: '20px',
-      color: COLORS_HEX.WHITE,
-    });
-
-    const timeValue = this.add.text(150, 80, this.formatTime(this.stats.time), {
-      fontFamily: 'monospace',
-      fontSize: '28px',
-      color: COLORS_HEX.GREEN,
-    }).setOrigin(1, 0);
-
     statsContainer.add([
-      scoreLabel, scoreValue,
-      comboLabel, comboValue,
-      waveLabel, waveValue,
       timeLabel, timeValue,
+      waveLabel, waveValue,
+      comboLabel, comboValue,
     ]);
 
     // 애니메이션
@@ -196,10 +181,6 @@ export class GameOverScene extends Phaser.Scene {
     });
 
     container.on('pointerdown', callback);
-  }
-
-  private formatNumber(num: number): string {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
   private formatTime(ms: number): string {

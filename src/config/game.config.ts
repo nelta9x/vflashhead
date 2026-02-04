@@ -4,7 +4,6 @@ export {
   GAME_HEIGHT,
   COLORS,
   COLORS_HEX,
-  GAME_DURATION,
   UPGRADE_INTERVAL,
   COMBO_TIMEOUT,
 } from './constants';

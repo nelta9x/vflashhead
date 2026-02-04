@@ -24,8 +24,8 @@ export class ObjectPool<T extends Poolable> {
   acquire(): T | null {
     let obj: T | undefined;
 
-    // 비활성 오브젝트 찾기
-    obj = this.pool.find((o) => !o.active);
+    // 비활성 오브젝트 찾기 (active가 false이고 activeObjects에 없는 것만)
+    obj = this.pool.find((o) => !o.active && !this.activeObjects.has(o));
 
     // 풀에 없으면 새로 생성 (최대 크기 미만일 때)
     if (!obj && this.pool.length < this.maxSize) {

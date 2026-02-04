@@ -162,26 +162,31 @@ export class UpgradeScene extends Phaser.Scene {
 
   private getUpgradeSymbol(upgradeId: string): string {
     const symbols: Record<string, string> = {
-      // Common
-      score_bonus: '+$',
+      // Common - 시각 효과
+      bigger_explosions: '***',
+      screen_shake_boost: '~*~',
+      hit_sparks: '!*!',
       combo_duration: '...',
-      score_bonus_small: '+',
       combo_bonus: 'x2',
-      // Rare
+      // Rare - 범위/연쇄
       aoe_destroy: '(*)',
-      score_bonus_big: '$$',
+      explosion_rainbow: 'RGB',
+      slow_on_destroy: '>>|',
+      screen_flash: '![]',
       combo_duration_big: '>>>',
-      golden_dish_bonus: '[G]',
-      // Epic
-      auto_destroy: '!?',
+      split_on_destroy: '->2',
+      // Epic - 강력한 효과
       aoe_destroy_enhanced: '(**)',
-      score_multiplier: 'x$',
+      freeze_aura: '[F]',
+      electric_shock: '/Z/',
+      magnet_pull: '(O)',
+      piercing_damage: '->|',
       combo_master: 'xN',
-      // Legendary
-      golden_time: '[*]',
+      // Legendary - 궁극
+      fireworks: '***',
       chain_reaction: '***',
-      auto_destroy_enhanced: '!!!',
-      score_explosion: '$*$',
+      nuclear_chain: 'NUC',
+      black_hole: '(@)',
       combo_god: 'GOD',
     };
     return symbols[upgradeId] || '+';

@@ -1,6 +1,17 @@
 import Phaser from 'phaser';
 import { COLORS } from '../config/constants';
 
+// 무지개 색상 배열
+const RAINBOW_COLORS = [
+  0xff0000, // 빨강
+  0xff7f00, // 주황
+  0xffff00, // 노랑
+  0x00ff00, // 초록
+  0x0000ff, // 파랑
+  0x4b0082, // 남색
+  0x9400d3, // 보라
+];
+
 export class ParticleManager {
   private scene: Phaser.Scene;
   private emitters: Map<string, Phaser.GameObjects.Particles.ParticleEmitter> = new Map();
@@ -56,13 +67,16 @@ export class ParticleManager {
     this.emitters.set('spark', sparkEmitter);
   }
 
-  createExplosion(x: number, y: number, color: number, dishType: string): void {
+  createExplosion(x: number, y: number, color: number, dishType: string, particleMultiplier: number = 1): void {
     const emitter = this.emitters.get('explosion');
     if (!emitter) return;
 
     // 타입별 파티클 수 조절
-    const particleCount =
+    let baseCount =
       dishType === 'golden' ? 30 : dishType === 'crystal' ? 25 : dishType === 'bomb' ? 40 : 20;
+
+    // 파티클 배율 적용
+    const particleCount = Math.floor(baseCount * particleMultiplier);
 
     emitter.setParticleTint(color);
     emitter.explode(particleCount, x, y);
@@ -81,12 +95,238 @@ export class ParticleManager {
     }
   }
 
+  // 무지개 폭발 이펙트
+  createRainbowExplosion(x: number, y: number, particleMultiplier: number = 1): void {
+    const emitter = this.emitters.get('explosion');
+    if (!emitter) return;
+
+    const baseCount = Math.floor(5 * particleMultiplier);
+
+    // 각 무지개 색상으로 순차적 폭발
+    RAINBOW_COLORS.forEach((color, index) => {
+      this.scene.time.delayedCall(index * 30, () => {
+        emitter.setParticleTint(color);
+        emitter.explode(baseCount, x, y);
+      });
+    });
+
+    // 무지개 링 효과
+    this.createRainbowRingEffect(x, y);
+  }
+
+  private createRainbowRingEffect(x: number, y: number): void {
+    RAINBOW_COLORS.forEach((color, index) => {
+      this.scene.time.delayedCall(index * 40, () => {
+        const ring = this.scene.add.graphics();
+        ring.lineStyle(3, color, 1);
+        ring.strokeCircle(x, y, 15 + index * 5);
+
+        this.scene.tweens.add({
+          targets: ring,
+          scaleX: 2.5 - index * 0.2,
+          scaleY: 2.5 - index * 0.2,
+          alpha: 0,
+          duration: 400,
+          ease: 'Power2',
+          onComplete: () => ring.destroy(),
+        });
+      });
+    });
+  }
+
+  // 전기 충격 이펙트
+  createElectricEffect(x: number, y: number, targets: { x: number; y: number }[]): void {
+    targets.forEach((target, index) => {
+      this.scene.time.delayedCall(index * 50, () => {
+        this.drawLightning(x, y, target.x, target.y);
+      });
+    });
+
+    // 중심에 스파크
+    this.createSparkBurst(x, y, COLORS.CYAN);
+  }
+
+  private drawLightning(x1: number, y1: number, x2: number, y2: number): void {
+    const lightning = this.scene.add.graphics();
+    lightning.lineStyle(3, COLORS.CYAN, 1);
+
+    // 번개 경로 생성 (지그재그)
+    const segments = 5;
+    const points: { x: number; y: number }[] = [{ x: x1, y: y1 }];
+
+    for (let i = 1; i < segments; i++) {
+      const t = i / segments;
+      const baseX = x1 + (x2 - x1) * t;
+      const baseY = y1 + (y2 - y1) * t;
+      const offset = (Math.random() - 0.5) * 30;
+
+      // 수직 방향으로 오프셋
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      const nx = -dy / len;
+      const ny = dx / len;
+
+      points.push({
+        x: baseX + nx * offset,
+        y: baseY + ny * offset,
+      });
+    }
+    points.push({ x: x2, y: y2 });
+
+    // 번개 그리기
+    lightning.beginPath();
+    lightning.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) {
+      lightning.lineTo(points[i].x, points[i].y);
+    }
+    lightning.strokePath();
+
+    // 글로우 효과
+    const glow = this.scene.add.graphics();
+    glow.lineStyle(8, COLORS.CYAN, 0.3);
+    glow.beginPath();
+    glow.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) {
+      glow.lineTo(points[i].x, points[i].y);
+    }
+    glow.strokePath();
+
+    // 페이드 아웃
+    this.scene.tweens.add({
+      targets: [lightning, glow],
+      alpha: 0,
+      duration: 200,
+      onComplete: () => {
+        lightning.destroy();
+        glow.destroy();
+      },
+    });
+  }
+
+  // 냉동 이펙트
+  createFreezeEffect(x: number, y: number, radius: number): void {
+    // 파란색 냉동 링
+    const ring = this.scene.add.graphics();
+    ring.lineStyle(4, 0x00aaff, 0.8);
+    ring.strokeCircle(x, y, 10);
+
+    // 내부 채우기
+    ring.fillStyle(0x00aaff, 0.2);
+    ring.fillCircle(x, y, 10);
+
+    this.scene.tweens.add({
+      targets: ring,
+      scaleX: radius / 10,
+      scaleY: radius / 10,
+      alpha: 0,
+      duration: 500,
+      ease: 'Power2',
+      onComplete: () => ring.destroy(),
+    });
+
+    // 얼음 파티클
+    const emitter = this.emitters.get('spark');
+    if (emitter) {
+      emitter.setParticleTint(0x88ccff);
+      emitter.explode(15, x, y);
+    }
+  }
+
+  // 블랙홀 이펙트
+  createBlackHoleEffect(x: number, y: number, callback?: () => void): void {
+    // 중심 원
+    const center = this.scene.add.graphics();
+    center.fillStyle(0x000000, 1);
+    center.fillCircle(x, y, 5);
+    center.lineStyle(3, 0x9900ff, 1);
+    center.strokeCircle(x, y, 5);
+
+    // 나선형 파티클
+    const spiralCount = 20;
+    for (let i = 0; i < spiralCount; i++) {
+      const angle = (i / spiralCount) * Math.PI * 4;
+      const startRadius = 150;
+      const startX = x + Math.cos(angle) * startRadius;
+      const startY = y + Math.sin(angle) * startRadius;
+
+      const particle = this.scene.add.circle(startX, startY, 3, 0x9900ff, 0.8);
+
+      this.scene.tweens.add({
+        targets: particle,
+        x: x,
+        y: y,
+        scale: 0,
+        duration: 500 + i * 20,
+        ease: 'Cubic.easeIn',
+        onComplete: () => particle.destroy(),
+      });
+    }
+
+    // 중심 확장 후 사라짐
+    this.scene.tweens.add({
+      targets: center,
+      scaleX: 8,
+      scaleY: 8,
+      duration: 300,
+      delay: 400,
+      ease: 'Power2',
+      onComplete: () => {
+        // 플래시 효과
+        this.scene.cameras.main.flash(100, 153, 0, 255);
+        center.destroy();
+        if (callback) callback();
+      },
+    });
+  }
+
+  // 불꽃놀이 폭발 (3배 강화)
+  createFireworksExplosion(x: number, y: number, color: number): void {
+    const emitter = this.emitters.get('explosion');
+    if (!emitter) return;
+
+    // 3배 파티클
+    emitter.setParticleTint(color);
+    emitter.explode(60, x, y);
+
+    // 3배 링
+    for (let i = 0; i < 3; i++) {
+      this.scene.time.delayedCall(i * 50, () => {
+        this.createRingEffect(x, y, color);
+      });
+    }
+
+    // 추가 스타버스트
+    this.createStarburst(x, y, color);
+    this.createSparkBurst(x, y, color);
+  }
+
   createHitEffect(x: number, y: number, color: number): void {
     const emitter = this.emitters.get('hit');
     if (!emitter) return;
 
     emitter.setParticleTint(color);
     emitter.explode(8, x, y);
+  }
+
+  // 강화된 히트 스파크 (업그레이드용)
+  createEnhancedHitSparks(x: number, y: number, color: number, level: number): void {
+    const emitter = this.emitters.get('spark');
+    if (!emitter) return;
+
+    const sparkCount = 5 + level * 5;
+    emitter.setParticleTint(color);
+    emitter.explode(sparkCount, x, y);
+
+    // 레벨 2 이상: 추가 링
+    if (level >= 2) {
+      this.createRingEffect(x, y, color);
+    }
+
+    // 레벨 3: 스타버스트
+    if (level >= 3) {
+      this.createStarburst(x, y, color);
+    }
   }
 
   createCriticalEffect(x: number, y: number): void {
@@ -116,7 +356,7 @@ export class ParticleManager {
     });
   }
 
-  private createSparkBurst(x: number, y: number, color: number): void {
+  createSparkBurst(x: number, y: number, color: number): void {
     const emitter = this.emitters.get('spark');
     if (!emitter) return;
 
@@ -172,6 +412,119 @@ export class ParticleManager {
       alpha: 0,
       duration: 200,
       onComplete: () => trail.destroy(),
+    });
+  }
+
+  createHealEffect(x: number, y: number, color: number): void {
+    const emitter = this.emitters.get('hit');
+    if (!emitter) return;
+
+    emitter.setParticleTint(color);
+    emitter.explode(15, x, y);
+
+    // 상승하는 + 모양 파티클 효과
+    this.createHealRing(x, y, color);
+    this.createHealSparkles(x, y, color);
+  }
+
+  private createHealRing(x: number, y: number, color: number): void {
+    const ring = this.scene.add.graphics();
+    ring.lineStyle(3, color, 1);
+    ring.strokeCircle(x, y, 15);
+
+    this.scene.tweens.add({
+      targets: ring,
+      scaleX: 2.5,
+      scaleY: 2.5,
+      alpha: 0,
+      duration: 400,
+      ease: 'Power2',
+      onComplete: () => ring.destroy(),
+    });
+  }
+
+  private createHealSparkles(x: number, y: number, color: number): void {
+    // 상승하는 작은 파티클들
+    for (let i = 0; i < 8; i++) {
+      const offsetX = Phaser.Math.Between(-20, 20);
+      const sparkle = this.scene.add.circle(x + offsetX, y, 3, color, 1);
+
+      this.scene.tweens.add({
+        targets: sparkle,
+        y: y - Phaser.Math.Between(40, 80),
+        alpha: 0,
+        scale: 0,
+        duration: Phaser.Math.Between(300, 500),
+        delay: i * 30,
+        ease: 'Power1',
+        onComplete: () => sparkle.destroy(),
+      });
+    }
+  }
+
+  // 방어막 효과
+  createShieldEffect(x: number, y: number, color: number): void {
+    // 육각형 방어막
+    const shield = this.scene.add.graphics();
+    shield.lineStyle(4, color, 1);
+    shield.fillStyle(color, 0.3);
+
+    const sides = 6;
+    const radius = 40;
+    const points: number[] = [];
+
+    for (let i = 0; i < sides; i++) {
+      const angle = (i / sides) * Math.PI * 2 - Math.PI / 2;
+      points.push(x + Math.cos(angle) * radius);
+      points.push(y + Math.sin(angle) * radius);
+    }
+
+    shield.fillPoints(points.map((_, i) => (i % 2 === 0 ? { x: points[i], y: points[i + 1] } : null)).filter(Boolean) as Phaser.Geom.Point[]);
+    shield.strokePoints(points.map((_, i) => (i % 2 === 0 ? { x: points[i], y: points[i + 1] } : null)).filter(Boolean) as Phaser.Geom.Point[], true);
+
+    this.scene.tweens.add({
+      targets: shield,
+      scaleX: 1.5,
+      scaleY: 1.5,
+      alpha: 0,
+      duration: 400,
+      ease: 'Power2',
+      onComplete: () => shield.destroy(),
+    });
+
+    // 스파크 추가
+    this.createSparkBurst(x, y, color);
+  }
+
+  // 자석 효과 시각화
+  createMagnetEffect(x: number, y: number, targets: { x: number; y: number }[]): void {
+    // 중심 원
+    const center = this.scene.add.graphics();
+    center.fillStyle(COLORS.MAGENTA, 0.5);
+    center.fillCircle(x, y, 20);
+    center.lineStyle(2, COLORS.MAGENTA, 1);
+    center.strokeCircle(x, y, 20);
+
+    // 타겟으로 향하는 선
+    targets.forEach((target) => {
+      const line = this.scene.add.graphics();
+      line.lineStyle(2, COLORS.MAGENTA, 0.5);
+      line.lineBetween(x, y, target.x, target.y);
+
+      this.scene.tweens.add({
+        targets: line,
+        alpha: 0,
+        duration: 300,
+        onComplete: () => line.destroy(),
+      });
+    });
+
+    this.scene.tweens.add({
+      targets: center,
+      scale: 1.5,
+      alpha: 0,
+      duration: 300,
+      onComplete: () => center.destroy(),
     });
   }
 }

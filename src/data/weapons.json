@@ -1,0 +1,54 @@
+{
+  "default": {
+    "name": "기본 블래스터",
+    "damage": 10,
+    "fireRate": 5,
+    "projectileSpeed": 800,
+    "projectileCount": 1,
+    "spreadAngle": 15,
+    "piercing": false,
+    "explosive": false,
+    "homing": false,
+    "criticalChance": 0.05,
+    "criticalMultiplier": 2
+  },
+  "machineGun": {
+    "name": "머신건",
+    "damage": 5,
+    "fireRate": 15,
+    "projectileSpeed": 1000,
+    "projectileCount": 1,
+    "spreadAngle": 20,
+    "piercing": false,
+    "explosive": false,
+    "homing": false,
+    "criticalChance": 0.03,
+    "criticalMultiplier": 1.5
+  },
+  "shotgun": {
+    "name": "샷건",
+    "damage": 8,
+    "fireRate": 2,
+    "projectileSpeed": 600,
+    "projectileCount": 5,
+    "spreadAngle": 30,
+    "piercing": false,
+    "explosive": false,
+    "homing": false,
+    "criticalChance": 0.08,
+    "criticalMultiplier": 2.5
+  },
+  "sniper": {
+    "name": "스나이퍼",
+    "damage": 50,
+    "fireRate": 1,
+    "projectileSpeed": 1500,
+    "projectileCount": 1,
+    "spreadAngle": 0,
+    "piercing": true,
+    "explosive": false,
+    "homing": false,
+    "criticalChance": 0.25,
+    "criticalMultiplier": 4
+  }
+}

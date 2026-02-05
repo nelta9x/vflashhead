@@ -21,7 +21,7 @@ export class SlowMotion {
 
     // 즉시 슬로우 모션 적용
     this.scene.time.timeScale = timeScale;
-    this.scene.physics.world.timeScale = 1 / timeScale;
+    this.scene.physics.world.timeScale = timeScale;
   }
 
   update(delta: number): void {
@@ -42,7 +42,7 @@ export class SlowMotion {
         const newTimeScale = this.targetTimeScale + (1 - this.targetTimeScale) * recoveryProgress;
 
         this.scene.time.timeScale = newTimeScale;
-        this.scene.physics.world.timeScale = 1 / newTimeScale;
+        this.scene.physics.world.timeScale = newTimeScale;
       }
     }
   }

@@ -406,11 +406,11 @@ export class GameScene extends Phaser.Scene {
                     
                     // 3. Impact Phase (타격!)
                     
-                    // 히트스탑 (매우 짧은 순간 정지/슬로우)
-                    this.slowMotion.trigger(0.1, 100);
+                    // 히트스탑 (강력한 순간 정지)
+                    this.slowMotion.trigger(0.05, 200);
 
-                    // 화면 흔들림 (더 약하게 조정)
-                    this.cameras.main.shake(150, 0.008);
+                    // 화면 흔들림 (더 더 약하게)
+                    this.cameras.main.shake(100, 0.005);
 
                     this.particleManager.createExplosion(endX, endY, COLORS.RED, 'bomb', 4);
                     this.particleManager.createRainbowExplosion(endX, endY, 2); // 도파민 폭발!

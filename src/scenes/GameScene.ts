@@ -572,7 +572,7 @@ export class GameScene extends Phaser.Scene {
     // 전기 충격 (주변 접시에 데미지)
     const electricLevel = this.upgradeSystem.getElectricShockLevel();
     if (electricLevel > 0) {
-      const electricRadius = 100 + electricLevel * 15; // 레벨당 15 증가
+      const electricRadius = this.upgradeSystem.getElectricShockRadius();
       this.applyElectricShock(x, y, electricLevel, dish, electricRadius);
     }
 
@@ -791,7 +791,7 @@ export class GameScene extends Phaser.Scene {
     const cursorY = pointer.worldY;
 
     // 자기장 범위/힘 계산
-    const magnetRadius = MAGNET.BASE_RADIUS + magnetLevel * MAGNET.RADIUS_PER_LEVEL;
+    const magnetRadius = this.upgradeSystem.getMagnetRadius();
     const magnetForce = MAGNET.BASE_FORCE + magnetLevel * MAGNET.FORCE_PER_LEVEL;
 
     // delta를 초 단위로 변환
@@ -863,7 +863,7 @@ export class GameScene extends Phaser.Scene {
     // 자기장 범위 원 (자기장 레벨 > 0일 때만)
     const magnetLevel = this.upgradeSystem.getMagnetLevel();
     if (magnetLevel > 0) {
-      const magnetRadius = MAGNET.BASE_RADIUS + magnetLevel * MAGNET.RADIUS_PER_LEVEL;
+      const magnetRadius = this.upgradeSystem.getMagnetRadius();
 
       // 자기장 범위 (마젠타, 더 투명하게)
       this.attackRangeIndicator.lineStyle(1, COLORS.MAGENTA, 0.15);

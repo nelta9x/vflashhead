@@ -177,6 +177,15 @@ export class UpgradeSystem {
     return this.electricShockLevel;
   }
 
+  getElectricShockRadius(): number {
+    if (this.electricShockLevel <= 0) return 0;
+    const upgradeData = Data.upgrades.system.find((u) => u.id === 'electric_shock');
+    if (!upgradeData || !upgradeData.meta) return 100 + this.electricShockLevel * 15;
+    
+    const meta = upgradeData.meta;
+    return (meta.baseRadius || 100) + this.electricShockLevel * (meta.radiusPerLevel || 15);
+  }
+
   // ========== 자기장 ==========
   addMagnetLevel(level: number): void {
     this.magnetLevel += level;
@@ -184,6 +193,11 @@ export class UpgradeSystem {
 
   getMagnetLevel(): number {
     return this.magnetLevel;
+  }
+
+  getMagnetRadius(): number {
+    if (this.magnetLevel <= 0) return 0;
+    return Data.magnet.baseRadius + this.magnetLevel * Data.magnet.radiusPerLevel;
   }
 
   // ========== 미사일 ==========

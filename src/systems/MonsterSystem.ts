@@ -1,4 +1,5 @@
 import { EventBus, GameEvents } from '../utils/EventBus';
+import { Data } from '../data/DataManager';
 
 export class MonsterSystem {
   private currentHp: number = 0;
@@ -14,9 +15,18 @@ export class MonsterSystem {
   }
 
   reset(waveNumber: number): void {
-    // Wave 1 starts with 10 HP (for testing/easy start), scaling up.
-    // Example scaling: 10 + (wave-1) * 5
-    this.maxHp = 10 + (waveNumber - 1) * 5;
+    const wavesData = Data.waves;
+    const waveIndex = Math.min(waveNumber - 1, wavesData.waves.length - 1);
+    const baseWave = wavesData.waves[waveIndex];
+
+    if (waveNumber <= wavesData.waves.length) {
+      this.maxHp = baseWave.bossHp;
+    } else {
+      // Infinite scaling
+      const wavesBeyond = waveNumber - wavesData.waves.length;
+      this.maxHp = baseWave.bossHp + wavesBeyond * wavesData.infiniteScaling.bossHpIncrease;
+    }
+
     this.currentHp = this.maxHp;
     this.isDead = false;
     this.emitHpChange();

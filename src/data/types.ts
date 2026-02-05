@@ -205,6 +205,7 @@ export interface WaveData {
   dishCount: number;
   spawnInterval: number;
   dishTypes: DishTypeWeight[];
+  bossHp: number;
 }
 
 export interface InfiniteScalingConfig {
@@ -214,6 +215,7 @@ export interface InfiniteScalingConfig {
   maxBombWeight: number;
   goldenWeightDecrease: number;
   minGoldenWeight: number;
+  bossHpIncrease: number;
 }
 
 export interface FeverConfig {

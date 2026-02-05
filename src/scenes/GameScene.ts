@@ -374,6 +374,8 @@ export class GameScene extends Phaser.Scene {
     if (dish.isDangerous()) {
       // HP 1 감소
       this.healthSystem.takeDamage(1);
+      // 콤보 리셋
+      this.comboSystem.reset();
       // 피드백 효과 (폭발)
       this.feedbackSystem.onBombExploded(x, y);
 

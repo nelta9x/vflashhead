@@ -7,7 +7,8 @@
       "spawnInterval": 1000,
       "dishTypes": [
         { "type": "basic", "weight": 1 }
-      ]
+      ],
+      "bossHp": 5
     },
     {
       "number": 2,
@@ -17,7 +18,8 @@
       "dishTypes": [
         { "type": "basic", "weight": 0.9 },
         { "type": "bomb", "weight": 0.1 }
-      ]
+      ],
+      "bossHp": 10
     },
     {
       "number": 3,
@@ -28,7 +30,8 @@
         { "type": "basic", "weight": 0.8 },
         { "type": "golden", "weight": 0.1 },
         { "type": "bomb", "weight": 0.1 }
-      ]
+      ],
+      "bossHp": 15
     },
     {
       "number": 4,
@@ -40,7 +43,8 @@
         { "type": "golden", "weight": 0.2 },
         { "type": "crystal", "weight": 0.1 },
         { "type": "bomb", "weight": 0.1 }
-      ]
+      ],
+      "bossHp": 20
     },
     {
       "number": 5,
@@ -52,7 +56,8 @@
         { "type": "golden", "weight": 0.2 },
         { "type": "crystal", "weight": 0.15 },
         { "type": "bomb", "weight": 0.15 }
-      ]
+      ],
+      "bossHp": 30
     },
     {
       "number": 6,
@@ -64,7 +69,8 @@
         { "type": "golden", "weight": 0.25 },
         { "type": "crystal", "weight": 0.2 },
         { "type": "bomb", "weight": 0.15 }
-      ]
+      ],
+      "bossHp": 40
     },
     {
       "number": 7,
@@ -76,7 +82,8 @@
         { "type": "golden", "weight": 0.3 },
         { "type": "crystal", "weight": 0.2 },
         { "type": "bomb", "weight": 0.2 }
-      ]
+      ],
+      "bossHp": 50
     },
     {
       "number": 8,
@@ -88,7 +95,8 @@
         { "type": "golden", "weight": 0.3 },
         { "type": "crystal", "weight": 0.25 },
         { "type": "bomb", "weight": 0.2 }
-      ]
+      ],
+      "bossHp": 65
     },
     {
       "number": 9,
@@ -100,7 +108,8 @@
         { "type": "golden", "weight": 0.3 },
         { "type": "crystal", "weight": 0.25 },
         { "type": "bomb", "weight": 0.25 }
-      ]
+      ],
+      "bossHp": 80
     },
     {
       "number": 10,
@@ -112,7 +121,8 @@
         { "type": "golden", "weight": 0.3 },
         { "type": "crystal", "weight": 0.3 },
         { "type": "bomb", "weight": 0.25 }
-      ]
+      ],
+      "bossHp": 100
     },
     {
       "number": 11,
@@ -124,7 +134,8 @@
         { "type": "golden", "weight": 0.35 },
         { "type": "crystal", "weight": 0.3 },
         { "type": "bomb", "weight": 0.25 }
-      ]
+      ],
+      "bossHp": 125
     },
     {
       "number": 12,
@@ -136,7 +147,8 @@
         { "type": "golden", "weight": 0.35 },
         { "type": "crystal", "weight": 0.3 },
         { "type": "bomb", "weight": 0.25 }
-      ]
+      ],
+      "bossHp": 150
     }
   ],
   "fever": {
@@ -156,6 +168,7 @@
     "bombWeightIncrease": 0.02,
     "maxBombWeight": 0.35,
     "goldenWeightDecrease": 0.01,
-    "minGoldenWeight": 0.2
+    "minGoldenWeight": 0.2,
+    "bossHpIncrease": 30
   }
 }

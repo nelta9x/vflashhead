@@ -126,11 +126,10 @@ describe('UpgradeSystem - 간소화된 시스템', () => {
         for (let i = 0; i < 7; i++) {
           upgrade.applyUpgrade(cursorUpgrade);
         }
-        expect(upgrade.getUpgradeStack('cursor_size')).toBe(5);
-        expect(upgrade.getCursorSizeBonus()).toBeCloseTo(0.4); // 0.08 * 5
-      }
-    });
-
+                    expect(upgrade.getUpgradeStack('cursor_size')).toBe(5);
+                    expect(upgrade.getCursorSizeBonus()).toBeCloseTo(1.0); // 0.2 * 5
+                }
+            });
     it('전기 충격 스택 (maxStack=5)', async () => {
       const { UpgradeSystem } = await import('../src/systems/UpgradeSystem');
       const upgrade = new UpgradeSystem();

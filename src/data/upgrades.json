@@ -218,7 +218,7 @@
       "descriptionTemplate": "커서 판정 범위가 {value}% 증가합니다.",
       "rarity": "rare",
       "effectType": "cursorSizeBonus",
-      "value": 0.08,
+      "value": 0.2,
       "maxStack": 5
     },
     {

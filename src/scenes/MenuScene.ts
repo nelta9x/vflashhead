@@ -6,12 +6,15 @@ export class MenuScene extends Phaser.Scene {
   private titleText!: Phaser.GameObjects.Text;
   private startPrompt!: Phaser.GameObjects.Text;
   private isTransitioning: boolean = false;
+  private totalMouseMoveDistance: number = 0;
+  private readonly MOVE_THRESHOLD: number = 1000; // 1000픽셀 이상 움직여야 시작
 
   constructor() {
     super({ key: 'MenuScene' });
   }
 
   create(): void {
+    this.totalMouseMoveDistance = 0;
     this.createBackground();
     this.createTitle();
     
@@ -58,7 +61,7 @@ export class MenuScene extends Phaser.Scene {
     });
 
     // 시작 안내 텍스트 (작고 희미하게)
-    this.startPrompt = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 60, 'PRESS ANY KEY OR MOVE MOUSE', {
+    this.startPrompt = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 60, 'PRESS ANY KEY OR SHAKE MOUSE', {
       fontFamily: FONTS.MAIN,
       fontSize: '18px',
       color: COLORS_HEX.WHITE,
@@ -82,14 +85,32 @@ export class MenuScene extends Phaser.Scene {
     // 마우스 클릭
     this.input.on('pointerdown', () => this.startGame());
     
-    // 마우스 움직임 감지 (임계값을 낮춰 더 민감하게 반응)
-    this.input.on('pointermove', () => {
-      this.startGame();
+    // 마우스 움직임 감지 (누적 거리가 임계값을 넘어야 시작)
+    this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+      if (this.isTransitioning) return;
+      
+      // 이동 거리 누적 (이전 위치와의 차이 계산)
+      const dist = Phaser.Math.Distance.Between(pointer.x, pointer.y, pointer.prevPosition.x, pointer.prevPosition.y);
+      this.totalMouseMoveDistance += dist;
+
+      if (this.totalMouseMoveDistance > this.MOVE_THRESHOLD) {
+        this.startGame();
+      }
     });
 
     // 화면 어디든 클릭 시 시작 (안전장치)
     window.addEventListener('mousedown', () => this.startGame(), { once: true });
     window.addEventListener('keydown', () => this.startGame(), { once: true });
+  }
+
+  update(_time: number, delta: number): void {
+    if (this.isTransitioning) return;
+
+    // 매 프레임마다 누적 거리 감쇠 (초당 400픽셀 속도로 감소)
+    // 가만히 있으면 수치가 줄어들어 "흔들기"를 유도함
+    if (this.totalMouseMoveDistance > 0) {
+      this.totalMouseMoveDistance = Math.max(0, this.totalMouseMoveDistance - (400 * delta) / 1000);
+    }
   }
 
   private startGame(): void {

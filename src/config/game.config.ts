@@ -30,4 +30,7 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
     pixelArt: false,
     antialias: true,
   },
+  audio: {
+    noAudio: true,
+  },
 };

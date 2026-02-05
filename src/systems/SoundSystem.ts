@@ -25,7 +25,6 @@ export class SoundSystem {
       this.masterGain = this.audioContext.createGain();
       this.masterGain.gain.value = 0.3; // 마스터 볼륨
       this.masterGain.connect(this.audioContext.destination);
-      this.initialized = true;
     }
     
     // 이미 생성되었더라도 suspended 상태라면 resume 시도

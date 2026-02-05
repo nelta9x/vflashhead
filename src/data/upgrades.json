@@ -233,7 +233,7 @@
       "meta": {
         "baseRadius": 150,
         "radiusPerLevel": 30,
-        "baseDamage": 3,
+        "baseDamage": 2,
         "damagePerLevel": 1
       }
     },

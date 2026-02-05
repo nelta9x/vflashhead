@@ -38,9 +38,9 @@ export class HUD {
     this.waveText.setOrigin(1, 0);
 
     // 생존 시간 (우측 상단) - 정순 카운트
-    this.timerText = this.scene.add.text(GAME_WIDTH - 20, 30, '0:00', {
+    this.timerText = this.scene.add.text(GAME_WIDTH - 20, 32, '0:00', {
       fontFamily: FONTS.MAIN,
-      fontSize: '32px',
+      fontSize: '24px',
       color: COLORS_HEX.GREEN,
       stroke: '#000000',
       strokeThickness: 4,

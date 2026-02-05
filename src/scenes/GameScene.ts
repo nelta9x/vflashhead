@@ -532,8 +532,9 @@ export class GameScene extends Phaser.Scene {
       onComplete: () => {
         missile.destroy();
 
-        // 데미지 1 적용 (전체 데미지는 미사일 개수와 동일해짐)
-        this.monsterSystem.takeDamage(1);
+        // 데미지 1 + 업그레이드 보너스 적용
+        const totalDamage = 1 + this.upgradeSystem.getCursorDamageBonus();
+        this.monsterSystem.takeDamage(totalDamage);
 
         // 타격 피드백 (마지막 발사일수록 더 강하게)
         if (index === total - 1) {
@@ -750,6 +751,7 @@ export class GameScene extends Phaser.Scene {
       // 업그레이드 옵션 적용
       const options = {
         cursorSizeBonus: this.upgradeSystem.getCursorSizeBonus(),
+        damageBonus: this.upgradeSystem.getCursorDamageBonus(),
       };
       dish.spawn(x, y, type, speedMultiplier, options);
       this.dishes.add(dish);

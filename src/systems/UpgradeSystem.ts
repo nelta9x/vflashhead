@@ -193,6 +193,15 @@ export class UpgradeSystem {
     return this.cursorSizeBonus;
   }
 
+  getCursorDamageBonus(): number {
+    const stack = this.getUpgradeStack('cursor_size');
+    if (stack <= 0) return 0;
+    const upgradeData = Data.upgrades.system.find((u) => u.id === 'cursor_size');
+    if (!upgradeData || !upgradeData.meta) return 0;
+    const meta = upgradeData.meta;
+    return (meta.baseDamage || 0) + stack * (meta.damagePerLevel || 0);
+  }
+
   // ========== 전기 충격 ==========
   addElectricShockLevel(level: number): void {
     this.electricShockLevel += level;
@@ -305,7 +314,11 @@ export class UpgradeSystem {
     switch (upgradeData.effectType) {
       case 'cursorSizeBonus': {
         const percentage = Math.round(upgradeData.value * stack * 100);
-        return template.replace('{value}', percentage.toString());
+        const meta = upgradeData.meta!;
+        const damage = (meta.baseDamage || 0) + stack * (meta.damagePerLevel || 0);
+        return template
+          .replace('{value}', percentage.toString())
+          .replace('{damage}', damage.toString());
       }
 
       case 'electricShockLevel': {
@@ -359,10 +372,14 @@ export class UpgradeSystem {
       case 'cursorSizeBonus': {
         const currentPct = Math.round(upgradeData.value * currentStack * 100);
         const nextPct = Math.round(upgradeData.value * nextStack * 100);
+        const meta = upgradeData.meta!;
+        const currentDamage = (meta.baseDamage || 0) + currentStack * (meta.damagePerLevel || 0);
+        const nextDamage = (meta.baseDamage || 0) + nextStack * (meta.damagePerLevel || 0);
+
         if (currentStack === 0) {
-          return `커서 범위 +${nextPct}%`;
+          return `커서 범위 +${nextPct}%, 데미지 +${nextDamage}`;
         }
-        return `커서 범위 ${currentPct}% → ${nextPct}%`;
+        return `범위 ${currentPct}%→${nextPct}%, 데미지 ${currentDamage}→${nextDamage}`;
       }
 
       case 'electricShockLevel': {

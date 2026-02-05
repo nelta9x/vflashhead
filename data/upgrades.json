@@ -214,12 +214,16 @@
     {
       "id": "cursor_size",
       "name": "넓은 타격",
-      "description": "커서 판정 범위 증가",
-      "descriptionTemplate": "커서 판정 범위가 {value}% 증가합니다.",
+      "description": "커서 판정 범위 및 데미지 증가",
+      "descriptionTemplate": "커서 판정 범위가 {value}% 증가하고, 데미지가 {damage} 증가합니다.",
       "rarity": "common",
       "effectType": "cursorSizeBonus",
       "value": 0.2,
-      "maxStack": 5
+      "maxStack": 5,
+      "meta": {
+        "baseDamage": 0,
+        "damagePerLevel": 1
+      }
     },
     {
       "id": "electric_shock",

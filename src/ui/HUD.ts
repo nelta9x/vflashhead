@@ -27,8 +27,18 @@ export class HUD {
   }
 
   private createUI(): void {
+    // 웨이브 (우측 상단, 타이머 위)
+    this.waveText = this.scene.add.text(GAME_WIDTH - 20, 10, 'WAVE 1', {
+      fontFamily: FONTS.MAIN,
+      fontSize: '16px',
+      color: COLORS_HEX.WHITE,
+      stroke: '#000000',
+      strokeThickness: 3,
+    });
+    this.waveText.setOrigin(1, 0);
+
     // 생존 시간 (우측 상단) - 정순 카운트
-    this.timerText = this.scene.add.text(GAME_WIDTH - 20, 20, '0:00', {
+    this.timerText = this.scene.add.text(GAME_WIDTH - 20, 30, '0:00', {
       fontFamily: FONTS.MAIN,
       fontSize: '32px',
       color: COLORS_HEX.GREEN,
@@ -36,16 +46,6 @@ export class HUD {
       strokeThickness: 4,
     });
     this.timerText.setOrigin(1, 0);
-
-    // 웨이브 (중앙 상단)
-    this.waveText = this.scene.add.text(GAME_WIDTH / 2, 20, 'WAVE 1', {
-      fontFamily: FONTS.MAIN,
-      fontSize: '28px',
-      color: COLORS_HEX.WHITE,
-      stroke: '#000000',
-      strokeThickness: 3,
-    });
-    this.waveText.setOrigin(0.5, 0);
 
     // 피버 타임 텍스트 (숨김)
     this.feverText = this.scene.add.text(GAME_WIDTH / 2, 100, 'FEVER TIME!', {

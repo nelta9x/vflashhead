@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, GAME_WIDTH, GAME_HEIGHT } from '../config/constants';
+import { COLORS, GAME_WIDTH, GAME_HEIGHT, FONTS } from '../config/constants';
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -15,7 +15,7 @@ export class BootScene extends Phaser.Scene {
     progressBox.fillRect(GAME_WIDTH / 2 - 160, GAME_HEIGHT / 2 - 25, 320, 50);
 
     const loadingText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 50, 'LOADING...', {
-      fontFamily: 'monospace',
+      fontFamily: FONTS.MAIN,
       fontSize: '24px',
       color: '#00ffff',
     });

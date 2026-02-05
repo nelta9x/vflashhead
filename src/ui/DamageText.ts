@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS_HEX } from '../config/constants';
+import { COLORS_HEX, FONTS } from '../config/constants';
 import { Data } from '../data/DataManager';
 
 type DamageType = 'normal' | 'critical';
@@ -28,7 +28,7 @@ export class DamageText {
     // 텍스트 풀 생성
     for (let i = 0; i < 20; i++) {
       const text = scene.add.text(0, 0, '', {
-        fontFamily: 'monospace',
+        fontFamily: FONTS.MAIN,
         fontSize: '20px',
         color: COLORS_HEX.WHITE,
         stroke: '#000000',
@@ -43,7 +43,7 @@ export class DamageText {
     // 콤보 텍스트 풀 생성
     for (let i = 0; i < 20; i++) {
       const comboText = scene.add.text(0, 0, '', {
-        fontFamily: 'monospace',
+        fontFamily: FONTS.MAIN,
         fontSize: '16px',
         color: COLORS_HEX.WHITE,
         stroke: '#000000',
@@ -81,14 +81,13 @@ export class DamageText {
     const config = Data.feedback.damageText;
     const typeConfig = config[type];
     const comboConfig = config.combo;
-    const anim = config.animation;
 
     let text = this.pool.find((t) => !this.activeTexts.has(t));
 
     if (!text) {
       const style = config.style;
       text = this.scene.add.text(0, 0, '', {
-        fontFamily: 'monospace',
+        fontFamily: FONTS.MAIN,
         fontSize: '20px',
         color: COLORS_HEX.WHITE,
         stroke: '#000000',
@@ -138,7 +137,7 @@ export class DamageText {
 
       if (!comboText) {
         comboText = this.scene.add.text(0, 0, '', {
-          fontFamily: 'monospace',
+          fontFamily: FONTS.MAIN,
           fontSize: '16px',
           color: COLORS_HEX.WHITE,
           stroke: '#000000',
@@ -241,7 +240,7 @@ export class DamageText {
     if (!text) {
       // 풀이 가득 찼으면 새로 생성
       text = this.scene.add.text(0, 0, '', {
-        fontFamily: 'monospace',
+        fontFamily: FONTS.MAIN,
         fontSize: '20px',
         color: COLORS_HEX.WHITE,
         stroke: '#000000',

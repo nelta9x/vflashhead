@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, COLORS, COLORS_HEX, UPGRADE_UI } from '../config/constants';
+import { GAME_WIDTH, GAME_HEIGHT, COLORS, COLORS_HEX, UPGRADE_UI, FONTS } from '../config/constants';
 import { UpgradeSystem, Upgrade } from '../systems/UpgradeSystem';
 import { EventBus, GameEvents } from '../utils/EventBus';
 
@@ -113,7 +113,7 @@ export class InGameUpgradeUI {
     // 아이콘
     const iconSymbol = this.getUpgradeSymbol(upgrade.id);
     const icon = this.scene.add.text(0, -BOX_HEIGHT / 2 + 28, iconSymbol, {
-      fontFamily: 'monospace',
+      fontFamily: FONTS.MAIN,
       fontSize: '28px',
       color: `#${borderColor.toString(16).padStart(6, '0')}`,
     }).setOrigin(0.5);
@@ -121,7 +121,7 @@ export class InGameUpgradeUI {
 
     // 이름
     const name = this.scene.add.text(0, -BOX_HEIGHT / 2 + 58, upgrade.name, {
-      fontFamily: 'monospace',
+      fontFamily: FONTS.KOREAN,
       fontSize: '14px',
       color: COLORS_HEX.WHITE,
       wordWrap: { width: BOX_WIDTH - 20 },
@@ -132,7 +132,7 @@ export class InGameUpgradeUI {
     // 효과 미리보기 설명
     const previewDesc = this.upgradeSystem.getPreviewDescription(upgrade.id);
     const descText = this.scene.add.text(0, -BOX_HEIGHT / 2 + 88, previewDesc, {
-      fontFamily: 'monospace',
+      fontFamily: FONTS.KOREAN,
       fontSize: '12px',
       color: '#cccccc',
       wordWrap: { width: BOX_WIDTH - 24 },

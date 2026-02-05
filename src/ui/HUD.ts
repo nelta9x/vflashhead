@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, COLORS, COLORS_HEX, INITIAL_HP } from '../config/constants';
+import { GAME_WIDTH, COLORS, COLORS_HEX, INITIAL_HP, FONTS } from '../config/constants';
 import { WaveSystem } from '../systems/WaveSystem';
 import { HealthSystem } from '../systems/HealthSystem';
 
@@ -33,7 +33,7 @@ export class HUD {
   private createUI(): void {
     // 생존 시간 (우측 상단) - 정순 카운트
     this.timerText = this.scene.add.text(GAME_WIDTH - 20, 20, '0:00', {
-      fontFamily: 'monospace',
+      fontFamily: FONTS.MAIN,
       fontSize: '32px',
       color: COLORS_HEX.GREEN,
       stroke: '#000000',
@@ -43,7 +43,7 @@ export class HUD {
 
     // 웨이브 (중앙 상단)
     this.waveText = this.scene.add.text(GAME_WIDTH / 2, 20, 'WAVE 1', {
-      fontFamily: 'monospace',
+      fontFamily: FONTS.MAIN,
       fontSize: '28px',
       color: COLORS_HEX.WHITE,
       stroke: '#000000',
@@ -53,7 +53,7 @@ export class HUD {
 
     // 피버 타임 텍스트 (숨김)
     this.feverText = this.scene.add.text(GAME_WIDTH / 2, 100, 'FEVER TIME!', {
-      fontFamily: 'monospace',
+      fontFamily: FONTS.MAIN,
       fontSize: '32px',
       color: COLORS_HEX.YELLOW,
       stroke: COLORS_HEX.RED,
@@ -200,7 +200,7 @@ export class HUD {
 
   showWaveComplete(waveNumber: number): void {
     const text = this.scene.add.text(GAME_WIDTH / 2, 200, `WAVE ${waveNumber} COMPLETE!`, {
-      fontFamily: 'monospace',
+      fontFamily: FONTS.MAIN,
       fontSize: '36px',
       color: COLORS_HEX.GREEN,
       stroke: '#000000',

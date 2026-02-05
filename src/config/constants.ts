@@ -55,6 +55,12 @@ export const COMBO_TIMEOUT = Data.combo.timeout.base;
 // HP 시스템
 export const INITIAL_HP = Data.gameConfig.player.initialHp;
 
+// 폰트 설정
+export const FONTS = {
+  MAIN: "'Orbitron', 'Black Han Sans', sans-serif",
+  KOREAN: "'Black Han Sans', 'Orbitron', sans-serif",
+} as const;
+
 // 접시 생존 시간 (밀리초)
 export const DISH_LIFETIME = {
   basic: Data.dishes.dishes.basic.lifetime,

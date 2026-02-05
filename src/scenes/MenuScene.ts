@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, COLORS_HEX, GAME_WIDTH, GAME_HEIGHT } from '../config/constants';
+import { COLORS, COLORS_HEX, GAME_WIDTH, GAME_HEIGHT, FONTS } from '../config/constants';
 
 export class MenuScene extends Phaser.Scene {
   private titleText!: Phaser.GameObjects.Text;
@@ -44,7 +44,7 @@ export class MenuScene extends Phaser.Scene {
   private createTitle(): void {
     // 메인 타이틀
     this.titleText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 3, 'VIBESHOOTER', {
-      fontFamily: 'monospace',
+      fontFamily: FONTS.MAIN,
       fontSize: '72px',
       color: COLORS_HEX.CYAN,
       stroke: COLORS_HEX.WHITE,
@@ -65,7 +65,7 @@ export class MenuScene extends Phaser.Scene {
     // 서브타이틀
     this.add
       .text(GAME_WIDTH / 2, GAME_HEIGHT / 3 + 60, '네온 접시깨기 로그라이크', {
-        fontFamily: 'monospace',
+        fontFamily: FONTS.KOREAN,
         fontSize: '24px',
         color: COLORS_HEX.MAGENTA,
       })
@@ -86,7 +86,7 @@ export class MenuScene extends Phaser.Scene {
 
     // 버튼 텍스트
     const buttonText = this.add.text(0, 0, 'START GAME', {
-      fontFamily: 'monospace',
+      fontFamily: FONTS.MAIN,
       fontSize: '28px',
       color: COLORS_HEX.CYAN,
     });
@@ -156,7 +156,7 @@ export class MenuScene extends Phaser.Scene {
 
     instructions.forEach((text, index) => {
       const instructionText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 150 + index * 25, text, {
-        fontFamily: 'monospace',
+        fontFamily: FONTS.KOREAN,
         fontSize: '16px',
         color: COLORS_HEX.WHITE,
       });

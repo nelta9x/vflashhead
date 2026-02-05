@@ -154,6 +154,7 @@ export class GameScene extends Phaser.Scene {
 
     // 어빌리티 패널 (DOM 기반)
     this.abilityPanel = new AbilityPanel();
+    this.abilityPanel.setUpgradeSystem(this.upgradeSystem);
   }
 
   private initializeEntities(): void {

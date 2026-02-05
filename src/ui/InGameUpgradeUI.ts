@@ -112,7 +112,7 @@ export class InGameUpgradeUI {
 
     // 아이콘
     const iconSymbol = this.getUpgradeSymbol(upgrade.id);
-    const icon = this.scene.add.text(0, -BOX_HEIGHT / 2 + 25, iconSymbol, {
+    const icon = this.scene.add.text(0, -BOX_HEIGHT / 2 + 28, iconSymbol, {
       fontFamily: 'monospace',
       fontSize: '28px',
       color: `#${borderColor.toString(16).padStart(6, '0')}`,
@@ -120,7 +120,7 @@ export class InGameUpgradeUI {
     container.add(icon);
 
     // 이름
-    const name = this.scene.add.text(0, -BOX_HEIGHT / 2 + 55, upgrade.name, {
+    const name = this.scene.add.text(0, -BOX_HEIGHT / 2 + 58, upgrade.name, {
       fontFamily: 'monospace',
       fontSize: '14px',
       color: COLORS_HEX.WHITE,
@@ -129,13 +129,16 @@ export class InGameUpgradeUI {
     }).setOrigin(0.5);
     container.add(name);
 
-    // 레어리티 뱃지
-    const rarityText = this.scene.add.text(0, BOX_HEIGHT / 2 - 35, upgrade.rarity.toUpperCase(), {
+    // 효과 미리보기 설명
+    const previewDesc = this.upgradeSystem.getPreviewDescription(upgrade.id);
+    const descText = this.scene.add.text(0, -BOX_HEIGHT / 2 + 88, previewDesc, {
       fontFamily: 'monospace',
-      fontSize: '10px',
-      color: `#${borderColor.toString(16).padStart(6, '0')}`,
-    }).setOrigin(0.5);
-    container.add(rarityText);
+      fontSize: '12px',
+      color: '#cccccc',
+      wordWrap: { width: BOX_WIDTH - 24 },
+      align: 'center',
+    }).setOrigin(0.5, 0);
+    container.add(descText);
 
     // 진행바 배경
     const progressBarBg = this.scene.add.graphics();

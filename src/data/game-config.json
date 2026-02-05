@@ -1,0 +1,29 @@
+{
+  "screen": {
+    "width": 1280,
+    "height": 720
+  },
+  "player": {
+    "initialHp": 5,
+    "cursorHitbox": {
+      "baseRadius": 30
+    }
+  },
+  "upgradeUI": {
+    "boxWidth": 200,
+    "boxHeight": 140,
+    "boxSpacing": 30,
+    "hoverDuration": 300,
+    "boxYOffset": 150
+  },
+  "waveTransition": {
+    "countdownDuration": 3000
+  },
+  "magnet": {
+    "baseRadius": 70,
+    "radiusPerLevel": 25,
+    "baseForce": 30,
+    "forcePerLevel": 20,
+    "minPullDistance": 30
+  }
+}

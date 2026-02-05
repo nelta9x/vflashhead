@@ -1,4 +1,5 @@
-import { RARITY_WEIGHTS_BY_COUNT } from '../config/constants';
+import { Data } from '../data/DataManager';
+import type { SystemUpgradeData } from '../data/types';
 
 export interface Upgrade {
   id: string;
@@ -9,32 +10,31 @@ export interface Upgrade {
   effect: (upgradeSystem: UpgradeSystem, stack: number) => void;
 }
 
-export const UPGRADES: Upgrade[] = [
-  {
-    id: 'cursor_size',
-    name: '넓은 타격',
-    description: '커서 판정 범위가 6% 증가합니다. (기본 크기 기준)',
-    rarity: 'rare',
-    maxStack: 5,
-    effect: (us) => us.addCursorSizeBonus(0.06),
-  },
-  {
-    id: 'electric_shock',
-    name: '전기 충격',
-    description: '주변 접시에 번개 데미지를 줍니다.',
-    rarity: 'rare',
-    maxStack: 5,
-    effect: (us) => us.addElectricShockLevel(1),
-  },
-  {
-    id: 'magnet',
-    name: '자기장',
-    description: '커서 주변 접시가 끌려옵니다',
-    rarity: 'rare',
-    maxStack: 5,
-    effect: (us) => us.addMagnetLevel(1),
-  },
-];
+// 시스템 업그레이드를 Upgrade 인터페이스로 변환
+function createSystemUpgrades(): Upgrade[] {
+  return Data.upgrades.system.map((data: SystemUpgradeData) => ({
+    id: data.id,
+    name: data.name,
+    description: data.description,
+    rarity: data.rarity,
+    maxStack: data.maxStack,
+    effect: (us: UpgradeSystem) => {
+      switch (data.effectType) {
+        case 'cursorSizeBonus':
+          us.addCursorSizeBonus(data.value);
+          break;
+        case 'electricShockLevel':
+          us.addElectricShockLevel(data.value);
+          break;
+        case 'magnetLevel':
+          us.addMagnetLevel(data.value);
+          break;
+      }
+    },
+  }));
+}
+
+export const UPGRADES: Upgrade[] = createSystemUpgrades();
 
 export class UpgradeSystem {
   private upgradeStacks: Map<string, number> = new Map();
@@ -81,7 +81,7 @@ export class UpgradeSystem {
     });
 
     if (availableUpgrades.length === 0) {
-      return UPGRADES.slice(0, count); // 폴백
+      return UPGRADES.slice(0, count);
     }
 
     // 요청 개수가 가용 개수 이상이면 전체 반환 (셔플)
@@ -97,7 +97,7 @@ export class UpgradeSystem {
       const totalWeight = pool.reduce((sum, u) => sum + rarityWeights[u.rarity], 0);
       let random = Math.random() * totalWeight;
 
-      let selectedIndex = pool.length - 1; // 기본값: 마지막 항목 (부동소수점 오차 안전장치)
+      let selectedIndex = pool.length - 1;
 
       for (let i = 0; i < pool.length; i++) {
         random -= rarityWeights[pool[i].rarity];
@@ -123,18 +123,9 @@ export class UpgradeSystem {
   }
 
   private getRarityWeights(): Record<string, number> {
-    // 업그레이드 횟수에 따라 희귀도 가중치 변화
     const totalUpgrades = this.getTotalUpgradeCount();
-
-    if (totalUpgrades <= 2) {
-      return RARITY_WEIGHTS_BY_COUNT.early;
-    } else if (totalUpgrades <= 4) {
-      return RARITY_WEIGHTS_BY_COUNT.mid;
-    } else if (totalUpgrades <= 6) {
-      return RARITY_WEIGHTS_BY_COUNT.late;
-    } else {
-      return RARITY_WEIGHTS_BY_COUNT.endgame;
-    }
+    const weights = Data.getRarityWeights(totalUpgrades);
+    return weights as unknown as Record<string, number>;
   }
 
   private getTotalUpgradeCount(): number {
@@ -193,5 +184,90 @@ export class UpgradeSystem {
 
   getAllUpgradeStacks(): Map<string, number> {
     return new Map(this.upgradeStacks);
+  }
+
+  // ========== 동적 설명 생성 ==========
+
+  // 현재 레벨의 실제 효과를 설명하는 문자열 반환 (AbilityPanel용)
+  getFormattedDescription(upgradeId: string): string {
+    const upgradeData = Data.upgrades.system.find((u) => u.id === upgradeId);
+    if (!upgradeData || !upgradeData.descriptionTemplate) {
+      return upgradeData?.description || '';
+    }
+
+    const stack = this.getUpgradeStack(upgradeId);
+    if (stack <= 0) return upgradeData.description;
+
+    const template = upgradeData.descriptionTemplate;
+
+    switch (upgradeData.effectType) {
+      case 'cursorSizeBonus': {
+        const percentage = Math.round(upgradeData.value * stack * 100);
+        return template.replace('{value}', percentage.toString());
+      }
+
+      case 'electricShockLevel': {
+        const meta = upgradeData.meta!;
+        const radius = meta.baseRadius! + stack * meta.radiusPerLevel!;
+        const damage = (meta.baseDamage || 0) + stack * (meta.damagePerLevel || 1);
+        return template
+          .replace('{radius}', radius.toString())
+          .replace('{damage}', damage.toString());
+      }
+
+      case 'magnetLevel': {
+        const meta = upgradeData.meta!;
+        const radius = meta.baseRadius! + stack * meta.radiusPerLevel!;
+        return template.replace('{radius}', radius.toString());
+      }
+
+      default:
+        return upgradeData.description;
+    }
+  }
+
+  // 선택 화면용 미리보기 설명 (현재 → 다음 레벨)
+  getPreviewDescription(upgradeId: string): string {
+    const upgradeData = Data.upgrades.system.find((u) => u.id === upgradeId);
+    if (!upgradeData) return '';
+
+    const currentStack = this.getUpgradeStack(upgradeId);
+    const nextStack = currentStack + 1;
+
+    switch (upgradeData.effectType) {
+      case 'cursorSizeBonus': {
+        const currentPct = Math.round(upgradeData.value * currentStack * 100);
+        const nextPct = Math.round(upgradeData.value * nextStack * 100);
+        if (currentStack === 0) {
+          return `커서 범위 +${nextPct}%`;
+        }
+        return `커서 범위 ${currentPct}% → ${nextPct}%`;
+      }
+
+      case 'electricShockLevel': {
+        const meta = upgradeData.meta!;
+        const curRadius = meta.baseRadius! + currentStack * meta.radiusPerLevel!;
+        const nextRadius = meta.baseRadius! + nextStack * meta.radiusPerLevel!;
+        const curDamage = (meta.baseDamage || 0) + currentStack * (meta.damagePerLevel || 1);
+        const nextDamage = (meta.baseDamage || 0) + nextStack * (meta.damagePerLevel || 1);
+        if (currentStack === 0) {
+          return `반경 ${nextRadius}px, ${nextDamage} 데미지`;
+        }
+        return `반경 ${curRadius}→${nextRadius}px, 데미지 ${curDamage}→${nextDamage}`;
+      }
+
+      case 'magnetLevel': {
+        const meta = upgradeData.meta!;
+        const curRadius = meta.baseRadius! + currentStack * meta.radiusPerLevel!;
+        const nextRadius = meta.baseRadius! + nextStack * meta.radiusPerLevel!;
+        if (currentStack === 0) {
+          return `끌어당김 반경 ${nextRadius}px`;
+        }
+        return `끌어당김 반경 ${curRadius}→${nextRadius}px`;
+      }
+
+      default:
+        return upgradeData.description;
+    }
   }
 }

@@ -1,10 +1,9 @@
 import { EventBus, GameEvents } from '../utils/EventBus';
-import { UPGRADES } from '../systems/UpgradeSystem';
+import { UPGRADES, UpgradeSystem } from '../systems/UpgradeSystem';
 
 interface UpgradeInfo {
   id: string;
   name: string;
-  description: string;
   maxStack: number;
   icon: string;
 }
@@ -18,6 +17,7 @@ const UPGRADE_ICONS: Record<string, string> = {
 export class AbilityPanel {
   private panelElement: HTMLElement | null;
   private upgradeInfoMap: Map<string, UpgradeInfo>;
+  private upgradeSystem: UpgradeSystem | null = null;
   private onUpgradesChangedBound: (...args: unknown[]) => void;
 
   constructor() {
@@ -29,7 +29,6 @@ export class AbilityPanel {
       this.upgradeInfoMap.set(upgrade.id, {
         id: upgrade.id,
         name: upgrade.name,
-        description: upgrade.description,
         maxStack: upgrade.maxStack,
         icon: UPGRADE_ICONS[upgrade.id] || '✦',
       });
@@ -41,6 +40,10 @@ export class AbilityPanel {
 
     // 초기 상태 (빈 패널)
     this.render(new Map());
+  }
+
+  setUpgradeSystem(upgradeSystem: UpgradeSystem): void {
+    this.upgradeSystem = upgradeSystem;
   }
 
   private onUpgradesChanged(...args: unknown[]): void {
@@ -72,6 +75,11 @@ export class AbilityPanel {
 
     const isMaxLevel = level >= info.maxStack;
 
+    // 동적 설명 생성 (UpgradeSystem이 연결된 경우)
+    const description = this.upgradeSystem
+      ? this.upgradeSystem.getFormattedDescription(info.id)
+      : '';
+
     card.innerHTML = `
       <div class="ability-icon">${info.icon}</div>
       <div class="ability-info">
@@ -79,7 +87,7 @@ export class AbilityPanel {
           <span class="ability-name">${info.name}</span>
           <span class="ability-level ${isMaxLevel ? 'max-level' : ''}">Lv.${level}${isMaxLevel ? ' MAX' : ''}</span>
         </div>
-        <div class="ability-desc">${info.description}</div>
+        <div class="ability-desc">${description}</div>
       </div>
     `;
 

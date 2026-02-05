@@ -1,17 +1,14 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, COLORS, COLORS_HEX, INITIAL_HP } from '../config/constants';
-import { ComboSystem } from '../systems/ComboSystem';
 import { WaveSystem } from '../systems/WaveSystem';
 import { HealthSystem } from '../systems/HealthSystem';
 
 export class HUD {
   private scene: Phaser.Scene;
-  private comboSystem: ComboSystem;
   private waveSystem: WaveSystem;
   private healthSystem: HealthSystem | null = null;
 
   // UI 요소들
-  private comboText!: Phaser.GameObjects.Text;
   private waveText!: Phaser.GameObjects.Text;
   private timerText!: Phaser.GameObjects.Text;
   private feverText!: Phaser.GameObjects.Text;
@@ -23,12 +20,10 @@ export class HUD {
 
   constructor(
     scene: Phaser.Scene,
-    comboSystem: ComboSystem,
     waveSystem: WaveSystem,
     healthSystem?: HealthSystem
   ) {
     this.scene = scene;
-    this.comboSystem = comboSystem;
     this.waveSystem = waveSystem;
     this.healthSystem = healthSystem || null;
 
@@ -45,16 +40,6 @@ export class HUD {
       strokeThickness: 4,
     });
     this.timerText.setOrigin(1, 0);
-
-    // 콤보 (우측 상단, 시간 아래)
-    this.comboText = this.scene.add.text(GAME_WIDTH - 20, 55, '', {
-      fontFamily: 'monospace',
-      fontSize: '24px',
-      color: COLORS_HEX.MAGENTA,
-      stroke: '#000000',
-      strokeThickness: 4,
-    });
-    this.comboText.setOrigin(1, 0);
 
     // 웨이브 (중앙 상단)
     this.waveText = this.scene.add.text(GAME_WIDTH / 2, 20, 'WAVE 1', {
@@ -184,25 +169,6 @@ export class HUD {
     } else {
       // 1분 미만: 기본 녹색
       this.timerText.setColor(COLORS_HEX.GREEN);
-    }
-
-    // 콤보 업데이트
-    const combo = this.comboSystem.getCombo();
-    if (combo > 0) {
-      this.comboText.setText(`${combo} COMBO`);
-
-      // 콤보 색상 (마일스톤에 따라)
-      if (combo >= 50) {
-        this.comboText.setColor(COLORS_HEX.YELLOW);
-      } else if (combo >= 25) {
-        this.comboText.setColor(COLORS_HEX.MAGENTA);
-      } else if (combo >= 10) {
-        this.comboText.setColor(COLORS_HEX.CYAN);
-      } else {
-        this.comboText.setColor(COLORS_HEX.WHITE);
-      }
-    } else {
-      this.comboText.setText('');
     }
 
     // 웨이브 업데이트

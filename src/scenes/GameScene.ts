@@ -147,7 +147,7 @@ export class GameScene extends Phaser.Scene {
     );
 
     // HUD
-    this.hud = new HUD(this, this.comboSystem, this.waveSystem, this.healthSystem);
+    this.hud = new HUD(this, this.waveSystem, this.healthSystem);
 
     // 웨이브 카운트다운 UI
     this.waveCountdownUI = new WaveCountdownUI(this);
@@ -274,7 +274,8 @@ export class GameScene extends Phaser.Scene {
     isFirstHit: boolean;
   }): void {
     const { x, y, damage, hpRatio } = data;
-    this.feedbackSystem.onDishDamaged(x, y, damage, hpRatio, data.dish.getColor());
+    const combo = this.comboSystem.getCombo();
+    this.feedbackSystem.onDishDamaged(x, y, damage, hpRatio, data.dish.getColor(), combo);
   }
 
   private onDishMissed(data: { dish: Dish; x: number; y: number; type: string; isDangerous: boolean }): void {

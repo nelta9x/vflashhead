@@ -305,15 +305,19 @@ export class GameScene extends Phaser.Scene {
     // 기를 모으는 효과 (주변에서 모여드는 파티클 시뮬레이션 - 역재생 링)
     const chargeRing = this.add.graphics();
     chargeRing.lineStyle(2, COLORS.YELLOW, 1);
-    chargeRing.strokeCircle(startX, startY, 50);
+    chargeRing.strokeCircle(0, 0, 50); // 중심을 0,0으로 설정하여 x,y 이동이 편하게 함
+    chargeRing.setPosition(startX, startY);
     
-    // 기 모으기 애니메이션
+    // 기 모으기 애니메이션 (크기 감소)
     this.tweens.add({
         targets: chargeRing,
         scale: 0,
         alpha: 0.5,
         duration: 500,
         ease: 'Cubic.In',
+        onUpdate: () => {
+            chargeRing.setPosition(pointer.worldX, pointer.worldY);
+        },
         onComplete: () => chargeRing.destroy()
     });
 
@@ -323,12 +327,19 @@ export class GameScene extends Phaser.Scene {
         alpha: 1,
         duration: 500,
         ease: 'Back.In', // 살짝 수축했다가 커짐
+        onUpdate: () => {
+            // 기를 모으는 동안 커서를 따라다님
+            projectile.x = pointer.worldX;
+            projectile.y = pointer.worldY;
+        },
         onComplete: () => {
             // 2. Fire Phase (발사!)
+            const fireX = projectile.x;
+            const fireY = projectile.y;
             
             // 발사 반동
             this.cameras.main.shake(50, 0.005);
-            this.particleManager.createSparkBurst(startX, startY, COLORS.YELLOW);
+            this.particleManager.createSparkBurst(fireX, fireY, COLORS.YELLOW);
 
             // 날아가기
             this.tweens.add({

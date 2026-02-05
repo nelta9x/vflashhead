@@ -1,5 +1,12 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, COLORS, COLORS_HEX, UPGRADE_UI, FONTS } from '../../data/constants';
+import {
+  GAME_WIDTH,
+  GAME_HEIGHT,
+  COLORS,
+  COLORS_HEX,
+  UPGRADE_UI,
+  FONTS,
+} from '../data/constants';
 import { UpgradeSystem, Upgrade } from '../systems/UpgradeSystem';
 import { EventBus, GameEvents } from '../utils/EventBus';
 
@@ -112,32 +119,38 @@ export class InGameUpgradeUI {
 
     // 아이콘
     const iconSymbol = this.getUpgradeSymbol(upgrade.id);
-    const icon = this.scene.add.text(0, -BOX_HEIGHT / 2 + 28, iconSymbol, {
-      fontFamily: FONTS.MAIN,
-      fontSize: '28px',
-      color: `#${borderColor.toString(16).padStart(6, '0')}`,
-    }).setOrigin(0.5);
+    const icon = this.scene.add
+      .text(0, -BOX_HEIGHT / 2 + 28, iconSymbol, {
+        fontFamily: FONTS.MAIN,
+        fontSize: '28px',
+        color: `#${borderColor.toString(16).padStart(6, '0')}`,
+      })
+      .setOrigin(0.5);
     container.add(icon);
 
     // 이름
-    const name = this.scene.add.text(0, -BOX_HEIGHT / 2 + 58, upgrade.name, {
-      fontFamily: FONTS.KOREAN,
-      fontSize: '14px',
-      color: COLORS_HEX.WHITE,
-      wordWrap: { width: BOX_WIDTH - 20 },
-      align: 'center',
-    }).setOrigin(0.5);
+    const name = this.scene.add
+      .text(0, -BOX_HEIGHT / 2 + 58, upgrade.name, {
+        fontFamily: FONTS.KOREAN,
+        fontSize: '14px',
+        color: COLORS_HEX.WHITE,
+        wordWrap: { width: BOX_WIDTH - 20 },
+        align: 'center',
+      })
+      .setOrigin(0.5);
     container.add(name);
 
     // 효과 미리보기 설명
     const previewDesc = this.upgradeSystem.getPreviewDescription(upgrade.id);
-    const descText = this.scene.add.text(0, -BOX_HEIGHT / 2 + 88, previewDesc, {
-      fontFamily: FONTS.KOREAN,
-      fontSize: '12px',
-      color: '#cccccc',
-      wordWrap: { width: BOX_WIDTH - 24 },
-      align: 'center',
-    }).setOrigin(0.5, 0);
+    const descText = this.scene.add
+      .text(0, -BOX_HEIGHT / 2 + 88, previewDesc, {
+        fontFamily: FONTS.KOREAN,
+        fontSize: '12px',
+        color: '#cccccc',
+        wordWrap: { width: BOX_WIDTH - 24 },
+        align: 'center',
+      })
+      .setOrigin(0.5, 0);
     container.add(descText);
 
     // 진행바 배경

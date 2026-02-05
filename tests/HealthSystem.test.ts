@@ -16,7 +16,7 @@ vi.mock('../src/utils/EventBus', () => ({
 }));
 
 // Mock constants
-vi.mock('../data/constants', () => ({
+vi.mock('../src/data/constants', () => ({
   INITIAL_HP: 5,
 }));
 

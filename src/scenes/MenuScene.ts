@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, COLORS_HEX, GAME_WIDTH, GAME_HEIGHT, FONTS } from '../../data/constants';
+import { COLORS, COLORS_HEX, GAME_WIDTH, GAME_HEIGHT, FONTS } from '../data/constants';
 import { SoundSystem } from '../systems/SoundSystem';
 
 export class MenuScene extends Phaser.Scene {
@@ -15,7 +15,7 @@ export class MenuScene extends Phaser.Scene {
     this.createBackground();
     this.createTitle();
     this.createStartUI();
-    
+
     // 입력을 감지하기 위한 이벤트 리스너 등록
     this.setupInputHandlers();
   }
@@ -81,7 +81,7 @@ export class MenuScene extends Phaser.Scene {
   private setupInputHandlers(): void {
     // 아무 키나 입력
     this.input.keyboard?.on('keydown', () => this.startGame());
-    
+
     // 마우스 클릭
     this.input.on('pointerdown', () => this.startGame());
 
@@ -106,7 +106,7 @@ export class MenuScene extends Phaser.Scene {
     // 사운드 시스템 활성화 및 대기
     const ss = SoundSystem.getInstance();
     await ss.init();
-    
+
     // 시작음 재생
     ss.playSafeSound();
 
@@ -120,7 +120,7 @@ export class MenuScene extends Phaser.Scene {
       ease: 'Power2',
       onComplete: () => {
         this.scene.start('GameScene');
-      }
+      },
     });
 
     this.cameras.main.fadeOut(400, 0, 0, 0);

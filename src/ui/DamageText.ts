@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { COLORS_HEX, FONTS } from '../../data/constants';
-import { Data } from '../../data/DataManager';
+import { COLORS_HEX, FONTS } from '../data/constants';
+import { Data } from '../data/DataManager';
 
 type DamageType = 'normal' | 'critical';
 
@@ -77,7 +77,13 @@ export class DamageText {
     });
   }
 
-  showDamage(x: number, y: number, damage: number, type: DamageType = 'normal', combo: number = 0): void {
+  showDamage(
+    x: number,
+    y: number,
+    damage: number,
+    type: DamageType = 'normal',
+    combo: number = 0
+  ): void {
     const config = Data.feedback.damageText;
     const typeConfig = config[type];
     const comboConfig = config.combo;
@@ -262,7 +268,7 @@ export class DamageText {
       ease: 'Back.easeOut',
       onComplete: () => {
         text!.setColor('#ffff00');
-        
+
         this.scene.tweens.add({
           targets: text,
           y: text!.y + 20, // 더 아래로 이동

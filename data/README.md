@@ -44,10 +44,11 @@
 ## 디렉토리 구조
 
 - **`*.json`**: 실제 밸런스 수치들이 들어있는 데이터 파일 (가장 자주 수정하게 될 파일들)
-- **`DataManager.ts`**: 모든 JSON 데이터를 로드하여 타입 안전하게 제공하는 싱글톤 관리자
-- **`constants.ts`**: JSON 기반 데이터 중 코드에서 자주 쓰이는 물리/기하학적 상수들을 정의
-- **`game.config.ts`**: Phaser 엔진의 기술적 설정 (물리, 렌더링 방식 등)
-- **`types.ts`**: 데이터 파일들의 인터페이스 정의 (TypeScript 타입)
+- **`src/data/` (이동됨)**:
+  - `DataManager.ts`: 모든 JSON 데이터를 로드하여 타입 안전하게 제공하는 싱글톤 관리자
+  - `constants.ts`: JSON 기반 데이터 중 코드에서 자주 쓰이는 물리/기하학적 상수들을 정의
+  - `game.config.ts`: Phaser 엔진의 기술적 설정 (물리, 렌더링 방식 등)
+  - `types.ts`: 데이터 파일들의 인터페이스 정의 (TypeScript 타입)
 
 ---
 
@@ -55,8 +56,7 @@
 
 ```typescript
 // DataManager 사용 (권장)
-import { Data } from '../data/DataManager'; 
-// (파일 위치에 따라 ../data 또는 ../../data 사용)
+import { Data } from '../data/DataManager';
 
 const playerHp = Data.gameConfig.player.initialHp;
 const dishHp = Data.getDishData('basic').hp;

@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, GAME_WIDTH, GAME_HEIGHT, FONTS } from '../../data/constants';
+import { COLORS, GAME_WIDTH, GAME_HEIGHT, FONTS } from '../data/constants';
 import { SoundSystem } from '../systems/SoundSystem';
 
 export class BootScene extends Phaser.Scene {

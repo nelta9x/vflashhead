@@ -19,16 +19,16 @@ import type {
 } from './types';
 
 // JSON 파일 직접 import
-import gameConfigJson from './game-config.json';
-import spawnJson from './spawn.json';
-import comboJson from './combo.json';
-import healthPackJson from './health-pack.json';
-import feedbackJson from './feedback.json';
-import colorsJson from './colors.json';
-import wavesJson from './waves.json';
-import dishesJson from './dishes.json';
-import upgradesJson from './upgrades.json';
-import weaponsJson from './weapons.json';
+import gameConfigJson from '../../data/game-config.json';
+import spawnJson from '../../data/spawn.json';
+import comboJson from '../../data/combo.json';
+import healthPackJson from '../../data/health-pack.json';
+import feedbackJson from '../../data/feedback.json';
+import colorsJson from '../../data/colors.json';
+import wavesJson from '../../data/waves.json';
+import dishesJson from '../../data/dishes.json';
+import upgradesJson from '../../data/upgrades.json';
+import weaponsJson from '../../data/weapons.json';
 
 class DataManager {
   private static instance: DataManager;

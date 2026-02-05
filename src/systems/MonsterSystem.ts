@@ -1,5 +1,5 @@
 import { EventBus, GameEvents } from '../utils/EventBus';
-import { Data } from '../../data/DataManager';
+import { Data } from '../data/DataManager';
 
 export class MonsterSystem {
   private currentHp: number = 0;
@@ -52,7 +52,7 @@ export class MonsterSystem {
     EventBus.getInstance().emit(GameEvents.MONSTER_HP_CHANGED, {
       current: this.currentHp,
       max: this.maxHp,
-      ratio: this.currentHp / this.maxHp
+      ratio: this.currentHp / this.maxHp,
     });
   }
 

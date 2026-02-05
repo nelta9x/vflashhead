@@ -41,7 +41,10 @@ export const UPGRADE_TIMING = {
 } as const;
 
 // 동적 희귀도 가중치 (업그레이드 횟수별)
-export const RARITY_WEIGHTS_BY_COUNT: Record<string, { common: number; rare: number; epic: number; legendary: number }> = {
+export const RARITY_WEIGHTS_BY_COUNT: Record<
+  string,
+  { common: number; rare: number; epic: number; legendary: number }
+> = {
   early: Data.upgrades.rarityWeights.early,
   mid: Data.upgrades.rarityWeights.mid,
   late: Data.upgrades.rarityWeights.late,

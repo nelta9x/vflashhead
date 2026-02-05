@@ -83,7 +83,7 @@ vi.mock('../data/upgrades.json', () => ({ default: {} }));
 vi.mock('../data/weapons.json', () => ({ default: {} }));
 
 // Mock constants
-vi.mock('../data/constants', () => ({
+vi.mock('../src/data/constants', () => ({
   COLORS_HEX: {
     WHITE: '#ffffff',
     YELLOW: '#ffff00',

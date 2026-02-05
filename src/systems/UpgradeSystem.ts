@@ -1,5 +1,5 @@
-import { Data } from '../../data/DataManager';
-import type { SystemUpgradeData } from '../../data/types';
+import { Data } from '../data/DataManager';
+import type { SystemUpgradeData } from '../data/types';
 import { EventBus, GameEvents } from '../utils/EventBus';
 
 export interface Upgrade {
@@ -41,7 +41,7 @@ function createSystemUpgrades(): Upgrade[] {
             hp: 999, // 특별한 값으로 전달하거나 HealthSystem에서 처리
             maxHp: 999,
             delta: 999,
-            isFullHeal: true
+            isFullHeal: true,
           });
           break;
       }
@@ -105,7 +105,7 @@ export class UpgradeSystem {
     const availableUpgrades = UPGRADES.filter((upgrade) => {
       // id가 'health_pack'이면 항상 표시 가능 (일회성 소모품)
       if (upgrade.id === 'health_pack') return true;
-      
+
       const currentStack = this.upgradeStacks.get(upgrade.id) || 0;
       return currentStack < upgrade.maxStack;
     });
@@ -206,7 +206,7 @@ export class UpgradeSystem {
     if (this.electricShockLevel <= 0) return 0;
     const upgradeData = Data.upgrades.system.find((u) => u.id === 'electric_shock');
     if (!upgradeData || !upgradeData.meta) return 100 + this.electricShockLevel * 15;
-    
+
     const meta = upgradeData.meta;
     return (meta.baseRadius || 100) + this.electricShockLevel * (meta.radiusPerLevel || 15);
   }
@@ -215,7 +215,7 @@ export class UpgradeSystem {
     if (this.electricShockLevel <= 0) return 0;
     const upgradeData = Data.upgrades.system.find((u) => u.id === 'electric_shock');
     if (!upgradeData || !upgradeData.meta) return this.electricShockLevel;
-    
+
     const meta = upgradeData.meta;
     return (meta.baseDamage || 0) + this.electricShockLevel * (meta.damagePerLevel || 1);
   }
@@ -233,7 +233,7 @@ export class UpgradeSystem {
     if (this.staticDischargeLevel <= 0) return 0;
     const upgradeData = Data.upgrades.system.find((u) => u.id === 'static_discharge');
     if (!upgradeData || !upgradeData.meta) return 0.25;
-    
+
     const meta = upgradeData.meta;
     return (meta.baseChance || 0.25) + this.staticDischargeLevel * (meta.chancePerLevel || 0.05);
   }
@@ -242,7 +242,7 @@ export class UpgradeSystem {
     if (this.staticDischargeLevel <= 0) return 0;
     const upgradeData = Data.upgrades.system.find((u) => u.id === 'static_discharge');
     if (!upgradeData || !upgradeData.meta) return 3;
-    
+
     const meta = upgradeData.meta;
     return (meta.baseDamage || 3) + this.staticDischargeLevel * (meta.damagePerLevel || 2);
   }
@@ -251,7 +251,7 @@ export class UpgradeSystem {
     if (this.staticDischargeLevel <= 0) return 0;
     const upgradeData = Data.upgrades.system.find((u) => u.id === 'static_discharge');
     if (!upgradeData || !upgradeData.meta) return 250;
-    
+
     const meta = upgradeData.meta;
     return (meta.baseRange || 250) + this.staticDischargeLevel * (meta.rangePerLevel || 50);
   }
@@ -319,7 +319,9 @@ export class UpgradeSystem {
 
       case 'staticDischargeLevel': {
         const meta = upgradeData.meta!;
-        const chance = Math.round(((meta.baseChance || 0.25) + stack * (meta.chancePerLevel || 0.05)) * 100);
+        const chance = Math.round(
+          ((meta.baseChance || 0.25) + stack * (meta.chancePerLevel || 0.05)) * 100
+        );
         const damage = (meta.baseDamage || 3) + stack * (meta.damagePerLevel || 2);
         const radius = (meta.baseRange || 250) + stack * (meta.rangePerLevel || 50);
         return template
@@ -377,12 +379,16 @@ export class UpgradeSystem {
 
       case 'staticDischargeLevel': {
         const meta = upgradeData.meta!;
-        const curChance = Math.round(((meta.baseChance || 0.25) + currentStack * (meta.chancePerLevel || 0.05)) * 100);
-        const nextChance = Math.round(((meta.baseChance || 0.25) + nextStack * (meta.chancePerLevel || 0.05)) * 100);
+        const curChance = Math.round(
+          ((meta.baseChance || 0.25) + currentStack * (meta.chancePerLevel || 0.05)) * 100
+        );
+        const nextChance = Math.round(
+          ((meta.baseChance || 0.25) + nextStack * (meta.chancePerLevel || 0.05)) * 100
+        );
         const nextDamage = (meta.baseDamage || 3) + nextStack * (meta.damagePerLevel || 2);
         const curRadius = (meta.baseRange || 250) + currentStack * (meta.rangePerLevel || 50);
         const nextRadius = (meta.baseRange || 250) + nextStack * (meta.rangePerLevel || 50);
-        
+
         if (currentStack === 0) {
           return `${nextChance}% 확률로 ${nextRadius}px 내 적 타격 (${nextDamage} 데미지)`;
         }

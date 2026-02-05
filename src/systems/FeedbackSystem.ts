@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { COLORS } from '../../data/constants';
-import { Data } from '../../data/DataManager';
+import { COLORS } from '../data/constants';
+import { Data } from '../data/DataManager';
 import { ParticleManager } from '../effects/ParticleManager';
 import { ScreenShake } from '../effects/ScreenShake';
 import { SlowMotion } from '../effects/SlowMotion';
@@ -29,7 +29,14 @@ export class FeedbackSystem {
     this.soundSystem = soundSystem;
   }
 
-  onDishDestroyed(x: number, y: number, color: number, dishType: string, combo: number = 0, cursorRadius: number = 0): void {
+  onDishDestroyed(
+    x: number,
+    y: number,
+    color: number,
+    dishType: string,
+    combo: number = 0,
+    cursorRadius: number = 0
+  ): void {
     // 파티클 폭발
     this.particleManager.createExplosion(x, y, color, dishType);
 
@@ -63,7 +70,14 @@ export class FeedbackSystem {
     this.soundSystem.playComboSound(milestone);
   }
 
-  onDishDamaged(x: number, y: number, damage: number, hpRatio: number, color: number, combo: number = 0): void {
+  onDishDamaged(
+    x: number,
+    y: number,
+    damage: number,
+    hpRatio: number,
+    color: number,
+    combo: number = 0
+  ): void {
     // 데미지 텍스트
     this.damageText.showDamage(x, y - 20, damage, 'normal', combo);
 

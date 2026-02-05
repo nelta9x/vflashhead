@@ -26,7 +26,7 @@ export class SoundSystem {
       this.masterGain.gain.value = 0.3; // 마스터 볼륨
       this.masterGain.connect(this.audioContext.destination);
     }
-    
+
     // 이미 생성되었더라도 suspended 상태라면 resume 시도하고 완료될 때까지 대기
     if (this.audioContext && this.audioContext.state === 'suspended') {
       try {
@@ -492,7 +492,7 @@ export class SoundSystem {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = i === 0 ? 'sine' : 'triangle';
-      
+
       osc.frequency.setValueAtTime(baseFreq, now);
       osc.frequency.exponentialRampToValueAtTime(baseFreq * 3, now + duration);
 
@@ -559,7 +559,7 @@ export class SoundSystem {
     const laserOsc = ctx.createOscillator();
     const laserGain = ctx.createGain();
     const filter = ctx.createBiquadFilter();
-    
+
     laserOsc.type = 'sawtooth';
     laserOsc.frequency.setValueAtTime(400, now);
     laserOsc.frequency.exponentialRampToValueAtTime(50, now + 0.2);
@@ -583,11 +583,11 @@ export class SoundSystem {
     const noiseBuffer = ctx.createBuffer(1, noiseSize, ctx.sampleRate);
     const noiseData = noiseBuffer.getChannelData(0);
     for (let i = 0; i < noiseSize; i++) {
-        noiseData[i] = (Math.random() * 2 - 1) * (1 - i / noiseSize);
+      noiseData[i] = (Math.random() * 2 - 1) * (1 - i / noiseSize);
     }
     const noiseSrc = ctx.createBufferSource();
     noiseSrc.buffer = noiseBuffer;
-    
+
     const hpf = ctx.createBiquadFilter();
     hpf.type = 'highpass';
     hpf.frequency.value = 2000;
@@ -635,7 +635,7 @@ export class SoundSystem {
 
     midGain.gain.setValueAtTime(0.4, now);
     midGain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-    
+
     // 로우패스 필터로 부드럽게
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
@@ -652,7 +652,7 @@ export class SoundSystem {
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1);
+      data[i] = Math.random() * 2 - 1;
     }
     const noiseSrc = ctx.createBufferSource();
     noiseSrc.buffer = buffer;

@@ -1,6 +1,13 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, COLORS, CURSOR_HITBOX, SPAWN_AREA, MAGNET } from '../../data/constants';
-import { Data } from '../../data/DataManager';
+import {
+  GAME_WIDTH,
+  GAME_HEIGHT,
+  COLORS,
+  CURSOR_HITBOX,
+  SPAWN_AREA,
+  MAGNET,
+} from '../data/constants';
+import { Data } from '../data/DataManager';
 import { Dish } from '../entities/Dish';
 import { EventBus, GameEvents } from '../utils/EventBus';
 import { ObjectPool } from '../utils/ObjectPool';
@@ -149,9 +156,8 @@ export class GameScene extends Phaser.Scene {
     this.waveSystem = new WaveSystem(
       this,
       () => this.dishPool,
-      () => this.inGameUpgradeUI.isVisible()
-        ? this.inGameUpgradeUI.getBlockedYArea()
-        : SPAWN_AREA.maxY
+      () =>
+        this.inGameUpgradeUI.isVisible() ? this.inGameUpgradeUI.getBlockedYArea() : SPAWN_AREA.maxY
     );
     this.healthSystem = new HealthSystem();
     this.healthPackSystem = new HealthPackSystem(this);
@@ -266,14 +272,20 @@ export class GameScene extends Phaser.Scene {
 
     // 접시 타임아웃 (놓침) 이벤트
     EventBus.getInstance().on(GameEvents.DISH_MISSED, (...args: unknown[]) => {
-      const data = args[0] as { dish: Dish; x: number; y: number; type: string; isDangerous: boolean };
+      const data = args[0] as {
+        dish: Dish;
+        x: number;
+        y: number;
+        type: string;
+        isDangerous: boolean;
+      };
       this.onDishMissed(data);
     });
 
     // HP 변경 이벤트
     EventBus.getInstance().on(GameEvents.HP_CHANGED, (...args: unknown[]) => {
       const data = args[0] as { hp: number; maxHp: number; delta: number; isFullHeal?: boolean };
-      
+
       if (data.isFullHeal) {
         this.healthSystem.reset();
         this.feedbackSystem.onHealthPackCollected(GAME_WIDTH / 2, GAME_HEIGHT / 2);
@@ -313,7 +325,6 @@ export class GameScene extends Phaser.Scene {
     EventBus.getInstance().on(GameEvents.MONSTER_DIED, () => {
       this.waveSystem.forceCompleteWave();
     });
-
   }
 
   private onHealthPackCollected(x: number, y: number): void {
@@ -328,35 +339,40 @@ export class GameScene extends Phaser.Scene {
     const endX = GAME_WIDTH / 2;
     const endY = 80; // Approximate boss pos
     const config = Data.feedback.bossAttack;
-    
+
     // 색상 변환
     const mainColor = Phaser.Display.Color.HexStringToColor(config.mainColor).color;
     const accentColor = Phaser.Display.Color.HexStringToColor(config.accentColor).color;
 
     // 1. Charge Phase (에네르기파 스타일 기 모으기)
     const chargeDuration = config.charge.duration;
-    
+
     // 사운드 재생: 기 모으기
     this.soundSystem.playBossChargeSound();
-    
+
     // 발사체 생성 (빛나는 구체 느낌)
-    const projectile = this.add.circle(pointer.worldX, pointer.worldY, config.charge.initialRadius, mainColor);
+    const projectile = this.add.circle(
+      pointer.worldX,
+      pointer.worldY,
+      config.charge.initialRadius,
+      mainColor
+    );
     projectile.setDepth(2000);
     this.physics.add.existing(projectile);
-    
+
     // 글로우 효과 (외부 광원)
     const glow = this.add.graphics();
     glow.setDepth(1999);
-    
+
     // 기 모으는 파티클 이미터 (주변에서 중심으로 모여듦)
     const chargeParticles = this.add.particles(0, 0, 'particle', {
-        speed: { min: -100, max: -300 }, // 음수 속도로 중심으로 모이게 함
-        scale: { start: 0.8, end: 0 },
-        lifespan: 400,
-        blendMode: 'ADD',
-        tint: accentColor,
-        emitting: true,
-        frequency: config.charge.particleFrequency,
+      speed: { min: -100, max: -300 }, // 음수 속도로 중심으로 모이게 함
+      scale: { start: 0.8, end: 0 },
+      lifespan: 400,
+      blendMode: 'ADD',
+      tint: accentColor,
+      emitting: true,
+      frequency: config.charge.particleFrequency,
     });
     chargeParticles.setDepth(1998);
 
@@ -366,71 +382,86 @@ export class GameScene extends Phaser.Scene {
 
     // 기 모으기 애니메이션
     this.tweens.add({
-        targets: { progress: 0 },
-        progress: 1,
-        duration: chargeDuration,
-        ease: 'Linear',
-        onUpdate: (_tween, target) => {
-            const p = target.progress;
-            const curX = pointer.worldX;
-            const curY = pointer.worldY;
+      targets: { progress: 0 },
+      progress: 1,
+      duration: chargeDuration,
+      ease: 'Linear',
+      onUpdate: (_tween, target) => {
+        const p = target.progress;
+        const curX = pointer.worldX;
+        const curY = pointer.worldY;
 
-            // 위치 동기화
-            projectile.setPosition(curX, curY);
-            projectile.setScale(1 + p * (config.charge.maxScale - 1)); // 점점 커짐
-            chargeParticles.setPosition(curX, curY);
+        // 위치 동기화
+        projectile.setPosition(curX, curY);
+        projectile.setScale(1 + p * (config.charge.maxScale - 1)); // 점점 커짐
+        chargeParticles.setPosition(curX, curY);
 
-            // 글로우 연출
-            glow.clear();
-            glow.fillStyle(mainColor, config.charge.glowInitialAlpha * p);
-            glow.fillCircle(curX, curY, config.charge.glowInitialRadius + p * (config.charge.glowMaxRadius - config.charge.glowInitialRadius));
-            glow.fillStyle(COLORS.WHITE, 0.5 * p);
-            glow.fillCircle(curX, curY, 10 + p * 20);
+        // 글로우 연출
+        glow.clear();
+        glow.fillStyle(mainColor, config.charge.glowInitialAlpha * p);
+        glow.fillCircle(
+          curX,
+          curY,
+          config.charge.glowInitialRadius +
+            p * (config.charge.glowMaxRadius - config.charge.glowInitialRadius)
+        );
+        glow.fillStyle(COLORS.WHITE, 0.5 * p);
+        glow.fillCircle(curX, curY, 10 + p * 20);
 
-            // 찌지직! 전기 스파크 연출 (p가 높을수록 빈번)
-            lightning.clear();
-            if (Math.random() < config.charge.lightningChanceBase + p * config.charge.lightningChanceP) {
-                lightning.lineStyle(2, accentColor, 0.8);
-                const segments = config.charge.lightningSegments;
-                let lastX = curX + (Math.random() - 0.5) * 100 * (1-p/2);
-                let lastY = curY + (Math.random() - 0.5) * 100 * (1-p/2);
-                
-                lightning.beginPath();
-                lightning.moveTo(lastX, lastY);
-                for (let i = 1; i <= segments; i++) {
-                    const tx = curX + (Math.random() - 0.5) * 10 * p;
-                    const ty = curY + (Math.random() - 0.5) * 10 * p;
-                    const nextX = lastX + (tx - lastX) * (i / segments) + (Math.random() - 0.5) * 20;
-                    const nextY = lastY + (ty - lastY) * (i / segments) + (Math.random() - 0.5) * 20;
-                    lightning.lineTo(nextX, nextY);
-                    lastX = nextX;
-                    lastY = nextY;
-                }
-                lightning.strokePath();
-            }
-        },
-        onComplete: () => {
-            glow.destroy();
-            lightning.destroy();
-            chargeParticles.destroy();
-            projectile.destroy(); // 기존 충전용 구체 제거
+        // 찌지직! 전기 스파크 연출 (p가 높을수록 빈번)
+        lightning.clear();
+        if (
+          Math.random() <
+          config.charge.lightningChanceBase + p * config.charge.lightningChanceP
+        ) {
+          lightning.lineStyle(2, accentColor, 0.8);
+          const segments = config.charge.lightningSegments;
+          let lastX = curX + (Math.random() - 0.5) * 100 * (1 - p / 2);
+          let lastY = curY + (Math.random() - 0.5) * 100 * (1 - p / 2);
 
-            // 2. Fire Phase (순차적 발사!)
-            const missileCount = 1 + this.upgradeSystem.getMissileLevel();
-            const fireX = pointer.worldX;
-            const fireY = pointer.worldY;
-            
-            for (let i = 0; i < missileCount; i++) {
-                this.time.delayedCall(i * config.fire.missileInterval, () => {
-                    this.fireSequentialMissile(fireX, fireY, endX, endY, i, missileCount);
-                });
-            }
+          lightning.beginPath();
+          lightning.moveTo(lastX, lastY);
+          for (let i = 1; i <= segments; i++) {
+            const tx = curX + (Math.random() - 0.5) * 10 * p;
+            const ty = curY + (Math.random() - 0.5) * 10 * p;
+            const nextX = lastX + (tx - lastX) * (i / segments) + (Math.random() - 0.5) * 20;
+            const nextY = lastY + (ty - lastY) * (i / segments) + (Math.random() - 0.5) * 20;
+            lightning.lineTo(nextX, nextY);
+            lastX = nextX;
+            lastY = nextY;
+          }
+          lightning.strokePath();
         }
+      },
+      onComplete: () => {
+        glow.destroy();
+        lightning.destroy();
+        chargeParticles.destroy();
+        projectile.destroy(); // 기존 충전용 구체 제거
+
+        // 2. Fire Phase (순차적 발사!)
+        const missileCount = 1 + this.upgradeSystem.getMissileLevel();
+        const fireX = pointer.worldX;
+        const fireY = pointer.worldY;
+
+        for (let i = 0; i < missileCount; i++) {
+          this.time.delayedCall(i * config.fire.missileInterval, () => {
+            this.fireSequentialMissile(fireX, fireY, endX, endY, i, missileCount);
+          });
+        }
+      },
     });
   }
 
   // 순차적 미사일 발사 로직
-  private fireSequentialMissile(startX: number, startY: number, targetX: number, targetY: number, index: number, total: number): void {
+  private fireSequentialMissile(
+    startX: number,
+    startY: number,
+    targetX: number,
+    targetY: number,
+    index: number,
+    total: number
+  ): void {
     const config = Data.feedback.bossAttack;
     const mainColor = Phaser.Display.Color.HexStringToColor(config.mainColor).color;
     const innerTrailColor = Phaser.Display.Color.HexStringToColor(config.innerTrailColor).color;
@@ -438,7 +469,7 @@ export class GameScene extends Phaser.Scene {
     // 회차가 거듭될수록 더 빠르고 강렬해짐
     const intensity = (index + 1) / total;
     const speed = config.fire.duration * (1 - intensity * 0.3); // 최대 30% 더 빨라짐
-    
+
     // 궤적 변화: 시작점과 타겟점에 약간의 랜덤 오프셋 부여
     const offsetRange = 30 * intensity;
     const curStartX = startX + Phaser.Math.Between(-offsetRange, offsetRange);
@@ -460,56 +491,56 @@ export class GameScene extends Phaser.Scene {
     let lastTrailY = curStartY;
 
     this.tweens.add({
-        targets: missile,
-        x: curTargetX,
-        y: curTargetY,
-        duration: speed,
-        ease: 'Expo.In',
-        onUpdate: () => {
-            const curX = missile.x;
-            const curY = missile.y;
+      targets: missile,
+      x: curTargetX,
+      y: curTargetY,
+      duration: speed,
+      ease: 'Expo.In',
+      onUpdate: () => {
+        const curX = missile.x;
+        const curY = missile.y;
 
-            const trail = this.add.graphics();
-            trail.setDepth(1997);
-            
-            // 강렬함에 따라 트레일 두께 조절
-            const baseWidth = missile.displayWidth * config.fire.trailWidthMultiplier;
-            const trailWidth = baseWidth * (0.8 + 0.5 * intensity);
+        const trail = this.add.graphics();
+        trail.setDepth(1997);
 
-            trail.lineStyle(trailWidth, mainColor, config.fire.trailAlpha);
-            trail.lineBetween(lastTrailX, lastTrailY, curX, curY);
-            
-            trail.lineStyle(trailWidth * 0.4, innerTrailColor, config.fire.trailAlpha * 1.5);
-            trail.lineBetween(lastTrailX, lastTrailY, curX, curY);
+        // 강렬함에 따라 트레일 두께 조절
+        const baseWidth = missile.displayWidth * config.fire.trailWidthMultiplier;
+        const trailWidth = baseWidth * (0.8 + 0.5 * intensity);
 
-            lastTrailX = curX;
-            lastTrailY = curY;
+        trail.lineStyle(trailWidth, mainColor, config.fire.trailAlpha);
+        trail.lineBetween(lastTrailX, lastTrailY, curX, curY);
 
-            this.tweens.add({
-                targets: trail,
-                alpha: 0,
-                duration: config.fire.trailLifespan,
-                onComplete: () => trail.destroy()
-            });
-        },
-        onComplete: () => {
-            missile.destroy();
-            
-            // 데미지 1 적용 (전체 데미지는 미사일 개수와 동일해짐)
-            this.monsterSystem.takeDamage(1);
-            
-            // 타격 피드백 (마지막 발사일수록 더 강하게)
-            if (index === total - 1) {
-                this.feedbackSystem.onBossDamaged(curTargetX, curTargetY, total);
-                // 마지막 발사 시 카메라 효과 강화
-                this.cameras.main.shake(config.impact.shakeDuration, config.impact.shakeIntensity * 1.5);
-            } else {
-                // 중간 발사체 타격 효과
-                this.particleManager.createHitEffect(curTargetX, curTargetY, COLORS.WHITE);
-                this.particleManager.createExplosion(curTargetX, curTargetY, mainColor, 'basic', 0.5);
-                this.soundSystem.playHitSound();
-            }
+        trail.lineStyle(trailWidth * 0.4, innerTrailColor, config.fire.trailAlpha * 1.5);
+        trail.lineBetween(lastTrailX, lastTrailY, curX, curY);
+
+        lastTrailX = curX;
+        lastTrailY = curY;
+
+        this.tweens.add({
+          targets: trail,
+          alpha: 0,
+          duration: config.fire.trailLifespan,
+          onComplete: () => trail.destroy(),
+        });
+      },
+      onComplete: () => {
+        missile.destroy();
+
+        // 데미지 1 적용 (전체 데미지는 미사일 개수와 동일해짐)
+        this.monsterSystem.takeDamage(1);
+
+        // 타격 피드백 (마지막 발사일수록 더 강하게)
+        if (index === total - 1) {
+          this.feedbackSystem.onBossDamaged(curTargetX, curTargetY, total);
+          // 마지막 발사 시 카메라 효과 강화
+          this.cameras.main.shake(config.impact.shakeDuration, config.impact.shakeIntensity * 1.5);
+        } else {
+          // 중간 발사체 타격 효과
+          this.particleManager.createHitEffect(curTargetX, curTargetY, COLORS.WHITE);
+          this.particleManager.createExplosion(curTargetX, curTargetY, mainColor, 'basic', 0.5);
+          this.soundSystem.playHitSound();
         }
+      },
     });
   }
 
@@ -529,7 +560,13 @@ export class GameScene extends Phaser.Scene {
     this.feedbackSystem.onDishDamaged(x, y, damage, hpRatio, data.dish.getColor(), combo);
   }
 
-  private onDishMissed(data: { dish: Dish; x: number; y: number; type: string; isDangerous: boolean }): void {
+  private onDishMissed(data: {
+    dish: Dish;
+    x: number;
+    y: number;
+    type: string;
+    isDangerous: boolean;
+  }): void {
     const { dish, x, y, isDangerous } = data;
 
     // 지뢰 타임아웃: 조용히 사라짐 (피드백/패널티 없음)
@@ -581,7 +618,7 @@ export class GameScene extends Phaser.Scene {
 
     // ===== 레이저 보너스 체크 =====
     const laserConfig = Data.gameConfig.monsterAttack.laser;
-    const isLaserFiring = this.activeLasers.some(l => l.isFiring);
+    const isLaserFiring = this.activeLasers.some((l) => l.isFiring);
     const comboBonus = isLaserFiring ? laserConfig.bonus.comboAmount : 0; // 레이저 발사 중 보너스
 
     // 콤보 증가
@@ -589,8 +626,8 @@ export class GameScene extends Phaser.Scene {
 
     // 보너스 피드백
     if (isLaserFiring) {
-        this.damageText.showText(x, y - 40, 'LASER BONUS!', COLORS.YELLOW);
-        this.soundSystem.playBossImpactSound(); // 보너스 느낌의 소리
+      this.damageText.showText(x, y - 40, 'LASER BONUS!', COLORS.YELLOW);
+      this.soundSystem.playBossImpactSound(); // 보너스 느낌의 소리
     }
 
     // 현재 커서 반경 계산
@@ -599,10 +636,10 @@ export class GameScene extends Phaser.Scene {
 
     // 피드백 효과
     this.feedbackSystem.onDishDestroyed(
-      x, 
-      y, 
-      dish.getColor(), 
-      dish.getDishType(), 
+      x,
+      y,
+      dish.getColor(),
+      dish.getDishType(),
       this.comboSystem.getCombo(),
       cursorRadius
     );
@@ -633,7 +670,7 @@ export class GameScene extends Phaser.Scene {
   private triggerStaticDischarge(startX: number, startY: number, excludeDish: Dish): void {
     const damage = this.upgradeSystem.getStaticDischargeDamage();
     const range = this.upgradeSystem.getStaticDischargeRange();
-    
+
     // 유효한 타겟 찾기 (화면에 있는 활성 접시, 자신 제외, 폭탄 제외, 사거리 내)
     const targets: Dish[] = [];
     this.dishPool.forEach((d) => {
@@ -648,20 +685,26 @@ export class GameScene extends Phaser.Scene {
     if (targets.length > 0) {
       // 랜덤 타겟 선정
       const target = Phaser.Utils.Array.GetRandom(targets);
-      
+
       // 데미지 적용
       target.applyDamage(damage);
-      
+
       // 시각적 피드백 (번개)
       this.feedbackSystem.onStaticDischarge(startX, startY, target.x, target.y);
-      
+
       // 사운드 (히트 사운드 재사용)
       this.soundSystem.playHitSound();
     }
   }
 
   // 전기 충격: 주변 접시에 데미지
-  private applyElectricShock(x: number, y: number, _level: number, excludeDish: Dish, radius: number): void {
+  private applyElectricShock(
+    x: number,
+    y: number,
+    _level: number,
+    excludeDish: Dish,
+    radius: number
+  ): void {
     const targets: { x: number; y: number }[] = [];
     const damage = this.upgradeSystem.getElectricShockDamage();
 
@@ -690,7 +733,12 @@ export class GameScene extends Phaser.Scene {
     this.spawnDishImmediate(type, x, y, speedMultiplier);
   }
 
-  private spawnDishImmediate(type: string, x: number, y: number, speedMultiplier: number = 1): void {
+  private spawnDishImmediate(
+    type: string,
+    x: number,
+    y: number,
+    speedMultiplier: number = 1
+  ): void {
     const dish = this.dishPool.acquire();
     if (dish) {
       // 업그레이드 옵션 적용
@@ -859,10 +907,10 @@ export class GameScene extends Phaser.Scene {
 
   private updateMagnetEffect(delta: number): void {
     const magnetLevel = this.upgradeSystem.getMagnetLevel();
-    
+
     // 자기장 레벨이 0이면 모든 접시의 상태만 초기화하고 리턴
     if (magnetLevel <= 0) {
-      this.dishPool.forEach(dish => {
+      this.dishPool.forEach((dish) => {
         if (dish.active) dish.setBeingPulled(false);
       });
       return;
@@ -881,7 +929,7 @@ export class GameScene extends Phaser.Scene {
 
     this.dishPool.forEach((dish) => {
       if (!dish.active) return;
-      
+
       // 상태 초기화
       dish.setBeingPulled(false);
 
@@ -958,9 +1006,11 @@ export class GameScene extends Phaser.Scene {
 
     // 공격 범위 테두리
     const isReady = this.gaugeRatio >= 1;
-    const readyColor = Phaser.Display.Color.HexStringToColor(Data.feedback.bossAttack.mainColor).color;
+    const readyColor = Phaser.Display.Color.HexStringToColor(
+      Data.feedback.bossAttack.mainColor
+    ).color;
     const baseColor = isReady ? readyColor : COLORS.CYAN;
-    
+
     this.attackRangeIndicator.lineStyle(2, baseColor, 0.5);
     this.attackRangeIndicator.strokeCircle(x, y, cursorRadius);
 
@@ -971,7 +1021,7 @@ export class GameScene extends Phaser.Scene {
       const fillRadius = cursorRadius * this.gaugeRatio;
       this.attackRangeIndicator.fillStyle(baseColor, isReady ? 0.3 : 0.2);
       this.attackRangeIndicator.fillCircle(x, y, fillRadius);
-      
+
       if (isReady) {
         // 준비 완료 시 글로우 효과
         this.attackRangeIndicator.lineStyle(4, readyColor, 0.3);
@@ -1040,7 +1090,7 @@ export class GameScene extends Phaser.Scene {
 
   private triggerLaserAttack(): void {
     const config = Data.gameConfig.monsterAttack.laser;
-    
+
     // 화면 외곽에서 임의의 시작점과 끝점 선정 (대각선 지원)
     // "이상한 곳"에 나오지 않도록 최소 거리를 보장하고 중심부를 관통하도록 개선
     let p1 = { x: 0, y: 0 };
@@ -1050,25 +1100,30 @@ export class GameScene extends Phaser.Scene {
 
     let attempts = 0;
     while (distance < minDistance && attempts < 10) {
-        const side1 = Phaser.Math.Between(0, 3); // 0:상, 1:하, 2:좌, 3:우
-        let side2 = Phaser.Math.Between(0, 3);
-        while (side1 === side2) side2 = Phaser.Math.Between(0, 3);
+      const side1 = Phaser.Math.Between(0, 3); // 0:상, 1:하, 2:좌, 3:우
+      let side2 = Phaser.Math.Between(0, 3);
+      while (side1 === side2) side2 = Phaser.Math.Between(0, 3);
 
-        const getPointOnSide = (side: number) => {
-            const padding = config.trajectory.spawnPadding;
-            switch(side) {
-                case 0: return { x: Phaser.Math.Between(0, GAME_WIDTH), y: padding };
-                case 1: return { x: Phaser.Math.Between(0, GAME_WIDTH), y: GAME_HEIGHT - padding };
-                case 2: return { x: padding, y: Phaser.Math.Between(0, GAME_HEIGHT) };
-                case 3: return { x: GAME_WIDTH - padding, y: Phaser.Math.Between(0, GAME_HEIGHT) };
-                default: return { x: 0, y: 0 };
-            }
-        };
+      const getPointOnSide = (side: number) => {
+        const padding = config.trajectory.spawnPadding;
+        switch (side) {
+          case 0:
+            return { x: Phaser.Math.Between(0, GAME_WIDTH), y: padding };
+          case 1:
+            return { x: Phaser.Math.Between(0, GAME_WIDTH), y: GAME_HEIGHT - padding };
+          case 2:
+            return { x: padding, y: Phaser.Math.Between(0, GAME_HEIGHT) };
+          case 3:
+            return { x: GAME_WIDTH - padding, y: Phaser.Math.Between(0, GAME_HEIGHT) };
+          default:
+            return { x: 0, y: 0 };
+        }
+      };
 
-        p1 = getPointOnSide(side1);
-        p2 = getPointOnSide(side2);
-        distance = Phaser.Math.Distance.Between(p1.x, p1.y, p2.x, p2.y);
-        attempts++;
+      p1 = getPointOnSide(side1);
+      p2 = getPointOnSide(side2);
+      distance = Phaser.Math.Distance.Between(p1.x, p1.y, p2.x, p2.y);
+      attempts++;
     }
 
     const laser = {
@@ -1078,7 +1133,7 @@ export class GameScene extends Phaser.Scene {
       y2: p2.y,
       isWarning: true,
       isFiring: false,
-      startTime: this.gameTime
+      startTime: this.gameTime,
     };
     this.activeLasers.push(laser);
 
@@ -1090,10 +1145,10 @@ export class GameScene extends Phaser.Scene {
       if (this.isGameOver) return;
       laser.isWarning = false;
       laser.isFiring = true;
-      
+
       // 사운드: 보스 발사 소리 활용
       this.soundSystem.playBossFireSound();
-      
+
       // 화면 흔들림
       this.cameras.main.shake(200, 0.005);
 
@@ -1113,7 +1168,7 @@ export class GameScene extends Phaser.Scene {
   private drawLasers(): void {
     const config = Data.gameConfig.monsterAttack.laser;
     const color = Phaser.Display.Color.HexStringToColor(config.color).color;
-    
+
     this.laserGraphics.clear();
 
     for (const laser of this.activeLasers) {
@@ -1122,7 +1177,7 @@ export class GameScene extends Phaser.Scene {
         const alpha = config.warningAlpha * (0.5 + Math.sin(this.gameTime / 50) * 0.5);
         this.laserGraphics.lineStyle(config.width, color, alpha);
         this.laserGraphics.lineBetween(laser.x1, laser.y1, laser.x2, laser.y2);
-        
+
         // 외곽선
         this.laserGraphics.lineStyle(2, color, alpha * 2);
         this.laserGraphics.lineBetween(laser.x1, laser.y1, laser.x2, laser.y2);
@@ -1135,10 +1190,10 @@ export class GameScene extends Phaser.Scene {
         // 중심부 (흰색 느낌)
         this.laserGraphics.lineStyle(config.width / 2, 0xffffff, config.fireAlpha);
         this.laserGraphics.lineBetween(laser.x1, laser.y1, laser.x2, laser.y2);
-        
+
         // ===== 전기 스파크 연출 추가 =====
         this.drawElectricSparks(laser.x1, laser.y1, laser.x2, laser.y2, config.width, color);
-        
+
         // 파티클 효과 (레이저 경로를 따라 스파크)
         if (Math.random() < 0.3) {
           const t = Math.random();
@@ -1150,7 +1205,14 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private drawElectricSparks(x1: number, y1: number, x2: number, y2: number, laserWidth: number, color: number): void {
+  private drawElectricSparks(
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    laserWidth: number,
+    color: number
+  ): void {
     const laserConfig = Data.gameConfig.monsterAttack.laser;
     const segments = laserConfig.visual.sparkSegments;
     const sparkCount = laserConfig.visual.sparkCount;
@@ -1161,25 +1223,31 @@ export class GameScene extends Phaser.Scene {
     const perpAngle = angle + Math.PI / 2;
 
     for (let i = 0; i < sparkCount; i++) {
-        this.laserGraphics.lineStyle(2, 0xffffff, 0.8);
-        this.laserGraphics.beginPath();
-        
-        const startOffset = (Math.random() - 0.5) * laserWidth;
-        this.laserGraphics.moveTo(x1 + Math.cos(perpAngle) * startOffset, y1 + Math.sin(perpAngle) * startOffset);
+      this.laserGraphics.lineStyle(2, 0xffffff, 0.8);
+      this.laserGraphics.beginPath();
 
-        for (let j = 1; j <= segments; j++) {
-            const t = j / segments;
-            const midX = x1 + dx * t;
-            const midY = y1 + dy * t;
-            const offset = (Math.random() - 0.5) * (laserWidth * 1.5);
-            
-            this.laserGraphics.lineTo(midX + Math.cos(perpAngle) * offset, midY + Math.sin(perpAngle) * offset);
-        }
-        this.laserGraphics.strokePath();
+      const startOffset = (Math.random() - 0.5) * laserWidth;
+      this.laserGraphics.moveTo(
+        x1 + Math.cos(perpAngle) * startOffset,
+        y1 + Math.sin(perpAngle) * startOffset
+      );
 
-        // 바깥쪽 후광 효과
-        this.laserGraphics.lineStyle(4, color, 0.3);
-        this.laserGraphics.strokePath();
+      for (let j = 1; j <= segments; j++) {
+        const t = j / segments;
+        const midX = x1 + dx * t;
+        const midY = y1 + dy * t;
+        const offset = (Math.random() - 0.5) * (laserWidth * 1.5);
+
+        this.laserGraphics.lineTo(
+          midX + Math.cos(perpAngle) * offset,
+          midY + Math.sin(perpAngle) * offset
+        );
+      }
+      this.laserGraphics.strokePath();
+
+      // 바깥쪽 후광 효과
+      this.laserGraphics.lineStyle(4, color, 0.3);
+      this.laserGraphics.strokePath();
     }
   }
 
@@ -1201,7 +1269,9 @@ export class GameScene extends Phaser.Scene {
       if (lineLenSq === 0) continue;
 
       // 선분 위의 가장 가까운 점 찾기 (t: 0 to 1)
-      let t = ((px - laser.x1) * (laser.x2 - laser.x1) + (py - laser.y1) * (laser.y2 - laser.y1)) / lineLenSq;
+      let t =
+        ((px - laser.x1) * (laser.x2 - laser.x1) + (py - laser.y1) * (laser.y2 - laser.y1)) /
+        lineLenSq;
       t = Math.max(0, Math.min(1, t));
 
       const nearestX = laser.x1 + t * (laser.x2 - laser.x1);
@@ -1209,7 +1279,7 @@ export class GameScene extends Phaser.Scene {
 
       const dist = Phaser.Math.Distance.Between(px, py, nearestX, nearestY);
 
-      if (dist < (config.width / 2 + cursorRadius)) {
+      if (dist < config.width / 2 + cursorRadius) {
         this.handleLaserHit();
         break;
       }
@@ -1226,7 +1296,7 @@ export class GameScene extends Phaser.Scene {
     this.healthSystem.takeDamage(1);
     this.feedbackSystem.onHpLost();
     this.soundSystem.playBossImpactSound();
-    
+
     // 카메라 흔들림 강화
     this.cameras.main.shake(300, 0.01);
   }

@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, COLORS, COLORS_HEX, INITIAL_HP, FONTS } from '../../data/constants';
+import { GAME_WIDTH, COLORS, COLORS_HEX, INITIAL_HP, FONTS } from '../data/constants';
 import { WaveSystem } from '../systems/WaveSystem';
 import { HealthSystem } from '../systems/HealthSystem';
 
@@ -21,12 +21,8 @@ export class HUD {
   // Monster HP UI
   private monsterHpBar!: Phaser.GameObjects.Graphics;
   private monsterHpText!: Phaser.GameObjects.Text;
-  
-  constructor(
-    scene: Phaser.Scene,
-    waveSystem: WaveSystem,
-    healthSystem?: HealthSystem
-  ) {
+
+  constructor(scene: Phaser.Scene, waveSystem: WaveSystem, healthSystem?: HealthSystem) {
     this.scene = scene;
     this.waveSystem = waveSystem;
     this.healthSystem = healthSystem || null;
@@ -79,7 +75,7 @@ export class HUD {
 
     // HP 표시 생성
     this.createHpDisplay();
-    
+
     // 초기 바 그리기
     this.updateMonsterHp(1, 1);
   }
@@ -91,7 +87,7 @@ export class HUD {
     const y = 60;
 
     this.monsterHpBar.clear();
-    
+
     // 배경
     this.monsterHpBar.fillStyle(0x000000, 0.5);
     this.monsterHpBar.fillRect(x, y, width, height);
@@ -102,7 +98,7 @@ export class HUD {
     this.monsterHpBar.fillRect(x, y, width * ratio, height);
 
     // 테두리
-    this.monsterHpBar.lineStyle(2, 0xFFFFFF, 0.8);
+    this.monsterHpBar.lineStyle(2, 0xffffff, 0.8);
     this.monsterHpBar.strokeRect(x, y, width, height);
 
     this.monsterHpText.setText(`BOSS HP: ${current}/${max}`);

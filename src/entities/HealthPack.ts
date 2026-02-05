@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { COLORS } from '../../data/constants';
-import { Data } from '../../data/DataManager';
+import { COLORS } from '../data/constants';
+import { Data } from '../data/DataManager';
 import { Poolable } from '../utils/ObjectPool';
 import { EventBus, GameEvents } from '../utils/EventBus';
 
@@ -124,15 +124,15 @@ export class HealthPack extends Phaser.GameObjects.Container implements Poolable
     this.graphics.fillStyle(COLORS.WHITE, 1);
     // 가로 막대
     this.graphics.fillRect(
-      -crossLength * pulse / 2,
-      -crossWidth * pulse / 2,
+      (-crossLength * pulse) / 2,
+      (-crossWidth * pulse) / 2,
       crossLength * pulse,
       crossWidth * pulse
     );
     // 세로 막대
     this.graphics.fillRect(
-      -crossWidth * pulse / 2,
-      -crossLength * pulse / 2,
+      (-crossWidth * pulse) / 2,
+      (-crossLength * pulse) / 2,
       crossWidth * pulse,
       crossLength * pulse
     );

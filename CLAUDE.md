@@ -31,8 +31,9 @@ Vibeshooter - Phaser 3 기반 웹 슈팅 게임
 
 ## 코드 구조
 ```
+data/             # 게임 밸런스 데이터 (JSON 전용)
 src/
-├── data/         # 게임 데이터, 설정, 상수 (DataManager 및 JSON)
+├── data/         # 데이터 처리 로직, 상수, 타입 (DataManager, constants.ts 등)
 ├── effects/      # 파티클, 화면 효과
 ├── entities/     # 게임 엔티티 (Dish, HealthPack 등)
 ├── scenes/       # Phaser 씬
@@ -44,8 +45,8 @@ src/
 ## 데이터 및 설정 원칙
 
 ### 1. 집중 관리 원칙 (Single Source of Truth)
-- **모든** 게임 밸런스 데이터, 연출용 상수, 기술적 설정은 `data` 디렉토리 내에서 관리합니다.
-- `src/config` 등 별도의 설정 디렉토리를 만들지 않습니다.
+- **모든** 게임 밸런스 수치는 루트의 `data/` 디렉토리 내 JSON 파일에서 관리합니다.
+- 기술적 설정, 상수 정의, 데이터 관리 로직은 `src/data/`에서 관리합니다.
 
 ### 2. 데이터 우선 원칙
 - 새로운 기능 추가 시, 관련 설정값(수치, 색상, 폰트, 타이밍 등)을 코드에 직접 쓰지 말고 반드시 JSON 파일(`data/*.json`)에 먼저 정의한 후 `DataManager`를 통해 불러와 사용합니다.
@@ -56,10 +57,6 @@ src/
 import { Data } from '../data/DataManager';
 // 또는 상수로 정의된 값이 필요한 경우
 import { COLORS, FONTS } from '../data/constants';
-
-// 예시
-const playerHp = Data.gameConfig.player.initialHp;
-const mainFont = FONTS.MAIN;
 ```
 
 ### 데이터 파일 구조

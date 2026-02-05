@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { COLORS, CURSOR_HITBOX } from '../../data/constants';
-import { Data } from '../../data/DataManager';
+import { COLORS, CURSOR_HITBOX } from '../data/constants';
+import { Data } from '../data/DataManager';
 import { Poolable } from '../utils/ObjectPool';
 import { EventBus, GameEvents } from '../utils/EventBus';
 
@@ -128,7 +128,13 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
     this.isBeingPulled = pulled;
   }
 
-  spawn(x: number, y: number, type: string, _speedMultiplier: number = 1, options: DishUpgradeOptions = {}): void {
+  spawn(
+    x: number,
+    y: number,
+    type: string,
+    _speedMultiplier: number = 1,
+    options: DishUpgradeOptions = {}
+  ): void {
     this.dishType = type;
     const config = getDishConfig(type);
     const dishData = Data.getDishData(type);
@@ -323,7 +329,7 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
 
     const sides = 8;
     const wobble = Math.sin(this.wobblePhase) * 2;
-    
+
     // 자기장 떨림 효과 (매우 빠른 미세 진동)
     let pullOffsetX = 0;
     let pullOffsetY = 0;
@@ -358,7 +364,8 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
 
     // 외곽 팔각형
     const fillAlpha = flashWhite > 0 ? 0.7 + flashWhite * 0.3 : 0.7;
-    const fillColor = flashWhite > 0 ? this.lerpColor(displayColor, COLORS.WHITE, flashWhite) : displayColor;
+    const fillColor =
+      flashWhite > 0 ? this.lerpColor(displayColor, COLORS.WHITE, flashWhite) : displayColor;
     this.graphics.fillStyle(fillColor, fillAlpha);
     this.drawPolygon(pullOffsetX, pullOffsetY, this.size + wobble, sides);
     this.graphics.fillPath();

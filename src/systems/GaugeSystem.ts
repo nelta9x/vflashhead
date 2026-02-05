@@ -1,4 +1,4 @@
-import { Data } from '../../data/DataManager';
+import { Data } from '../data/DataManager';
 import { EventBus, GameEvents } from '../utils/EventBus';
 import { ComboSystem } from './ComboSystem';
 
@@ -24,7 +24,7 @@ export class GaugeSystem {
   private calculateGain(): number {
     const currentCombo = this.comboSystem.getCombo();
     const bonusPerCombo = Data.combo.gaugeBonusPerCombo;
-    
+
     // 콤보 1당 gaugeBonusPerCombo (기본 1%) 만큼 추가 증가
     // 공식: 기본 증가량 * (1 + 콤보 * 보너스율)
     const multiplier = 1 + currentCombo * bonusPerCombo;
@@ -50,7 +50,7 @@ export class GaugeSystem {
     EventBus.getInstance().emit(GameEvents.GAUGE_UPDATED, {
       current: this.currentGauge,
       max: this.maxGauge,
-      ratio: this.currentGauge / this.maxGauge
+      ratio: this.currentGauge / this.maxGauge,
     });
   }
 
@@ -58,7 +58,7 @@ export class GaugeSystem {
     this.currentGauge = 0;
     this.emitUpdate();
   }
-  
+
   destroy(): void {
     EventBus.getInstance().off(GameEvents.DISH_DESTROYED, this.onDishDestroyed);
     EventBus.getInstance().off(GameEvents.WAVE_STARTED, this.onWaveStarted);

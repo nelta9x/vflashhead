@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { SPAWN_AREA, MIN_DISH_DISTANCE, WAVE_TRANSITION } from '../../data/constants';
-import { Data } from '../../data/DataManager';
+import { SPAWN_AREA, MIN_DISH_DISTANCE, WAVE_TRANSITION } from '../data/constants';
+import { Data } from '../data/DataManager';
 import { EventBus, GameEvents } from '../utils/EventBus';
 import { ObjectPool } from '../utils/ObjectPool';
 import { Dish } from '../entities/Dish';
@@ -27,7 +27,11 @@ export class WaveSystem {
   private countdownTimer: number = 0;
   private pendingWaveNumber: number = 1;
 
-  constructor(scene: Phaser.Scene, getDishPool: () => ObjectPool<Dish>, getMaxSpawnY?: () => number) {
+  constructor(
+    scene: Phaser.Scene,
+    getDishPool: () => ObjectPool<Dish>,
+    getMaxSpawnY?: () => number
+  ) {
     this.scene = scene;
     this.getDishPool = getDishPool;
     this.getMaxSpawnY = getMaxSpawnY || (() => SPAWN_AREA.maxY);
@@ -70,7 +74,7 @@ export class WaveSystem {
         waveData.spawnInterval - wavesBeyond * scaling.spawnIntervalReduction
       ),
       dishTypes: this.getScaledDishTypes(waveNumber),
-      laser: { maxCount: laserCount, minInterval, maxInterval }
+      laser: { maxCount: laserCount, minInterval, maxInterval },
     };
   }
 
@@ -79,9 +83,15 @@ export class WaveSystem {
     const scaling = wavesData.infiniteScaling;
     const wavesBeyond = waveNumber - wavesData.waves.length;
 
-    const bombWeight = Math.min(scaling.maxBombWeight, 0.25 + wavesBeyond * scaling.bombWeightIncrease);
+    const bombWeight = Math.min(
+      scaling.maxBombWeight,
+      0.25 + wavesBeyond * scaling.bombWeightIncrease
+    );
     const crystalWeight = 0.3;
-    const goldenWeight = Math.max(scaling.minGoldenWeight, 0.35 - wavesBeyond * scaling.goldenWeightDecrease);
+    const goldenWeight = Math.max(
+      scaling.minGoldenWeight,
+      0.35 - wavesBeyond * scaling.goldenWeightDecrease
+    );
     const basicWeight = Math.max(0.05, 1 - bombWeight - crystalWeight - goldenWeight);
 
     return [
@@ -167,7 +177,9 @@ export class WaveSystem {
 
     const speedMultiplier = this.isFeverTime ? 2.5 : 1 + (this.currentWave - 1) * 0.1;
 
-    const gameScene = this.scene as unknown as { spawnDish: (type: string, x: number, y: number, speedMultiplier: number) => void };
+    const gameScene = this.scene as unknown as {
+      spawnDish: (type: string, x: number, y: number, speedMultiplier: number) => void;
+    };
     gameScene.spawnDish(type, x, y, speedMultiplier);
   }
 
@@ -224,7 +236,9 @@ export class WaveSystem {
     return this.currentWave;
   }
 
-  getCurrentWaveLaserConfig(): { maxCount: number; minInterval: number; maxInterval: number } | undefined {
+  getCurrentWaveLaserConfig():
+    | { maxCount: number; minInterval: number; maxInterval: number }
+    | undefined {
     return this.waveConfig?.laser;
   }
 

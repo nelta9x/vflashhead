@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, FONTS } from '../../data/constants';
+import { GAME_WIDTH, GAME_HEIGHT, FONTS } from '../data/constants';
 
 export class WaveCountdownUI {
   private scene: Phaser.Scene;
@@ -20,19 +20,25 @@ export class WaveCountdownUI {
     this.container.setAlpha(0);
 
     // "WAVE X STARTING IN" 라벨
-    this.waveLabel = this.scene.add.text(0, -60, '', {
-              fontFamily: FONTS.MAIN,      fontSize: '24px',
-      color: '#ffffff',
-    }).setOrigin(0.5);
+    this.waveLabel = this.scene.add
+      .text(0, -60, '', {
+        fontFamily: FONTS.MAIN,
+        fontSize: '24px',
+        color: '#ffffff',
+      })
+      .setOrigin(0.5);
     this.container.add(this.waveLabel);
 
     // 카운트다운 숫자
-    this.countdownText = this.scene.add.text(0, 20, '', {
-              fontFamily: FONTS.MAIN,      fontSize: '120px',
-      color: '#00ffff',
-      stroke: '#003333',
-      strokeThickness: 4,
-    }).setOrigin(0.5);
+    this.countdownText = this.scene.add
+      .text(0, 20, '', {
+        fontFamily: FONTS.MAIN,
+        fontSize: '120px',
+        color: '#00ffff',
+        stroke: '#003333',
+        strokeThickness: 4,
+      })
+      .setOrigin(0.5);
     this.container.add(this.countdownText);
   }
 

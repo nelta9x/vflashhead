@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, COLORS, COLORS_HEX, FONTS } from '../../data/constants';
+import { GAME_WIDTH, GAME_HEIGHT, COLORS, COLORS_HEX, FONTS } from '../data/constants';
 
 interface GameStats {
   maxCombo: number;
@@ -46,7 +46,8 @@ export class GameOverScene extends Phaser.Scene {
 
   private createTitle(): void {
     const title = this.add.text(GAME_WIDTH / 2, 120, 'GAME OVER', {
-              fontFamily: FONTS.MAIN,      fontSize: '72px',
+      fontFamily: FONTS.MAIN,
+      fontSize: '72px',
       color: COLORS_HEX.RED,
       stroke: COLORS_HEX.WHITE,
       strokeThickness: 2,
@@ -70,42 +71,50 @@ export class GameOverScene extends Phaser.Scene {
 
     // 생존 시간 (최상단, 가장 큰 폰트)
     const timeLabel = this.add.text(-150, -80, 'SURVIVED', {
-              fontFamily: FONTS.MAIN,      fontSize: '24px',
+      fontFamily: FONTS.MAIN,
+      fontSize: '24px',
       color: COLORS_HEX.GREEN,
     });
 
-    const timeValue = this.add.text(150, -80, this.formatTime(this.stats.time), {
-              fontFamily: FONTS.MAIN,      fontSize: '48px',
-      color: COLORS_HEX.GREEN,
-    }).setOrigin(1, 0);
+    const timeValue = this.add
+      .text(150, -80, this.formatTime(this.stats.time), {
+        fontFamily: FONTS.MAIN,
+        fontSize: '48px',
+        color: COLORS_HEX.GREEN,
+      })
+      .setOrigin(1, 0);
 
     // 도달 웨이브
     const waveLabel = this.add.text(-150, 0, 'WAVE REACHED', {
-              fontFamily: FONTS.MAIN,      fontSize: '20px',
+      fontFamily: FONTS.MAIN,
+      fontSize: '20px',
       color: COLORS_HEX.WHITE,
     });
 
-    const waveValue = this.add.text(150, 0, `${this.stats.wave}`, {
-              fontFamily: FONTS.MAIN,      fontSize: '32px',
-      color: COLORS_HEX.YELLOW,
-    }).setOrigin(1, 0);
+    const waveValue = this.add
+      .text(150, 0, `${this.stats.wave}`, {
+        fontFamily: FONTS.MAIN,
+        fontSize: '32px',
+        color: COLORS_HEX.YELLOW,
+      })
+      .setOrigin(1, 0);
 
     // 최대 콤보
     const comboLabel = this.add.text(-150, 60, 'MAX COMBO', {
-              fontFamily: FONTS.MAIN,      fontSize: '20px',
+      fontFamily: FONTS.MAIN,
+      fontSize: '20px',
       color: COLORS_HEX.WHITE,
     });
 
-    const comboValue = this.add.text(150, 60, `x${this.stats.maxCombo}`, {
-              fontFamily: FONTS.MAIN,      fontSize: '28px',
-      color: COLORS_HEX.MAGENTA,
-    }).setOrigin(1, 0);
+    const comboValue = this.add
+      .text(150, 60, `x${this.stats.maxCombo}`, {
+        fontFamily: FONTS.MAIN,
+        fontSize: '28px',
+        color: COLORS_HEX.MAGENTA,
+      })
+      .setOrigin(1, 0);
 
-    statsContainer.add([
-      timeLabel, timeValue,
-      waveLabel, waveValue,
-      comboLabel, comboValue,
-    ]);
+    statsContainer.add([timeLabel, timeValue, waveLabel, waveValue, comboLabel, comboValue]);
 
     // 애니메이션
     statsContainer.setAlpha(0);
@@ -154,14 +163,22 @@ export class GameOverScene extends Phaser.Scene {
     bg.lineStyle(2, color, 1);
     bg.strokeRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 10);
 
-    const buttonText = this.add.text(0, 0, text, {
-              fontFamily: FONTS.MAIN,      fontSize: '24px',
-      color: `#${color.toString(16).padStart(6, '0')}`,
-    }).setOrigin(0.5);
+    const buttonText = this.add
+      .text(0, 0, text, {
+        fontFamily: FONTS.MAIN,
+        fontSize: '24px',
+        color: `#${color.toString(16).padStart(6, '0')}`,
+      })
+      .setOrigin(0.5);
 
     container.add([bg, buttonText]);
 
-    const hitArea = new Phaser.Geom.Rectangle(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight);
+    const hitArea = new Phaser.Geom.Rectangle(
+      -buttonWidth / 2,
+      -buttonHeight / 2,
+      buttonWidth,
+      buttonHeight
+    );
     container.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
 
     container.on('pointerover', () => {

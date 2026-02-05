@@ -216,7 +216,7 @@ export interface EnergyEffectConfig {
   glowAlpha: number;
   targetYOffset: number;
   knockbackDistance: number; // 튕겨나가는 거리
-  trailLifespan: number;     // 꼬리 지속 시간
+  trailLifespan: number; // 꼬리 지속 시간
 }
 
 export interface CursorTrailConfig {

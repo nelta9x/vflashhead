@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { COLORS } from '../../data/constants';
-import { Data } from '../../data/DataManager';
+import { COLORS } from '../data/constants';
+import { Data } from '../data/DataManager';
 
 // 무지개 색상 배열
 const RAINBOW_COLORS = [
@@ -84,17 +84,23 @@ export class ParticleManager {
 
     // 접시 위치에서 커서 방향으로 아주 짧은 스파크/파티클 생성
     const angle = Phaser.Math.Angle.Between(dishX, dishY, cursorX, cursorY);
-    
+
     emitter.setParticleTint(COLORS.MAGENTA);
     (emitter as any).setAngle({
       min: Phaser.Math.RadToDeg(angle) - 20,
-      max: Phaser.Math.RadToDeg(angle) + 20
+      max: Phaser.Math.RadToDeg(angle) + 20,
     });
-    
+
     emitter.explode(1, dishX, dishY);
   }
 
-  createExplosion(x: number, y: number, color: number, dishType: string, particleMultiplier: number = 1): void {
+  createExplosion(
+    x: number,
+    y: number,
+    color: number,
+    dishType: string,
+    particleMultiplier: number = 1
+  ): void {
     const emitter = this.emitters.get('explosion');
     if (!emitter) return;
 
@@ -179,7 +185,7 @@ export class ParticleManager {
 
     const startX = x;
     const startY = y;
-    
+
     let isAbsorbed = false;
 
     const tween = this.scene.tweens.add({
@@ -195,17 +201,13 @@ export class ParticleManager {
         const targetX = pointer.worldX;
         const targetY = pointer.worldY;
 
-        particle.x = (oneMinusT * oneMinusT * startX) + 
-                     (2 * oneMinusT * t * cpX) + 
-                     (t * t * targetX);
-                     
-        particle.y = (oneMinusT * oneMinusT * startY) + 
-                     (2 * oneMinusT * t * cpY) + 
-                     (t * t * targetY);
+        particle.x = oneMinusT * oneMinusT * startX + 2 * oneMinusT * t * cpX + t * t * targetX;
+
+        particle.y = oneMinusT * oneMinusT * startY + 2 * oneMinusT * t * cpY + t * t * targetY;
 
         // 실시간 거리 체크: 플레이어의 범위(cursorRadius)에 닿았는지 확인
         const dist = Phaser.Math.Distance.Between(particle.x, particle.y, targetX, targetY);
-        
+
         // 너무 초반(튕겨나가는 중)에 흡수되는 것을 방지하기 위해 t > 0.2 조건 추가
         if (t > 0.2 && dist <= cursorRadius) {
           isAbsorbed = true;
@@ -225,24 +227,24 @@ export class ParticleManager {
         if (!isAbsorbed) {
           this.completeEnergyEffect(particle, glow, trail, color, config.trailLifespan);
         }
-      }
+      },
     });
   }
 
   // 에너지 효과 종료 공통 로직
   private completeEnergyEffect(
-    particle: Phaser.GameObjects.Arc, 
-    glow: Phaser.GameObjects.Graphics, 
+    particle: Phaser.GameObjects.Arc,
+    glow: Phaser.GameObjects.Graphics,
     trail: Phaser.GameObjects.Particles.ParticleEmitter,
     color: number,
     trailLifespan: number
   ): void {
     const x = particle.x;
     const y = particle.y;
-    
+
     particle.destroy();
     glow.destroy();
-    
+
     this.scene.time.delayedCall(trailLifespan, () => {
       trail.destroy();
     });
@@ -559,8 +561,17 @@ export class ParticleManager {
       points.push(y + Math.sin(angle) * radius);
     }
 
-    shield.fillPoints(points.map((_, i) => (i % 2 === 0 ? { x: points[i], y: points[i + 1] } : null)).filter(Boolean) as Phaser.Geom.Point[]);
-    shield.strokePoints(points.map((_, i) => (i % 2 === 0 ? { x: points[i], y: points[i + 1] } : null)).filter(Boolean) as Phaser.Geom.Point[], true);
+    shield.fillPoints(
+      points
+        .map((_, i) => (i % 2 === 0 ? { x: points[i], y: points[i + 1] } : null))
+        .filter(Boolean) as Phaser.Geom.Point[]
+    );
+    shield.strokePoints(
+      points
+        .map((_, i) => (i % 2 === 0 ? { x: points[i], y: points[i + 1] } : null))
+        .filter(Boolean) as Phaser.Geom.Point[],
+      true
+    );
 
     this.scene.tweens.add({
       targets: shield,

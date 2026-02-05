@@ -66,6 +66,32 @@ export class ParticleManager {
       emitting: false,
     });
     this.emitters.set('spark', sparkEmitter);
+
+    // 자기장 이펙트 이미터
+    const magnetEmitter = this.scene.add.particles(0, 0, 'particle', {
+      speed: { min: 20, max: 100 },
+      scale: { start: 0.5, end: 0 },
+      lifespan: { min: 200, max: 400 },
+      blendMode: 'ADD',
+      emitting: false,
+    });
+    this.emitters.set('magnet', magnetEmitter);
+  }
+
+  createMagnetPullEffect(dishX: number, dishY: number, cursorX: number, cursorY: number): void {
+    const emitter = this.emitters.get('magnet');
+    if (!emitter) return;
+
+    // 접시 위치에서 커서 방향으로 아주 짧은 스파크/파티클 생성
+    const angle = Phaser.Math.Angle.Between(dishX, dishY, cursorX, cursorY);
+    
+    emitter.setParticleTint(COLORS.MAGENTA);
+    emitter.setAngle({
+      min: Phaser.Math.RadToDeg(angle) - 20,
+      max: Phaser.Math.RadToDeg(angle) + 20
+    });
+    
+    emitter.explode(1, dishX, dishY);
   }
 
   createExplosion(x: number, y: number, color: number, dishType: string, particleMultiplier: number = 1): void {

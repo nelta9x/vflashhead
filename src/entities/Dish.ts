@@ -77,6 +77,10 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
   private hitFlashPhase: number = 0;
   private invulnerable: boolean = false;
 
+  // 자기장 효과
+  private isBeingPulled: boolean = false;
+  private pullPhase: number = 0;
+
   // 상태 효과
   private slowFactor: number = 1.0;
   private slowEndTime: number = 0;
@@ -111,11 +115,17 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
     this.isHovered = false;
     this.hitFlashPhase = 0;
     this.isBeingDamaged = false;
+    this.isBeingPulled = false;
+    this.pullPhase = 0;
     this.clearDamageTimer();
     this.setVisible(true);
     this.setActive(true);
     this.setAlpha(1);
     this.setScale(1);
+  }
+
+  setBeingPulled(pulled: boolean): void {
+    this.isBeingPulled = pulled;
   }
 
   spawn(x: number, y: number, type: string, _speedMultiplier: number = 1, options: DishUpgradeOptions = {}): void {
@@ -313,6 +323,14 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
 
     const sides = 8;
     const wobble = Math.sin(this.wobblePhase) * 2;
+    
+    // 자기장 떨림 효과 (매우 빠른 미세 진동)
+    let pullOffsetX = 0;
+    let pullOffsetY = 0;
+    if (this.isBeingPulled) {
+      pullOffsetX = Math.sin(this.pullPhase * 2) * 2;
+      pullOffsetY = Math.cos(this.pullPhase * 1.5) * 2;
+    }
 
     // 피격 플래시 적용
     const flashWhite = this.hitFlashPhase > 0 ? this.hitFlashPhase : 0;
@@ -326,56 +344,63 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
       displayColor = 0x88ccff;
     }
 
+    // 자기장 글로우 (보라색/마젠타)
+    if (this.isBeingPulled) {
+      const magnetAlpha = (0.3 + Math.sin(this.pullPhase) * 0.2);
+      this.graphics.fillStyle(COLORS.MAGENTA, magnetAlpha);
+      this.graphics.fillCircle(pullOffsetX, pullOffsetY, this.size + 15);
+    }
+
     // 글로우 효과 (호버 시 더 밝게)
     const glowAlpha = this.isHovered ? 0.4 : 0.2;
     this.graphics.fillStyle(displayColor, glowAlpha);
-    this.graphics.fillCircle(0, 0, this.size + 10 + wobble);
+    this.graphics.fillCircle(pullOffsetX, pullOffsetY, this.size + 10 + wobble);
 
     // 외곽 팔각형
     const fillAlpha = flashWhite > 0 ? 0.7 + flashWhite * 0.3 : 0.7;
     const fillColor = flashWhite > 0 ? this.lerpColor(displayColor, COLORS.WHITE, flashWhite) : displayColor;
     this.graphics.fillStyle(fillColor, fillAlpha);
-    this.drawPolygon(0, 0, this.size + wobble, sides);
+    this.drawPolygon(pullOffsetX, pullOffsetY, this.size + wobble, sides);
     this.graphics.fillPath();
 
     // 외곽선 (호버 시 더 굵게)
     const lineWidth = this.isHovered ? 4 : 3;
     this.graphics.lineStyle(lineWidth, displayColor, 1);
-    this.drawPolygon(0, 0, this.size + wobble, sides);
+    this.drawPolygon(pullOffsetX, pullOffsetY, this.size + wobble, sides);
     this.graphics.strokePath();
 
     // 내부 원
     this.graphics.lineStyle(2, COLORS.WHITE, 0.4);
-    this.graphics.strokeCircle(0, 0, this.size * 0.5);
+    this.graphics.strokeCircle(pullOffsetX, pullOffsetY, this.size * 0.5);
 
     // HP 바 그리기 (데미지를 받았을 때만)
     if (this.currentHp < this.maxHp) {
-      this.drawHpBar();
+      this.drawHpBar(pullOffsetX, pullOffsetY);
     }
 
     // 히트박스 표시 (디버그용) - 접시 크기만 표시
     this.graphics.lineStyle(1, COLORS.GREEN, 0.5);
-    this.graphics.strokeCircle(0, 0, this.size);
+    this.graphics.strokeCircle(pullOffsetX, pullOffsetY, this.size);
   }
 
-  private drawHpBar(): void {
+  private drawHpBar(offsetX: number = 0, offsetY: number = 0): void {
     const barWidth = this.size * 1.6;
     const barHeight = 6;
-    const barY = -this.size - 15;
+    const barY = -this.size - 15 + offsetY;
 
     // 배경
     this.graphics.fillStyle(0x000000, 0.6);
-    this.graphics.fillRect(-barWidth / 2 - 1, barY - 1, barWidth + 2, barHeight + 2);
+    this.graphics.fillRect(-barWidth / 2 - 1 + offsetX, barY - 1, barWidth + 2, barHeight + 2);
 
     // HP 바
     const hpRatio = Math.max(0, this.currentHp / this.maxHp);
     const hpColor = this.lerpColor(COLORS.RED, COLORS.GREEN, hpRatio);
     this.graphics.fillStyle(hpColor, 1);
-    this.graphics.fillRect(-barWidth / 2, barY, barWidth * hpRatio, barHeight);
+    this.graphics.fillRect(-barWidth / 2 + offsetX, barY, barWidth * hpRatio, barHeight);
 
     // 테두리
     this.graphics.lineStyle(1, COLORS.WHITE, 0.5);
-    this.graphics.strokeRect(-barWidth / 2, barY, barWidth, barHeight);
+    this.graphics.strokeRect(-barWidth / 2 + offsetX, barY, barWidth, barHeight);
   }
 
   private lerpColor(colorA: number, colorB: number, t: number): number {
@@ -485,6 +510,11 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
 
     // 좌우 흔들림 (냉동 시 느리게)
     this.wobblePhase += 0.1 * this.slowFactor;
+
+    // 자기장 흔들림
+    if (this.isBeingPulled) {
+      this.pullPhase += 0.5;
+    }
 
     // 피격 플래시 감쇠
     if (this.hitFlashPhase > 0) {

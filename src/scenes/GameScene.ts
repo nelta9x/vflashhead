@@ -777,7 +777,14 @@ export class GameScene extends Phaser.Scene {
 
   private updateMagnetEffect(delta: number): void {
     const magnetLevel = this.upgradeSystem.getMagnetLevel();
-    if (magnetLevel <= 0) return;
+    
+    // 자기장 레벨이 0이면 모든 접시의 상태만 초기화하고 리턴
+    if (magnetLevel <= 0) {
+      this.dishPool.forEach(dish => {
+        if (dish.active) dish.setBeingPulled(false);
+      });
+      return;
+    }
 
     const pointer = this.input.activePointer;
     const cursorX = pointer.worldX;
@@ -792,11 +799,18 @@ export class GameScene extends Phaser.Scene {
 
     this.dishPool.forEach((dish) => {
       if (!dish.active) return;
+      
+      // 상태 초기화
+      dish.setBeingPulled(false);
+
       // 폭탄(dangerous)은 당기지 않음
       if (dish.isDangerous()) return;
 
       const dist = Phaser.Math.Distance.Between(cursorX, cursorY, dish.x, dish.y);
       if (dist > magnetRadius || dist < MAGNET.MIN_PULL_DISTANCE) return;
+
+      // 당겨지는 상태 설정
+      dish.setBeingPulled(true);
 
       // 거리 기반 선형 감쇠 (가까울수록 강함)
       const pullStrength = 1 - dist / magnetRadius;
@@ -806,6 +820,11 @@ export class GameScene extends Phaser.Scene {
       const angle = Phaser.Math.Angle.Between(dish.x, dish.y, cursorX, cursorY);
       dish.x += Math.cos(angle) * pullAmount;
       dish.y += Math.sin(angle) * pullAmount;
+
+      // 자기장 연출 추가: 낮은 확률로 파티클 생성 또는 거리 기반으로 생성
+      if (Math.random() < 0.15) {
+        this.particleManager.createMagnetPullEffect(dish.x, dish.y, cursorX, cursorY);
+      }
     });
   }
 

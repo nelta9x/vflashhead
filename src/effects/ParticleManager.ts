@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS } from '../config/constants';
+import { COLORS } from '../data/constants';
 import { Data } from '../data/DataManager';
 
 // 무지개 색상 배열

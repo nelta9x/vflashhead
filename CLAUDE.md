@@ -28,8 +28,7 @@ Vibeshooter - Phaser 3 기반 웹 슈팅 게임
 ## 코드 구조
 ```
 src/
-├── config/       # 게임 설정, 상수 (DataManager에서 로드)
-├── data/         # JSON 데이터 (밸런스 조절용)
+├── data/         # 게임 데이터, 설정, 상수 (DataManager 및 JSON)
 ├── effects/      # 파티클, 화면 효과
 ├── entities/     # 게임 엔티티 (Dish, HealthPack 등)
 ├── scenes/       # Phaser 씬
@@ -38,34 +37,42 @@ src/
 └── utils/        # 유틸리티 (EventBus, ObjectPool 등)
 ```
 
-## 데이터 시스템
+## 데이터 및 설정 원칙
 
-### 개요
-밸런스 디자이너가 `/src/data/` 디렉토리의 JSON 파일만 수정하여 게임 밸런스를 조절할 수 있도록 데이터가 분리되어 있음.
+### 1. 집중 관리 원칙 (Single Source of Truth)
+- **모든** 게임 밸런스 데이터, 연출용 상수, 기술적 설정은 `src/data` 디렉토리 내에서 관리합니다.
+- `src/config` 등 별도의 설정 디렉토리를 만들지 않습니다.
+
+### 2. 데이터 우선 원칙
+- 새로운 기능 추가 시, 관련 설정값(수치, 색상, 폰트, 타이밍 등)을 코드에 직접 쓰지 말고 반드시 JSON 파일(`src/data/*.json`)에 먼저 정의한 후 `DataManager`를 통해 불러와 사용합니다.
+- 밸런스 디자이너가 소스 코드를 열지 않고도 모든 수치를 조절할 수 있도록 설계해야 합니다.
 
 ### DataManager 사용법
 ```typescript
 import { Data } from '../data/DataManager';
+// 또는 상수로 정의된 값이 필요한 경우
+import { COLORS, FONTS } from '../data/constants';
 
 // 예시
 const playerHp = Data.gameConfig.player.initialHp;
-const waveData = Data.getWaveData(1);
-const dishData = Data.getDishData('basic');
+const mainFont = FONTS.MAIN;
 ```
 
 ### 데이터 파일 구조
 | 파일 | 설명 |
 |------|------|
-| `game-config.json` | 화면 크기, 플레이어 설정, UI, 자기장 시스템 |
-| `spawn.json` | 스폰 영역, 최소 거리, 동적 스폰 설정 |
-| `combo.json` | 콤보 타임아웃, 마일스톤, 배율 공식 |
-| `health-pack.json` | 힐팩 스폰 확률, 쿨다운, 크기 등 |
-| `feedback.json` | 콤보 마일스톤별 화면 효과, 파티클 수 |
-| `colors.json` | 게임 색상 (hex, numeric) |
-| `waves.json` | 웨이브별 설정, 피버, 무한 스케일링 |
-| `dishes.json` | 접시 종류별 HP, 점수, 크기, 생존시간 |
-| `upgrades.json` | 업그레이드 타이밍, 희귀도, 무기/시스템 업그레이드 |
-| `weapons.json` | 무기 스탯 |
+| `game-config.json` | 화면, 플레이어, UI, 폰트, 자기장 등 전역 설정 |
+| `constants.ts` | JSON 데이터를 코드에서 쓰기 편하게 만든 상수들 |
+| `game.config.ts` | Phaser 엔진 기술 설정 |
+| `spawn.json` | 스폰 영역 및 로직 설정 |
+| `combo.json` | 콤보 타임아웃 및 배율 공식 |
+| `health-pack.json` | 힐팩 관련 모든 수치 |
+| `feedback.json` | 화면 흔들림, 슬로우모션, 파티클 등 연출 설정 |
+| `colors.json` | 게임 내 모든 색상 팔레트 |
+| `waves.json` | 웨이브 구성 및 난이도 곡선 |
+| `dishes.json` | 접시(적) 종류별 상세 스탯 |
+| `upgrades.json` | 업그레이드 확률 및 효과 정의 |
+| `weapons.json` | 무기 기본 데이터 |
 
 ### 밸런스 조절 가이드
 1. **난이도 조절**: `waves.json`의 `spawnInterval`, `dishTypes` 가중치 수정

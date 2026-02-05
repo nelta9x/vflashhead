@@ -34,9 +34,22 @@
 | **업그레이드 효과** | `upgrades.json` | `weapon`, `system` |
 | **힐팩 스폰 확률** | `health-pack.json` | `spawnChanceByHp` |
 | **플레이어 초기 HP** | `game-config.json` | `player.initialHp` |
+| **폰트 설정** | `game-config.json` | `fonts` |
 | **커서 크기** | `game-config.json` | `player.cursorHitbox.baseRadius` |
 | **웨이브 지속 시간** | `waves.json` | `duration` |
 | **콤보 이펙트 강도** | `feedback.json` | `comboMilestones` |
+
+---
+
+## 파일 목록
+
+이 디렉토리에는 다음과 같은 파일들이 포함되어 있습니다:
+
+- **JSON 데이터**: 실제 밸런스 수치들이 들어있는 파일 (가장 자주 수정하게 될 파일들)
+- **DataManager.ts**: JSON 데이터를 불러와 게임 시스템에 공급하는 관리자 코드
+- **constants.ts**: 데이터 기반 상수들을 코드에서 쓰기 편하게 정의한 파일
+- **game.config.ts**: Phaser 게임 엔진의 기술적 설정 파일
+- **types.ts**: 데이터의 구조를 정의한 타입 파일
 
 ---
 
@@ -60,13 +73,17 @@
   },
   "upgradeUI": {
     "boxWidth": 200,    // 업그레이드 선택 박스 너비
-    "boxHeight": 100,   // 업그레이드 선택 박스 높이
+    "boxHeight": 140,   // 업그레이드 선택 박스 높이
     "boxSpacing": 30,   // 박스 간 간격
     "hoverDuration": 300, // 호버 후 선택까지 시간 (ms)
-    "boxYOffset": 120   // 화면 하단에서의 거리
+    "boxYOffset": 150   // 화면 하단에서의 거리
   },
   "waveTransition": {
     "countdownDuration": 3000  // 웨이브 시작 전 카운트다운 (ms)
+  },
+  "fonts": {
+    "main": "'Orbitron', 'Black Han Sans', sans-serif", // 기본 폰트
+    "korean": "'Black Han Sans', 'Orbitron', sans-serif" // 한국어 우선 폰트
   },
   "magnet": {
     "baseRadius": 70,       // 자기장 기본 범위 (px)

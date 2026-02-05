@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, HEAL_PACK } from '../config/constants';
+import { GAME_WIDTH, HEAL_PACK } from '../data/constants';
 import { HealthPack } from '../entities/HealthPack';
 import { ObjectPool } from '../utils/ObjectPool';
 import { EventBus, GameEvents } from '../utils/EventBus';

@@ -1,4 +1,4 @@
-import { INITIAL_HP } from '../config/constants';
+import { INITIAL_HP } from '../data/constants';
 import { EventBus, GameEvents } from '../utils/EventBus';
 
 export class HealthSystem {

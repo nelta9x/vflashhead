@@ -19,6 +19,10 @@
   "waveTransition": {
     "countdownDuration": 3000
   },
+  "fonts": {
+    "main": "'Orbitron', 'Black Han Sans', sans-serif",
+    "korean": "'Black Han Sans', 'Orbitron', sans-serif"
+  },
   "magnet": {
     "baseRadius": 70,
     "radiusPerLevel": 25,

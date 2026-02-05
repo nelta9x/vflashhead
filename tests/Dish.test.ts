@@ -54,7 +54,7 @@ vi.mock('../src/data/upgrades.json', () => ({ default: { timing: {}, rarityWeigh
 vi.mock('../src/data/weapons.json', () => ({ default: {} }));
 
 // Mock constants
-vi.mock('../src/config/constants', () => ({
+vi.mock('../src/data/constants', () => ({
   COLORS: {
     CYAN: 0x00ffff,
     MAGENTA: 0xff00ff,

@@ -3,7 +3,7 @@
 // 기존 코드 호환성을 위해 export 유지
 // ============================================
 
-import { Data } from '../data/DataManager';
+import { Data } from './DataManager';
 
 // 화면 크기
 export const GAME_WIDTH = Data.gameConfig.screen.width;
@@ -57,8 +57,8 @@ export const INITIAL_HP = Data.gameConfig.player.initialHp;
 
 // 폰트 설정
 export const FONTS = {
-  MAIN: "'Orbitron', 'Black Han Sans', sans-serif",
-  KOREAN: "'Black Han Sans', 'Orbitron', sans-serif",
+  MAIN: Data.gameConfig.fonts.main,
+  KOREAN: Data.gameConfig.fonts.korean,
 } as const;
 
 // 접시 생존 시간 (밀리초)

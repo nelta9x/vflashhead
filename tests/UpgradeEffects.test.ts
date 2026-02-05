@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock constants
-vi.mock('../src/config/constants', () => ({
+vi.mock('../src/data/constants', () => ({
   INITIAL_HP: 5,
   UPGRADE_INTERVAL: 30000,
   COMBO_TIMEOUT: 1500,

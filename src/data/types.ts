@@ -35,6 +35,10 @@ export interface GameConfig {
   player: PlayerConfig;
   upgradeUI: UpgradeUIConfig;
   waveTransition: WaveTransitionConfig;
+  fonts: {
+    main: string;
+    korean: string;
+  };
 }
 
 // ========== 스폰 시스템 ==========

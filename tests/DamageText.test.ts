@@ -88,6 +88,10 @@ vi.mock('../src/config/constants', () => ({
     WHITE: '#ffffff',
     YELLOW: '#ffff00',
   },
+  FONTS: {
+    MAIN: 'monospace',
+    KOREAN: 'monospace',
+  },
 }));
 
 // Mock Phaser
@@ -103,9 +107,31 @@ vi.mock('phaser', () => {
   };
 });
 
-// Create mock text object
-function createMockText() {
-  return {
+// Create mock text object type
+interface MockText {
+  x: number;
+  y: number;
+  text: string;
+  color: string;
+  fontSize: number;
+  visible: boolean;
+  alpha: number;
+  scaleX: number;
+  scaleY: number;
+  rotation: number;
+  setText: (t: string) => MockText;
+  setPosition: (x: number, y: number) => MockText;
+  setColor: (c: string) => MockText;
+  setFontSize: (s: number) => MockText;
+  setVisible: (v: boolean) => MockText;
+  setAlpha: (a: number) => MockText;
+  setScale: (s: number) => MockText;
+  setRotation: (r: number) => MockText;
+  setOrigin: (x: number, y?: number) => MockText;
+}
+
+function createMockText(): MockText {
+  const mock: MockText = {
     x: 0,
     y: 0,
     text: '',
@@ -116,47 +142,50 @@ function createMockText() {
     scaleX: 1,
     scaleY: 1,
     rotation: 0,
-    setText: vi.fn(function (this: ReturnType<typeof createMockText>, t: string) {
+    setText: vi.fn(function (this: MockText, t: string) {
       this.text = t;
       return this;
     }),
-    setPosition: vi.fn(function (this: ReturnType<typeof createMockText>, x: number, y: number) {
+    setPosition: vi.fn(function (this: MockText, x: number, y: number) {
       this.x = x;
       this.y = y;
       return this;
     }),
-    setColor: vi.fn(function (this: ReturnType<typeof createMockText>, c: string) {
+    setColor: vi.fn(function (this: MockText, c: string) {
       this.color = c;
       return this;
     }),
-    setFontSize: vi.fn(function (this: ReturnType<typeof createMockText>, s: number) {
+    setFontSize: vi.fn(function (this: MockText, s: number) {
       this.fontSize = s;
       return this;
     }),
-    setVisible: vi.fn(function (this: ReturnType<typeof createMockText>, v: boolean) {
+    setVisible: vi.fn(function (this: MockText, v: boolean) {
       this.visible = v;
       return this;
     }),
-    setAlpha: vi.fn(function (this: ReturnType<typeof createMockText>, a: number) {
+    setAlpha: vi.fn(function (this: MockText, a: number) {
       this.alpha = a;
       return this;
     }),
-    setScale: vi.fn(function (this: ReturnType<typeof createMockText>, s: number) {
+    setScale: vi.fn(function (this: MockText, s: number) {
       this.scaleX = s;
       this.scaleY = s;
       return this;
     }),
-    setRotation: vi.fn(function (this: ReturnType<typeof createMockText>, r: number) {
+    setRotation: vi.fn(function (this: MockText, r: number) {
       this.rotation = r;
       return this;
     }),
-    setOrigin: vi.fn(),
+    setOrigin: vi.fn(function (this: MockText) {
+      return this;
+    }),
   };
+  return mock;
 }
 
 // Create mock scene
 function createMockScene() {
-  const texts: ReturnType<typeof createMockText>[] = [];
+  const texts: MockText[] = [];
 
   return {
     texts,

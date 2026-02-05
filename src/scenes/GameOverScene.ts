@@ -53,7 +53,7 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   private createTitle(): void {
-    const title = this.add.text(GAME_WIDTH / 2, 120, 'GAME OVER', {
+    const title = this.add.text(GAME_WIDTH / 2, 120, 'PLAY RECORD', {
       fontFamily: FONTS.MAIN,
       fontSize: '72px',
       color: COLORS_HEX.RED,

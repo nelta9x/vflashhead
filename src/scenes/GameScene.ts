@@ -667,30 +667,33 @@ export class GameScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     if (this.isGameOver || this.isPaused) return;
 
+    // 슬로우 모션 적용된 델타 타임 계산
+    const scaledDelta = delta * this.time.timeScale;
+
     // 시간 업데이트
-    this.gameTime += delta;
+    this.gameTime += scaledDelta;
 
     // 시스템 업데이트
     this.comboSystem.setWave(this.waveSystem.getCurrentWave());
-    this.comboSystem.update(delta);
-    this.waveSystem.update(delta);
-    this.upgradeSystem.update(delta, this.gameTime);
-    this.healthPackSystem.update(delta, this.gameTime);
-    this.slowMotion.update(delta);
+    this.comboSystem.update(scaledDelta);
+    this.waveSystem.update(scaledDelta);
+    this.upgradeSystem.update(scaledDelta, this.gameTime);
+    this.healthPackSystem.update(scaledDelta, this.gameTime);
+    this.slowMotion.update(delta); // SlowMotion 시스템 자체는 실제 시간(delta)으로 업데이트해야 함
 
     // 접시 업데이트
     this.dishPool.forEach((dish) => {
-      dish.update(delta);
+      dish.update(scaledDelta);
     });
 
     // HUD 업데이트
     this.hud.update(this.gameTime);
 
     // 인게임 업그레이드 UI 업데이트
-    this.inGameUpgradeUI.update(delta);
+    this.inGameUpgradeUI.update(scaledDelta);
 
     // 자기장 효과 업데이트
-    this.updateMagnetEffect(delta);
+    this.updateMagnetEffect(scaledDelta);
 
     // 커서 범위 기반 공격 처리
     this.updateCursorAttack();

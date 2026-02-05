@@ -26,7 +26,7 @@
   "magnet": {
     "baseRadius": 70,
     "radiusPerLevel": 25,
-    "baseForce": 30,
+    "baseForce": 60,
     "forcePerLevel": 20,
     "minPullDistance": 30
   }

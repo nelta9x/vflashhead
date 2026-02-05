@@ -292,89 +292,130 @@ export class GameScene extends Phaser.Scene {
 
   private performPlayerAttack(): void {
     const pointer = this.input.activePointer;
-    const startX = pointer.worldX;
-    const startY = pointer.worldY;
     const endX = GAME_WIDTH / 2;
     const endY = 80; // Approximate boss pos
 
-    // 1. Charge Phase
-    // 발사체 생성 (작게 시작)
-    const projectile = this.add.circle(startX, startY, 5, COLORS.YELLOW);
+    // 1. Charge Phase (에네르기파 스타일 기 모으기)
+    const chargeDuration = 600; // 약간 더 길게 조절
+    
+    // 발사체 생성 (빛나는 구체 느낌)
+    const projectile = this.add.circle(pointer.worldX, pointer.worldY, 5, COLORS.YELLOW);
+    projectile.setDepth(2000);
     this.physics.add.existing(projectile);
     
-    // 기를 모으는 효과 (주변에서 모여드는 파티클 시뮬레이션 - 역재생 링)
-    const chargeRing = this.add.graphics();
-    chargeRing.lineStyle(2, COLORS.YELLOW, 1);
-    chargeRing.strokeCircle(0, 0, 50); // 중심을 0,0으로 설정하여 x,y 이동이 편하게 함
-    chargeRing.setPosition(startX, startY);
+    // 글로우 효과 (외부 광원)
+    const glow = this.add.graphics();
+    glow.setDepth(1999);
     
-    // 기 모으기 애니메이션 (크기 감소)
-    this.tweens.add({
-        targets: chargeRing,
-        scale: 0,
-        alpha: 0.5,
-        duration: 500,
-        ease: 'Cubic.In',
-        onUpdate: () => {
-            chargeRing.setPosition(pointer.worldX, pointer.worldY);
-        },
-        onComplete: () => chargeRing.destroy()
+    // 기 모으는 파티클 이미터 (주변에서 중심으로 모여듦)
+    const chargeParticles = this.add.particles(0, 0, 'particle', {
+        speed: { min: -100, max: -300 }, // 음수 속도로 중심으로 모이게 함
+        scale: { start: 0.8, end: 0 },
+        lifespan: 400,
+        blendMode: 'ADD',
+        tint: COLORS.YELLOW,
+        emitting: true,
+        frequency: 20,
     });
+    chargeParticles.setDepth(1998);
 
+    // 찌지직거리는 전기 스파크용 그래픽
+    const lightning = this.add.graphics();
+    lightning.setDepth(2001);
+
+    // 기 모으기 애니메이션
     this.tweens.add({
-        targets: projectile,
-        scale: 3, // 커짐
-        alpha: 1,
-        duration: 500,
-        ease: 'Back.In', // 살짝 수축했다가 커짐
-        onUpdate: () => {
-            // 기를 모으는 동안 커서를 따라다님
-            projectile.x = pointer.worldX;
-            projectile.y = pointer.worldY;
+        targets: { progress: 0 },
+        progress: 1,
+        duration: chargeDuration,
+        ease: 'Linear',
+        onUpdate: (_tween, target) => {
+            const p = target.progress;
+            const curX = pointer.worldX;
+            const curY = pointer.worldY;
+
+            // 위치 동기화
+            projectile.setPosition(curX, curY);
+            projectile.setScale(1 + p * 4); // 점점 커짐
+            chargeParticles.setPosition(curX, curY);
+
+            // 글로우 연출
+            glow.clear();
+            glow.fillStyle(COLORS.YELLOW, 0.3 * p);
+            glow.fillCircle(curX, curY, 20 + p * 40);
+            glow.fillStyle(COLORS.WHITE, 0.5 * p);
+            glow.fillCircle(curX, curY, 10 + p * 20);
+
+            // 찌지직! 전기 스파크 연출 (p가 높을수록 빈번)
+            lightning.clear();
+            if (Math.random() < 0.3 + p * 0.5) {
+                lightning.lineStyle(2, 0xffffff, 0.8);
+                const segments = 3;
+                let lastX = curX + (Math.random() - 0.5) * 100 * (1-p/2);
+                let lastY = curY + (Math.random() - 0.5) * 100 * (1-p/2);
+                
+                lightning.beginPath();
+                lightning.moveTo(lastX, lastY);
+                for (let i = 1; i <= segments; i++) {
+                    const tx = curX + (Math.random() - 0.5) * 10 * p;
+                    const ty = curY + (Math.random() - 0.5) * 10 * p;
+                    const nextX = lastX + (tx - lastX) * (i / segments) + (Math.random() - 0.5) * 20;
+                    const nextY = lastY + (ty - lastY) * (i / segments) + (Math.random() - 0.5) * 20;
+                    lightning.lineTo(nextX, nextY);
+                    lastX = nextX;
+                    lastY = nextY;
+                }
+                lightning.strokePath();
+            }
+
+            // 기 모으는 강도에 따른 미세한 화면 흔들림
+            if (p > 0.5) {
+                this.cameras.main.shake(50, 0.002 * p, true);
+            }
         },
         onComplete: () => {
+            glow.destroy();
+            lightning.destroy();
+            chargeParticles.destroy();
+
             // 2. Fire Phase (발사!)
             const fireX = projectile.x;
             const fireY = projectile.y;
             
-            // 발사 반동
-            this.cameras.main.shake(50, 0.005);
+            // 발사 순간 연출
+            this.cameras.main.shake(150, 0.01);
+            this.cameras.main.flash(50, 255, 255, 255, true);
             this.particleManager.createSparkBurst(fireX, fireY, COLORS.YELLOW);
+            this.particleManager.createHitEffect(fireX, fireY, COLORS.WHITE);
 
             // 날아가기
             this.tweens.add({
                 targets: projectile,
                 x: endX,
                 y: endY,
-                duration: 200, // 순식간에 도달
-                ease: 'Power4.In', // 가속
+                duration: 150, // 더 빠르게!
+                ease: 'Expo.In',
                 onUpdate: () => {
-                   // 트레일 효과 (간단히 잔상 남기기)
-                   if (Math.random() > 0.5) {
-                       const trail = this.add.circle(projectile.x, projectile.y, 10, COLORS.YELLOW, 0.5);
-                       this.tweens.add({
-                           targets: trail,
-                           scale: 0,
-                           alpha: 0,
-                           duration: 200,
-                           onComplete: () => trail.destroy()
-                       });
-                   }
+                   // 강력한 빔 트레일 연출
+                   const trail = this.add.circle(projectile.x, projectile.y, projectile.displayWidth / 2, COLORS.YELLOW, 0.6);
+                   trail.setDepth(1997);
+                   this.tweens.add({
+                       targets: trail,
+                       scale: 0,
+                       alpha: 0,
+                       duration: 150,
+                       onComplete: () => trail.destroy()
+                   });
                 },
                 onComplete: () => {
                     projectile.destroy();
                     this.monsterSystem.takeDamage(1);
                     
                     // 3. Impact Phase (타격!)
-                    
-                    // 강력한 화면 흔들림
-                    this.cameras.main.shake(200, 0.02);
-                    
-                    // 대형 폭발 (bomb 타입이 쇼크웨이브 포함)
-                    this.particleManager.createExplosion(endX, endY, COLORS.RED, 'bomb', 3);
-                    
-                    // 추가 임팩트: 화면 번쩍임
-                    this.cameras.main.flash(100, 255, 255, 255);
+                    this.cameras.main.shake(300, 0.03);
+                    this.particleManager.createExplosion(endX, endY, COLORS.RED, 'bomb', 4);
+                    this.particleManager.createRainbowExplosion(endX, endY, 2); // 도파민 폭발!
+                    this.cameras.main.flash(200, 255, 255, 255);
                 }
             });
         }

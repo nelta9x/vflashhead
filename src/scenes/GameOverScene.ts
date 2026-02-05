@@ -24,7 +24,15 @@ export class GameOverScene extends Phaser.Scene {
     this.createBackground();
     this.createTitle();
     this.createStats();
-    this.createButtons();
+    this.createPrompt();
+
+    // 전체 화면 클릭 시 메뉴로 이동
+    this.input.once('pointerdown', () => {
+      this.cameras.main.fadeOut(500);
+      this.cameras.main.once('camerafadeoutcomplete', () => {
+        this.scene.start('MenuScene');
+      });
+    });
   }
 
   private createBackground(): void {
@@ -127,69 +135,22 @@ export class GameOverScene extends Phaser.Scene {
     });
   }
 
-  private createButtons(): void {
-    // 다시 시작 버튼
-    this.createButton(GAME_WIDTH / 2 - 140, GAME_HEIGHT - 150, 'RETRY', COLORS.CYAN, () => {
-      this.cameras.main.fadeOut(500);
-      this.cameras.main.once('camerafadeoutcomplete', () => {
-        this.scene.start('GameScene');
-      });
+  private createPrompt(): void {
+    const prompt = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 100, 'CLICK ANYWHERE TO MENU', {
+      fontFamily: FONTS.MAIN,
+      fontSize: '24px',
+      color: COLORS_HEX.CYAN,
     });
+    prompt.setOrigin(0.5);
 
-    // 메뉴 버튼
-    this.createButton(GAME_WIDTH / 2 + 140, GAME_HEIGHT - 150, 'MENU', COLORS.MAGENTA, () => {
-      this.cameras.main.fadeOut(500);
-      this.cameras.main.once('camerafadeoutcomplete', () => {
-        this.scene.start('MenuScene');
-      });
+    this.tweens.add({
+      targets: prompt,
+      alpha: { from: 1, to: 0.3 },
+      duration: 800,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Power2',
     });
-  }
-
-  private createButton(
-    x: number,
-    y: number,
-    text: string,
-    color: number,
-    callback: () => void
-  ): void {
-    const buttonWidth = 200;
-    const buttonHeight = 50;
-
-    const container = this.add.container(x, y);
-
-    const bg = this.add.graphics();
-    bg.fillStyle(0x1a0a2e, 0.8);
-    bg.fillRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 10);
-    bg.lineStyle(2, color, 1);
-    bg.strokeRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 10);
-
-    const buttonText = this.add
-      .text(0, 0, text, {
-        fontFamily: FONTS.MAIN,
-        fontSize: '24px',
-        color: `#${color.toString(16).padStart(6, '0')}`,
-      })
-      .setOrigin(0.5);
-
-    container.add([bg, buttonText]);
-
-    const hitArea = new Phaser.Geom.Rectangle(
-      -buttonWidth / 2,
-      -buttonHeight / 2,
-      buttonWidth,
-      buttonHeight
-    );
-    container.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
-
-    container.on('pointerover', () => {
-      container.setScale(1.1);
-    });
-
-    container.on('pointerout', () => {
-      container.setScale(1);
-    });
-
-    container.on('pointerdown', callback);
   }
 
   private formatTime(ms: number): string {

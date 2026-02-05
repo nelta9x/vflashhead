@@ -11,13 +11,20 @@ export class MenuScene extends Phaser.Scene {
   private isTransitioning: boolean = false;
   private gridGraphics!: Phaser.GameObjects.Graphics;
   private bossGraphics!: Phaser.GameObjects.Graphics;
-  private mountainGraphics!: Phaser.GameObjects.Graphics;
   private starsGraphics!: Phaser.GameObjects.Graphics;
   private menuCursorGraphics!: Phaser.GameObjects.Graphics;
   private cursorTrail!: CursorTrail;
   private particleManager!: ParticleManager;
   private menuDishes!: Phaser.GameObjects.Group;
   private cursorPos = { x: 0, y: 0 };
+  private stars: {
+    x: number;
+    y: number;
+    size: number;
+    speed: number;
+    twinkleSpeed: number;
+    offset: number;
+  }[] = [];
 
   private gridOffset: number = 0;
   private bossTime: number = 0;
@@ -31,7 +38,6 @@ export class MenuScene extends Phaser.Scene {
   create(): void {
     this.createStars();
     this.createBoss();
-    this.createMountains();
     this.createGrid();
 
     this.particleManager = new ParticleManager(this);
@@ -48,14 +54,49 @@ export class MenuScene extends Phaser.Scene {
   // ... (createStars는 변경 없음) ...
 
   private createStars(): void {
+    const config = Data.mainMenu.stars;
     this.starsGraphics = this.add.graphics();
-    this.starsGraphics.fillStyle(COLORS.WHITE, 0.8);
-    for (let i = 0; i < 100; i++) {
-      const x = Math.random() * GAME_WIDTH;
-      const y = Math.random() * (GAME_HEIGHT * 0.6);
-      const size = Math.random() * 2;
-      this.starsGraphics.fillCircle(x, y, size);
+    this.stars = [];
+
+    for (let i = 0; i < config.count; i++) {
+      this.stars.push({
+        x: Math.random() * GAME_WIDTH,
+        y: Math.random() * (GAME_HEIGHT * config.verticalLimitRatio),
+        size: Phaser.Math.FloatBetween(config.minSize, config.maxSize),
+        speed: Phaser.Math.FloatBetween(config.fallSpeedMin, config.fallSpeedMax),
+        twinkleSpeed: Phaser.Math.FloatBetween(config.twinkleSpeedMin, config.twinkleSpeedMax),
+        offset: Math.random() * Math.PI * 2,
+      });
     }
+  }
+
+  private updateStars(delta: number, time: number): void {
+    const config = Data.mainMenu.stars;
+    this.starsGraphics.clear();
+
+    this.stars.forEach((star) => {
+      // 1. 반짝임 (Alpha)
+      const alpha = 0.2 + Math.abs(Math.sin(time * star.twinkleSpeed + star.offset)) * 0.8;
+
+      // 2. 아주 느리게 아래로 이동 (원근감)
+      star.y += star.speed * (delta / 1000);
+
+      // 경계 체크 및 리셋
+      if (star.y > GAME_HEIGHT * config.verticalLimitRatio) {
+        star.y = 0;
+        star.x = Math.random() * GAME_WIDTH;
+      }
+
+      // 3. 그리기
+      this.starsGraphics.fillStyle(0xffffff, alpha);
+      this.starsGraphics.fillCircle(star.x, star.y, star.size);
+
+      // 큰 별은 가끔 Cyan 빛 테두리 추가
+      if (star.size > 1.5) {
+        this.starsGraphics.lineStyle(1, COLORS.CYAN, alpha * 0.4);
+        this.starsGraphics.strokeCircle(star.x, star.y, star.size + 1);
+      }
+    });
   }
 
   private createBoss(): void {
@@ -65,7 +106,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private updateBoss(delta: number): void {
-    const config = Data.gameConfig.menu.boss;
+    const config = Data.mainMenu.boss;
     this.bossGraphics.clear();
     this.bossTime += delta;
 
@@ -145,54 +186,12 @@ export class MenuScene extends Phaser.Scene {
     this.bossGraphics.y = shakeY;
   }
 
-  // ... (createMountains, drawMountain, createGrid, createCar, createTitle, createStartUI, setupInputHandlers는 변경 없음) ...
-  private createMountains(): void {
-    this.mountainGraphics = this.add.graphics();
-    const horizonY = GAME_HEIGHT * Data.gameConfig.menu.grid.horizonRatio;
-
-    // 먼 산
-    this.drawMountain(100, horizonY, 300, 150, COLORS.DARK_PURPLE, COLORS.CYAN);
-    this.drawMountain(GAME_WIDTH - 400, horizonY, 400, 200, COLORS.DARK_PURPLE, COLORS.CYAN);
-
-    // 가까운 산
-    this.drawMountain(-50, horizonY, 400, 100, COLORS.DARK_BG, COLORS.CYAN);
-    this.drawMountain(GAME_WIDTH - 250, horizonY, 350, 80, COLORS.DARK_BG, COLORS.CYAN);
-  }
-
-  private drawMountain(
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-    fillColor: number,
-    strokeColor: number
-  ): void {
-    const points = [
-      { x: x, y: y },
-      { x: x + w * 0.3, y: y - h * 0.6 },
-      { x: x + w * 0.5, y: y - h },
-      { x: x + w * 0.7, y: y - h * 0.4 },
-      { x: x + w, y: y },
-    ];
-
-    this.mountainGraphics.lineStyle(2, strokeColor, 1);
-    this.mountainGraphics.fillStyle(fillColor, 1);
-    this.mountainGraphics.beginPath();
-    this.mountainGraphics.moveTo(points[0].x, points[0].y);
-    for (let i = 1; i < points.length; i++) {
-      this.mountainGraphics.lineTo(points[i].x, points[i].y);
-    }
-    this.mountainGraphics.closePath();
-    this.mountainGraphics.fillPath();
-    this.mountainGraphics.strokePath();
-  }
-
   private createGrid(): void {
     this.gridGraphics = this.add.graphics();
   }
 
   private createMenuCursor(): void {
-    const config = Data.gameConfig.menu.cursor;
+    const config = Data.mainMenu.cursor;
     this.menuCursorGraphics = this.add.graphics();
     this.cursorPos.x = GAME_WIDTH / 2;
     this.cursorPos.y = GAME_HEIGHT - config.yOffset;
@@ -200,7 +199,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private updateMenuCursor(delta: number): void {
-    const config = Data.gameConfig.menu.cursor;
+    const config = Data.mainMenu.cursor;
     this.menuCursorGraphics.clear();
     this.cursorTime += delta;
 
@@ -243,7 +242,7 @@ export class MenuScene extends Phaser.Scene {
     const y = this.cursorPos.y;
 
     // 원근감 계산: Y값이 작을수록(위로 갈수록) 멀리 있는 것이므로 크기를 줄임
-    const horizonY = GAME_HEIGHT * Data.gameConfig.menu.grid.horizonRatio;
+    const horizonY = GAME_HEIGHT * Data.mainMenu.grid.horizonRatio;
     const verticalRange = GAME_HEIGHT - horizonY;
     const perspectiveFactor = Phaser.Math.Clamp((y - horizonY) / verticalRange, 0, 1);
 
@@ -271,7 +270,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private createTitle(): void {
-    const config = Data.gameConfig.menu.title;
+    const config = Data.mainMenu.title;
     // 메인 타이틀 (크롬 느낌의 네온 텍스트)
     this.titleText = this.add.text(
       GAME_WIDTH / 2,
@@ -322,13 +321,14 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private updateMenuDishes(delta: number): void {
-    const config = Data.gameConfig.menu.dishSpawn;
-    const gridConfig = Data.gameConfig.menu.grid;
-    const cursorConfig = Data.gameConfig.menu.cursor;
+    const config = Data.mainMenu.dishSpawn;
+    const gridConfig = Data.mainMenu.grid;
+    const cursorConfig = Data.mainMenu.cursor;
     const horizonY = GAME_HEIGHT * gridConfig.horizonRatio;
 
     // 1. 스폰
-    if (this.time.now - this.lastDishSpawnTime > config.interval) {
+    const randomInterval = Phaser.Math.Between(400, 800);
+    if (this.time.now - this.lastDishSpawnTime > randomInterval) {
       this.spawnMenuDish(horizonY, config);
       this.lastDishSpawnTime = this.time.now;
     }
@@ -432,50 +432,50 @@ export class MenuScene extends Phaser.Scene {
     window.addEventListener('keydown', onNativeInput);
   }
 
-  update(_time: number, delta: number): void {
+  update(time: number, delta: number): void {
     this.updateGrid(delta);
+    this.updateStars(delta, time);
     this.updateBoss(delta);
     this.updateMenuCursor(delta);
     this.updateMenuDishes(delta);
   }
 
   private updateGrid(delta: number): void {
-    const config = Data.gameConfig.menu.grid;
+    const config = Data.mainMenu.grid;
     this.gridGraphics.clear();
     const horizonY = GAME_HEIGHT * config.horizonRatio;
-
-    this.gridGraphics.lineStyle(1, COLORS.CYAN, config.alpha);
-
-    // 원근법을 위한 수직선들
     const vanishingPointX = GAME_WIDTH / 2;
+    const verticalSpread = 8; // 좌우로 퍼지는 강도
 
+    // 1. 세로선 (원근법) - 화면 전체를 덮도록 시작점을 넓게 잡음
+    this.gridGraphics.lineStyle(1, COLORS.CYAN, config.alpha);
+    
     for (let i = 0; i <= config.verticalLines; i++) {
-      const xPos = (GAME_WIDTH / config.verticalLines) * i;
-      this.gridGraphics.moveTo(vanishingPointX, horizonY);
-      // 아래쪽으로 퍼지는 선
-      const bottomX = vanishingPointX + (xPos - vanishingPointX) * 4;
-      this.gridGraphics.lineTo(bottomX, GAME_HEIGHT);
+      // 선 사이의 간격을 좁혀서 더 촘촘하게 배치 (나누는 값을 키움)
+      const xOffset = (i - config.verticalLines / 2) * (GAME_WIDTH / 25);
+      const startX = vanishingPointX + xOffset * 0.08; 
+      const endX = vanishingPointX + xOffset * verticalSpread; 
+
+      this.gridGraphics.moveTo(startX, horizonY);
+      this.gridGraphics.lineTo(endX, GAME_HEIGHT);
     }
 
-    // 움직이는 수평선들
+    // 2. 움직이는 가로선 (원근법 적용)
     this.gridOffset += delta * config.speed;
-    // 중요: 그리드 오프셋이 그리드 간격을 넘어가면 0으로 리셋 (부드러운 루프를 위해 간격과 동일하게 설정)
+    const maxRange = config.horizontalLines * config.size;
     if (this.gridOffset >= config.size) {
       this.gridOffset -= config.size;
     }
 
     for (let i = 0; i < config.horizontalLines; i++) {
-      // 거리에 따른 간격 조절 (원근법)
-      // i * config.size + gridOffset을 통해 연속적인 위치 계산
-      const lineProgress = ((i * config.size + this.gridOffset) % 400) / 400;
+      const progress = (i * config.size + this.gridOffset) / maxRange;
+      const perspectiveProgress = Math.pow(progress, 2.0);
+      const y = horizonY + perspectiveProgress * (GAME_HEIGHT - horizonY);
 
-      // 화면 밖으로 나가는 선 처리 방지 (선택사항, 안전장치)
-      if (lineProgress < 0) continue;
+      if (y > GAME_HEIGHT) continue;
 
-      const y = horizonY + lineProgress * (GAME_HEIGHT - horizonY);
-
-      // 수평선 그리기
-      const widthAtY = 2000 * (lineProgress + 0.1);
+      // 가로선 너비도 세로선 확장에 맞춰 충분히 넓게 설정
+      const widthAtY = GAME_WIDTH * verticalSpread;
       this.gridGraphics.moveTo(vanishingPointX - widthAtY / 2, y);
       this.gridGraphics.lineTo(vanishingPointX + widthAtY / 2, y);
     }
@@ -483,7 +483,7 @@ export class MenuScene extends Phaser.Scene {
     this.gridGraphics.strokePath();
 
     // 지평선 강조
-    this.gridGraphics.lineStyle(4, COLORS.CYAN, 0.2);
+    this.gridGraphics.lineStyle(2, COLORS.CYAN, config.alpha * 2);
     this.gridGraphics.moveTo(0, horizonY);
     this.gridGraphics.lineTo(GAME_WIDTH, horizonY);
     this.gridGraphics.strokePath();

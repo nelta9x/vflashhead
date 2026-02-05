@@ -65,6 +65,17 @@ export interface GridConfig {
   color: string;
 }
 
+export interface StarsConfig {
+  count: number;
+  minSize: number;
+  maxSize: number;
+  fallSpeedMin: number;
+  fallSpeedMax: number;
+  twinkleSpeedMin: number;
+  twinkleSpeedMax: number;
+  verticalLimitRatio: number;
+}
+
 export interface MenuConfig {
   boss: {
     posYRatio: number;
@@ -92,6 +103,7 @@ export interface MenuConfig {
     verticalLines: number;
     horizontalLines: number;
   };
+  stars: StarsConfig;
   cursor: {
     yOffset: number;
     radius: number;
@@ -133,7 +145,6 @@ export interface GameConfig {
   };
   magnet: MagnetConfig;
   gameGrid: GridConfig;
-  menu: MenuConfig;
 }
 
 // ========== 스폰 시스템 ==========
@@ -595,6 +606,7 @@ export interface BossConfig {
 // ========== 전체 데이터 구조 ==========
 export interface GameDataConfig {
   gameConfig: GameConfig;
+  mainMenu: MenuConfig;
   spawn: SpawnConfig;
   combo: ComboConfig;
   healthPack: HealthPackConfig;

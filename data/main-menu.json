@@ -1,0 +1,68 @@
+{
+  "boss": {
+    "posYRatio": 0.42,
+    "baseRadius": 80,
+    "coreRadius": 25,
+    "innerLightRadius": 10,
+    "armor": {
+      "innerRadius": 45,
+      "outerRadius": 100,
+      "pieceCount": 8,
+      "gap": 0.2,
+      "rotationSpeed": 0.0005
+    },
+    "aura": {
+      "count": 15,
+      "pulseSpeed": 0.002,
+      "spacing": 0.05
+    },
+    "core": {
+      "pulseSpeed": 0.005
+    }
+  },
+  "grid": {
+    "horizonRatio": 0.6,
+    "alpha": 0.12,
+    "size": 60,
+    "speed": 0.15,
+    "verticalLines": 150,
+    "horizontalLines": 15
+  },
+  "stars": {
+    "count": 80,
+    "minSize": 0.3,
+    "maxSize": 1.8,
+    "fallSpeedMin": 0.5,
+    "fallSpeedMax": 2.5,
+    "twinkleSpeedMin": 0.0005,
+    "twinkleSpeedMax": 0.0015,
+    "verticalLimitRatio": 0.6
+  },
+  "cursor": {
+    "yOffset": 100,
+    "radius": 40,
+    "crossSize": 8,
+    "floatRangeX": 300,
+    "floatRangeY": 80,
+    "floatSpeed": 0.0012,
+    "lerpTracking": 0.2,
+    "lerpIdle": 0.05,
+    "trackingYThreshold": 0.65
+  },
+  "dishSpawn": {
+    "interval": 400,
+    "radius": 20,
+    "color": "0x00ffff",
+    "spawnYOffset": 180,
+    "spawnRangeX": 1000,
+    "speedMultiplier": 4
+  },
+  "title": {
+    "yOffset": 100,
+    "fontSize": "100px",
+    "shadowBlur": 20,
+    "moveDuration": 2000,
+    "moveY": 110,
+    "padding": 20
+  }
+}

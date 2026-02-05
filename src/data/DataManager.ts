@@ -17,10 +17,12 @@ import type {
   WeaponsConfig,
   MagnetConfig,
   BossConfig,
+  MenuConfig,
 } from './types';
 
 // JSON 파일 직접 import
 import gameConfigJson from '../../data/game-config.json';
+import mainMenuJson from '../../data/main-menu.json';
 import spawnJson from '../../data/spawn.json';
 import comboJson from '../../data/combo.json';
 import healthPackJson from '../../data/health-pack.json';
@@ -37,6 +39,7 @@ class DataManager {
 
   // 타입 캐스팅된 데이터
   public readonly gameConfig: GameConfig;
+  public readonly mainMenu: MenuConfig;
   public readonly spawn: SpawnConfig;
   public readonly combo: ComboConfig;
   public readonly healthPack: HealthPackConfig;
@@ -51,6 +54,7 @@ class DataManager {
 
   private constructor() {
     this.gameConfig = gameConfigJson as GameConfig;
+    this.mainMenu = mainMenuJson as MenuConfig;
     this.spawn = spawnJson as SpawnConfig;
     this.combo = comboJson as ComboConfig;
     this.healthPack = healthPackJson as HealthPackConfig;

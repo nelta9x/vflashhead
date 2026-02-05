@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MonsterSystem } from '../src/systems/MonsterSystem';
 import { GameEvents } from '../src/utils/EventBus';
 

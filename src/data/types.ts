@@ -145,6 +145,7 @@ export interface GameConfig {
   };
   magnet: MagnetConfig;
   gameGrid: GridConfig;
+  stars: StarsConfig;
 }
 
 // ========== 스폰 시스템 ==========

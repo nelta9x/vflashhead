@@ -4,6 +4,7 @@ import { Data } from '../data/DataManager';
 import { SoundSystem } from '../systems/SoundSystem';
 import { CursorTrail } from '../effects/CursorTrail';
 import { ParticleManager } from '../effects/ParticleManager';
+import { StarBackground } from '../effects/StarBackground';
 
 export class MenuScene extends Phaser.Scene {
   private titleText!: Phaser.GameObjects.Text;
@@ -11,20 +12,12 @@ export class MenuScene extends Phaser.Scene {
   private isTransitioning: boolean = false;
   private gridGraphics!: Phaser.GameObjects.Graphics;
   private bossGraphics!: Phaser.GameObjects.Graphics;
-  private starsGraphics!: Phaser.GameObjects.Graphics;
+  private starBackground!: StarBackground;
   private menuCursorGraphics!: Phaser.GameObjects.Graphics;
   private cursorTrail!: CursorTrail;
   private particleManager!: ParticleManager;
   private menuDishes!: Phaser.GameObjects.Group;
   private cursorPos = { x: 0, y: 0 };
-  private stars: {
-    x: number;
-    y: number;
-    size: number;
-    speed: number;
-    twinkleSpeed: number;
-    offset: number;
-  }[] = [];
 
   private gridOffset: number = 0;
   private bossTime: number = 0;
@@ -36,7 +29,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.createStars();
+    this.starBackground = new StarBackground(this, Data.mainMenu.stars);
     this.createBoss();
     this.createGrid();
 
@@ -49,54 +42,6 @@ export class MenuScene extends Phaser.Scene {
     this.createStartUI();
 
     this.setupInputHandlers();
-  }
-
-  // ... (createStars는 변경 없음) ...
-
-  private createStars(): void {
-    const config = Data.mainMenu.stars;
-    this.starsGraphics = this.add.graphics();
-    this.stars = [];
-
-    for (let i = 0; i < config.count; i++) {
-      this.stars.push({
-        x: Math.random() * GAME_WIDTH,
-        y: Math.random() * (GAME_HEIGHT * config.verticalLimitRatio),
-        size: Phaser.Math.FloatBetween(config.minSize, config.maxSize),
-        speed: Phaser.Math.FloatBetween(config.fallSpeedMin, config.fallSpeedMax),
-        twinkleSpeed: Phaser.Math.FloatBetween(config.twinkleSpeedMin, config.twinkleSpeedMax),
-        offset: Math.random() * Math.PI * 2,
-      });
-    }
-  }
-
-  private updateStars(delta: number, time: number): void {
-    const config = Data.mainMenu.stars;
-    this.starsGraphics.clear();
-
-    this.stars.forEach((star) => {
-      // 1. 반짝임 (Alpha)
-      const alpha = 0.2 + Math.abs(Math.sin(time * star.twinkleSpeed + star.offset)) * 0.8;
-
-      // 2. 아주 느리게 아래로 이동 (원근감)
-      star.y += star.speed * (delta / 1000);
-
-      // 경계 체크 및 리셋
-      if (star.y > GAME_HEIGHT * config.verticalLimitRatio) {
-        star.y = 0;
-        star.x = Math.random() * GAME_WIDTH;
-      }
-
-      // 3. 그리기
-      this.starsGraphics.fillStyle(0xffffff, alpha);
-      this.starsGraphics.fillCircle(star.x, star.y, star.size);
-
-      // 큰 별은 가끔 Cyan 빛 테두리 추가
-      if (star.size > 1.5) {
-        this.starsGraphics.lineStyle(1, COLORS.CYAN, alpha * 0.4);
-        this.starsGraphics.strokeCircle(star.x, star.y, star.size + 1);
-      }
-    });
   }
 
   private createBoss(): void {
@@ -434,7 +379,7 @@ export class MenuScene extends Phaser.Scene {
 
   update(time: number, delta: number): void {
     this.updateGrid(delta);
-    this.updateStars(delta, time);
+    this.starBackground.update(delta, time);
     this.updateBoss(delta);
     this.updateMenuCursor(delta);
     this.updateMenuDishes(delta);

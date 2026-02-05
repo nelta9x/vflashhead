@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock Phaser
 vi.mock('phaser', () => {
@@ -6,7 +6,7 @@ vi.mock('phaser', () => {
     default: {
       Scene: class {},
       Math: {
-        Between: vi.fn((min, max) => min),
+        Between: vi.fn((min, _max) => min),
       },
     },
   };
@@ -105,42 +105,37 @@ describe('HealthPackSystem', () => {
       expect(system.getSpawnChance()).toBe(0);
 
       // Simulate HP change to 1
-      const hpCallback = mockOn.mock.calls.find((call) => call[0] === GameEvents.HP_CHANGED)[1];
-      hpCallback({ hp: 1 });
+      const hpCallback = mockOn.mock.calls.find((call) => call[0] === GameEvents.HP_CHANGED)?.[1];
+      if (hpCallback) {
+        hpCallback({ hp: 1, maxHp: 5, delta: 0 });
+      }
 
       expect(system.getSpawnChance()).toBe(0.5);
     });
 
     it('should not spawn if cooldown active', () => {
-      // Set HP to 1 (high chance)
-      const hpCallback = mockOn.mock.calls.find((call) => call[0] === GameEvents.HP_CHANGED)[1];
-      hpCallback({ hp: 1 });
+      // HP 1 설정 (스폰 확률 0.5)
+      const hpCallback = mockOn.mock.calls.find((call) => call[0] === GameEvents.HP_CHANGED)?.[1];
+      if (hpCallback) {
+        hpCallback({ hp: 1, maxHp: 5, delta: 0 });
+      }
 
-      // Spawn once
-      system.update(1000, 10000);
-      // Force success
-
-      // But wait, the system logic is probabilistic.
-      // We need to control Math.random.
       const originalRandom = Math.random;
-      Math.random = vi.fn(() => 0.01); // Always succeed if chance > 0
+      Math.random = vi.fn(() => 0.01); // 1% 확률 (성공)
 
-      // Reset mocks for clean state
       mockAcquire.mockClear();
-      mockPack.spawn.mockClear();
 
-      // Trigger update
-      // lastSpawnTime is -COOLDOWN (-5000)
-      // current gameTime 1000. 1000 < -5000 + 5000 (0)? No. 1000 > 0. So Cooldown OK.
+      // 첫 번째 업데이트: 스폰되어야 함
+      // lastSpawnTime 초기값은 -5000, gameTime=1000 -> 1000 > -5000 + 5000 (0) 이므로 통과
+      // delta=1100 -> 1초 체크 통과
+      system.update(1100, 1000);
 
-      system.update(1000, 1000); // delta 1000, time 1000
+      expect(mockAcquire).toHaveBeenCalledTimes(1);
 
-      expect(mockAcquire).toHaveBeenCalled();
-
-      // Now cooldown is active (lastSpawnTime = 1000)
-      // Try again at time 2000 (2000 < 1000 + 5000 = 6000) -> Cooldown!
+      // 두 번째 업데이트: 쿨다운 중이라 안 되어야 함
+      // lastSpawnTime이 1000이 되었으므로, 1000 + 5000 = 6000 이후에만 스폰 가능
       mockAcquire.mockClear();
-      system.update(1000, 2000);
+      system.update(1100, 2000); // 2000 < 6000
 
       expect(mockAcquire).not.toHaveBeenCalled();
 
@@ -149,15 +144,17 @@ describe('HealthPackSystem', () => {
 
     it('should not spawn if max active reached', () => {
       // HP 1
-      const hpCallback = mockOn.mock.calls.find((call) => call[0] === GameEvents.HP_CHANGED)[1];
-      hpCallback({ hp: 1 });
+      const hpCallback = mockOn.mock.calls.find((call) => call[0] === GameEvents.HP_CHANGED)?.[1];
+      if (hpCallback) {
+        hpCallback({ hp: 1, maxHp: 5, delta: 0 });
+      }
 
       mockGetActiveCount.mockReturnValue(1); // Max is 1
 
       const originalRandom = Math.random;
       Math.random = vi.fn(() => 0.01);
 
-      system.update(1000, 10000);
+      system.update(1100, 10000);
 
       expect(mockAcquire).not.toHaveBeenCalled();
 
@@ -167,21 +164,21 @@ describe('HealthPackSystem', () => {
 
   describe('Event Handling', () => {
     it('should release pack on collected', () => {
-      const callback = mockOn.mock.calls.find(
-        (call) => call[0] === GameEvents.HEALTH_PACK_COLLECTED
-      )[1];
-      const pack = {};
-      callback({ pack });
-      expect(mockRelease).toHaveBeenCalledWith(pack);
+      const callback = mockOn.mock.calls.find((call) => call[0] === GameEvents.HEALTH_PACK_COLLECTED)?.[1];
+      if (callback) {
+        const pack = {};
+        callback({ pack });
+        expect(mockRelease).toHaveBeenCalledWith(pack);
+      }
     });
 
     it('should release pack on missed', () => {
-      const callback = mockOn.mock.calls.find(
-        (call) => call[0] === GameEvents.HEALTH_PACK_MISSED
-      )[1];
-      const pack = {};
-      callback({ pack });
-      expect(mockRelease).toHaveBeenCalledWith(pack);
+      const callback = mockOn.mock.calls.find((call) => call[0] === GameEvents.HEALTH_PACK_MISSED)?.[1];
+      if (callback) {
+        const pack = {};
+        callback({ pack });
+        expect(mockRelease).toHaveBeenCalledWith(pack);
+      }
     });
   });
 });

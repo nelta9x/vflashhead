@@ -23,6 +23,7 @@ import { ScreenShake } from '../effects/ScreenShake';
 import { SlowMotion } from '../effects/SlowMotion';
 import { DamageText } from '../ui/DamageText';
 import { CursorTrail } from '../effects/CursorTrail';
+import { StarBackground } from '../effects/StarBackground';
 import { FeedbackSystem } from '../systems/FeedbackSystem';
 import { SoundSystem } from '../systems/SoundSystem';
 import { MonsterSystem } from '../systems/MonsterSystem';
@@ -57,6 +58,7 @@ export class GameScene extends Phaser.Scene {
   private slowMotion!: SlowMotion;
   private damageText!: DamageText;
   private cursorTrail!: CursorTrail;
+  private starBackground!: StarBackground;
 
   // 게임 상태
   private gameTime: number = 0;
@@ -135,6 +137,10 @@ export class GameScene extends Phaser.Scene {
   private createBackground(): void {
     this.gridGraphics = this.add.graphics();
     this.gridGraphics.setDepth(-1); // 배경이므로 가장 뒤에 배치
+    
+    // 별 배경 추가 (그리드보다 뒤에 배치)
+    this.starBackground = new StarBackground(this, Data.gameConfig.stars);
+    this.starBackground.setDepth(-2);
   }
 
   private updateGrid(delta: number): void {
@@ -924,6 +930,9 @@ export class GameScene extends Phaser.Scene {
 
     // 그리드 배경 업데이트
     this.updateGrid(scaledDelta);
+
+    // 별 배경 업데이트 (슬로우 모션 영향 받지 않는 실제 시간 사용)
+    this.starBackground.update(delta, _time);
 
     // 자기장 효과 업데이트
     this.updateMagnetEffect(scaledDelta);

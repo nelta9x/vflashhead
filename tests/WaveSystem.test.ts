@@ -6,7 +6,7 @@ vi.mock('phaser', () => {
     default: {
       Scene: class {},
       Math: {
-        Between: vi.fn((min, max) => min), // Simple mock returning min
+        Between: vi.fn((min, _max) => min), // Simple mock returning min
         Distance: {
           Between: vi.fn(() => 100), // Default distance
         },

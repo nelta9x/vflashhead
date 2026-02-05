@@ -20,17 +20,27 @@ export class GameOverScene extends Phaser.Scene {
 
   create(): void {
     this.cameras.main.fadeIn(500);
+    
+    // 커서 다시 표시 (GameScene에서 숨겼을 수 있음)
+    this.input.setDefaultCursor('default');
 
     this.createBackground();
     this.createTitle();
     this.createStats();
     this.createPrompt();
 
-    // 전체 화면 클릭 시 메뉴로 이동
-    this.input.once('pointerdown', () => {
-      this.cameras.main.fadeOut(500);
-      this.cameras.main.once('camerafadeoutcomplete', () => {
-        this.scene.start('MenuScene');
+    // 0.5초 후에만 입력을 받도록 설정 (실수 클릭 방지 및 입력 활성화 보장)
+    this.time.delayedCall(500, () => {
+      // 투명한 사각형을 만들어 화면 전체 클릭 영역 확보
+      const zone = this.add.zone(0, 0, GAME_WIDTH, GAME_HEIGHT);
+      zone.setOrigin(0);
+      zone.setInteractive();
+      
+      zone.once('pointerdown', () => {
+        this.cameras.main.fadeOut(500);
+        this.cameras.main.once('camerafadeoutcomplete', () => {
+          this.scene.start('MenuScene');
+        });
       });
     });
   }

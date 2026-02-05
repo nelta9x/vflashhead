@@ -37,6 +37,7 @@ export class DamageText {
       });
       text.setVisible(false);
       text.setOrigin(0.5);
+      text.setDepth(2500); // 보스보다 위에 표시
       this.pool.push(text);
     }
 
@@ -51,6 +52,7 @@ export class DamageText {
       });
       comboText.setVisible(false);
       comboText.setOrigin(0, 0.5);
+      comboText.setDepth(2501); // 대미지 텍스트보다 살짝 위
       this.comboPool.push(comboText);
     }
   }
@@ -101,6 +103,7 @@ export class DamageText {
         fontStyle: style?.fontStyle || 'normal',
       });
       text.setOrigin(0.5);
+      text.setDepth(2500);
       this.pool.push(text);
     }
 
@@ -150,6 +153,7 @@ export class DamageText {
           strokeThickness: 2,
         });
         comboText.setOrigin(0, 0.5);
+        comboText.setDepth(2501);
         this.comboPool.push(comboText);
       }
 
@@ -241,6 +245,7 @@ export class DamageText {
         fontStyle: 'bold',
       });
       text.setOrigin(0.5);
+      text.setDepth(2510); // 보스 데미지는 가장 위로
       this.pool.push(text);
     }
 
@@ -310,6 +315,7 @@ export class DamageText {
         strokeThickness: 3,
       });
       text.setOrigin(0.5);
+      text.setDepth(2500);
       this.pool.push(text);
     }
 

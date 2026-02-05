@@ -291,30 +291,81 @@ export class GameScene extends Phaser.Scene {
   }
 
   private performPlayerAttack(): void {
-    const startX = GAME_WIDTH / 2;
-    const startY = GAME_HEIGHT;
+    const pointer = this.input.activePointer;
+    const startX = pointer.worldX;
+    const startY = pointer.worldY;
     const endX = GAME_WIDTH / 2;
     const endY = 80; // Approximate boss pos
 
-    // 발사체 생성
-    const projectile = this.add.circle(startX, startY, 15, COLORS.YELLOW);
+    // 1. Charge Phase
+    // 발사체 생성 (작게 시작)
+    const projectile = this.add.circle(startX, startY, 5, COLORS.YELLOW);
     this.physics.add.existing(projectile);
     
-    // 트윈 애니메이션
+    // 기를 모으는 효과 (주변에서 모여드는 파티클 시뮬레이션 - 역재생 링)
+    const chargeRing = this.add.graphics();
+    chargeRing.lineStyle(2, COLORS.YELLOW, 1);
+    chargeRing.strokeCircle(startX, startY, 50);
+    
+    // 기 모으기 애니메이션
+    this.tweens.add({
+        targets: chargeRing,
+        scale: 0,
+        alpha: 0.5,
+        duration: 500,
+        ease: 'Cubic.In',
+        onComplete: () => chargeRing.destroy()
+    });
+
     this.tweens.add({
         targets: projectile,
-        y: endY,
-        duration: 300,
-        ease: 'Power2',
+        scale: 3, // 커짐
+        alpha: 1,
+        duration: 500,
+        ease: 'Back.In', // 살짝 수축했다가 커짐
         onComplete: () => {
-            projectile.destroy();
-            this.monsterSystem.takeDamage(1);
+            // 2. Fire Phase (발사!)
             
-            // 피드백
-            this.cameras.main.shake(100, 0.01);
-            
-            // 타격 이펙트 (파티클 매니저 사용)
-            this.particleManager.createExplosion(endX, endY, COLORS.RED, 'bomb', 2);
+            // 발사 반동
+            this.cameras.main.shake(50, 0.005);
+            this.particleManager.createSparkBurst(startX, startY, COLORS.YELLOW);
+
+            // 날아가기
+            this.tweens.add({
+                targets: projectile,
+                x: endX,
+                y: endY,
+                duration: 200, // 순식간에 도달
+                ease: 'Power4.In', // 가속
+                onUpdate: () => {
+                   // 트레일 효과 (간단히 잔상 남기기)
+                   if (Math.random() > 0.5) {
+                       const trail = this.add.circle(projectile.x, projectile.y, 10, COLORS.YELLOW, 0.5);
+                       this.tweens.add({
+                           targets: trail,
+                           scale: 0,
+                           alpha: 0,
+                           duration: 200,
+                           onComplete: () => trail.destroy()
+                       });
+                   }
+                },
+                onComplete: () => {
+                    projectile.destroy();
+                    this.monsterSystem.takeDamage(1);
+                    
+                    // 3. Impact Phase (타격!)
+                    
+                    // 강력한 화면 흔들림
+                    this.cameras.main.shake(200, 0.02);
+                    
+                    // 대형 폭발 (bomb 타입이 쇼크웨이브 포함)
+                    this.particleManager.createExplosion(endX, endY, COLORS.RED, 'bomb', 3);
+                    
+                    // 추가 임팩트: 화면 번쩍임
+                    this.cameras.main.flash(100, 255, 255, 255);
+                }
+            });
         }
     });
   }

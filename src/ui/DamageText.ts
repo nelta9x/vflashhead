@@ -126,6 +126,11 @@ export class DamageText {
 
     this.activeTexts.add(text);
 
+    // 포물선 연출을 위한 랜덤 값 계산
+    const side = Math.random() > 0.5 ? 1 : -1;
+    const jumpX = side * Phaser.Math.Between(30, 60);
+    const jumpY = -Phaser.Math.Between(40, 70);
+
     // 콤보 텍스트 표시
     let comboText: Phaser.GameObjects.Text | null = null;
     if (combo >= comboConfig.minComboToShow) {
@@ -150,7 +155,7 @@ export class DamageText {
       comboText.setFontSize(comboConfig.fontSize);
       comboText.setVisible(true);
       comboText.setAlpha(1);
-      comboText.setScale(1);
+      comboText.setScale(0.5);
 
       this.activeComboTexts.add(comboText);
     }
@@ -158,63 +163,46 @@ export class DamageText {
     const capturedText = text;
     const capturedComboText = comboText;
 
-    // 1단계: 스케일 팝
+    // 대미지 텍스트 애니메이션: 포물선 점프
     this.scene.tweens.add({
       targets: capturedText,
-      scaleX: 1,
-      scaleY: 1,
-      duration: anim.scalePop.duration,
-      ease: anim.scalePop.ease,
+      x: posX + jumpX,
+      y: y + jumpY,
+      scaleX: 1.2,
+      scaleY: 1.2,
+      duration: 400,
+      ease: 'Back.easeOut',
       onComplete: () => {
-        // 2단계: 좌우 흔들림
-        const startX = capturedText.x;
         this.scene.tweens.add({
           targets: capturedText,
-          x: startX + anim.shake.distance,
-          duration: anim.shake.duration,
-          ease: anim.shake.ease,
-          yoyo: true,
-          repeat: anim.shake.repeat,
-          onComplete: () => {
-            // 3단계: 체류
-            this.scene.time.delayedCall(anim.hold.duration, () => {
-              // 4단계: 축소 + 페이드아웃
-              this.scene.tweens.add({
-                targets: capturedText,
-                scaleX: anim.shrinkFade.targetScale,
-                scaleY: anim.shrinkFade.targetScale,
-                alpha: 0,
-                duration: anim.shrinkFade.duration,
-                ease: anim.shrinkFade.ease,
-                onComplete: () => this.releaseText(capturedText),
-              });
-            });
-          },
+          y: capturedText.y + 20,
+          alpha: 0,
+          scaleX: 0.8,
+          scaleY: 0.8,
+          duration: 300,
+          ease: 'Quad.easeIn',
+          onComplete: () => this.releaseText(capturedText),
         });
       },
     });
 
-    // 콤보 텍스트 애니메이션
+    // 콤보 텍스트 애니메이션: 팝업 후 페이드
     if (capturedComboText) {
       this.scene.tweens.add({
         targets: capturedComboText,
+        x: posX + jumpX + comboConfig.offsetX,
+        y: y + jumpY + comboConfig.offsetY,
         scaleX: 1.2,
         scaleY: 1.2,
-        duration: anim.scalePop.duration,
-        ease: anim.scalePop.ease,
-        yoyo: true,
+        duration: 400,
+        ease: 'Back.easeOut',
         onComplete: () => {
-          // 체류 후 축소 페이드
-          this.scene.time.delayedCall(anim.hold.duration, () => {
-            this.scene.tweens.add({
-              targets: capturedComboText,
-              scaleX: anim.shrinkFade.targetScale,
-              scaleY: anim.shrinkFade.targetScale,
-              alpha: 0,
-              duration: anim.shrinkFade.duration,
-              ease: anim.shrinkFade.ease,
-              onComplete: () => this.releaseComboText(capturedComboText),
-            });
+          this.scene.tweens.add({
+            targets: capturedComboText,
+            alpha: 0,
+            duration: 300,
+            ease: 'Quad.easeIn',
+            onComplete: () => this.releaseComboText(capturedComboText),
           });
         },
       });
@@ -274,39 +262,33 @@ export class DamageText {
 
     this.activeTexts.add(text);
 
-    // 애니메이션
-    const duration = config.isCritical ? 1000 : 600;
+    const side = Math.random() > 0.5 ? 1 : -1;
+    const jumpX = side * Phaser.Math.Between(20, 50);
+    const jumpY = config.isCritical ? -Phaser.Math.Between(80, 120) : -Phaser.Math.Between(40, 70);
+    const duration = config.isCritical ? 500 : 400;
 
-    if (config.isCritical) {
-      // 크리티컬: 확대 + 떠오름
-      this.scene.tweens.add({
-        targets: text,
-        scaleX: 1.5,
-        scaleY: 1.5,
-        duration: 100,
-        yoyo: true,
-        onComplete: () => {
-          this.scene.tweens.add({
-            targets: text,
-            y: text.y - 80,
-            alpha: 0,
-            duration: duration - 100,
-            ease: 'Power2',
-            onComplete: () => this.releaseText(text!),
-          });
-        },
-      });
-    } else {
-      // 일반: 떠오름
-      this.scene.tweens.add({
-        targets: text,
-        y: text.y - 50,
-        alpha: 0,
-        duration,
-        ease: 'Power2',
-        onComplete: () => this.releaseText(text!),
-      });
-    }
+    // 대미지 텍스트 애니메이션: 포물선 점프
+    this.scene.tweens.add({
+      targets: text,
+      x: text.x + jumpX,
+      y: text.y + jumpY,
+      scaleX: config.isCritical ? 1.8 : 1.2,
+      scaleY: config.isCritical ? 1.8 : 1.2,
+      duration: duration,
+      ease: 'Back.easeOut',
+      onComplete: () => {
+        this.scene.tweens.add({
+          targets: text,
+          y: text!.y + 30,
+          alpha: 0,
+          scaleX: config.isCritical ? 1.0 : 0.8,
+          scaleY: config.isCritical ? 1.0 : 0.8,
+          duration: 300,
+          ease: 'Quad.easeIn',
+          onComplete: () => this.releaseText(text!),
+        });
+      },
+    });
   }
 
   private releaseText(text: Phaser.GameObjects.Text): void {

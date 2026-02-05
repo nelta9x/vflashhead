@@ -65,9 +65,10 @@ export class GameScene extends Phaser.Scene {
   private laserNextTime: number = 0;
   private laserGraphics!: Phaser.GameObjects.Graphics;
   private activeLasers: Array<{
-    x: number;
-    y: number;
-    orientation: 'vertical' | 'horizontal';
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
     isFiring: boolean;
     isWarning: boolean;
     startTime: number;
@@ -999,23 +1000,29 @@ export class GameScene extends Phaser.Scene {
   private triggerLaserAttack(): void {
     const config = Data.gameConfig.monsterAttack.laser;
     
-    // 방향 결정 (수직 또는 수평)
-    const orientation = Math.random() > 0.5 ? 'vertical' : 'horizontal';
-    let laserX = 0;
-    let laserY = 0;
+    // 화면 외곽에서 임의의 시작점과 끝점 선정 (대각선 지원)
+    const side1 = Phaser.Math.Between(0, 3); // 0:상, 1:하, 2:좌, 3:우
+    let side2 = Phaser.Math.Between(0, 3);
+    while (side1 === side2) side2 = Phaser.Math.Between(0, 3); // 같은 변에서 발사되지 않도록
 
-    if (orientation === 'vertical') {
-        const margin = config.width / 2 + 20;
-        laserX = Phaser.Math.Between(margin, GAME_WIDTH - margin);
-    } else {
-        const margin = config.width / 2 + 20;
-        laserY = Phaser.Math.Between(margin, GAME_HEIGHT - margin);
-    }
+    const getPointOnSide = (side: number) => {
+        switch(side) {
+            case 0: return { x: Phaser.Math.Between(0, GAME_WIDTH), y: 0 };
+            case 1: return { x: Phaser.Math.Between(0, GAME_WIDTH), y: GAME_HEIGHT };
+            case 2: return { x: 0, y: Phaser.Math.Between(0, GAME_HEIGHT) };
+            case 3: return { x: GAME_WIDTH, y: Phaser.Math.Between(0, GAME_HEIGHT) };
+            default: return { x: 0, y: 0 };
+        }
+    };
+
+    const p1 = getPointOnSide(side1);
+    const p2 = getPointOnSide(side2);
 
     const laser = {
-      x: laserX,
-      y: laserY,
-      orientation: orientation as 'vertical' | 'horizontal',
+      x1: p1.x,
+      y1: p1.y,
+      x2: p2.x,
+      y2: p2.y,
       isWarning: true,
       isFiring: false,
       startTime: this.gameTime
@@ -1060,88 +1067,72 @@ export class GameScene extends Phaser.Scene {
       if (laser.isWarning) {
         // 경고선 (반짝임 효과)
         const alpha = config.warningAlpha * (0.5 + Math.sin(this.gameTime / 50) * 0.5);
-        this.laserGraphics.fillStyle(color, alpha);
+        this.laserGraphics.lineStyle(config.width, color, alpha);
+        this.laserGraphics.lineBetween(laser.x1, laser.y1, laser.x2, laser.y2);
         
-        if (laser.orientation === 'vertical') {
-            this.laserGraphics.fillRect(laser.x - config.width / 2, 0, config.width, GAME_HEIGHT);
-            this.laserGraphics.lineStyle(2, color, alpha * 2);
-            this.laserGraphics.strokeRect(laser.x - config.width / 2, 0, config.width, GAME_HEIGHT);
-        } else {
-            this.laserGraphics.fillRect(0, laser.y - config.width / 2, GAME_WIDTH, config.width);
-            this.laserGraphics.lineStyle(2, color, alpha * 2);
-            this.laserGraphics.strokeRect(0, laser.y - config.width / 2, GAME_WIDTH, config.width);
-        }
+        // 외곽선
+        this.laserGraphics.lineStyle(2, color, alpha * 2);
+        this.laserGraphics.lineBetween(laser.x1, laser.y1, laser.x2, laser.y2);
       } else if (laser.isFiring) {
         // 실제 레이저
-        if (laser.orientation === 'vertical') {
-            // 중심부 (흰색 느낌)
-            this.laserGraphics.fillStyle(0xffffff, config.fireAlpha);
-            this.laserGraphics.fillRect(laser.x - config.width / 4, 0, config.width / 2, GAME_HEIGHT);
-            // 주변부
-            this.laserGraphics.fillStyle(color, config.fireAlpha * 0.6);
-            this.laserGraphics.fillRect(laser.x - config.width / 2, 0, config.width, GAME_HEIGHT);
-            this.drawElectricSparks(laser.x, 0, laser.orientation, config.width, color);
-        } else {
-            // 중심부
-            this.laserGraphics.fillStyle(0xffffff, config.fireAlpha);
-            this.laserGraphics.fillRect(0, laser.y - config.width / 4, GAME_WIDTH, config.width / 2);
-            // 주변부
-            this.laserGraphics.fillStyle(color, config.fireAlpha * 0.6);
-            this.laserGraphics.fillRect(0, laser.y - config.width / 2, GAME_WIDTH, config.width);
-            this.drawElectricSparks(0, laser.y, laser.orientation, config.width, color);
-        }
+        // 주변부
+        this.laserGraphics.lineStyle(config.width, color, config.fireAlpha * 0.6);
+        this.laserGraphics.lineBetween(laser.x1, laser.y1, laser.x2, laser.y2);
+
+        // 중심부 (흰색 느낌)
+        this.laserGraphics.lineStyle(config.width / 2, 0xffffff, config.fireAlpha);
+        this.laserGraphics.lineBetween(laser.x1, laser.y1, laser.x2, laser.y2);
         
-        // 파티클 효과
+        // ===== 전기 스파크 연출 추가 =====
+        this.drawElectricSparks(laser.x1, laser.y1, laser.x2, laser.y2, config.width, color);
+        
+        // 파티클 효과 (레이저 경로를 따라 스파크)
         if (Math.random() < 0.3) {
-          const px = laser.orientation === 'vertical' ? laser.x : Math.random() * GAME_WIDTH;
-          const py = laser.orientation === 'vertical' ? Math.random() * GAME_HEIGHT : laser.y;
+          const t = Math.random();
+          const px = laser.x1 + (laser.x2 - laser.x1) * t;
+          const py = laser.y1 + (laser.y2 - laser.y1) * t;
           this.particleManager.createSparkBurst(px, py, color);
         }
       }
     }
   }
 
-  private drawElectricSparks(laserX: number, laserY: number, orientation: 'vertical' | 'horizontal', laserWidth: number, color: number): void {
+  private drawElectricSparks(x1: number, y1: number, x2: number, y2: number, laserWidth: number, color: number): void {
     const segments = 8;
-    const sparkCount = 2; // 한 번에 그릴 스파크 줄 수
+    const sparkCount = 2;
 
-    if (orientation === 'vertical') {
-        const segmentHeight = GAME_HEIGHT / segments;
-        for (let i = 0; i < sparkCount; i++) {
-            this.laserGraphics.lineStyle(2, 0xffffff, 0.8);
-            this.laserGraphics.beginPath();
-            let lastX = laserX + (Math.random() - 0.5) * laserWidth;
-            this.laserGraphics.moveTo(lastX, 0);
-            for (let j = 1; j <= segments; j++) {
-                const nextX = laserX + (Math.random() - 0.5) * (laserWidth * 1.5);
-                const nextY = j * segmentHeight;
-                this.laserGraphics.lineTo(nextX, nextY);
-            }
-            this.laserGraphics.strokePath();
-            this.laserGraphics.lineStyle(4, color, 0.3);
-            this.laserGraphics.strokePath();
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const angle = Math.atan2(dy, dx);
+    const perpAngle = angle + Math.PI / 2;
+
+    for (let i = 0; i < sparkCount; i++) {
+        this.laserGraphics.lineStyle(2, 0xffffff, 0.8);
+        this.laserGraphics.beginPath();
+        
+        const startOffset = (Math.random() - 0.5) * laserWidth;
+        this.laserGraphics.moveTo(x1 + Math.cos(perpAngle) * startOffset, y1 + Math.sin(perpAngle) * startOffset);
+
+        for (let j = 1; j <= segments; j++) {
+            const t = j / segments;
+            const midX = x1 + dx * t;
+            const midY = y1 + dy * t;
+            const offset = (Math.random() - 0.5) * (laserWidth * 1.5);
+            
+            this.laserGraphics.lineTo(midX + Math.cos(perpAngle) * offset, midY + Math.sin(perpAngle) * offset);
         }
-    } else {
-        const segmentWidth = GAME_WIDTH / segments;
-        for (let i = 0; i < sparkCount; i++) {
-            this.laserGraphics.lineStyle(2, 0xffffff, 0.8);
-            this.laserGraphics.beginPath();
-            let lastY = laserY + (Math.random() - 0.5) * laserWidth;
-            this.laserGraphics.moveTo(0, lastY);
-            for (let j = 1; j <= segments; j++) {
-                const nextX = j * segmentWidth;
-                const nextY = laserY + (Math.random() - 0.5) * (laserWidth * 1.5);
-                this.laserGraphics.lineTo(nextX, nextY);
-            }
-            this.laserGraphics.strokePath();
-            this.laserGraphics.lineStyle(4, color, 0.3);
-            this.laserGraphics.strokePath();
-        }
+        this.laserGraphics.strokePath();
+
+        // 바깥쪽 후광 효과
+        this.laserGraphics.lineStyle(4, color, 0.3);
+        this.laserGraphics.strokePath();
     }
   }
 
   private checkLaserCollisions(_delta: number): void {
     const pointer = this.input.activePointer;
+    const px = pointer.worldX;
+    const py = pointer.worldY;
     const config = Data.gameConfig.monsterAttack.laser;
 
     // 커서 히트박스 크기
@@ -1151,26 +1142,22 @@ export class GameScene extends Phaser.Scene {
     for (const laser of this.activeLasers) {
       if (!laser.isFiring) continue;
 
-      if (laser.orientation === 'vertical') {
-        const laserLeft = laser.x - config.width / 2;
-        const laserRight = laser.x + config.width / 2;
-        const cursorLeft = pointer.worldX - cursorRadius;
-        const cursorRight = pointer.worldX + cursorRadius;
+      // 점(px, py)과 직선(laser.x1, y1 -> x2, y2) 사이의 거리 계산
+      const lineLenSq = Math.pow(laser.x2 - laser.x1, 2) + Math.pow(laser.y2 - laser.y1, 2);
+      if (lineLenSq === 0) continue;
 
-        if (cursorRight > laserLeft && cursorLeft < laserRight) {
-          this.handleLaserHit();
-          break;
-        }
-      } else {
-        const laserTop = laser.y - config.width / 2;
-        const laserBottom = laser.y + config.width / 2;
-        const cursorTop = pointer.worldY - cursorRadius;
-        const cursorBottom = pointer.worldY + cursorRadius;
+      // 선분 위의 가장 가까운 점 찾기 (t: 0 to 1)
+      let t = ((px - laser.x1) * (laser.x2 - laser.x1) + (py - laser.y1) * (laser.y2 - laser.y1)) / lineLenSq;
+      t = Math.max(0, Math.min(1, t));
 
-        if (cursorBottom > laserTop && cursorTop < laserBottom) {
-          this.handleLaserHit();
-          break;
-        }
+      const nearestX = laser.x1 + t * (laser.x2 - laser.x1);
+      const nearestY = laser.y1 + t * (laser.y2 - laser.y1);
+
+      const dist = Phaser.Math.Distance.Between(px, py, nearestX, nearestY);
+
+      if (dist < (config.width / 2 + cursorRadius)) {
+        this.handleLaserHit();
+        break;
       }
     }
   }

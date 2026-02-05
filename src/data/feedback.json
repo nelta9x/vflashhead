@@ -118,6 +118,16 @@
     "knockbackDistance": 120,
     "trailLifespan": 200
   },
+  "cursorTrail": {
+    "enabled": true,
+    "color": "#00ffff",
+    "alpha": 0.4,
+    "lifespan": 400,
+    "maxWidth": 40,
+    "minWidth": 4,
+    "maxLength": 25,
+    "minDistance": 4
+  },
   "bossAttack": {
     "mainColor": "#ffffff",
     "accentColor": "#88ccff",

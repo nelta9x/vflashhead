@@ -190,6 +190,17 @@ export interface EnergyEffectConfig {
   trailLifespan: number;     // 꼬리 지속 시간
 }
 
+export interface CursorTrailConfig {
+  enabled: boolean;
+  color: string;
+  alpha: number;
+  lifespan: number;
+  maxWidth: number;
+  minWidth: number;
+  maxLength: number;
+  minDistance: number;
+}
+
 export interface BossAttackConfig {
   mainColor: string;
   accentColor: string;
@@ -242,6 +253,7 @@ export interface FeedbackConfig {
     bomb: ParticleConfig;
   };
   energyEffect: EnergyEffectConfig;
+  cursorTrail: CursorTrailConfig;
   bossAttack: BossAttackConfig;
 }
 

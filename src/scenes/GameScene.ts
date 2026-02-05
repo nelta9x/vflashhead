@@ -14,6 +14,7 @@ import { ParticleManager } from '../effects/ParticleManager';
 import { ScreenShake } from '../effects/ScreenShake';
 import { SlowMotion } from '../effects/SlowMotion';
 import { DamageText } from '../ui/DamageText';
+import { CursorTrail } from '../effects/CursorTrail';
 import { FeedbackSystem } from '../systems/FeedbackSystem';
 import { SoundSystem } from '../systems/SoundSystem';
 import { MonsterSystem } from '../systems/MonsterSystem';
@@ -46,6 +47,7 @@ export class GameScene extends Phaser.Scene {
   private screenShake!: ScreenShake;
   private slowMotion!: SlowMotion;
   private damageText!: DamageText;
+  private cursorTrail!: CursorTrail;
 
   // 게임 상태
   private gameTime: number = 0;
@@ -144,6 +146,7 @@ export class GameScene extends Phaser.Scene {
     this.screenShake = new ScreenShake(this);
     this.slowMotion = new SlowMotion(this);
     this.damageText = new DamageText(this);
+    this.cursorTrail = new CursorTrail(this);
     this.soundSystem = SoundSystem.getInstance();
     this.feedbackSystem = new FeedbackSystem(
       this,
@@ -723,6 +726,7 @@ export class GameScene extends Phaser.Scene {
     this.inGameUpgradeUI.destroy();
     this.waveCountdownUI.destroy();
     this.abilityPanel.destroy();
+    if (this.cursorTrail) this.cursorTrail.destroy();
     if (this.gaugeSystem) this.gaugeSystem.destroy();
   }
 
@@ -750,6 +754,13 @@ export class GameScene extends Phaser.Scene {
 
     // HUD 업데이트
     this.hud.update(this.gameTime);
+
+    // 커서 범위 계산
+    const cursorSizeBonus = this.upgradeSystem.getCursorSizeBonus();
+    const cursorRadius = CURSOR_HITBOX.BASE_RADIUS * (1 + cursorSizeBonus);
+
+    // 커서 트레일 업데이트
+    this.cursorTrail.update(scaledDelta, cursorRadius);
 
     // 인게임 업그레이드 UI 업데이트
     this.inGameUpgradeUI.update(scaledDelta);

@@ -370,7 +370,7 @@ export class GameScene extends Phaser.Scene {
 
             // 기 모으는 강도에 따른 미세한 화면 흔들림
             if (p > 0.5) {
-                this.cameras.main.shake(50, 0.002 * p, true);
+                this.cameras.main.shake(50, 0.001 * p, true);
             }
         },
         onComplete: () => {
@@ -383,7 +383,7 @@ export class GameScene extends Phaser.Scene {
             const fireY = projectile.y;
             
             // 발사 순간 연출
-            this.cameras.main.shake(150, 0.01);
+            this.cameras.main.shake(100, 0.005);
             this.particleManager.createSparkBurst(fireX, fireY, COLORS.YELLOW);
             this.particleManager.createHitEffect(fireX, fireY, COLORS.WHITE);
 
@@ -411,7 +411,7 @@ export class GameScene extends Phaser.Scene {
                     this.monsterSystem.takeDamage(1);
                     
                     // 3. Impact Phase (타격!)
-                    this.cameras.main.shake(300, 0.03);
+                    this.cameras.main.shake(200, 0.015);
                     this.particleManager.createExplosion(endX, endY, COLORS.RED, 'bomb', 4);
                     this.particleManager.createRainbowExplosion(endX, endY, 2); // 도파민 폭발!
                 }

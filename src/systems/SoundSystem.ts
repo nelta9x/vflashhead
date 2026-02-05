@@ -6,7 +6,6 @@ export class SoundSystem {
   private static instance: SoundSystem | null = null;
   private audioContext: AudioContext | null = null;
   private masterGain: GainNode | null = null;
-  private initialized: boolean = false;
 
   constructor() {
     // AudioContext는 사용자 인터랙션 후 초기화해야 함
@@ -21,12 +20,17 @@ export class SoundSystem {
   }
 
   public init(): void {
-    if (!this.initialized && (window.AudioContext || (window as any).webkitAudioContext)) {
+    if (!this.audioContext && (window.AudioContext || (window as any).webkitAudioContext)) {
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       this.masterGain = this.audioContext.createGain();
       this.masterGain.gain.value = 0.3; // 마스터 볼륨
       this.masterGain.connect(this.audioContext.destination);
       this.initialized = true;
+    }
+    
+    // 이미 생성되었더라도 suspended 상태라면 resume 시도
+    if (this.audioContext && this.audioContext.state === 'suspended') {
+      this.audioContext.resume();
     }
   }
 
@@ -37,13 +41,13 @@ export class SoundSystem {
       document.removeEventListener('click', initAudio);
       document.removeEventListener('keydown', initAudio);
       document.removeEventListener('touchstart', initAudio);
-      document.removeEventListener('pointermove', initAudio);
+      document.removeEventListener('mousedown', initAudio);
     };
 
     document.addEventListener('click', initAudio);
     document.addEventListener('keydown', initAudio);
     document.addEventListener('touchstart', initAudio);
-    document.addEventListener('pointermove', initAudio);
+    document.addEventListener('mousedown', initAudio);
   }
 
   private ensureContext(): boolean {

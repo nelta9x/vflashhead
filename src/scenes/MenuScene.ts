@@ -82,20 +82,26 @@ export class MenuScene extends Phaser.Scene {
     // 마우스 클릭
     this.input.on('pointerdown', () => this.startGame());
     
-    // 마우스 움직임 감지 (감도 조절을 위해 일정 거리 이상 움직였을 때 시작)
-    this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
-      if (pointer.velocity.length() > 10) {
-        this.startGame();
-      }
+    // 마우스 움직임 감지 (임계값을 낮춰 더 민감하게 반응)
+    this.input.on('pointermove', () => {
+      this.startGame();
     });
+
+    // 화면 어디든 클릭 시 시작 (안전장치)
+    window.addEventListener('mousedown', () => this.startGame(), { once: true });
+    window.addEventListener('keydown', () => this.startGame(), { once: true });
   }
 
   private startGame(): void {
     if (this.isTransitioning) return;
     this.isTransitioning = true;
 
-    // 사운드 시스템 활성화 (브라우저 정책 대응)
-    SoundSystem.getInstance().init();
+    // 사운드 시스템 활성화
+    const ss = SoundSystem.getInstance();
+    ss.init();
+    
+    // 시작음 즉시 재생 (성공 여부 확인용)
+    ss.playSafeSound();
 
     // 시작 시 강렬한 효과
     this.tweens.add({
@@ -106,6 +112,9 @@ export class MenuScene extends Phaser.Scene {
       duration: 400,
       ease: 'Power2',
       onComplete: () => {
+        // 이벤트 리스너 정리
+        window.removeEventListener('mousedown', () => this.startGame());
+        window.removeEventListener('keydown', () => this.startGame());
         this.scene.start('GameScene');
       }
     });

@@ -6,28 +6,28 @@
   },
   "rarityWeights": {
     "early": {
-      "common": 60,
-      "rare": 30,
-      "epic": 10,
-      "legendary": 0
+      "common": 25,
+      "rare": 25,
+      "epic": 25,
+      "legendary": 25
     },
     "mid": {
-      "common": 45,
-      "rare": 35,
-      "epic": 17,
-      "legendary": 3
+      "common": 25,
+      "rare": 25,
+      "epic": 25,
+      "legendary": 25
     },
     "late": {
-      "common": 30,
-      "rare": 35,
+      "common": 25,
+      "rare": 25,
       "epic": 25,
-      "legendary": 10
+      "legendary": 25
     },
     "endgame": {
-      "common": 20,
-      "rare": 30,
-      "epic": 30,
-      "legendary": 20
+      "common": 25,
+      "rare": 25,
+      "epic": 25,
+      "legendary": 25
     }
   },
   "rarityThresholds": {
@@ -216,7 +216,7 @@
       "name": "넓은 타격",
       "description": "커서 판정 범위 증가",
       "descriptionTemplate": "커서 판정 범위가 {value}% 증가합니다.",
-      "rarity": "rare",
+      "rarity": "common",
       "effectType": "cursorSizeBonus",
       "value": 0.2,
       "maxStack": 5
@@ -226,7 +226,7 @@
       "name": "전기 충격",
       "description": "주변 접시에 번개 데미지",
       "descriptionTemplate": "반경 {radius}px 내 접시에 {damage} 데미지를 줍니다.",
-      "rarity": "rare",
+      "rarity": "common",
       "effectType": "electricShockLevel",
       "value": 1,
       "maxStack": 5,
@@ -242,7 +242,7 @@
       "name": "자기장",
       "description": "커서 주변 접시 끌어당김",
       "descriptionTemplate": "반경 {radius}px 내 접시가 커서 쪽으로 끌려옵니다.",
-      "rarity": "rare",
+      "rarity": "common",
       "effectType": "magnetLevel",
       "value": 1,
       "maxStack": 5,
@@ -256,7 +256,7 @@
       "name": "강화 미사일",
       "description": "풀 차지 공격 시 보스에게 발사되는 미사일 수 증가",
       "descriptionTemplate": "풀 차지 공격 시 보스에게 {count}발의 미사일을 연속 발사합니다.",
-      "rarity": "rare",
+      "rarity": "common",
       "effectType": "missileLevel",
       "value": 1,
       "maxStack": 5,

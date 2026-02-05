@@ -9,8 +9,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "lint": "eslint src --ext .ts",
-    "format": "prettier --write \"src/**/*.ts\""
+    "lint": "eslint src data --ext .ts",
+    "format": "prettier --write \"{src,data}/**/*.ts\""
   },
   "dependencies": {
     "phaser": "^3.70.0"

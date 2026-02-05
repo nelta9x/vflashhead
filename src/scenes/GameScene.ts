@@ -576,8 +576,18 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    // ===== 레이저 보너스 체크 =====
+    const isLaserFiring = this.activeLasers.some(l => l.isFiring);
+    const comboBonus = isLaserFiring ? 1 : 0; // 레이저 발사 중이면 +1 (총 2배)
+
     // 콤보 증가
-    this.comboSystem.increment();
+    this.comboSystem.increment(comboBonus);
+
+    // 보너스 피드백
+    if (isLaserFiring) {
+        this.damageText.showText(x, y - 40, 'LASER BONUS!', COLORS.YELLOW);
+        this.soundSystem.playBossImpactSound(); // 보너스 느낌의 소리
+    }
 
     // 현재 커서 반경 계산
     const cursorSizeBonus = this.upgradeSystem.getCursorSizeBonus();

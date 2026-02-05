@@ -30,8 +30,9 @@ export class ComboSystem {
     this.infiniteTimeout = enabled;
   }
 
-  increment(): void {
-    this.combo++;
+  increment(bonus: number = 0): void {
+    const amount = 1 + bonus;
+    this.combo += amount;
     this.timeSinceLastHit = 0;
 
     if (this.combo > this.maxCombo) {
@@ -42,8 +43,11 @@ export class ComboSystem {
 
     // 마일스톤 체크 (JSON에서 로드)
     const milestones = Data.combo.milestones;
-    if (milestones.includes(this.combo)) {
-      EventBus.getInstance().emit(GameEvents.COMBO_MILESTONE, this.combo);
+    // 보너스로 인해 마일스톤을 건너뛸 수 있으므로 범위 체크
+    for (const milestone of milestones) {
+      if (this.combo >= milestone && this.combo - amount < milestone) {
+        EventBus.getInstance().emit(GameEvents.COMBO_MILESTONE, milestone);
+      }
     }
   }
 

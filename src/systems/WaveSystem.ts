@@ -61,8 +61,8 @@ export class WaveSystem {
 
     // 무한 웨이브 레이저 스케일링: 4개 고정, 간격은 더 짧아짐
     const laserCount = 4;
-    const minInterval = Math.max(800, 1000 - wavesBeyond * 50);
-    const maxInterval = Math.max(2000, 3500 - wavesBeyond * 100);
+    const minInterval = Math.max(1500, 1800 - wavesBeyond * 50);
+    const maxInterval = Math.max(3000, 4000 - wavesBeyond * 100);
 
     return {
       spawnInterval: Math.max(

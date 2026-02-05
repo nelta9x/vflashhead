@@ -146,7 +146,7 @@
         { "type": "bomb", "weight": 0.25 }
       ],
       "bossHp": 125,
-      "laser": { "maxCount": 4, "minInterval": 1500, "maxInterval": 4000 }
+      "laser": { "maxCount": 4, "minInterval": 2000, "maxInterval": 4500 }
     },
     {
       "number": 12,
@@ -160,7 +160,7 @@
         { "type": "bomb", "weight": 0.25 }
       ],
       "bossHp": 150,
-      "laser": { "maxCount": 4, "minInterval": 1000, "maxInterval": 3500 }
+      "laser": { "maxCount": 4, "minInterval": 1800, "maxInterval": 4000 }
     }
   ],
   "fever": {

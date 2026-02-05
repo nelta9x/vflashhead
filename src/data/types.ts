@@ -209,6 +209,7 @@ export interface BossAttackConfig {
   };
   fire: {
     duration: number;
+    missileInterval: number;
     trailAlpha: number;
     trailLifespan: number;
     trailWidthMultiplier: number;

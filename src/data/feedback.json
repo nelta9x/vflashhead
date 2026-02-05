@@ -137,6 +137,7 @@
     },
     "fire": {
       "duration": 150,
+      "missileInterval": 100,
       "trailAlpha": 0.8,
       "trailLifespan": 250,
       "trailWidthMultiplier": 1.0,

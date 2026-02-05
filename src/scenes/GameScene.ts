@@ -301,7 +301,6 @@ export class GameScene extends Phaser.Scene {
     // 색상 변환
     const mainColor = Phaser.Display.Color.HexStringToColor(config.mainColor).color;
     const accentColor = Phaser.Display.Color.HexStringToColor(config.accentColor).color;
-    const innerTrailColor = Phaser.Display.Color.HexStringToColor(config.innerTrailColor).color;
 
     // 1. Charge Phase (에네르기파 스타일 기 모으기)
     const chargeDuration = config.charge.duration;
@@ -383,75 +382,102 @@ export class GameScene extends Phaser.Scene {
             glow.destroy();
             lightning.destroy();
             chargeParticles.destroy();
+            projectile.destroy(); // 기존 충전용 구체 제거
 
-            // 2. Fire Phase (발사!)
-            const fireX = projectile.x;
-            const fireY = projectile.y;
+            // 2. Fire Phase (순차적 발사!)
+            const missileCount = 1 + this.upgradeSystem.getMissileLevel();
+            const fireX = pointer.worldX;
+            const fireY = pointer.worldY;
             
-            // 사운드 재생: 발사
-            this.soundSystem.playBossFireSound();
+            for (let i = 0; i < missileCount; i++) {
+                this.time.delayedCall(i * config.fire.missileInterval, () => {
+                    this.fireSequentialMissile(fireX, fireY, endX, endY, i, missileCount);
+                });
+            }
+        }
+    });
+  }
 
-            // 발사 순간 연출
-            this.particleManager.createSparkBurst(fireX, fireY, mainColor);
-            this.particleManager.createHitEffect(fireX, fireY, COLORS.WHITE);
+  // 순차적 미사일 발사 로직
+  private fireSequentialMissile(startX: number, startY: number, targetX: number, targetY: number, index: number, total: number): void {
+    const config = Data.feedback.bossAttack;
+    const mainColor = Phaser.Display.Color.HexStringToColor(config.mainColor).color;
+    const innerTrailColor = Phaser.Display.Color.HexStringToColor(config.innerTrailColor).color;
 
-            // 날아가기
-            let lastTrailX = fireX;
-            let lastTrailY = fireY;
+    // 회차가 거듭될수록 더 빠르고 강렬해짐
+    const intensity = (index + 1) / total;
+    const speed = config.fire.duration * (1 - intensity * 0.3); // 최대 30% 더 빨라짐
+    
+    // 궤적 변화: 시작점과 타겟점에 약간의 랜덤 오프셋 부여
+    const offsetRange = 30 * intensity;
+    const curStartX = startX + Phaser.Math.Between(-offsetRange, offsetRange);
+    const curStartY = startY + Phaser.Math.Between(-offsetRange, offsetRange);
+    const curTargetX = targetX + Phaser.Math.Between(-20, 20);
+    const curTargetY = targetY + Phaser.Math.Between(-10, 10);
+
+    // 미사일 객체 생성
+    const missile = this.add.circle(curStartX, curStartY, 8 + 4 * intensity, mainColor);
+    missile.setDepth(2000);
+
+    // 사운드: 점점 피치가 높아지는 발사음
+    this.soundSystem.playBossFireSound(); // Note: SoundSystem에 피치 조절 기능이 없으므로 기본음 사용
+
+    // 발사 이펙트
+    this.particleManager.createSparkBurst(curStartX, curStartY, mainColor);
+
+    let lastTrailX = curStartX;
+    let lastTrailY = curStartY;
+
+    this.tweens.add({
+        targets: missile,
+        x: curTargetX,
+        y: curTargetY,
+        duration: speed,
+        ease: 'Expo.In',
+        onUpdate: () => {
+            const curX = missile.x;
+            const curY = missile.y;
+
+            const trail = this.add.graphics();
+            trail.setDepth(1997);
+            
+            // 강렬함에 따라 트레일 두께 조절
+            const baseWidth = missile.displayWidth * config.fire.trailWidthMultiplier;
+            const trailWidth = baseWidth * (0.8 + 0.5 * intensity);
+
+            trail.lineStyle(trailWidth, mainColor, config.fire.trailAlpha);
+            trail.lineBetween(lastTrailX, lastTrailY, curX, curY);
+            
+            trail.lineStyle(trailWidth * 0.4, innerTrailColor, config.fire.trailAlpha * 1.5);
+            trail.lineBetween(lastTrailX, lastTrailY, curX, curY);
+
+            lastTrailX = curX;
+            lastTrailY = curY;
 
             this.tweens.add({
-                targets: projectile,
-                x: endX,
-                y: endY,
-                duration: config.fire.duration,
-                ease: 'Expo.In',
-                onUpdate: () => {
-                   const curX = projectile.x;
-                   const curY = projectile.y;
-
-                   // 강력한 빔 트레일 연출 (TrailRenderer 느낌)
-                   const trail = this.add.graphics();
-                   trail.setDepth(1997);
-                   
-                   // 메인 궤적 (메인 컬러)
-                   trail.lineStyle(
-                     projectile.displayWidth * config.fire.trailWidthMultiplier, 
-                     mainColor, 
-                     config.fire.trailAlpha
-                   );
-                   trail.lineBetween(lastTrailX, lastTrailY, curX, curY);
-                   
-                   // 중앙 심지 (더 밝게)
-                   trail.lineStyle(
-                     projectile.displayWidth * config.fire.innerTrailWidthMultiplier, 
-                     innerTrailColor, 
-                     config.fire.trailAlpha * config.fire.innerTrailAlphaMultiplier
-                   );
-                   trail.lineBetween(lastTrailX, lastTrailY, curX, curY);
-
-                   lastTrailX = curX;
-                   lastTrailY = curY;
-
-                   this.tweens.add({
-                       targets: trail,
-                       alpha: 0,
-                       duration: config.fire.trailLifespan,
-                       onComplete: () => trail.destroy()
-                   });
-                },
-                onComplete: () => {
-                    projectile.destroy();
-
-                    // 데미지 계산: 기본 1 + 강화 미사일 어빌리티 레벨
-                    const totalDamage = 1 + this.upgradeSystem.getMissileLevel();
-                    this.monsterSystem.takeDamage(totalDamage);
-                    
-                    // 3. Impact Phase (타격!)
-                    
-                    // 보스 데미지 피드백 (대미지 넘버 포함)
-                    this.feedbackSystem.onBossDamaged(endX, endY, totalDamage);
-                }
+                targets: trail,
+                alpha: 0,
+                duration: config.fire.trailLifespan,
+                onComplete: () => trail.destroy()
             });
+        },
+        onComplete: () => {
+            missile.destroy();
+            
+            // 데미지 1 적용 (전체 데미지는 미사일 개수와 동일해짐)
+            this.monsterSystem.takeDamage(1);
+            
+            // 타격 피드백 (마지막 발사일수록 더 강하게)
+            if (index === total - 1) {
+                this.feedbackSystem.onBossDamaged(curTargetX, curTargetY, total);
+                // 마지막 발사 시 카메라 효과 강화
+                this.cameras.main.shake(config.impact.shakeDuration, config.impact.shakeIntensity * 1.5);
+            } else {
+                // 중간 발사체 타격 효과
+                this.particleManager.createHitEffect(curTargetX, curTargetY, COLORS.WHITE);
+                this.particleManager.createExplosion(curTargetX, curTargetY, mainColor, 'basic', 0.5);
+                this.soundSystem.playHitSound();
+            }
         }
     });
   }

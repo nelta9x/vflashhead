@@ -240,9 +240,9 @@ export class UpgradeSystem {
       }
 
       case 'missileLevel': {
-        const meta = upgradeData.meta!;
-        const damage = (meta.baseDamage || 0) + stack * (meta.damagePerLevel || 1);
-        return template.replace('{damage}', damage.toString());
+        const stack = this.getUpgradeStack(upgradeId);
+        const count = 1 + stack;
+        return template.replace('{count}', count.toString());
       }
 
       default:
@@ -291,13 +291,12 @@ export class UpgradeSystem {
       }
 
       case 'missileLevel': {
-        const meta = upgradeData.meta!;
-        const curDamage = (meta.baseDamage || 0) + currentStack * (meta.damagePerLevel || 1);
-        const nextDamage = (meta.baseDamage || 0) + nextStack * (meta.damagePerLevel || 1);
+        const curCount = 1 + currentStack;
+        const nextCount = 1 + nextStack;
         if (currentStack === 0) {
-          return `보스에게 미사일 데미지 ${nextDamage}`;
+          return `발사되는 미사일 수: ${nextCount}개`;
         }
-        return `미사일 데미지 ${curDamage} → ${nextDamage}`;
+        return `미사일 수 ${curCount} → ${nextCount}개`;
       }
 
       default:

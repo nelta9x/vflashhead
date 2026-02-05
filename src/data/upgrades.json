@@ -254,8 +254,8 @@
     {
       "id": "missile",
       "name": "강화 미사일",
-      "description": "풀 차지 공격 시 보스에게 추가 피해",
-      "descriptionTemplate": "풀 차지 공격 시 보스에게 {damage}의 추가 피해를 입힙니다.",
+      "description": "풀 차지 공격 시 보스에게 발사되는 미사일 수 증가",
+      "descriptionTemplate": "풀 차지 공격 시 보스에게 {count}발의 미사일을 연속 발사합니다.",
       "rarity": "rare",
       "effectType": "missileLevel",
       "value": 1,

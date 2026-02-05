@@ -1,0 +1,109 @@
+{
+  "damageText": {
+    "normal": {
+      "color": "#ffffff",
+      "fontSize": 24,
+      "initialScale": 1.8
+    },
+    "critical": {
+      "color": "#ffcc00",
+      "fontSize": 32,
+      "initialScale": 2.2
+    },
+    "combo": {
+      "minComboToShow": 2,
+      "fontSize": 16,
+      "offsetX": 25,
+      "offsetY": -5,
+      "colors": {
+        "low": "#88ff88",
+        "mid": "#ffff44",
+        "high": "#ff8844",
+        "ultra": "#ff44ff"
+      },
+      "thresholds": {
+        "mid": 10,
+        "high": 25,
+        "ultra": 50
+      }
+    },
+    "style": {
+      "strokeThickness": 5,
+      "fontStyle": "bold"
+    },
+    "randomScale": {
+      "enabled": true,
+      "min": 0.85,
+      "max": 1.15
+    },
+    "randomRotation": {
+      "enabled": true,
+      "min": -8,
+      "max": 8
+    },
+    "animation": {
+      "scalePop": {
+        "duration": 60,
+        "ease": "Back.easeOut"
+      },
+      "shake": {
+        "distance": 5,
+        "duration": 18,
+        "ease": "Sine.easeInOut",
+        "repeat": 2
+      },
+      "hold": {
+        "duration": 150
+      },
+      "shrinkFade": {
+        "duration": 250,
+        "targetScale": 0.3,
+        "ease": "Power2"
+      }
+    }
+  },
+  "comboMilestones": {
+    "5": {
+      "shake": 3,
+      "shakeDuration": 150
+    },
+    "10": {
+      "shake": 5,
+      "shakeDuration": 200,
+      "slowMotion": 0.3,
+      "slowDuration": 500
+    },
+    "25": {
+      "shake": 8,
+      "shakeDuration": 250,
+      "slowMotion": 0.2,
+      "slowDuration": 800
+    },
+    "50": {
+      "shake": 12,
+      "shakeDuration": 300,
+      "slowMotion": 0.1,
+      "slowDuration": 1000
+    },
+    "100": {
+      "shake": 15,
+      "shakeDuration": 400,
+      "slowMotion": 0.05,
+      "slowDuration": 1500
+    }
+  },
+  "particles": {
+    "basic": {
+      "count": 20
+    },
+    "golden": {
+      "count": 30
+    },
+    "crystal": {
+      "count": 25
+    },
+    "bomb": {
+      "count": 40
+    }
+  }
+}

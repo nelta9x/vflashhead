@@ -1,10 +1,10 @@
+import { Data } from '../data/DataManager';
 import { EventBus, GameEvents } from '../utils/EventBus';
 
 export class ComboSystem {
   private combo: number = 0;
   private maxCombo: number = 0;
   private timeSinceLastHit: number = 0;
-  private comboMilestones: number[] = [5, 10, 25, 50, 100];
   private currentWave: number = 1;
   private comboDurationBonus: number = 0;
   private infiniteTimeout: boolean = false;
@@ -40,8 +40,9 @@ export class ComboSystem {
 
     EventBus.getInstance().emit(GameEvents.COMBO_INCREASED, this.combo);
 
-    // 마일스톤 체크
-    if (this.comboMilestones.includes(this.combo)) {
+    // 마일스톤 체크 (JSON에서 로드)
+    const milestones = Data.combo.milestones;
+    if (milestones.includes(this.combo)) {
       EventBus.getInstance().emit(GameEvents.COMBO_MILESTONE, this.combo);
     }
   }
@@ -66,10 +67,14 @@ export class ComboSystem {
 
   /**
    * 동적 타임아웃: 콤보와 웨이브가 높을수록 타임아웃이 짧아짐
-   * 공식: max(600, 1500 - combo*15 - wave*80) + comboDurationBonus
+   * 공식: max(minimum, base - combo*comboReduction - wave*waveReduction) + comboDurationBonus
    */
   private getDynamicTimeout(): number {
-    const baseTimeout = Math.max(600, 1500 - this.combo * 15 - this.currentWave * 80);
+    const timeout = Data.combo.timeout;
+    const baseTimeout = Math.max(
+      timeout.minimum,
+      timeout.base - this.combo * timeout.comboReduction - this.currentWave * timeout.waveReduction
+    );
     return baseTimeout + this.comboDurationBonus;
   }
 
@@ -82,11 +87,12 @@ export class ComboSystem {
   }
 
   /**
-   * 배율에 소프트캡 적용: 1 + combo * 0.1 / (1 + combo * 0.01)
-   * 콤보 10: 1.83x, 콤보 50: 3.33x, 콤보 100: 5.0x
+   * 배율에 소프트캡 적용
+   * 공식: 1 + combo * factor / (1 + combo * softcapFactor)
    */
   getMultiplier(): number {
-    return 1 + (this.combo * 0.1) / (1 + this.combo * 0.01);
+    const mult = Data.combo.multiplier;
+    return 1 + (this.combo * mult.factor) / (1 + this.combo * mult.softcapFactor);
   }
 
   getTimeRemaining(): number {

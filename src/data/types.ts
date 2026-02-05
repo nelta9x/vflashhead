@@ -100,7 +100,80 @@ export interface ParticleConfig {
   count: number;
 }
 
+export interface DamageTextTypeConfig {
+  color: string;
+  fontSize: number;
+  initialScale: number;
+}
+
+export interface DamageTextComboConfig {
+  minComboToShow: number;
+  fontSize: number;
+  offsetX: number;
+  offsetY: number;
+  colors: {
+    low: string;
+    mid: string;
+    high: string;
+    ultra: string;
+  };
+  thresholds: {
+    mid: number;
+    high: number;
+    ultra: number;
+  };
+}
+
+export interface DamageTextAnimationConfig {
+  scalePop: {
+    duration: number;
+    ease: string;
+  };
+  shake: {
+    distance: number;
+    duration: number;
+    ease: string;
+    repeat: number;
+  };
+  hold: {
+    duration: number;
+  };
+  shrinkFade: {
+    duration: number;
+    targetScale: number;
+    ease: string;
+  };
+}
+
+export interface DamageTextStyleConfig {
+  strokeThickness: number;
+  fontStyle: string;
+}
+
+export interface DamageTextRandomScaleConfig {
+  enabled: boolean;
+  min: number;
+  max: number;
+}
+
+export interface DamageTextRandomRotationConfig {
+  enabled: boolean;
+  min: number;
+  max: number;
+}
+
+export interface DamageTextConfig {
+  normal: DamageTextTypeConfig;
+  critical: DamageTextTypeConfig;
+  combo: DamageTextComboConfig;
+  style: DamageTextStyleConfig;
+  randomScale: DamageTextRandomScaleConfig;
+  randomRotation: DamageTextRandomRotationConfig;
+  animation: DamageTextAnimationConfig;
+}
+
 export interface FeedbackConfig {
+  damageText: DamageTextConfig;
   comboMilestones: Record<string, ComboMilestoneEffect>;
   particles: {
     basic: ParticleConfig;

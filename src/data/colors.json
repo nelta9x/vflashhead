@@ -1,0 +1,22 @@
+{
+  "hex": {
+    "cyan": "#00ffff",
+    "magenta": "#ff00ff",
+    "yellow": "#ffff00",
+    "red": "#ff0044",
+    "green": "#00ff88",
+    "white": "#ffffff",
+    "darkBg": "#0a0a0f",
+    "darkPurple": "#1a0a2e"
+  },
+  "numeric": {
+    "cyan": 65535,
+    "magenta": 16711935,
+    "yellow": 16776960,
+    "red": 16711748,
+    "green": 65416,
+    "white": 16777215,
+    "darkBg": 657423,
+    "darkPurple": 1706542
+  }
+}

@@ -1,12 +1,13 @@
 import Phaser from 'phaser';
-import { GAME_HEIGHT, COLORS, HEAL_PACK } from '../config/constants';
+import { COLORS } from '../config/constants';
+import { Data } from '../data/DataManager';
 import { Poolable } from '../utils/ObjectPool';
 import { EventBus, GameEvents } from '../utils/EventBus';
 
 export class HealthPack extends Phaser.GameObjects.Container implements Poolable {
   active: boolean = false;
   private graphics: Phaser.GameObjects.Graphics;
-  private velocityY: number = HEAL_PACK.FALL_SPEED;
+  private velocityY: number = Data.healthPack.fallSpeed;
   private pulsePhase: number = 0;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
@@ -19,8 +20,8 @@ export class HealthPack extends Phaser.GameObjects.Container implements Poolable
     // 물리 바디 설정
     scene.physics.add.existing(this);
     const body = this.body as Phaser.Physics.Arcade.Body;
-    body.setCircle(HEAL_PACK.HITBOX_SIZE);
-    body.setOffset(-HEAL_PACK.HITBOX_SIZE, -HEAL_PACK.HITBOX_SIZE);
+    body.setCircle(Data.healthPack.hitboxSize);
+    body.setOffset(-Data.healthPack.hitboxSize, -Data.healthPack.hitboxSize);
 
     this.setVisible(false);
     this.setActive(false);
@@ -45,7 +46,7 @@ export class HealthPack extends Phaser.GameObjects.Container implements Poolable
 
     // 클릭 가능하게 설정 (관대한 히트박스)
     this.setInteractive(
-      new Phaser.Geom.Circle(0, 0, HEAL_PACK.HITBOX_SIZE),
+      new Phaser.Geom.Circle(0, 0, Data.healthPack.hitboxSize),
       Phaser.Geom.Circle.Contains
     );
     this.setupClickHandlers();
@@ -106,7 +107,7 @@ export class HealthPack extends Phaser.GameObjects.Container implements Poolable
   private drawHealthPack(): void {
     this.graphics.clear();
 
-    const size = HEAL_PACK.VISUAL_SIZE;
+    const size = Data.healthPack.visualSize;
     const pulse = 1 + Math.sin(this.pulsePhase) * 0.1; // 펄스 효과
     const crossWidth = size * 0.35;
     const crossLength = size * 0.8;
@@ -148,7 +149,8 @@ export class HealthPack extends Phaser.GameObjects.Container implements Poolable
     this.pulsePhase += delta * 0.005;
 
     // 화면 아래로 벗어남 체크
-    if (this.y > GAME_HEIGHT + 40) {
+    const gameHeight = Data.gameConfig.screen.height;
+    if (this.y > gameHeight + 40) {
       this.onMissed();
       return;
     }

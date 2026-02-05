@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { COLORS } from '../config/constants';
+import { Data } from '../data/DataManager';
 import { ParticleManager } from '../effects/ParticleManager';
 import { ScreenShake } from '../effects/ScreenShake';
 import { SlowMotion } from '../effects/SlowMotion';
@@ -41,36 +42,24 @@ export class FeedbackSystem {
   }
 
   onComboMilestone(milestone: number): void {
-    // 콤보 마일스톤별 피드백
-    switch (milestone) {
-      case 5:
-        this.screenShake.shake(3, 150);
-        break;
-      case 10:
-        this.screenShake.shake(5, 200);
-        this.slowMotion.trigger(0.3, 500);
-        break;
-      case 25:
-        this.screenShake.shake(8, 250);
-        this.slowMotion.trigger(0.2, 800);
-        break;
-      case 50:
-        this.screenShake.shake(12, 300);
-        this.slowMotion.trigger(0.1, 1000);
-        break;
-      case 100:
-        this.screenShake.shake(15, 400);
-        this.slowMotion.trigger(0.05, 1500);
-        break;
+    // 콤보 마일스톤별 피드백 (JSON에서 로드)
+    const effect = Data.getComboMilestoneEffect(milestone);
+
+    if (effect) {
+      this.screenShake.shake(effect.shake, effect.shakeDuration);
+
+      if (effect.slowMotion !== undefined && effect.slowDuration !== undefined) {
+        this.slowMotion.trigger(effect.slowMotion, effect.slowDuration);
+      }
     }
 
     // 콤보 사운드 재생
     this.soundSystem.playComboSound(milestone);
   }
 
-  onDishDamaged(x: number, y: number, damage: number, hpRatio: number, color: number): void {
+  onDishDamaged(x: number, y: number, damage: number, hpRatio: number, color: number, combo: number = 0): void {
     // 데미지 텍스트
-    this.damageText.showText(x, y - 20, `-${damage}`, COLORS.WHITE);
+    this.damageText.showDamage(x, y - 20, damage, 'normal', combo);
 
     // 히트 파티클
     this.particleManager.createHitEffect(x, y, color);
@@ -87,9 +76,9 @@ export class FeedbackSystem {
     this.soundSystem.playHitSound();
   }
 
-  onCriticalHit(x: number, y: number, damage: number): void {
+  onCriticalHit(x: number, y: number, damage: number, combo: number = 0): void {
     // 크리티컬 히트 피드백
-    this.damageText.showCritical(x, y, damage);
+    this.damageText.showDamage(x, y, damage, 'critical', combo);
     this.screenShake.shake(4, 80);
     this.particleManager.createCriticalEffect(x, y);
   }

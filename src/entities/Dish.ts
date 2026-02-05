@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
-import { COLORS, DISH_LIFETIME, DISH_DAMAGE, CURSOR_HITBOX } from '../config/constants';
+import { COLORS, CURSOR_HITBOX } from '../config/constants';
+import { Data } from '../data/DataManager';
 import { Poolable } from '../utils/ObjectPool';
 import { EventBus, GameEvents } from '../utils/EventBus';
-import dishesData from '../data/dishes.json';
 
 interface DishConfig {
   points: number;
@@ -12,6 +12,7 @@ interface DishConfig {
   dangerous?: boolean;
   hp: number;
   invulnerable?: boolean;
+  size: number;
 }
 
 // 업그레이드 옵션 인터페이스
@@ -23,50 +24,35 @@ export interface DishUpgradeOptions {
   cursorSizeBonus?: number;
 }
 
-interface DishJsonData {
-  hp: number;
-  points: number;
-  color: string;
-  chainReaction: boolean;
-  dangerous: boolean;
-  invulnerable?: boolean;
-}
+// JSON에서 접시 설정 로드
+function getDishConfig(type: string): DishConfig {
+  const dishData = Data.getDishData(type);
+  if (!dishData) {
+    // 폴백: basic 사용
+    const basicData = Data.dishes.dishes.basic;
+    return {
+      points: basicData.points,
+      lifetime: basicData.lifetime,
+      color: parseInt(basicData.color.replace('#', ''), 16),
+      chainReaction: basicData.chainReaction,
+      dangerous: basicData.dangerous,
+      hp: basicData.hp,
+      invulnerable: basicData.invulnerable,
+      size: basicData.size,
+    };
+  }
 
-const DISH_CONFIGS: Record<string, DishConfig> = {
-  basic: {
-    points: 100,
-    lifetime: DISH_LIFETIME.basic,
-    color: COLORS.CYAN,
-    hp: (dishesData as Record<string, DishJsonData>).basic.hp,
-  },
-  golden: {
-    points: 400,
-    lifetime: DISH_LIFETIME.golden,
-    color: COLORS.YELLOW,
-    hp: (dishesData as Record<string, DishJsonData>).golden.hp,
-  },
-  crystal: {
-    points: 250,
-    lifetime: DISH_LIFETIME.crystal,
-    color: COLORS.MAGENTA,
-    chainReaction: true,
-    hp: (dishesData as Record<string, DishJsonData>).crystal.hp,
-  },
-  bomb: {
-    points: 0,
-    lifetime: DISH_LIFETIME.bomb,
-    color: COLORS.RED,
-    dangerous: true,
-    hp: (dishesData as Record<string, DishJsonData>).bomb.hp,
-    invulnerable: true,
-  },
-  mini: {
-    points: 50,
-    lifetime: 1500,
-    color: COLORS.GREEN,
-    hp: (dishesData as Record<string, DishJsonData>).mini.hp,
-  },
-};
+  return {
+    points: dishData.points,
+    lifetime: dishData.lifetime,
+    color: parseInt(dishData.color.replace('#', ''), 16),
+    chainReaction: dishData.chainReaction,
+    dangerous: dishData.dangerous,
+    hp: dishData.hp,
+    invulnerable: dishData.invulnerable,
+    size: dishData.size,
+  };
+}
 
 export class Dish extends Phaser.GameObjects.Container implements Poolable {
   active: boolean = false;
@@ -98,7 +84,7 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
 
   // 업그레이드 효과
   private upgradeOptions: DishUpgradeOptions = {};
-  private damageInterval: number = DISH_DAMAGE.DAMAGE_INTERVAL;
+  private damageInterval: number = Data.dishes.damage.damageInterval;
   private interactiveRadius: number = 40;
 
   constructor(scene: Phaser.Scene, x: number, y: number, _type: string = 'basic') {
@@ -134,7 +120,8 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
 
   spawn(x: number, y: number, type: string, _speedMultiplier: number = 1, options: DishUpgradeOptions = {}): void {
     this.dishType = type;
-    const config = DISH_CONFIGS[type] || DISH_CONFIGS.basic;
+    const config = getDishConfig(type);
+    const dishData = Data.getDishData(type);
 
     this.points = config.points;
     this.lifetime = config.lifetime;
@@ -158,12 +145,11 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
 
     // 공격 속도 계산
     const attackSpeedMultiplier = options.attackSpeedMultiplier ?? 1;
-    this.damageInterval = DISH_DAMAGE.DAMAGE_INTERVAL * attackSpeedMultiplier;
+    this.damageInterval = Data.dishes.damage.damageInterval * attackSpeedMultiplier;
 
-    this.size = type === 'bomb' ? 40 : type === 'golden' ? 35 : type === 'crystal' ? 25 : type === 'mini' ? 20 : 30;
+    this.size = config.size;
 
     // 인터랙티브 반경 계산 (접시 크기 + 커서 히트박스)
-    // 커서 히트박스가 클수록 더 쉽게 맞출 수 있음
     const cursorSizeBonus = options.cursorSizeBonus ?? 0;
     const cursorRadius = CURSOR_HITBOX.BASE_RADIUS * (1 + cursorSizeBonus);
     this.interactiveRadius = this.size + cursorRadius;
@@ -185,7 +171,8 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
     );
     this.setupClickHandlers();
 
-    // 스폰 애니메이션 (팝업 효과)
+    // 스폰 애니메이션 (JSON에서 로드)
+    const spawnAnim = dishData?.spawnAnimation ?? { duration: 150, ease: 'Back.easeOut' };
     this.setScale(0);
     this.setAlpha(0);
     this.scene.tweens.add({
@@ -193,8 +180,8 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
       scaleX: 1,
       scaleY: 1,
       alpha: 1,
-      duration: 150,
-      ease: 'Back.easeOut',
+      duration: spawnAnim.duration,
+      ease: spawnAnim.ease,
     });
 
     this.drawDish();
@@ -258,7 +245,7 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
 
     // 반복 데미지 타이머 시작
     this.damageTimer = this.scene.time.addEvent({
-      delay: DISH_DAMAGE.DAMAGE_INTERVAL,
+      delay: Data.dishes.damage.damageInterval,
       callback: () => this.takeDamage(false),
       loop: true,
     });
@@ -280,7 +267,7 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
     if (!this.active || this.invulnerable) return;
 
     // 업그레이드 적용: 기본 데미지 + 보너스 + 치명타
-    const baseDamage = DISH_DAMAGE.PLAYER_DAMAGE;
+    const baseDamage = Data.dishes.damage.playerDamage;
     const damageBonus = this.upgradeOptions.damageBonus || 0;
     const critChance = this.upgradeOptions.criticalChance || 0;
 

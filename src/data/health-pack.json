@@ -1,0 +1,16 @@
+{
+  "healAmount": 1,
+  "fallTime": 3500,
+  "fallSpeed": 206,
+  "visualSize": 28,
+  "hitboxSize": 35,
+  "cooldown": 15000,
+  "maxActive": 1,
+  "spawnChanceByHp": {
+    "5": 0,
+    "4": 0.02,
+    "3": 0.04,
+    "2": 0.06,
+    "1": 0.10
+  }
+}

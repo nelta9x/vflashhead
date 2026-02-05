@@ -1,0 +1,13 @@
+{
+  "timeout": {
+    "base": 1500,
+    "comboReduction": 15,
+    "waveReduction": 80,
+    "minimum": 600
+  },
+  "milestones": [5, 10, 25, 50, 100],
+  "multiplier": {
+    "factor": 0.1,
+    "softcapFactor": 0.01
+  }
+}

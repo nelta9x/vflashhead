@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { COLORS } from '../config/constants';
+import { Data } from '../data/DataManager';
 
 // 무지개 색상 배열
 const RAINBOW_COLORS = [
@@ -71,9 +72,22 @@ export class ParticleManager {
     const emitter = this.emitters.get('explosion');
     if (!emitter) return;
 
-    // 타입별 파티클 수 조절
-    let baseCount =
-      dishType === 'golden' ? 30 : dishType === 'crystal' ? 25 : dishType === 'bomb' ? 40 : 20;
+    // 타입별 파티클 수 조절 (JSON에서 로드)
+    const particles = Data.feedback.particles;
+    let baseCount: number;
+    switch (dishType) {
+      case 'golden':
+        baseCount = particles.golden.count;
+        break;
+      case 'crystal':
+        baseCount = particles.crystal.count;
+        break;
+      case 'bomb':
+        baseCount = particles.bomb.count;
+        break;
+      default:
+        baseCount = particles.basic.count;
+    }
 
     // 파티클 배율 적용
     const particleCount = Math.floor(baseCount * particleMultiplier);

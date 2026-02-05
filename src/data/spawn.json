@@ -1,0 +1,14 @@
+{
+  "area": {
+    "minX": 80,
+    "maxX": 1200,
+    "minY": 120,
+    "maxY": 640
+  },
+  "minDishDistance": 100,
+  "dynamicSpawn": {
+    "minActiveDishes": 2,
+    "emergencyInterval": 300,
+    "lowActiveInterval": 500
+  }
+}

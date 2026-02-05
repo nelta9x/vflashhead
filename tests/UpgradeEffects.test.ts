@@ -114,7 +114,7 @@ describe('UpgradeSystem - 간소화된 시스템', () => {
   });
 
   describe('업그레이드 적용', () => {
-    it('무한 스택 (넓은 타격)', async () => {
+    it('넓은 타격 스택 (maxStack=5)', async () => {
       const { UpgradeSystem } = await import('../src/systems/UpgradeSystem');
       const upgrade = new UpgradeSystem();
 
@@ -122,16 +122,16 @@ describe('UpgradeSystem - 간소화된 시스템', () => {
       const cursorUpgrade = upgrades.find(u => u.id === 'cursor_size');
 
       if (cursorUpgrade) {
-        // maxStack이 Infinity이므로 무한 중첩 가능
-        for (let i = 0; i < 5; i++) {
+        // maxStack이 5이므로 5번까지 중첩 가능
+        for (let i = 0; i < 7; i++) {
           upgrade.applyUpgrade(cursorUpgrade);
         }
         expect(upgrade.getUpgradeStack('cursor_size')).toBe(5);
-        expect(upgrade.getCursorSizeBonus()).toBeCloseTo(0.15); // 0.03 * 5
+        expect(upgrade.getCursorSizeBonus()).toBeCloseTo(0.4); // 0.08 * 5
       }
     });
 
-    it('전기 충격 최대 스택 제한', async () => {
+    it('전기 충격 스택 (maxStack=5)', async () => {
       const { UpgradeSystem } = await import('../src/systems/UpgradeSystem');
       const upgrade = new UpgradeSystem();
 
@@ -139,16 +139,16 @@ describe('UpgradeSystem - 간소화된 시스템', () => {
       const electricUpgrade = upgrades.find(u => u.id === 'electric_shock');
 
       if (electricUpgrade) {
-        // maxStack은 2
-        for (let i = 0; i < 5; i++) {
+        // maxStack은 5
+        for (let i = 0; i < 7; i++) {
           upgrade.applyUpgrade(electricUpgrade);
         }
-        expect(upgrade.getUpgradeStack('electric_shock')).toBe(2);
-        expect(upgrade.getElectricShockLevel()).toBe(2);
+        expect(upgrade.getUpgradeStack('electric_shock')).toBe(5);
+        expect(upgrade.getElectricShockLevel()).toBe(5);
       }
     });
 
-    it('자기장 최대 스택 제한', async () => {
+    it('자기장 스택 (maxStack=5)', async () => {
       const { UpgradeSystem } = await import('../src/systems/UpgradeSystem');
       const upgrade = new UpgradeSystem();
 
@@ -156,12 +156,12 @@ describe('UpgradeSystem - 간소화된 시스템', () => {
       const magnetUpgrade = upgrades.find(u => u.id === 'magnet');
 
       if (magnetUpgrade) {
-        // maxStack은 3
-        for (let i = 0; i < 5; i++) {
+        // maxStack은 5
+        for (let i = 0; i < 7; i++) {
           upgrade.applyUpgrade(magnetUpgrade);
         }
-        expect(upgrade.getUpgradeStack('magnet')).toBe(3);
-        expect(upgrade.getMagnetLevel()).toBe(3);
+        expect(upgrade.getUpgradeStack('magnet')).toBe(5);
+        expect(upgrade.getMagnetLevel()).toBe(5);
       }
     });
   });

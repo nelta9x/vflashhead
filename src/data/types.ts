@@ -30,11 +30,28 @@ export interface WaveTransitionConfig {
   countdownDuration: number;
 }
 
+export interface LaserAttackConfig {
+  width: number;
+  warningDuration: number;
+  fireDuration: number;
+  minInterval: number;
+  maxInterval: number;
+  damage: number;
+  color: string;
+  warningAlpha: number;
+  fireAlpha: number;
+}
+
+export interface MonsterAttackConfig {
+  laser: LaserAttackConfig;
+}
+
 export interface GameConfig {
   screen: ScreenConfig;
   player: PlayerConfig;
   upgradeUI: UpgradeUIConfig;
   waveTransition: WaveTransitionConfig;
+  monsterAttack: MonsterAttackConfig;
   fonts: {
     main: string;
     korean: string;

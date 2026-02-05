@@ -61,6 +61,13 @@ export class GameScene extends Phaser.Scene {
   // 공격 범위 표시
   private attackRangeIndicator!: Phaser.GameObjects.Graphics;
 
+  // 보스 레이저 공격 관련
+  private laserNextTime: number = 0;
+  private laserGraphics!: Phaser.GameObjects.Graphics;
+  private isLaserFiring: boolean = false;
+  private isLaserWarning: boolean = false;
+  private laserX: number = 0;
+
   constructor() {
     super({ key: 'GameScene' });
   }
@@ -69,6 +76,8 @@ export class GameScene extends Phaser.Scene {
     this.isGameOver = false;
     this.isPaused = false;
     this.gameTime = 0;
+    this.isLaserFiring = false;
+    this.isLaserWarning = false;
 
     // 배경 생성
     this.createBackground();
@@ -87,6 +96,9 @@ export class GameScene extends Phaser.Scene {
 
     // 입력 설정
     this.setupInput();
+
+    // 첫 레이저 시간 설정
+    this.setNextLaserTime();
 
     // 게임 시작: 첫 웨이브 바로 시작 (카운트다운 없음)
     this.waveSystem.startWave(1);
@@ -171,6 +183,10 @@ export class GameScene extends Phaser.Scene {
   private initializeEntities(): void {
     // 오브젝트 풀 생성
     this.dishPool = new ObjectPool<Dish>(() => new Dish(this, 0, 0, 'basic'), 10, 50);
+
+    // 레이저 그래픽 초기화
+    this.laserGraphics = this.add.graphics();
+    this.laserGraphics.setDepth(1500);
   }
 
   private setupEventListeners(): void {
@@ -589,7 +605,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   // 전기 충격: 주변 접시에 데미지
-  private applyElectricShock(x: number, y: number, level: number, excludeDish: Dish, radius: number): void {
+  private applyElectricShock(x: number, y: number, _level: number, excludeDish: Dish, radius: number): void {
     const targets: { x: number; y: number }[] = [];
     const damage = this.upgradeSystem.getElectricShockDamage();
 
@@ -780,6 +796,9 @@ export class GameScene extends Phaser.Scene {
 
     // 공격 범위 인디케이터 업데이트
     this.updateAttackRangeIndicator();
+
+    // 보스 레이저 업데이트
+    this.updateLaser(scaledDelta);
   }
 
   private updateMagnetEffect(delta: number): void {
@@ -925,5 +944,141 @@ export class GameScene extends Phaser.Scene {
 
   getDishPool(): ObjectPool<Dish> {
     return this.dishPool;
+  }
+
+  // ===== 보스 레이저 공격 시스템 =====
+  private setNextLaserTime(): void {
+    const config = Data.gameConfig.monsterAttack.laser;
+    const interval = Phaser.Math.Between(config.minInterval, config.maxInterval);
+    this.laserNextTime = this.gameTime + interval;
+  }
+
+  private updateLaser(delta: number): void {
+    if (this.isGameOver || this.isPaused) return;
+
+    // 레이저 타이머 체크
+    if (!this.isLaserFiring && !this.isLaserWarning && this.gameTime >= this.laserNextTime) {
+      this.triggerLaserAttack();
+    }
+
+    if (this.isLaserWarning || this.isLaserFiring) {
+      this.drawLaser();
+    }
+
+    // 레이저 발사 중 충격 판정
+    if (this.isLaserFiring) {
+      this.checkLaserCollision(delta);
+    }
+  }
+
+  private triggerLaserAttack(): void {
+    const config = Data.gameConfig.monsterAttack.laser;
+    this.isLaserWarning = true;
+    
+    // 무작위 X 위치 선정 (화면 내)
+    const margin = config.width / 2 + 20;
+    this.laserX = Phaser.Math.Between(margin, GAME_WIDTH - margin);
+
+    // 사운드: 기 모으는 소리 활용
+    this.soundSystem.playBossChargeSound();
+
+    // 경고 시간 후 발사
+    this.time.delayedCall(config.warningDuration, () => {
+      if (this.isGameOver) return;
+      this.fireLaser();
+    });
+  }
+
+  private fireLaser(): void {
+    const config = Data.gameConfig.monsterAttack.laser;
+    this.isLaserWarning = false;
+    this.isLaserFiring = true;
+
+    // 사운드: 보스 발사 소리 활용
+    this.soundSystem.playBossFireSound();
+    
+    // 화면 흔들림
+    this.cameras.main.shake(200, 0.005);
+
+    // 발사 시간 후 중지
+    this.time.delayedCall(config.fireDuration, () => {
+      this.stopLaser();
+    });
+  }
+
+  private stopLaser(): void {
+    this.isLaserFiring = false;
+    this.laserGraphics.clear();
+    this.setNextLaserTime();
+  }
+
+  private drawLaser(): void {
+    const config = Data.gameConfig.monsterAttack.laser;
+    const color = Phaser.Display.Color.HexStringToColor(config.color).color;
+    
+    this.laserGraphics.clear();
+
+    if (this.isLaserWarning) {
+      // 경고선 (반짝임 효과)
+      const alpha = config.warningAlpha * (0.5 + Math.sin(this.gameTime / 50) * 0.5);
+      this.laserGraphics.fillStyle(color, alpha);
+      this.laserGraphics.fillRect(this.laserX - config.width / 2, 0, config.width, GAME_HEIGHT);
+      
+      // 외곽선
+      this.laserGraphics.lineStyle(2, color, alpha * 2);
+      this.laserGraphics.strokeRect(this.laserX - config.width / 2, 0, config.width, GAME_HEIGHT);
+    } else if (this.isLaserFiring) {
+      // 실제 레이저
+      // 중심부 (흰색 느낌)
+      this.laserGraphics.fillStyle(0xffffff, config.fireAlpha);
+      this.laserGraphics.fillRect(this.laserX - config.width / 4, 0, config.width / 2, GAME_HEIGHT);
+      
+      // 주변부
+      this.laserGraphics.fillStyle(color, config.fireAlpha * 0.6);
+      this.laserGraphics.fillRect(this.laserX - config.width / 2, 0, config.width, GAME_HEIGHT);
+      
+      // 파티클 효과 (레이저 경로를 따라 스파크)
+      if (Math.random() < 0.3) {
+        const py = Math.random() * GAME_HEIGHT;
+        this.particleManager.createSparkBurst(this.laserX, py, color);
+      }
+    }
+  }
+
+  private checkLaserCollision(_delta: number): void {
+    const pointer = this.input.activePointer;
+    const cursorX = pointer.worldX;
+    const config = Data.gameConfig.monsterAttack.laser;
+
+    // 커서 히트박스 크기
+    const cursorSizeBonus = this.upgradeSystem.getCursorSizeBonus();
+    const cursorRadius = CURSOR_HITBOX.BASE_RADIUS * (1 + cursorSizeBonus);
+
+    // X축 겹침 판정
+    const laserLeft = this.laserX - config.width / 2;
+    const laserRight = this.laserX + config.width / 2;
+    
+    const cursorLeft = cursorX - cursorRadius;
+    const cursorRight = cursorX + cursorRadius;
+
+    if (cursorRight > laserLeft && cursorLeft < laserRight) {
+      // 히트! (데미지 간격 조절 필요할 수 있음 - 일단 즉시 1회성 느낌으로 하거나 짧은 쿨타임)
+      // 여기서는 발사되는 동안 지속적으로 판정되므로 쿨타임이 필요함
+      this.handleLaserHit();
+    }
+  }
+
+  private lastLaserHitTime: number = 0;
+  private handleLaserHit(): void {
+    const now = this.gameTime;
+    if (now - this.lastLaserHitTime < 500) return; // 0.5초 무적
+
+    this.lastLaserHitTime = now;
+    this.healthSystem.takeDamage(1);
+    this.feedbackSystem.onHpLost();
+    this.soundSystem.playBossImpactSound();
+    
+    // 카메라 흔들림 강화
+    this.cameras.main.shake(300, 0.01);
   }
 }

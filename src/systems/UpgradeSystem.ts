@@ -1,5 +1,6 @@
 import { Data } from '../data/DataManager';
 import type { SystemUpgradeData } from '../data/types';
+import { EventBus, GameEvents } from '../utils/EventBus';
 
 export interface Upgrade {
   id: string;

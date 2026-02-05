@@ -86,7 +86,7 @@ export class ParticleManager {
     const angle = Phaser.Math.Angle.Between(dishX, dishY, cursorX, cursorY);
     
     emitter.setParticleTint(COLORS.MAGENTA);
-    emitter.setAngle({
+    (emitter as any).setAngle({
       min: Phaser.Math.RadToDeg(angle) - 20,
       max: Phaser.Math.RadToDeg(angle) + 20
     });

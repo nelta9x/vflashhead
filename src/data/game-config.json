@@ -19,6 +19,19 @@
   "waveTransition": {
     "countdownDuration": 3000
   },
+  "monsterAttack": {
+    "laser": {
+      "width": 120,
+      "warningDuration": 1500,
+      "fireDuration": 1000,
+      "minInterval": 5000,
+      "maxInterval": 10000,
+      "damage": 1,
+      "color": "#ff0000",
+      "warningAlpha": 0.3,
+      "fireAlpha": 0.8
+    }
+  },
   "fonts": {
     "main": "'Orbitron', 'Black Han Sans', sans-serif",
     "korean": "'Black Han Sans', 'Orbitron', sans-serif"

@@ -51,6 +51,7 @@ export class GameScene extends Phaser.Scene {
   private gameTime: number = 0;
   private isGameOver: boolean = false;
   private isPaused: boolean = false;
+  private gaugeRatio: number = 0;
 
   // 웨이브 전환 상태
   private pendingWaveNumber: number = 1;
@@ -268,8 +269,8 @@ export class GameScene extends Phaser.Scene {
 
     // 플레이어 게이지 업데이트
     EventBus.getInstance().on(GameEvents.GAUGE_UPDATED, (...args: unknown[]) => {
-      const data = args[0] as { current: number; max: number };
-      this.hud.updateGauge(data.current, data.max);
+      const data = args[0] as { current: number; max: number; ratio: number };
+      this.gaugeRatio = data.ratio;
     });
 
     // 플레이어 공격 트리거
@@ -799,12 +800,30 @@ export class GameScene extends Phaser.Scene {
       this.attackRangeIndicator.fillCircle(x, y, magnetRadius);
     }
 
-    // 공격 범위 원
-    this.attackRangeIndicator.lineStyle(2, COLORS.CYAN, 0.5);
+    // 공격 범위 테두리
+    const isReady = this.gaugeRatio >= 1;
+    const baseColor = isReady ? COLORS.YELLOW : COLORS.CYAN;
+    
+    this.attackRangeIndicator.lineStyle(2, baseColor, 0.5);
     this.attackRangeIndicator.strokeCircle(x, y, cursorRadius);
 
-    // 내부 채우기 (반투명)
-    this.attackRangeIndicator.fillStyle(COLORS.CYAN, 0.08);
+    // 내부 게이지 채우기
+    if (this.gaugeRatio > 0) {
+      // 에너지가 어느정도 차있냐에 따라서 커서 내부가 채워지도록 함
+      // ratio에 따라 반지름을 조절하여 채워지는 연출
+      const fillRadius = cursorRadius * this.gaugeRatio;
+      this.attackRangeIndicator.fillStyle(baseColor, isReady ? 0.3 : 0.2);
+      this.attackRangeIndicator.fillCircle(x, y, fillRadius);
+      
+      if (isReady) {
+        // 준비 완료 시 글로우 효과
+        this.attackRangeIndicator.lineStyle(4, COLORS.YELLOW, 0.3);
+        this.attackRangeIndicator.strokeCircle(x, y, cursorRadius + 2);
+      }
+    }
+
+    // 기본 내부 채우기 (매우 반투명)
+    this.attackRangeIndicator.fillStyle(baseColor, 0.05);
     this.attackRangeIndicator.fillCircle(x, y, cursorRadius);
 
     // 중앙 십자선

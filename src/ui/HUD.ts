@@ -22,10 +22,6 @@ export class HUD {
   private monsterHpBar!: Phaser.GameObjects.Graphics;
   private monsterHpText!: Phaser.GameObjects.Text;
   
-  // Gauge UI
-  private gaugeBar!: Phaser.GameObjects.Graphics;
-  private gaugeText!: Phaser.GameObjects.Text;
-
   constructor(
     scene: Phaser.Scene,
     waveSystem: WaveSystem,
@@ -70,17 +66,6 @@ export class HUD {
     });
     this.monsterHpText.setOrigin(0.5, 0);
 
-    // 플레이어 게이지 바 (하단 중앙)
-    this.gaugeBar = this.scene.add.graphics();
-    this.gaugeText = this.scene.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 40, 'ATTACK GAUGE', {
-      fontFamily: FONTS.MAIN,
-      fontSize: '20px',
-      color: COLORS_HEX.CYAN,
-      stroke: '#000000',
-      strokeThickness: 2,
-    });
-    this.gaugeText.setOrigin(0.5, 1);
-
     // 피버 타임 텍스트 (숨김)
     this.feverText = this.scene.add.text(GAME_WIDTH / 2, 100, 'FEVER TIME!', {
       fontFamily: FONTS.MAIN,
@@ -97,7 +82,6 @@ export class HUD {
     
     // 초기 바 그리기
     this.updateMonsterHp(1, 1);
-    this.updateGauge(0, 100);
   }
 
   updateMonsterHp(current: number, max: number): void {
@@ -122,37 +106,6 @@ export class HUD {
     this.monsterHpBar.strokeRect(x, y, width, height);
 
     this.monsterHpText.setText(`BOSS HP: ${current}/${max}`);
-  }
-
-  updateGauge(current: number, max: number): void {
-    const width = 400;
-    const height = 25;
-    const x = (GAME_WIDTH - width) / 2;
-    const y = GAME_HEIGHT - 35;
-
-    this.gaugeBar.clear();
-
-    // 배경
-    this.gaugeBar.fillStyle(0x000000, 0.5);
-    this.gaugeBar.fillRect(x, y, width, height);
-
-    // 게이지
-    const ratio = Math.max(0, current / max);
-    const color = ratio >= 1 ? COLORS.YELLOW : COLORS.CYAN;
-    this.gaugeBar.fillStyle(color, 1);
-    this.gaugeBar.fillRect(x, y, width * ratio, height);
-
-    // 테두리
-    this.gaugeBar.lineStyle(2, 0xFFFFFF, 0.8);
-    this.gaugeBar.strokeRect(x, y, width, height);
-
-    if (ratio >= 1) {
-        this.gaugeText.setText('ATTACK READY!');
-        this.gaugeText.setColor(COLORS_HEX.YELLOW);
-    } else {
-        this.gaugeText.setText('CHARGE ATTACK');
-        this.gaugeText.setColor(COLORS_HEX.CYAN);
-    }
   }
 
   private createHpDisplay(): void {

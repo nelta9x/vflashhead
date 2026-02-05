@@ -931,8 +931,8 @@ export class GameScene extends Phaser.Scene {
     // 그리드 배경 업데이트
     this.updateGrid(scaledDelta);
 
-    // 별 배경 업데이트 (슬로우 모션 영향 받지 않는 실제 시간 사용)
-    this.starBackground.update(delta, _time);
+    // 별 배경 업데이트 (그리드보다 10배 느리게 흐름)
+    this.starBackground.update(scaledDelta, _time, Data.gameConfig.gameGrid.speed);
 
     // 자기장 효과 업데이트
     this.updateMagnetEffect(scaledDelta);

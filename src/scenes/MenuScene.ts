@@ -379,7 +379,7 @@ export class MenuScene extends Phaser.Scene {
 
   update(time: number, delta: number): void {
     this.updateGrid(delta);
-    this.starBackground.update(delta, time);
+    this.starBackground.update(delta, time, Data.mainMenu.grid.speed);
     this.updateBoss(delta);
     this.updateMenuCursor(delta);
     this.updateMenuDishes(delta);

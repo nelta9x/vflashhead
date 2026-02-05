@@ -32,8 +32,8 @@
     "count": 80,
     "minSize": 0.3,
     "maxSize": 1.8,
-    "fallSpeedMin": 0.5,
-    "fallSpeedMax": 2.5,
+    "parallaxRatio": 0.1,
+    "sizeSpeedFactor": 0.4,
     "twinkleSpeedMin": 0.0005,
     "twinkleSpeedMax": 0.0015,
     "verticalLimitRatio": 0.6

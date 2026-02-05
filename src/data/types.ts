@@ -69,8 +69,8 @@ export interface StarsConfig {
   count: number;
   minSize: number;
   maxSize: number;
-  fallSpeedMin: number;
-  fallSpeedMax: number;
+  parallaxRatio: number; // 그리드 대비 이동 속도 비율 (예: 0.1)
+  sizeSpeedFactor: number; // 크기에 따른 속도 변화율 (예: 0.4)
   twinkleSpeedMin: number;
   twinkleSpeedMax: number;
   verticalLimitRatio: number;

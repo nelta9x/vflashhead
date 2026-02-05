@@ -45,12 +45,12 @@
     "floatRangeX": 300,
     "floatRangeY": 80,
     "floatSpeed": 0.0012,
-    "lerpTracking": 0.2,
-    "lerpIdle": 0.05,
+    "lerpTracking": 0.1,
+    "lerpIdle": 0.03,
     "trackingYThreshold": 0.65
   },
   "dishSpawn": {
-    "interval": 400,
+    "interval": 200,
     "radius": 20,
     "color": "0x00ffff",
     "spawnYOffset": 180,

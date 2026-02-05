@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, COLORS_HEX, GAME_WIDTH, GAME_HEIGHT, FONTS } from '../data/constants';
+import { COLORS, COLORS_HEX, GAME_WIDTH, GAME_HEIGHT, FONTS } from '../../data/constants';
 import { SoundSystem } from '../systems/SoundSystem';
 
 export class MenuScene extends Phaser.Scene {

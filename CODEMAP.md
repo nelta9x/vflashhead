@@ -48,10 +48,10 @@
 
 모든 설정은 **Data-Driven** 방식으로 관리됩니다. 코드에 숫자를 하드코딩하지 마십시오.
 
-- **`src/data/DataManager.ts`**: 모든 JSON 데이터를 로드하여 타입 안전하게 제공하는 싱글톤 (`Data` 상수로 내보냄).
-- **`src/data/constants.ts`**: JSON 기반 데이터 중 코드에서 자주 쓰이는 물리/기하학적 상수.
-- **`src/data/game.config.ts`**: Phaser 엔진 기술 설정 (물리, 렌더링 등).
-- **데이터 파일 목록 (`src/data/*.json`)**:
+- **`data/DataManager.ts`**: 모든 JSON 데이터를 로드하여 타입 안전하게 제공하는 싱글톤 (`Data` 상수로 내보냄).
+- **`data/constants.ts`**: JSON 기반 데이터 중 코드에서 자주 쓰이는 물리/기하학적 상수.
+- **`data/game.config.ts`**: Phaser 엔진 기술 설정 (물리, 렌더링 등).
+- **데이터 파일 목록 (`data/*.json`)**:
   - `game-config.json`: 전역 설정, 플레이어 스탯, UI 레이아웃, 폰트 설정.
   - `colors.json`: 게임 내 모든 색상 팔레트 및 테마.
   - `dishes.json`: 적 종류별 체력, 포인트, 속도, 스케일 설정.
@@ -96,7 +96,7 @@
 
 ## 💡 새로운 기능 추가 가이드
 
-1. **데이터 정의**: `src/data/*.json`에 필요한 상수나 설정을 먼저 추가합니다.
+1. **데이터 정의**: `data/*.json`에 필요한 상수나 설정을 먼저 추가합니다.
 2. **시스템 작성/수정**: `src/systems/`에 로직을 구현합니다.
 3. **이벤트 연결**: 새로운 상태 변화가 있다면 `GameEvents`에 추가하고 `EventBus`로 알립니다.
 4. **GameScene 연동**: `GameScene.initializeSystems()`에서 생성하고 `update()`에서 호출합니다.

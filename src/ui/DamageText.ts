@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { COLORS_HEX, FONTS } from '../data/constants';
-import { Data } from '../data/DataManager';
+import { COLORS_HEX, FONTS } from '../../data/constants';
+import { Data } from '../../data/DataManager';
 
 type DamageType = 'normal' | 'critical';
 

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, COLORS, CURSOR_HITBOX, SPAWN_AREA, MAGNET } from '../data/constants';
-import { Data } from '../data/DataManager';
+import { GAME_WIDTH, GAME_HEIGHT, COLORS, CURSOR_HITBOX, SPAWN_AREA, MAGNET } from '../../data/constants';
+import { Data } from '../../data/DataManager';
 import { Dish } from '../entities/Dish';
 import { EventBus, GameEvents } from '../utils/EventBus';
 import { ObjectPool } from '../utils/ObjectPool';

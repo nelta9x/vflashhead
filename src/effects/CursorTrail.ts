@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { Data } from '../data/DataManager';
+import { Data } from '../../data/DataManager';
 
 interface TrailPoint {
   x: number;

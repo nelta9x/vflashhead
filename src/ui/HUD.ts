@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, COLORS, COLORS_HEX, INITIAL_HP, FONTS } from '../data/constants';
+import { GAME_WIDTH, COLORS, COLORS_HEX, INITIAL_HP, FONTS } from '../../data/constants';
 import { WaveSystem } from '../systems/WaveSystem';
 import { HealthSystem } from '../systems/HealthSystem';
 

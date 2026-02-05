@@ -1,4 +1,4 @@
-import { Data } from '../data/DataManager';
+import { Data } from '../../data/DataManager';
 import { EventBus, GameEvents } from '../utils/EventBus';
 import { ComboSystem } from './ComboSystem';
 

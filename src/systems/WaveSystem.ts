@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { SPAWN_AREA, MIN_DISH_DISTANCE, WAVE_TRANSITION } from '../data/constants';
-import { Data } from '../data/DataManager';
+import { SPAWN_AREA, MIN_DISH_DISTANCE, WAVE_TRANSITION } from '../../data/constants';
+import { Data } from '../../data/DataManager';
 import { EventBus, GameEvents } from '../utils/EventBus';
 import { ObjectPool } from '../utils/ObjectPool';
 import { Dish } from '../entities/Dish';

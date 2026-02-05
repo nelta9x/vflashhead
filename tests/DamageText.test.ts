@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock feedback.json
-vi.mock('../src/data/feedback.json', () => ({
+vi.mock('../data/feedback.json', () => ({
   default: {
     damageText: {
       normal: {
@@ -58,7 +58,7 @@ vi.mock('../src/data/feedback.json', () => ({
 }));
 
 // Mock other data files
-vi.mock('../src/data/game-config.json', () => ({
+vi.mock('../data/game-config.json', () => ({
   default: {
     screen: { width: 1280, height: 720 },
     player: { initialHp: 5, cursorHitbox: { baseRadius: 30 } },
@@ -68,22 +68,22 @@ vi.mock('../src/data/game-config.json', () => ({
   },
 }));
 
-vi.mock('../src/data/spawn.json', () => ({ default: {} }));
-vi.mock('../src/data/combo.json', () => ({ default: { timeout: {}, milestones: [], multiplier: {} } }));
-vi.mock('../src/data/health-pack.json', () => ({ default: {} }));
-vi.mock('../src/data/colors.json', () => ({
+vi.mock('../data/spawn.json', () => ({ default: {} }));
+vi.mock('../data/combo.json', () => ({ default: { timeout: {}, milestones: [], multiplier: {} } }));
+vi.mock('../data/health-pack.json', () => ({ default: {} }));
+vi.mock('../data/colors.json', () => ({
   default: {
     hex: { white: '#ffffff' },
     numeric: { white: 16777215 },
   },
 }));
-vi.mock('../src/data/waves.json', () => ({ default: { waves: [] } }));
-vi.mock('../src/data/dishes.json', () => ({ default: { dishes: {} } }));
-vi.mock('../src/data/upgrades.json', () => ({ default: {} }));
-vi.mock('../src/data/weapons.json', () => ({ default: {} }));
+vi.mock('../data/waves.json', () => ({ default: { waves: [] } }));
+vi.mock('../data/dishes.json', () => ({ default: { dishes: {} } }));
+vi.mock('../data/upgrades.json', () => ({ default: {} }));
+vi.mock('../data/weapons.json', () => ({ default: {} }));
 
 // Mock constants
-vi.mock('../src/data/constants', () => ({
+vi.mock('../data/constants', () => ({
   COLORS_HEX: {
     WHITE: '#ffffff',
     YELLOW: '#ffff00',

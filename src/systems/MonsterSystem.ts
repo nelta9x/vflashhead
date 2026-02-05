@@ -1,5 +1,5 @@
 import { EventBus, GameEvents } from '../utils/EventBus';
-import { Data } from '../data/DataManager';
+import { Data } from '../../data/DataManager';
 
 export class MonsterSystem {
   private currentHp: number = 0;

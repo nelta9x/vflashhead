@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, FONTS } from '../data/constants';
+import { GAME_WIDTH, GAME_HEIGHT, FONTS } from '../../data/constants';
 
 export class WaveCountdownUI {
   private scene: Phaser.Scene;

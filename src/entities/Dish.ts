@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { COLORS, CURSOR_HITBOX } from '../data/constants';
-import { Data } from '../data/DataManager';
+import { COLORS, CURSOR_HITBOX } from '../../data/constants';
+import { Data } from '../../data/DataManager';
 import { Poolable } from '../utils/ObjectPool';
 import { EventBus, GameEvents } from '../utils/EventBus';
 

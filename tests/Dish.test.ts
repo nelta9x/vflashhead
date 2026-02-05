@@ -18,7 +18,7 @@ vi.mock('../src/utils/EventBus', () => ({
 }));
 
 // Mock dishes data
-vi.mock('../src/data/dishes.json', () => ({
+vi.mock('../data/dishes.json', () => ({
   default: {
     dishes: {
       basic: { hp: 30, points: 100, color: '#00ffff', chainReaction: false, dangerous: false, lifetime: 2000, size: 30 },
@@ -35,7 +35,7 @@ vi.mock('../src/data/dishes.json', () => ({
 }));
 
 // Mock other data files for DataManager
-vi.mock('../src/data/game-config.json', () => ({
+vi.mock('../data/game-config.json', () => ({
   default: {
     screen: { width: 1280, height: 720 },
     player: { initialHp: 5, cursorHitbox: { baseRadius: 30 } },
@@ -44,17 +44,17 @@ vi.mock('../src/data/game-config.json', () => ({
     magnet: {},
   },
 }));
-vi.mock('../src/data/spawn.json', () => ({ default: { area: {}, dynamicSpawn: {} } }));
-vi.mock('../src/data/combo.json', () => ({ default: { timeout: {}, milestones: [], multiplier: {} } }));
-vi.mock('../src/data/health-pack.json', () => ({ default: { spawnChanceByHp: {} } }));
-vi.mock('../src/data/feedback.json', () => ({ default: { comboMilestones: {}, particles: {}, damageText: { normal: {}, critical: {}, combo: { colors: {}, thresholds: {} }, animation: {} } } }));
-vi.mock('../src/data/colors.json', () => ({ default: { hex: {}, numeric: {} } }));
-vi.mock('../src/data/waves.json', () => ({ default: { waves: [], duration: 20000 } }));
-vi.mock('../src/data/upgrades.json', () => ({ default: { timing: {}, rarityWeights: {}, rarityThresholds: {}, weapon: {}, system: [] } }));
-vi.mock('../src/data/weapons.json', () => ({ default: {} }));
+vi.mock('../data/spawn.json', () => ({ default: { area: {}, dynamicSpawn: {} } }));
+vi.mock('../data/combo.json', () => ({ default: { timeout: {}, milestones: [], multiplier: {} } }));
+vi.mock('../data/health-pack.json', () => ({ default: { spawnChanceByHp: {} } }));
+vi.mock('../data/feedback.json', () => ({ default: { comboMilestones: {}, particles: {}, damageText: { normal: {}, critical: {}, combo: { colors: {}, thresholds: {} }, animation: {} } } }));
+vi.mock('../data/colors.json', () => ({ default: { hex: {}, numeric: {} } }));
+vi.mock('../data/waves.json', () => ({ default: { waves: [], duration: 20000 } }));
+vi.mock('../data/upgrades.json', () => ({ default: { timing: {}, rarityWeights: {}, rarityThresholds: {}, weapon: {}, system: [] } }));
+vi.mock('../data/weapons.json', () => ({ default: {} }));
 
 // Mock constants
-vi.mock('../src/data/constants', () => ({
+vi.mock('../data/constants', () => ({
   COLORS: {
     CYAN: 0x00ffff,
     MAGENTA: 0xff00ff,

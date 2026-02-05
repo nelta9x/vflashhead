@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { COLORS } from '../data/constants';
-import { Data } from '../data/DataManager';
+import { COLORS } from '../../data/constants';
+import { Data } from '../../data/DataManager';
 
 // 무지개 색상 배열
 const RAINBOW_COLORS = [

@@ -475,4 +475,149 @@ export class SoundSystem {
     harmonicOsc.start(now);
     harmonicOsc.stop(now + 0.4);
   }
+
+  /**
+   * 보스 공격 기 모으기 사운드
+   * 상승하는 피치와 떨림으로 긴장감 조성
+   */
+  playBossChargeSound(): void {
+    if (!this.ensureContext()) return;
+    const ctx = this.audioContext!;
+    const now = ctx.currentTime;
+    const duration = 0.6;
+
+    // 메인 상승 톤
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(200, now);
+    osc.frequency.exponentialRampToValueAtTime(800, now + duration);
+
+    // LFO로 떨림 효과 추가
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    lfo.type = 'sine';
+    lfo.frequency.value = 15; // 15Hz 떨림
+    lfoGain.gain.value = 50; // 떨림 강도
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+    lfo.start(now);
+    lfo.stop(now + duration);
+
+    // 필터 (로우패스 -> 하이패스 스윕)
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(400, now);
+    filter.frequency.exponentialRampToValueAtTime(3000, now + duration);
+
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.3, now + duration * 0.8);
+    gain.gain.linearRampToValueAtTime(0, now + duration);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.masterGain!);
+
+    osc.start(now);
+    osc.stop(now + duration);
+  }
+
+  /**
+   * 보스 공격 발사 사운드
+   * 강력한 레이저 발사 느낌
+   */
+  playBossFireSound(): void {
+    if (!this.ensureContext()) return;
+    const ctx = this.audioContext!;
+    const now = ctx.currentTime;
+
+    // 1. 강한 어택음 (Square Wave Drop)
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(1000, now);
+    osc.frequency.exponentialRampToValueAtTime(100, now + 0.2);
+    
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain!);
+    osc.start(now);
+    osc.stop(now + 0.2);
+
+    // 2. 화이트 노이즈 버스트 (공기 찢는 소리)
+    this.playNoiseShort(0.3, 0.15);
+  }
+
+  /**
+   * 보스 공격 적중(폭발) 사운드
+   * 묵직하고 거대한 폭발음
+   */
+  playBossImpactSound(): void {
+    if (!this.ensureContext()) return;
+    const ctx = this.audioContext!;
+    const now = ctx.currentTime;
+
+    // 1. 초저역 서브 베이스 (Sub Bass) - 묵직함
+    const subOsc = ctx.createOscillator();
+    const subGain = ctx.createGain();
+    subOsc.type = 'sine';
+    subOsc.frequency.setValueAtTime(80, now);
+    subOsc.frequency.exponentialRampToValueAtTime(10, now + 1.0); // 길게 여운
+
+    subGain.gain.setValueAtTime(0.8, now);
+    subGain.gain.exponentialRampToValueAtTime(0.01, now + 1.0);
+
+    subOsc.connect(subGain);
+    subGain.connect(this.masterGain!);
+    subOsc.start(now);
+    subOsc.stop(now + 1.0);
+
+    // 2. 중간 대역 임팩트 (Sawtooth Drop)
+    const midOsc = ctx.createOscillator();
+    const midGain = ctx.createGain();
+    midOsc.type = 'sawtooth';
+    midOsc.frequency.setValueAtTime(200, now);
+    midOsc.frequency.exponentialRampToValueAtTime(50, now + 0.3);
+
+    midGain.gain.setValueAtTime(0.4, now);
+    midGain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+    
+    // 로우패스 필터로 부드럽게
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 400;
+
+    midOsc.connect(filter);
+    filter.connect(midGain);
+    midGain.connect(this.masterGain!);
+    midOsc.start(now);
+    midOsc.stop(now + 0.3);
+
+    // 3. 노이즈 럼블 (Rumble) - 잔해 소리
+    const bufferSize = ctx.sampleRate * 0.8;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1);
+    }
+    const noiseSrc = ctx.createBufferSource();
+    noiseSrc.buffer = buffer;
+
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = 'lowpass';
+    noiseFilter.frequency.setValueAtTime(1000, now);
+    noiseFilter.frequency.linearRampToValueAtTime(100, now + 0.8); // 점점 먹먹해짐
+
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.5, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+
+    noiseSrc.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(this.masterGain!);
+    noiseSrc.start(now);
+  }
 }

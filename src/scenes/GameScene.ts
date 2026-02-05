@@ -298,6 +298,9 @@ export class GameScene extends Phaser.Scene {
     // 1. Charge Phase (에네르기파 스타일 기 모으기)
     const chargeDuration = 600; // 약간 더 길게 조절
     
+    // 사운드 재생: 기 모으기
+    this.soundSystem.playBossChargeSound();
+    
     // 발사체 생성 (빛나는 구체 느낌)
     const projectile = this.add.circle(pointer.worldX, pointer.worldY, 5, COLORS.YELLOW);
     projectile.setDepth(2000);
@@ -377,6 +380,9 @@ export class GameScene extends Phaser.Scene {
             const fireX = projectile.x;
             const fireY = projectile.y;
             
+            // 사운드 재생: 발사
+            this.soundSystem.playBossFireSound();
+
             // 발사 순간 히트스탑 (반동 느낌)
             this.slowMotion.trigger(0.05, 200);
 
@@ -409,11 +415,23 @@ export class GameScene extends Phaser.Scene {
                     
                     // 3. Impact Phase (타격!)
                     
+                    // 사운드 재생: 적중 (폭발)
+                    this.soundSystem.playBossImpactSound();
+
                     // 적중 순간 히트스탑 (파괴감 강조)
                     this.slowMotion.trigger(0.01, 400);
 
                     // 화면 흔들림 (약한 강도로 조금 더 길게 유지)
                     this.cameras.main.shake(300, 0.005);
+                    
+                    // 카메라 줌 인 펀치 효과
+                    this.cameras.main.zoomTo(1.1, 50, 'Power2', true, (_cam, progress) => {
+                        if (progress === 1) {
+                            this.time.delayedCall(100, () => {
+                                this.cameras.main.zoomTo(1.0, 300, 'Elastic.Out');
+                            });
+                        }
+                    });
 
                     this.particleManager.createExplosion(endX, endY, COLORS.RED, 'bomb', 4);
                     this.particleManager.createRainbowExplosion(endX, endY, 2); // 도파민 폭발!

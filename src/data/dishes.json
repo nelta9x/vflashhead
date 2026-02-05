@@ -58,7 +58,7 @@
       "chainReaction": false,
       "dangerous": true,
       "invulnerable": true,
-      "lifetime": 2200,
+      "lifetime": 1200,
       "spawnAnimation": {
         "duration": 150,
         "ease": "Back.easeOut"

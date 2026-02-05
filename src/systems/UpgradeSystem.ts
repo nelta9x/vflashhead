@@ -186,6 +186,15 @@ export class UpgradeSystem {
     return (meta.baseRadius || 100) + this.electricShockLevel * (meta.radiusPerLevel || 15);
   }
 
+  getElectricShockDamage(): number {
+    if (this.electricShockLevel <= 0) return 0;
+    const upgradeData = Data.upgrades.system.find((u) => u.id === 'electric_shock');
+    if (!upgradeData || !upgradeData.meta) return this.electricShockLevel;
+    
+    const meta = upgradeData.meta;
+    return (meta.baseDamage || 0) + this.electricShockLevel * (meta.damagePerLevel || 1);
+  }
+
   // ========== 자기장 ==========
   addMagnetLevel(level: number): void {
     this.magnetLevel += level;

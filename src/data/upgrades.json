@@ -234,7 +234,7 @@
         "baseRadius": 120,
         "radiusPerLevel": 30,
         "baseDamage": 0,
-        "damagePerLevel": 1
+        "damagePerLevel": 3
       }
     },
     {

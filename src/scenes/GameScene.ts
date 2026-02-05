@@ -1066,16 +1066,6 @@ export class GameScene extends Phaser.Scene {
     this.attackRangeIndicator.fillStyle(baseColor, 0.05);
     this.attackRangeIndicator.fillCircle(x, y, cursorRadius);
 
-    // 중앙 십자선
-    const crossSize = 6;
-    this.attackRangeIndicator.lineStyle(2, COLORS.WHITE, 0.9);
-    this.attackRangeIndicator.beginPath();
-    this.attackRangeIndicator.moveTo(x - crossSize, y);
-    this.attackRangeIndicator.lineTo(x + crossSize, y);
-    this.attackRangeIndicator.moveTo(x, y - crossSize);
-    this.attackRangeIndicator.lineTo(x, y + crossSize);
-    this.attackRangeIndicator.strokePath();
-
     // 중앙 점
     this.attackRangeIndicator.fillStyle(COLORS.WHITE, 1);
     this.attackRangeIndicator.fillCircle(x, y, 2);

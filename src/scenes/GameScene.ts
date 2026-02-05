@@ -9,6 +9,7 @@ import {
 } from '../data/constants';
 import { Data } from '../data/DataManager';
 import { Dish } from '../entities/Dish';
+import { Boss } from '../entities/Boss';
 import { EventBus, GameEvents } from '../utils/EventBus';
 import { ObjectPool } from '../utils/ObjectPool';
 import { ComboSystem } from '../systems/ComboSystem';
@@ -47,6 +48,7 @@ export class GameScene extends Phaser.Scene {
 
   // UI & 이펙트
   private hud!: HUD;
+  private boss!: Boss;
   private inGameUpgradeUI!: InGameUpgradeUI;
   private waveCountdownUI!: WaveCountdownUI;
   private abilityPanel!: AbilityPanel;
@@ -194,6 +196,10 @@ export class GameScene extends Phaser.Scene {
   private initializeEntities(): void {
     // 오브젝트 풀 생성
     this.dishPool = new ObjectPool<Dish>(() => new Dish(this, 0, 0, 'basic'), 10, 50);
+
+    // 보스 생성 (화면 상단 중앙)
+    this.boss = new Boss(this, GAME_WIDTH / 2, 100);
+    this.boss.setDepth(100);
 
     // 레이저 그래픽 초기화
     this.laserGraphics = this.add.graphics();
@@ -881,6 +887,9 @@ export class GameScene extends Phaser.Scene {
 
     // HUD 업데이트
     this.hud.update(this.gameTime);
+
+    // 보스 업데이트
+    this.boss.update(scaledDelta);
 
     // 커서 범위 계산
     const cursorSizeBonus = this.upgradeSystem.getCursorSizeBonus();

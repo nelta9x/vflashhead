@@ -10,7 +10,7 @@
       "chainReaction": false,
       "dangerous": false,
       "invulnerable": false,
-      "lifetime": 2000,
+      "lifetime": 3000,
       "spawnAnimation": {
         "duration": 150,
         "ease": "Back.easeOut"
@@ -26,7 +26,7 @@
       "chainReaction": false,
       "dangerous": false,
       "invulnerable": false,
-      "lifetime": 1500,
+      "lifetime": 3000,
       "spawnAnimation": {
         "duration": 150,
         "ease": "Back.easeOut"
@@ -42,7 +42,7 @@
       "chainReaction": true,
       "dangerous": false,
       "invulnerable": false,
-      "lifetime": 1800,
+      "lifetime": 3300,
       "spawnAnimation": {
         "duration": 150,
         "ease": "Back.easeOut"
@@ -58,7 +58,7 @@
       "chainReaction": false,
       "dangerous": true,
       "invulnerable": true,
-      "lifetime": 1200,
+      "lifetime": 2200,
       "spawnAnimation": {
         "duration": 150,
         "ease": "Back.easeOut"
@@ -74,7 +74,7 @@
       "chainReaction": false,
       "dangerous": false,
       "invulnerable": false,
-      "lifetime": 1500,
+      "lifetime": 2500,
       "spawnAnimation": {
         "duration": 150,
         "ease": "Back.easeOut"
@@ -90,7 +90,7 @@
       "chainReaction": false,
       "dangerous": false,
       "invulnerable": false,
-      "lifetime": 5000,
+      "lifetime": 6500,
       "spawnAnimation": {
         "duration": 200,
         "ease": "Back.easeOut"

@@ -49,7 +49,7 @@
     "korean": "'Black Han Sans', 'Orbitron', sans-serif"
   },
   "magnet": {
-    "baseRadius": 70,
+    "baseRadius": 90,
     "radiusPerLevel": 25,
     "baseForce": 100,
     "forcePerLevel": 20,

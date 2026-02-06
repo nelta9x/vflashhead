@@ -314,6 +314,7 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
       maxHp: this.maxHp,
       hpRatio: this.currentHp / this.maxHp,
       isFirstHit,
+      byAbility: false,
     });
 
     // HP가 0 이하면 파괴
@@ -663,6 +664,7 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
       maxHp: this.maxHp,
       hpRatio: this.currentHp / this.maxHp,
       isFirstHit: false,
+      byAbility: true,
     });
 
     if (this.currentHp <= 0) {
@@ -714,6 +716,7 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
       hpRatio: this.currentHp / this.maxHp,
       isFirstHit: false,
       isCritical: totalDamage > baseDamage + damageBonus,
+      byAbility: true,
     });
 
     if (this.currentHp <= 0) {

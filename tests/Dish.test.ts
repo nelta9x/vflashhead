@@ -1,12 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock EventBus
+const mockEmit = vi.fn();
+const mockOn = vi.fn();
+const mockOff = vi.fn();
+
 vi.mock('../src/utils/EventBus', () => ({
   EventBus: {
     getInstance: () => ({
-      emit: vi.fn(),
-      on: vi.fn(),
-      off: vi.fn(),
+      emit: mockEmit,
+      on: mockOn,
+      off: mockOff,
     }),
   },
   GameEvents: {
@@ -469,6 +473,51 @@ describe('Dish Upgrade Effects', () => {
       // interactiveRadius = size + CURSOR_HITBOX.BASE_RADIUS * (1 + 0)
       // = 30 + 30 = 60
       expect(dish.getInteractiveRadius()).toBe(60);
+    });
+  });
+
+  describe('DISH_DAMAGED event', () => {
+    it('should emit DISH_DAMAGED with byAbility: true when applyDamage is called', async () => {
+      const { Dish } = await import('../src/entities/Dish');
+      const { EventBus } = await import('../src/utils/EventBus');
+
+      const dish = new Dish(mockScene as unknown as Phaser.Scene, 0, 0, 'basic');
+      dish.spawn(100, 100, 'basic', 1);
+
+      dish.applyDamage(10);
+
+      expect(EventBus.getInstance().emit).toHaveBeenCalledWith('dish_damaged', expect.objectContaining({
+        byAbility: true
+      }));
+    });
+
+    it('should emit DISH_DAMAGED with byAbility: true when applyDamageWithUpgrades is called', async () => {
+      const { Dish } = await import('../src/entities/Dish');
+      const { EventBus } = await import('../src/utils/EventBus');
+
+      const dish = new Dish(mockScene as unknown as Phaser.Scene, 0, 0, 'basic');
+      dish.spawn(100, 100, 'basic', 1);
+
+      dish.applyDamageWithUpgrades(10, 0, 0);
+
+      expect(EventBus.getInstance().emit).toHaveBeenCalledWith('dish_damaged', expect.objectContaining({
+        byAbility: true
+      }));
+    });
+
+    it('should emit DISH_DAMAGED with byAbility: false when takeDamage is called', async () => {
+      const { Dish } = await import('../src/entities/Dish');
+      const { EventBus } = await import('../src/utils/EventBus');
+
+      const dish = new Dish(mockScene as unknown as Phaser.Scene, 0, 0, 'basic');
+      dish.spawn(100, 100, 'basic', 1);
+
+      // takeDamage is private, so use any to call it
+      (dish as any).takeDamage(true);
+
+      expect(EventBus.getInstance().emit).toHaveBeenCalledWith('dish_damaged', expect.objectContaining({
+        byAbility: false
+      }));
     });
   });
 });

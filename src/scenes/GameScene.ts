@@ -148,67 +148,11 @@ export class GameScene extends Phaser.Scene {
 
     // 레이저 렌더러 생성
     this.laserRenderer = new LaserRenderer(this);
-  }
 
-  private createBackground(): void {
+    // 별 배경 추가
     const gridConfig = Data.gameConfig.gameGrid;
-    this.gridGraphics = this.add.graphics();
-    this.gridGraphics.setDepth(gridConfig.depth); // 배경이므로 가장 뒤에 배치
-    this.gridGraphics.setBlendMode(Phaser.BlendModes.SCREEN);
-    
-    // 별 배경 추가 (그리드보다 뒤에 배치)
     this.starBackground = new StarBackground(this, Data.gameConfig.stars);
     this.starBackground.setDepth(gridConfig.depth - 1);
-  }
-
-  private updateGrid(delta: number): void {
-    const config = Data.gameConfig.gameGrid;
-    this.gridGraphics.clear();
-
-    const horizonY = GAME_HEIGHT * (config.horizonRatio ?? 0.6);
-    const vanishingPointX = GAME_WIDTH / 2;
-    const verticalSpread = 8;
-    const verticalLines = config.verticalLines ?? 150;
-    const horizontalLines = config.horizontalLines ?? 15;
-
-    // 1. 세로선 (원근법)
-    this.gridGraphics.lineStyle(config.lineWidth, COLORS.CYAN, config.alpha);
-    
-    for (let i = 0; i <= verticalLines; i++) {
-      const xOffset = (i - verticalLines / 2) * (GAME_WIDTH / 25);
-      const startX = vanishingPointX + xOffset * 0.08; 
-      const endX = vanishingPointX + xOffset * verticalSpread; 
-
-      this.gridGraphics.moveTo(startX, horizonY);
-      this.gridGraphics.lineTo(endX, GAME_HEIGHT);
-    }
-
-    // 2. 움직이는 가로선 (원근법)
-    this.gridOffset += delta * config.speed;
-    const maxRange = horizontalLines * config.size;
-    if (this.gridOffset >= config.size) {
-      this.gridOffset -= config.size;
-    }
-
-    for (let i = 0; i < horizontalLines; i++) {
-      const progress = (i * config.size + this.gridOffset) / maxRange;
-      const perspectiveProgress = Math.pow(progress, 2.0);
-      const y = horizonY + perspectiveProgress * (GAME_HEIGHT - horizonY);
-
-      if (y > GAME_HEIGHT) continue;
-
-      const widthAtY = GAME_WIDTH * verticalSpread;
-      this.gridGraphics.moveTo(vanishingPointX - widthAtY / 2, y);
-      this.gridGraphics.lineTo(vanishingPointX + widthAtY / 2, y);
-    }
-
-    this.gridGraphics.strokePath();
-
-    // 지평선 강조
-    this.gridGraphics.lineStyle(2, COLORS.CYAN, config.alpha * 1.5);
-    this.gridGraphics.moveTo(0, horizonY);
-    this.gridGraphics.lineTo(GAME_WIDTH, horizonY);
-    this.gridGraphics.strokePath();
   }
 
   private initializeSystems(): void {
@@ -626,9 +570,11 @@ export class GameScene extends Phaser.Scene {
     maxHp: number;
     hpRatio: number;
     isFirstHit: boolean;
+    byAbility?: boolean;
   }): void {
-    const { x, y, damage, hpRatio } = data;
-    const combo = this.comboSystem.getCombo();
+    const { x, y, damage, hpRatio, byAbility } = data;
+    // 어빌리티 데미지인 경우 콤보 표시 안 함 (0 전달)
+    const combo = byAbility ? 0 : this.comboSystem.getCombo();
     this.feedbackSystem.onDishDamaged(x, y, damage, hpRatio, data.dish.getColor(), combo);
   }
 
@@ -974,7 +920,7 @@ export class GameScene extends Phaser.Scene {
     this.inGameUpgradeUI.update(scaledDelta);
 
     // 그리드 배경 업데이트
-    this.updateGrid(scaledDelta);
+    this.gridRenderer.update(scaledDelta);
 
     // 별 배경 업데이트 (그리드보다 10배 느리게 흐름)
     this.starBackground.update(scaledDelta, _time, Data.gameConfig.gameGrid.speed);

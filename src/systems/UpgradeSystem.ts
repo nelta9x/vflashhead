@@ -66,9 +66,6 @@ export class UpgradeSystem {
 
     // 사용 가능한 업그레이드 필터링 (최대 스택 미달성)
     const availableUpgrades = UPGRADES.filter((upgrade) => {
-      // id가 'health_pack'이면 항상 표시 가능 (일회성 소모품)
-      if (upgrade.id === 'health_pack') return true;
-
       const currentStack = this.upgradeStacks.get(upgrade.id) || 0;
       return currentStack < upgrade.maxStack;
     });

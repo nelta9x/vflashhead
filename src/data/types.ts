@@ -674,6 +674,18 @@ export interface BossConfig {
     };
     vibrationThreshold: number;
     vibrationIntensity: number;
+    hitReaction?: {
+      pushDistance: number;
+      pushDuration: number;
+      pushEase: string;
+      shakeDuration: number;
+      shakeIntensity: number;
+      shakeFrequency: number;
+      hitRotation: number;
+      returnDuration: number;
+      returnEase: string;
+      flashDuration: number;
+    };
   };
   spawn: {
     y: number;

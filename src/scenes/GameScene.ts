@@ -552,7 +552,7 @@ export class GameScene extends Phaser.Scene {
         const totalDamage = this.upgradeSystem.getMissileLevel() > 0
           ? this.upgradeSystem.getMissileDamage()
           : attackConfig.baseMissileDamage;
-        this.monsterSystem.takeDamage(totalDamage);
+        this.monsterSystem.takeDamage(totalDamage, curStartX, curStartY);
 
         // 타격 피드백 (마지막 발사일수록 더 강하게)
         if (index === total - 1) {

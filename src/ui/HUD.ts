@@ -106,6 +106,12 @@ export class HUD {
     if (!this.healthSystem) return;
 
     const currentHp = this.healthSystem.getHp();
+    const maxHp = this.healthSystem.getMaxHp();
+
+    // 만약 현재 하트 개수가 최대 체력과 다르면 조정
+    if (this.hpHearts.length !== maxHp) {
+      this.syncHpHearts(maxHp);
+    }
 
     for (let i = 0; i < this.hpHearts.length; i++) {
       const filled = i < currentHp;
@@ -127,6 +133,25 @@ export class HUD {
       if (this.hpHearts[0]) {
         this.hpHearts[0].setAlpha(1);
       }
+    }
+  }
+
+  private syncHpHearts(maxHp: number): void {
+    const heartSpacing = 35;
+
+    // 부족한 만큼 추가
+    while (this.hpHearts.length < maxHp) {
+      const i = this.hpHearts.length;
+      const heart = this.scene.add.graphics();
+      heart.setPosition(i * heartSpacing, 0);
+      this.hpHearts.push(heart);
+      this.hpContainer.add(heart);
+    }
+
+    // 넘치는 만큼 제거
+    while (this.hpHearts.length > maxHp) {
+      const heart = this.hpHearts.pop();
+      heart?.destroy();
     }
   }
 

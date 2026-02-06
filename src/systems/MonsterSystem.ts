@@ -32,11 +32,11 @@ export class MonsterSystem {
     this.emitHpChange();
   }
 
-  takeDamage(amount: number): void {
+  takeDamage(amount: number, sourceX?: number, sourceY?: number): void {
     if (this.isDead) return;
 
     this.currentHp = Math.max(0, this.currentHp - amount);
-    this.emitHpChange();
+    this.emitHpChange(sourceX, sourceY);
 
     if (this.currentHp === 0) {
       this.die();
@@ -48,11 +48,13 @@ export class MonsterSystem {
     EventBus.getInstance().emit(GameEvents.MONSTER_DIED);
   }
 
-  private emitHpChange(): void {
+  private emitHpChange(sourceX?: number, sourceY?: number): void {
     EventBus.getInstance().emit(GameEvents.MONSTER_HP_CHANGED, {
       current: this.currentHp,
       max: this.maxHp,
       ratio: this.currentHp / this.maxHp,
+      sourceX,
+      sourceY,
     });
   }
 

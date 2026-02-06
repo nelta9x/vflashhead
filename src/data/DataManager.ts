@@ -83,7 +83,9 @@ class DataManager {
       if (typeof localStorage !== 'undefined') {
         savedLang = localStorage.getItem('game_language');
       }
-    } catch (e) {}
+    } catch (e) {
+      // localStorage might be unavailable or disabled
+    }
 
     if (savedLang && supportedLanguages.includes(savedLang)) {
       this.currentLang = savedLang as 'en' | 'ko';
@@ -97,7 +99,9 @@ class DataManager {
             detectedLang = browserLang;
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        // navigator might be unavailable
+      }
       
       this.currentLang = detectedLang as 'en' | 'ko';
     }

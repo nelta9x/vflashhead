@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, COLORS, COLORS_HEX } from '../data/constants';
+import { COLORS } from '../data/constants';
 import { Data } from '../data/DataManager';
 
 export class CursorRenderer {

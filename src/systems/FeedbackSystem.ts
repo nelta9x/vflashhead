@@ -184,8 +184,6 @@ export class FeedbackSystem {
     this.soundSystem.playBossImpactSound();
 
     // 3. 충격파 연출 (Expanding Ring)
-    const config = Data.boss.visual;
-    const sw = config.shockwave;
     this.particleManager.createShieldEffect(x, y, COLORS.WHITE); // 기존 ShieldEffect 활용 또는 별도 충격파 구현
 
     // 4. 게이지 파편 shattering & falling 효과

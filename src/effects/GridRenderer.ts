@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from '../data/constants';
 import { Data } from '../data/DataManager';
-import type { GridConfig } from '../data/types';
 
 export class GridRenderer {
   private graphics: Phaser.GameObjects.Graphics;

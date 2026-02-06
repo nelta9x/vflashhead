@@ -65,7 +65,19 @@
       "duration": 200
     },
     "vibrationThreshold": 0.6,
-    "vibrationIntensity": 2
+    "vibrationIntensity": 2,
+    "hitReaction": {
+      "pushDistance": 35,
+      "pushDuration": 60,
+      "pushEase": "Power2.Out",
+      "shakeDuration": 200,
+      "shakeIntensity": 4,
+      "shakeFrequency": 50,
+      "hitRotation": 0.15,
+      "returnDuration": 600,
+      "returnEase": "Cubic.Out",
+      "flashDuration": 50
+    }
   },
   "spawn": {
     "y": 100,

@@ -11,8 +11,10 @@ export class Boss extends Phaser.GameObjects.Container {
   private armorGraphics: Phaser.GameObjects.Graphics;
   private hpRatio: number = 1;
   private timeElapsed: number = 0;
+  private movementTime: number = 0;
   private isDead: boolean = false;
   private frozen: boolean = false;
+  private isHitStunned: boolean = false;
 
   // 아머 설정 (HP바 역할)
   private readonly maxArmorPieces: number;
@@ -25,6 +27,8 @@ export class Boss extends Phaser.GameObjects.Container {
   private baseY: number;
   private shakeOffsetX: number = 0;
   private shakeOffsetY: number = 0;
+  private pushOffsetX: number = 0;
+  private pushOffsetY: number = 0;
 
   constructor(scene: Phaser.Scene, x: number, y: number, feedbackSystem?: FeedbackSystem) {
     super(scene, x, y);
@@ -84,7 +88,7 @@ export class Boss extends Phaser.GameObjects.Container {
 
   private setupEventListeners(): void {
     EventBus.getInstance().on(GameEvents.MONSTER_HP_CHANGED, (...args: unknown[]) => {
-      const data = args[0] as { ratio: number };
+      const data = args[0] as { ratio: number; sourceX?: number; sourceY?: number };
       const oldArmorCount = this.currentArmorCount;
       this.hpRatio = data.ratio;
 
@@ -96,7 +100,7 @@ export class Boss extends Phaser.GameObjects.Container {
         this.onArmorBreak();
       }
 
-      this.onDamage();
+      this.onDamage(data.sourceX, data.sourceY);
     });
 
     EventBus.getInstance().on(GameEvents.MONSTER_DIED, () => {
@@ -133,14 +137,15 @@ export class Boss extends Phaser.GameObjects.Container {
     });
   }
 
-  private onDamage(): void {
+  private onDamage(sourceX?: number, sourceY?: number): void {
     if (this.isDead) return;
-    const config = Data.boss.feedback.damageShake;
+    const reaction = Data.boss.feedback.hitReaction;
+    if (!reaction) return;
 
     this.scene.tweens.add({
       targets: [this.core, this.coreLight],
       fillAlpha: 1,
-      duration: 50,
+      duration: reaction.flashDuration,
       yoyo: true,
       onStart: () => {
         this.core.setFillStyle(0xffffff);
@@ -152,19 +157,61 @@ export class Boss extends Phaser.GameObjects.Container {
       },
     });
 
-    // shakeOffset을 tween하여 updateMovement와 충돌하지 않도록 함
-    this.scene.tweens.add({
-      targets: this,
-      shakeOffsetX: Phaser.Math.Between(-config.intensity, config.intensity),
-      shakeOffsetY: Phaser.Math.Between(-config.intensity, config.intensity),
-      duration: config.duration,
-      yoyo: true,
-      repeat: 1,
-      onComplete: () => {
-        this.shakeOffsetX = 0;
-        this.shakeOffsetY = 0;
-      },
-    });
+    if (sourceX !== undefined && sourceY !== undefined) {
+      // 피격 방향 계산 (소스에서 보스 방향)
+      const angle = Phaser.Math.Angle.Between(sourceX, sourceY, this.x, this.y);
+      const pushX = Math.cos(angle) * reaction.pushDistance;
+      const pushY = Math.sin(angle) * reaction.pushDistance;
+
+      // 기존 리액션 트윈 제거
+      this.scene.tweens.killTweensOf(this, false, 'pushOffsetX');
+      this.scene.tweens.killTweensOf(this, false, 'pushOffsetY');
+      this.scene.tweens.killTweensOf(this, false, 'shakeOffsetX');
+      this.scene.tweens.killTweensOf(this, false, 'shakeOffsetY');
+      this.scene.tweens.killTweensOf(this, false, 'rotation');
+
+      // 스턴 상태 활성화 (이동 멈춤)
+      this.isHitStunned = true;
+
+      // 1. 밀려남 (Push) 및 회전 (Tilt)
+      const hitRotation = (sourceX < this.x ? 1 : -1) * reaction.hitRotation;
+
+      this.scene.tweens.add({
+        targets: this,
+        pushOffsetX: pushX,
+        pushOffsetY: pushY,
+        rotation: hitRotation,
+        duration: reaction.pushDuration,
+        ease: reaction.pushEase,
+      });
+
+      // 2. 흔들림 (Shake) - 스턴 유지
+      this.scene.tweens.add({
+        targets: this,
+        shakeOffsetX: { from: -reaction.shakeIntensity, to: reaction.shakeIntensity },
+        shakeOffsetY: { from: reaction.shakeIntensity, to: -reaction.shakeIntensity },
+        duration: reaction.shakeFrequency,
+        yoyo: true,
+        repeat: Math.floor(reaction.shakeDuration / reaction.shakeFrequency),
+        onComplete: () => {
+          this.shakeOffsetX = 0;
+          this.shakeOffsetY = 0;
+
+          // 3. 흔들림(스턴)이 끝난 후 원래 위치로 복귀
+          this.scene.tweens.add({
+            targets: this,
+            pushOffsetX: 0,
+            pushOffsetY: 0,
+            rotation: 0,
+            duration: reaction.returnDuration,
+            ease: reaction.returnEase,
+            onComplete: () => {
+              this.isHitStunned = false; // 복귀까지 완료되어야 이동 재개
+            },
+          });
+        },
+      });
+    }
   }
 
   private onArmorBreak(): void {
@@ -201,9 +248,9 @@ export class Boss extends Phaser.GameObjects.Container {
   private updateMovement(_delta: number): void {
     const mov = Data.boss.movement;
 
-    // 사인파 드리프트 직접 적용
-    this.baseX = this.homeX + Math.sin(this.timeElapsed * mov.drift.xFrequency) * mov.drift.xAmplitude;
-    this.baseY = this.homeY + Math.sin(this.timeElapsed * mov.drift.yFrequency) * mov.drift.yAmplitude;
+    // movementTime 기반으로 드리프트 적용
+    this.baseX = this.homeX + Math.sin(this.movementTime * mov.drift.xFrequency) * mov.drift.xAmplitude;
+    this.baseY = this.homeY + Math.sin(this.movementTime * mov.drift.yFrequency) * mov.drift.yAmplitude;
 
     // bounds 클램프
     this.baseX = Phaser.Math.Clamp(this.baseX, mov.bounds.minX, mov.bounds.maxX);
@@ -216,9 +263,12 @@ export class Boss extends Phaser.GameObjects.Container {
     const config = Data.boss;
     const dangerLevel = 1 - this.hpRatio;
 
-    // frozen 상태에서는 이동하지 않음 (시각 효과는 유지)
-    if (!this.frozen) {
-      this.timeElapsed += delta;
+    // 시각 효과용 시간은 항상 흐름 (펄스, 회전 등)
+    this.timeElapsed += delta;
+
+    // frozen이나 hitStunned 상태에서는 이동 관련 시간과 로직을 멈춤
+    if (!this.frozen && !this.isHitStunned) {
+      this.movementTime += delta;
       this.updateMovement(delta);
     }
 
@@ -241,9 +291,9 @@ export class Boss extends Phaser.GameObjects.Container {
     this.drawGlow();
     this.drawArmor();
 
-    // 최종 위치 = 기본 위치 + 피격 흔들림 오프셋
-    this.x = this.baseX + this.shakeOffsetX;
-    this.y = this.baseY + this.shakeOffsetY;
+    // 최종 위치 = 기본 위치 + 피격 흔들림 오프셋 + 밀려남 오프셋
+    this.x = this.baseX + this.shakeOffsetX + this.pushOffsetX;
+    this.y = this.baseY + this.shakeOffsetY + this.pushOffsetY;
 
     // 위기 시 제자리 진동 (상시)
     if (dangerLevel > config.feedback.vibrationThreshold) {

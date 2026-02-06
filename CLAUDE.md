@@ -40,7 +40,7 @@ data/             # 게임 밸런스 데이터 (JSON 전용)
 src/
 ├── data/         # 데이터 처리 로직, 상수, 타입 (DataManager, constants.ts 등)
 ├── effects/      # 파티클, 화면 효과
-├── entities/     # 게임 엔티티 (Dish, HealthPack 등)
+├── entities/     # 게임 엔티티 (Dish, Boss, HealthPack)
 ├── scenes/       # Phaser 씬
 ├── systems/      # 게임 시스템 (Score, Combo, Wave 등)
 ├── ui/           # UI 컴포넌트
@@ -67,15 +67,18 @@ import { COLORS, FONTS } from '../data/constants';
 ### 데이터 파일 구조
 | 파일 | 설명 |
 |------|------|
-| `game-config.json` | 화면, 플레이어, UI, 폰트, 자기장 등 전역 설정 |
+| `game-config.json` | 화면, 플레이어, UI, 폰트, 자기장, 레이저 공격, 그리드, 별 배경, 오디오(BGM) 등 전역 설정 |
+| `main-menu.json` | 메인 메뉴 씬 설정 (별 배경, 보스 애니메이션, 메뉴 접시 스폰) |
+| `boss.json` | 보스 비주얼 및 공격 설정 (코어, 아머 조각, 충격파) |
 | `constants.ts` | JSON 데이터를 코드에서 쓰기 편하게 만든 상수들 |
+| `types.ts` | JSON 데이터 구조의 TypeScript 인터페이스 정의 |
 | `game.config.ts` | Phaser 엔진 기술 설정 |
 | `spawn.json` | 스폰 영역 및 로직 설정 |
-| `combo.json` | 콤보 타임아웃 및 배율 공식 |
+| `combo.json` | 콤보 타임아웃, 배율 공식, 게이지 보너스 |
 | `health-pack.json` | 힐팩 관련 모든 수치 |
-| `feedback.json` | 화면 흔들림, 슬로우모션, 파티클 등 연출 설정 |
+| `feedback.json` | 화면 흔들림, 슬로우모션, 파티클, 커서 트레일 등 연출 설정 |
 | `colors.json` | 게임 내 모든 색상 팔레트 |
-| `waves.json` | 웨이브 구성 및 난이도 곡선 |
+| `waves.json` | 웨이브 구성, 난이도 곡선, 무한 스케일링 |
 | `dishes.json` | 접시(적) 종류별 상세 스탯 |
 | `upgrades.json` | 업그레이드 확률 및 효과 정의 |
 | `weapons.json` | 무기 기본 데이터 |
@@ -88,8 +91,13 @@ import { COLORS, FONTS } from '../data/constants';
 5. **힐팩 스폰**: `health-pack.json`의 `spawnChanceByHp` 수정
 
 ### 데이터 관리 원칙
-- **연출용 상수(색상, 폰트 크기, 애니메이션 타이밍 등)도 반드시 data 디렉토리의 JSON 파일로 관리**
-- 코드에 하드코딩된 연출 관련 숫자 값이 있으면 적절한 JSON 파일로 이동할 것
-- 새로운 연출 시스템 추가 시 관련 설정을 `feedback.json` 또는 적절한 JSON 파일에 정의
+- **모든 상수는 반드시 data 디렉토리의 JSON 파일로 관리**
+  - 숫자 값 (게임 밸런스, 타이밍, 속도 등)
+  - 문자열 (파일 경로, 키 값, 텍스트 등)
+  - 색상 (16진수 또는 숫자 형태)
+  - 연출 관련 설정 (애니메이션 타이밍, 파티클 개수 등)
+- 코드에 하드코딩된 상수가 있으면 적절한 JSON 파일로 이동할 것
+- 새로운 기능 추가 시 관련 설정을 먼저 JSON 파일에 정의한 후 `DataManager`를 통해 사용
+- **예외 없음**: "이 정도는 괜찮겠지" 하는 생각은 금물. 모든 설정값은 JSON으로 관리
 
 > 📖 **상세 가이드**: 각 JSON 파일의 모든 필드에 대한 자세한 설명은 `data/README.md`를 참고하세요.

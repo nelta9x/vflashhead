@@ -136,6 +136,7 @@ export class MenuScene extends Phaser.Scene {
 
   private createGrid(): void {
     this.gridGraphics = this.add.graphics();
+    this.gridGraphics.setDepth(Data.gameConfig.gameGrid.depth);
   }
 
   private createMenuCursor(): void {
@@ -401,13 +402,14 @@ export class MenuScene extends Phaser.Scene {
 
   private updateGrid(delta: number): void {
     const config = Data.mainMenu.grid;
+    const globalConfig = Data.gameConfig.gameGrid;
     this.gridGraphics.clear();
     const horizonY = GAME_HEIGHT * config.horizonRatio;
     const vanishingPointX = GAME_WIDTH / 2;
     const verticalSpread = 8; // 좌우로 퍼지는 강도
 
     // 1. 세로선 (원근법) - 화면 전체를 덮도록 시작점을 넓게 잡음
-    this.gridGraphics.lineStyle(1, COLORS.CYAN, config.alpha);
+    this.gridGraphics.lineStyle(1, COLORS.CYAN, globalConfig.alpha);
     
     for (let i = 0; i <= config.verticalLines; i++) {
       // 선 사이의 간격을 좁혀서 더 촘촘하게 배치 (나누는 값을 키움)
@@ -441,8 +443,8 @@ export class MenuScene extends Phaser.Scene {
 
     this.gridGraphics.strokePath();
 
-    // 지평선 강조
-    this.gridGraphics.lineStyle(2, COLORS.CYAN, config.alpha * 2);
+    // 지평선 강조 (globalConfig.alpha 사용)
+    this.gridGraphics.lineStyle(2, COLORS.CYAN, globalConfig.alpha * 1.5);
     this.gridGraphics.moveTo(0, horizonY);
     this.gridGraphics.lineTo(GAME_WIDTH, horizonY);
     this.gridGraphics.strokePath();

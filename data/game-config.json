@@ -61,7 +61,8 @@
     "size": 60,
     "speed": 0.1,
     "alpha": 0.12,
-    "color": "#00ffff"
+    "color": "#00ffff",
+    "depth": -1
   },
   "stars": {
     "count": 60,

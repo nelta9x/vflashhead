@@ -65,6 +65,7 @@ export interface GridConfig {
   speed: number;
   alpha: number;
   color: string;
+  depth: number;
 }
 
 export interface StarsConfig {

@@ -22,7 +22,6 @@
   },
   "grid": {
     "horizonRatio": 0.6,
-    "alpha": 0.12,
     "size": 60,
     "speed": 0.15,
     "verticalLines": 150,

@@ -144,20 +144,20 @@ export class GameScene extends Phaser.Scene {
   }
 
   private createBackground(): void {
+    const gridConfig = Data.gameConfig.gameGrid;
     this.gridGraphics = this.add.graphics();
-    this.gridGraphics.setDepth(-1); // 배경이므로 가장 뒤에 배치
+    this.gridGraphics.setDepth(gridConfig.depth); // 배경이므로 가장 뒤에 배치
     
     // 별 배경 추가 (그리드보다 뒤에 배치)
     this.starBackground = new StarBackground(this, Data.gameConfig.stars);
-    this.starBackground.setDepth(-2);
+    this.starBackground.setDepth(gridConfig.depth - 1);
   }
 
   private updateGrid(delta: number): void {
     const config = Data.gameConfig.gameGrid;
     this.gridGraphics.clear();
 
-    const color = Phaser.Display.Color.HexStringToColor(config.color).color;
-    this.gridGraphics.lineStyle(1, color, config.alpha);
+    this.gridGraphics.lineStyle(1, COLORS.CYAN, config.alpha);
 
     // 수직선
     for (let x = 0; x <= GAME_WIDTH; x += config.size) {

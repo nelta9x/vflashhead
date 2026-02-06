@@ -6,6 +6,7 @@ import {
   CURSOR_HITBOX,
   SPAWN_AREA,
   MAGNET,
+  INITIAL_HP,
 } from '../data/constants';
 import { Data } from '../data/DataManager';
 import { Dish } from '../entities/Dish';

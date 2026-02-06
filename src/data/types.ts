@@ -497,18 +497,6 @@ export interface StatEffect {
   multiply?: number;
 }
 
-export interface WeaponUpgradeData {
-  id: string;
-  name: string;
-  description: string;
-  stat?: string;
-  add?: number;
-  multiply?: number;
-  special?: string;
-  combo?: StatEffect[];
-  maxStack: number;
-}
-
 // 레벨별 데이터 인터페이스
 export interface CursorSizeLevelData {
   sizeBonus: number;
@@ -592,12 +580,6 @@ export interface UpgradesConfig {
     endgame: RarityWeights;
   };
   rarityThresholds: RarityThresholds;
-  weapon: {
-    common: WeaponUpgradeData[];
-    rare: WeaponUpgradeData[];
-    epic: WeaponUpgradeData[];
-    legendary: WeaponUpgradeData[];
-  };
   system: SystemUpgradeData[];
 }
 

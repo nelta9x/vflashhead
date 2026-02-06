@@ -31,9 +31,9 @@
 | **콤보 타임아웃** | `combo.json` | `timeout.base`, `timeout.minimum` |
 | **콤보 배율** | `combo.json` | `multiplier.factor` |
 | **업그레이드 출현율** | `upgrades.json` | `rarityWeights` |
-| **업그레이드 효과** | `upgrades.json` | `weapon`, `system` |
+| **업그레이드 효과** | `upgrades.json` | `system` |
 | **힐팩 스폰 확률** | `health-pack.json` | `spawnChanceByHp` |
-| **플레이어 초기 HP** | `game-config.json" | `player.initialHp` |
+| **플레이어 초기 HP** | `game-config.json` | `player.initialHp` |
 | **폰트 설정** | `game-config.json` | `fonts` |
 | **커서 크기** | `game-config.json` | `player.cursorHitbox.baseRadius` |
 | **웨이브 지속 시간** | `waves.json` | `duration` |
@@ -269,51 +269,6 @@ import { COLORS, FONTS } from '../data/constants';
     "mid": 4,     // 3~4회: mid
     "late": 6     // 5~6회: late, 7회+: endgame
   }
-}
-```
-
-#### 무기 업그레이드
-
-```json
-{
-  "weapon": {
-    "common": [
-      {
-        "id": "rapid_fire",          // 고유 ID
-        "name": "연사력 증가",        // 표시 이름
-        "description": "발사 속도가 25% 증가합니다.",
-        "stat": "fireRate",          // 영향받는 스탯
-        "multiply": 1.25,            // 배율 (곱연산)
-        "maxStack": 5                // 최대 중첩 횟수
-      },
-      {
-        "id": "flat_damage",
-        "stat": "damage",
-        "add": 5,                    // 가산 (덧셈)
-        "maxStack": 10
-      }
-    ]
-  }
-}
-```
-
-**스탯 종류**: `damage`, `fireRate`, `projectileSpeed`, `projectileCount`, `criticalChance`, `criticalMultiplier`
-
-**특수 업그레이드**:
-```json
-{
-  "special": "piercing",  // 특수 효과: piercing, explosive, homing
-  "maxStack": 1
-}
-```
-
-**콤보 업그레이드** (여러 효과 동시 적용):
-```json
-{
-  "combo": [
-    { "stat": "damage", "add": 50 },
-    { "stat": "fireRate", "multiply": 2 }
-  ]
 }
 ```
 

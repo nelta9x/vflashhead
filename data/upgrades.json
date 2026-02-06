@@ -235,9 +235,9 @@
       "value": 1,
       "maxStack": 5,
       "meta": {
-        "baseRadius": 150,
-        "radiusPerLevel": 30,
-        "baseDamage": 2,
+        "baseRadius": 280,
+        "radiusPerLevel": 40,
+        "baseDamage": 1,
         "damagePerLevel": 1
       }
     },
@@ -269,7 +269,7 @@
       "value": 1,
       "maxStack": 5,
       "meta": {
-        "baseRadius": 80,
+        "baseRadius": 130,
         "radiusPerLevel": 20
       }
     },

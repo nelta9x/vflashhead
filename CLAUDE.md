@@ -36,46 +36,51 @@ FLASHHEAD - Phaser 3 기반 웹 슈팅 게임
 
 ## 코드 구조
 ```
-data/             # 게임 밸런스 데이터 (JSON 전용)
+data/             # 게임 밸런스 데이터 및 로케일 (JSON 전용)
 src/
 ├── data/         # 데이터 처리 로직, 상수, 타입 (DataManager, constants.ts 등)
-├── effects/      # 파티클, 화면 효과
+├── effects/      # 파티클, 화면 효과 및 렌더러 (Grid, Boss, Cursor Renderer)
 ├── entities/     # 게임 엔티티 (Dish, Boss, HealthPack)
 ├── scenes/       # Phaser 씬
-├── systems/      # 게임 시스템 (Score, Combo, Wave 등)
-├── ui/           # UI 컴포넌트
+├── systems/      # 게임 시스템 (Score, Combo, Wave, Upgrade 등)
+├── ui/           # UI 컴포넌트 (HUD, Upgrade UI, DamageText 등)
 └── utils/        # 유틸리티 (EventBus, ObjectPool 등)
 ```
 
 ## 데이터 및 설정 원칙
 
 ### 1. 집중 관리 원칙 (Single Source of Truth)
-- **모든** 게임 밸런스 수치는 루트의 `data/` 디렉토리 내 JSON 파일에서 관리합니다.
+- **모든** 게임 밸런스 수치와 텍스트는 루트의 `data/` 디렉토리 내 JSON 파일에서 관리합니다.
 - 기술적 설정, 상수 정의, 데이터 관리 로직은 `src/data/`에서 관리합니다.
 
 ### 2. 데이터 우선 원칙
 - 새로운 기능 추가 시, 관련 설정값(수치, 색상, 폰트, 타이밍 등)을 코드에 직접 쓰지 말고 반드시 JSON 파일(`data/*.json`)에 먼저 정의한 후 `DataManager`를 통해 불러와 사용합니다.
-- 밸런스 디자이너가 소스 코드를 열지 않고도 모든 수치를 조절할 수 있도록 설계해야 합니다.
+- 다국어 지원을 위한 모든 텍스트는 `data/locales.json`에 정의합니다.
 
 ### DataManager 사용법
 ```typescript
 import { Data } from '../data/DataManager';
-// 또는 상수로 정의된 값이 필요한 경우
+// 상수로 정의된 값
 import { COLORS, FONTS } from '../data/constants';
+// 번역 텍스트
+const text = Data.t('menu.title');
+// 템플릿 텍스트
+const desc = Data.formatTemplate('upgrade.desc_template', { size: 30 });
 ```
 
 ### 데이터 파일 구조
 | 파일 | 설명 |
 |------|------|
-| `game-config.json` | 화면, 플레이어, UI, 폰트, 자기장, 레이저 공격, 그리드, 별 배경, 오디오(BGM) 등 전역 설정 |
-| `main-menu.json` | 메인 메뉴 씬 설정 (별 배경, 보스 애니메이션, 메뉴 접시 스폰) |
+| `game-config.json` | 화면, 기본 언어, 플레이어, UI, 폰트, 자기장, 레이저 공격, 그리드, 별 배경 등 전역 설정 |
+| `locales.json` | 다국어(EN, KO) 번역 데이터 및 텍스트 템플릿 |
+| `main-menu.json` | 메인 메뉴 씬 설정 (별 배경, 보스 애니메이션, 메뉴 접시 스폰, 언어 UI) |
 | `boss.json` | 보스 비주얼 및 공격 설정 (코어, 아머 조각, 충격파) |
 | `constants.ts` | JSON 데이터를 코드에서 쓰기 편하게 만든 상수들 |
 | `types.ts` | JSON 데이터 구조의 TypeScript 인터페이스 정의 |
 | `game.config.ts` | Phaser 엔진 기술 설정 |
 | `spawn.json` | 스폰 영역 및 로직 설정 |
 | `combo.json` | 콤보 타임아웃, 배율 공식, 게이지 보너스 |
-| `health-pack.json` | 힐팩 관련 모든 수치 |
+| `health-pack.json` | 힐팩 관련 모든 수치 및 스폰 확률 |
 | `feedback.json` | 화면 흔들림, 슬로우모션, 파티클, 커서 트레일 등 연출 설정 |
 | `colors.json` | 게임 내 모든 색상 팔레트 |
 | `waves.json` | 웨이브 구성, 난이도 곡선, 무한 스케일링 |
@@ -88,7 +93,8 @@ import { COLORS, FONTS } from '../data/constants';
 2. **콤보 시스템**: `combo.json`의 `timeout`, `milestones` 수정
 3. **접시 밸런스**: `dishes.json`의 `hp`, `points`, `lifetime` 수정
 4. **업그레이드 출현율**: `upgrades.json`의 `rarityWeights` 수정
-5. **힐팩 스폰**: `health-pack.json`의 `spawnChanceByHp` 수정
+5. **힐팩 스폰**: `health-pack.json`의 `baseSpawnChance` 및 보너스 수치 수정
+6. **다국어 추가**: `locales.json`에 새로운 언어 키 추가 및 번역 작성
 
 ### 데이터 관리 원칙
 - **모든 상수는 반드시 data 디렉토리의 JSON 파일로 관리**

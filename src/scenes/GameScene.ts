@@ -1089,14 +1089,15 @@ export class GameScene extends Phaser.Scene {
       this.setNextLaserTime();
     }
 
+    // 레이저 렌더링용 데이터 준비 (항상 렌더링하여 빈 상태일 때도 이전 레이저가 지워지도록 함)
+    const laserData = this.activeLasers.map(l => ({
+      ...l,
+      progress: (this.gameTime - l.startTime) / Data.gameConfig.monsterAttack.laser.warningDuration
+    }));
+    
+    this.laserRenderer.render(laserData);
+    
     if (this.activeLasers.length > 0) {
-      // 레이저 렌더링용 데이터 준비
-      const laserData = this.activeLasers.map(l => ({
-        ...l,
-        progress: (this.gameTime - l.startTime) / Data.gameConfig.monsterAttack.laser.warningDuration
-      }));
-      
-      this.laserRenderer.render(laserData);
       this.checkLaserCollisions(delta);
     }
   }
@@ -1228,7 +1229,7 @@ export class GameScene extends Phaser.Scene {
         if (index > -1) {
           this.activeLasers.splice(index, 1);
           if (this.activeLasers.length === 0) {
-            this.laserGraphics.clear();
+            this.laserRenderer.clear();
           }
         }
         // 레이저 종료 후 보스 이동 재개

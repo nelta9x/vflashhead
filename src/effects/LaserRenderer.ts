@@ -51,6 +51,10 @@ export class LaserRenderer {
     });
   }
 
+  public clear(): void {
+    this.graphics.clear();
+  }
+
   public destroy(): void {
     this.graphics.destroy();
   }

@@ -243,7 +243,49 @@ const activeDishes = this.getDishPool().getActiveObjects();
 
 ---
 
-## 2024-02-05: 업그레이드 UI - 애니메이션 중 중복 호출
+## 2024-02-06: 리팩토링 후 유령 변수(Undefined Variable) 참조로 인한 크래시
+
+### 증상
+- 보스 레이저 공격 종료 시 `Uncaught TypeError: Cannot read properties of undefined (reading 'clear')` 발생하며 게임 중단.
+- `GameScene.ts:1231:32` 지점에서 발생.
+
+### 원인
+**리팩토링 과정에서 제거되거나 변경된 변수가 콜백 함수 내에 남아있음**
+
+1. **변수 누락**: 기존에 `GameScene`에서 직접 관리하던 `laserGraphics` 객체가 `LaserRenderer` 도입 과정에서 클래스 속성에서 제거됨.
+2. **지연 실행 콜백(delayedCall)**: `triggerBossLaserAttack` 내의 `this.time.delayedCall` 콜백 함수 내부에 `this.laserGraphics.clear()` 호출이 그대로 남아있었음.
+3. **런타임 오류**: 해당 콜백이 실행될 때 `this.laserGraphics`는 `undefined`이므로 `.clear()` 호출 시 TypeError 발생.
+
+### 해결
+```typescript
+// 1. LaserRenderer에 필요한 메서드 추가
+public clear(): void {
+  this.graphics.clear();
+}
+
+// 2. GameScene의 콜백 내부 코드 수정
+this.time.delayedCall(config.fireDuration, () => {
+  const index = this.activeLasers.indexOf(laser);
+  if (index > -1) {
+    this.activeLasers.splice(index, 1);
+    if (this.activeLasers.length === 0) {
+      // 존재하지 않는 laserGraphics 대신 renderer 사용
+      this.laserRenderer.clear();
+    }
+  }
+  this.boss.unfreeze();
+});
+
+// 3. update 루프에서 렌더링 호출 최적화
+// activeLasers가 비어있을 때도 render()를 호출하여 잔상 제거 보장
+this.laserRenderer.render(laserData);
+```
+
+### 교훈
+- **리팩토링 후 전수 조사**: 특정 기능을 전용 클래스(Renderer 등)로 분리할 때, 기존 파일 내의 모든 참조를 검색(Grep/Search)하여 수정해야 함. 특히 `delayedCall`이나 이벤트 핸들러 내부의 콜백 코드는 놓치기 쉬움.
+- **TypeScript 활용**: 클래스 속성을 제거한 후에는 반드시 컴파일(tsc)이나 린트(Lint)를 실행하여 정의되지 않은 참조를 모두 찾아내야 함. (이번 사례는 동적 바인딩이나 타입 체크 생략으로 인해 런타임에 발견됨)
+- **Renderer의 책임**: 로직 분리 시 Renderer 클래스는 '그리기'뿐만 아니라 '지우기(clear)' 책임도 명확히 가져야 함.
+- **상태 동기화**: `activeLasers` 배열의 상태와 화면에 그려진 그래픽이 항상 일치하도록 `update` 루프에서의 렌더링 호출 구조를 단순화(항상 렌더링)하는 것이 안전함.
 
 ### 증상
 - 웨이브 1: 업그레이드 선택지 3개 표시

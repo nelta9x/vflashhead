@@ -1,0 +1,13 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Core -->
+  <circle cx="32" cy="32" r="10" fill="white"/>
+  <!-- Sparks -->
+  <path d="M32 16 L32 8" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <path d="M32 48 L32 56" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <path d="M16 32 L8 32" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <path d="M48 32 L56 32" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <path d="M20 20 L14 14" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <path d="M44 44 L50 50" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <path d="M44 20 L50 14" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <path d="M20 44 L14 50" stroke="white" stroke-width="4" stroke-linecap="round"/>
+</svg>

@@ -39,6 +39,9 @@ export class BootScene extends Phaser.Scene {
     // 오디오 에셋 로드
     this.loadAudioAssets();
 
+    // 아이콘 에셋 로드 (SVG)
+    this.loadIconAssets();
+
     // 게임에서 사용할 기본 그래픽 생성 (프로시저럴)
     this.createProceduralAssets();
   }
@@ -46,6 +49,21 @@ export class BootScene extends Phaser.Scene {
   private loadAudioAssets(): void {
     const audioConfig = Data.gameConfig.audio.bgm;
     this.load.audio(audioConfig.key, audioConfig.path);
+  }
+
+  private loadIconAssets(): void {
+    const icons = [
+      'cursor_size',
+      'electric_shock',
+      'static_discharge',
+      'magnet',
+      'missile',
+      'health_pack'
+    ];
+
+    icons.forEach(icon => {
+      this.load.svg(icon, `assets/icons/${icon}.svg`, { width: 64, height: 64 });
+    });
   }
 
   private createProceduralAssets(): void {

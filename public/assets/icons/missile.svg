@@ -1,0 +1,9 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Body -->
+  <path d="M32 8 C24 24 24 40 24 48 H40 C40 40 40 24 32 8Z" fill="white"/>
+  <!-- Fins -->
+  <path d="M24 40 L12 56 H24" fill="white"/>
+  <path d="M40 40 L52 56 H40" fill="white"/>
+  <!-- Flame -->
+  <circle cx="32" cy="56" r="6" fill="white" opacity="0.6"/>
+</svg>

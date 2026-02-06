@@ -110,16 +110,17 @@ export class InGameUpgradeUI {
     this.drawBoxBackground(bg, BOX_WIDTH, BOX_HEIGHT, borderColor, false);
     container.add(bg);
 
-    // 아이콘 그래픽
-    const iconGraphics = this.scene.add.graphics();
+    // 아이콘 표시 (SVG 스프라이트 또는 텍스트 폴백)
     const iconY = -BOX_HEIGHT / 2 + 32;
-    iconGraphics.setPosition(0, iconY);
-    container.add(iconGraphics);
-
-    const hasCustomIcon = this.drawUpgradeIcon(iconGraphics, upgrade.id, borderColor);
-
-    // 아이콘 (커스텀 아이콘이 없는 경우 텍스트 심볼 사용)
-    if (!hasCustomIcon) {
+    
+    // 텍스처가 존재하는지 확인
+    if (this.scene.textures.exists(upgrade.id)) {
+      const iconSprite = this.scene.add.image(0, iconY, upgrade.id);
+      iconSprite.setDisplaySize(48, 48);
+      iconSprite.setTint(borderColor); // 희귀도 색상 적용
+      container.add(iconSprite);
+    } else {
+      // 텍스처가 없으면 텍스트 심볼 폴백
       const iconSymbol = this.getUpgradeSymbol(upgrade.id);
       const icon = this.scene.add
         .text(0, iconY, iconSymbol, {
@@ -178,200 +179,6 @@ export class InGameUpgradeUI {
       bg,
       borderColor,
     };
-  }
-
-  private drawUpgradeIcon(
-    graphics: Phaser.GameObjects.Graphics,
-    upgradeId: string,
-    color: number
-  ): boolean {
-    graphics.clear();
-
-    switch (upgradeId) {
-      case 'cursor_size':
-        // 타겟 아이콘 + 확장 화살표 (네온 스타일)
-        // 외곽 글로우
-        graphics.lineStyle(4, color, 0.3);
-        graphics.strokeCircle(0, 0, 10);
-        // 메인 라인
-        graphics.lineStyle(2, color, 1);
-        graphics.strokeCircle(0, 0, 10);
-        graphics.strokeCircle(0, 0, 2);
-
-        // 확장 화살표들
-        const arrows = [
-          { x: 0, y: -1, dx: 0, dy: -1 }, // 위
-          { x: 0, y: 1, dx: 0, dy: 1 },  // 아래
-          { x: -1, y: 0, dx: -1, dy: 0 }, // 왼쪽
-          { x: 1, y: 0, dx: 1, dy: 0 }   // 오른쪽
-        ];
-
-        arrows.forEach(a => {
-          const start = 14;
-          const end = 22;
-          // 글로우
-          graphics.lineStyle(4, color, 0.3);
-          graphics.lineBetween(a.x * start, a.y * start, a.x * end, a.y * end);
-          // 메인
-          graphics.lineStyle(2, color, 1);
-          graphics.lineBetween(a.x * start, a.y * start, a.x * end, a.y * end);
-          // 화살표 머리
-          graphics.beginPath();
-          graphics.moveTo(a.x * end, a.y * end);
-          if (a.dx === 0) {
-            graphics.lineTo(a.x * end - 4, a.y * end + a.dy * 4);
-            graphics.lineTo(a.x * end + 4, a.y * end + a.dy * 4);
-          } else {
-            graphics.lineTo(a.x * end + a.dx * 4, a.y * end - 4);
-            graphics.lineTo(a.x * end + a.dx * 4, a.y * end + 4);
-          }
-          graphics.closePath();
-          graphics.fillPath();
-        });
-        return true;
-
-      case 'electric_shock':
-        // 번개 아이콘 (이중 레이어 네온)
-        // 글로우
-        graphics.lineStyle(6, color, 0.2);
-        this.drawLightningPath(graphics);
-        graphics.strokePath();
-        // 메인
-        graphics.fillStyle(color, 1);
-        this.drawLightningPath(graphics);
-        graphics.fillPath();
-        graphics.lineStyle(1, 0xffffff, 0.5);
-        graphics.strokePath();
-        return true;
-
-      case 'static_discharge':
-        // 중앙 코어와 퍼지는 전기 스파크
-        graphics.fillStyle(color, 0.3);
-        graphics.fillCircle(0, 0, 8);
-        graphics.fillStyle(0xffffff, 1);
-        graphics.fillCircle(0, 0, 3);
-
-        for (let i = 0; i < 6; i++) {
-          const angle = (i * Math.PI * 2) / 6;
-          graphics.lineStyle(2, color, 1);
-          graphics.beginPath();
-          graphics.moveTo(0, 0);
-          
-          let curX = 0;
-          let curY = 0;
-          for (let j = 0; j < 3; j++) {
-            const segmentLen = 6 + Math.random() * 6;
-            const segmentAngle = angle + (Math.random() - 0.5) * 0.8;
-            curX += Math.cos(segmentAngle) * segmentLen;
-            curY += Math.sin(segmentAngle) * segmentLen;
-            graphics.lineTo(curX, curY);
-          }
-          graphics.strokePath();
-          // 끝점 스파크
-          graphics.fillStyle(0xffffff, 0.8);
-          graphics.fillCircle(curX, curY, 2);
-        }
-        return true;
-
-      case 'magnet':
-        // U자형 자석 (입체감 있는 네온)
-        const magnetPath = (g: Phaser.GameObjects.Graphics) => {
-          g.beginPath();
-          g.arc(0, 5, 15, 0, Math.PI, false);
-          g.lineTo(-15, -10);
-          g.lineTo(-7, -10);
-          g.lineTo(-7, 5);
-          g.arc(0, 5, 7, Math.PI, 0, true);
-          g.lineTo(7, -10);
-          g.lineTo(15, -10);
-          g.closePath();
-        };
-
-        // 글로우
-        graphics.lineStyle(4, color, 0.3);
-        magnetPath(graphics);
-        graphics.strokePath();
-        // 몸체
-        graphics.fillStyle(color, 0.8);
-        magnetPath(graphics);
-        graphics.fillPath();
-        // 팁 (극성 표시)
-        graphics.fillStyle(0xffffff, 0.9);
-        graphics.fillRect(-15, -10, 8, 5);
-        graphics.fillRect(7, -10, 8, 5);
-        return true;
-
-      case 'missile':
-        // 미사일 (더 정교한 모양)
-        const drawMissile = (g: Phaser.GameObjects.Graphics) => {
-          g.beginPath();
-          g.moveTo(0, -22); // 코즈
-          g.bezierCurveTo(8, -15, 8, 5, 6, 12); // 오른쪽 몸통
-          g.lineTo(-6, 12); // 바닥
-          g.bezierCurveTo(-8, 5, -8, -15, 0, -22); // 왼쪽 몸통
-          g.closePath();
-        };
-
-        // 글로우
-        graphics.lineStyle(4, color, 0.3);
-        drawMissile(graphics);
-        graphics.strokePath();
-        // 몸체
-        graphics.fillStyle(color, 1);
-        drawMissile(graphics);
-        graphics.fillPath();
-        // 날개
-        graphics.beginPath();
-        graphics.moveTo(-6, 2);
-        graphics.lineTo(-12, 10);
-        graphics.lineTo(-6, 10);
-        graphics.moveTo(6, 2);
-        graphics.lineTo(12, 10);
-        graphics.lineTo(6, 10);
-        graphics.fillPath();
-        // 엔진 불꽃
-        graphics.fillStyle(0xffaa00, 0.8);
-        graphics.fillCircle(0, 15, 4);
-        return true;
-
-      case 'health_pack':
-        // 하트 + 십자가 (부드러운 네온)
-        // 하트 외곽선 글로우
-        graphics.lineStyle(4, color, 0.3);
-        this.drawHeartPath(graphics, 16);
-        graphics.strokePath();
-        // 하트 채우기
-        graphics.fillStyle(color, 0.2);
-        this.drawHeartPath(graphics, 16);
-        graphics.fillPath();
-        // 중앙 십자가
-        graphics.lineStyle(4, 0xffffff, 1);
-        graphics.lineBetween(-7, 0, 7, 0);
-        graphics.lineBetween(0, -7, 0, 7);
-        return true;
-
-      default:
-        return false;
-    }
-  }
-
-  private drawLightningPath(g: Phaser.GameObjects.Graphics): void {
-    g.beginPath();
-    g.moveTo(6, -20);
-    g.lineTo(-8, 2);
-    g.lineTo(0, 2);
-    g.lineTo(-6, 20);
-    g.lineTo(8, -2);
-    g.lineTo(0, -2);
-    g.closePath();
-  }
-
-  private drawHeartPath(g: Phaser.GameObjects.Graphics, size: number): void {
-    g.beginPath();
-    g.moveTo(0, size * 0.7);
-    g.cubicCurveTo(-size, size * 0.1, -size, -size * 0.7, 0, -size * 0.4);
-    g.cubicCurveTo(size, -size * 0.7, size, size * 0.1, 0, size * 0.7);
-    g.closePath();
   }
 
   private drawBoxBackground(

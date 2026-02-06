@@ -1,0 +1,11 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Target Circle -->
+  <circle cx="32" cy="32" r="20" stroke="white" stroke-width="4" fill="none"/>
+  <circle cx="32" cy="32" r="4" fill="white"/>
+  
+  <!-- Arrows -->
+  <path d="M32 8 L28 14 H36 Z" fill="white"/> <!-- Top -->
+  <path d="M32 56 L28 50 H36 Z" fill="white"/> <!-- Bottom -->
+  <path d="M8 32 L14 28 V36 Z" fill="white"/> <!-- Left -->
+  <path d="M56 32 L50 28 V36 Z" fill="white"/> <!-- Right -->
+</svg>

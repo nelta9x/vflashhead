@@ -1,5 +1,12 @@
 import { Data } from '../data/DataManager';
-import type { SystemUpgradeData } from '../data/types';
+import type {
+  SystemUpgradeData,
+  CursorSizeLevelData,
+  ElectricShockLevelData,
+  StaticDischargeLevelData,
+  MagnetLevelData,
+  MissileLevelData,
+} from '../data/types';
 import { EventBus, GameEvents } from '../utils/EventBus';
 
 export interface Upgrade {
@@ -18,32 +25,17 @@ function createSystemUpgrades(): Upgrade[] {
     name: data.name,
     description: data.description,
     rarity: data.rarity,
-    maxStack: data.maxStack,
-    effect: (us: UpgradeSystem) => {
-      switch (data.effectType) {
-        case 'cursorSizeBonus':
-          us.addCursorSizeBonus(data.value);
-          break;
-        case 'electricShockLevel':
-          us.addElectricShockLevel(data.value);
-          break;
-        case 'staticDischargeLevel':
-          us.addStaticDischargeLevel(data.value);
-          break;
-        case 'magnetLevel':
-          us.addMagnetLevel(data.value);
-          break;
-        case 'missileLevel':
-          us.addMissileLevel(data.value);
-          break;
-        case 'fullHeal':
-          EventBus.getInstance().emit(GameEvents.HP_CHANGED, {
-            hp: 999, // 특별한 값으로 전달하거나 HealthSystem에서 처리
-            maxHp: 999,
-            delta: 999,
-            isFullHeal: true,
-          });
-          break;
+    maxStack: data.levels ? data.levels.length : (data.maxStack ?? 999),
+    effect: (_us: UpgradeSystem) => {
+      // levels 기반 어빌리티: 스택은 applyUpgrade에서 자동 증가하므로 no-op
+      // fullHeal만 이벤트 발생
+      if (data.effectType === 'fullHeal') {
+        EventBus.getInstance().emit(GameEvents.HP_CHANGED, {
+          hp: 999,
+          maxHp: 999,
+          delta: 999,
+          isFullHeal: true,
+        });
       }
     },
   }));
@@ -54,42 +46,12 @@ export const UPGRADES: Upgrade[] = createSystemUpgrades();
 export class UpgradeSystem {
   private upgradeStacks: Map<string, number> = new Map();
 
-  // 커서 크기
-  private cursorSizeBonus: number = 0;
-
-  // 전기 충격
-  private electricShockLevel: number = 0;
-
-  // 정전기 방출
-  private staticDischargeLevel: number = 0;
-
-  // 자기장
-  private magnetLevel: number = 0;
-
-  // 미사일
-  private missileLevel: number = 0;
-
   constructor() {
     this.reset();
   }
 
   reset(): void {
     this.upgradeStacks.clear();
-
-    // 커서 크기
-    this.cursorSizeBonus = 0;
-
-    // 전기 충격
-    this.electricShockLevel = 0;
-
-    // 정전기 방출
-    this.staticDischargeLevel = 0;
-
-    // 자기장
-    this.magnetLevel = 0;
-
-    // 미사일
-    this.missileLevel = 0;
   }
 
   update(_delta: number, _gameTime: number): void {
@@ -184,108 +146,79 @@ export class UpgradeSystem {
     upgrade.effect(this, currentStack + 1);
   }
 
-  // ========== 커서 크기 ==========
-  addCursorSizeBonus(amount: number): void {
-    this.cursorSizeBonus += amount;
+  // ========== 레벨 데이터 헬퍼 ==========
+  private getLevelData<T>(upgradeId: string): T | null {
+    const level = this.getUpgradeStack(upgradeId);
+    if (level <= 0) return null;
+    const upgradeData = Data.upgrades.system.find((u) => u.id === upgradeId);
+    if (!upgradeData?.levels) return null;
+    const index = Math.min(level, upgradeData.levels.length) - 1;
+    return upgradeData.levels[index] as T;
   }
 
+  // ========== 커서 크기 ==========
   getCursorSizeBonus(): number {
-    return this.cursorSizeBonus;
+    return this.getLevelData<CursorSizeLevelData>('cursor_size')?.sizeBonus ?? 0;
   }
 
   getCursorDamageBonus(): number {
-    const stack = this.getUpgradeStack('cursor_size');
-    if (stack <= 0) return 0;
-    const upgradeData = Data.upgrades.system.find((u) => u.id === 'cursor_size');
-    if (!upgradeData || !upgradeData.meta) return 0;
-    const meta = upgradeData.meta;
-    return (meta.baseDamage || 0) + stack * (meta.damagePerLevel || 0);
+    return this.getLevelData<CursorSizeLevelData>('cursor_size')?.damage ?? 0;
   }
 
   // ========== 전기 충격 ==========
-  addElectricShockLevel(level: number): void {
-    this.electricShockLevel += level;
-  }
-
   getElectricShockLevel(): number {
-    return this.electricShockLevel;
+    return this.getUpgradeStack('electric_shock');
   }
 
   getElectricShockRadius(): number {
-    if (this.electricShockLevel <= 0) return 0;
-    const upgradeData = Data.upgrades.system.find((u) => u.id === 'electric_shock');
-    if (!upgradeData || !upgradeData.meta) return 100 + this.electricShockLevel * 15;
-
-    const meta = upgradeData.meta;
-    return (meta.baseRadius || 100) + this.electricShockLevel * (meta.radiusPerLevel || 15);
+    return this.getLevelData<ElectricShockLevelData>('electric_shock')?.radius ?? 0;
   }
 
   getElectricShockDamage(): number {
-    if (this.electricShockLevel <= 0) return 0;
-    const upgradeData = Data.upgrades.system.find((u) => u.id === 'electric_shock');
-    if (!upgradeData || !upgradeData.meta) return this.electricShockLevel;
-
-    const meta = upgradeData.meta;
-    return (meta.baseDamage || 0) + this.electricShockLevel * (meta.damagePerLevel || 1);
+    return this.getLevelData<ElectricShockLevelData>('electric_shock')?.damage ?? 0;
   }
 
   // ========== 정전기 방출 ==========
-  addStaticDischargeLevel(level: number): void {
-    this.staticDischargeLevel += level;
-  }
-
   getStaticDischargeLevel(): number {
-    return this.staticDischargeLevel;
+    return this.getUpgradeStack('static_discharge');
   }
 
   getStaticDischargeChance(): number {
-    if (this.staticDischargeLevel <= 0) return 0;
-    const upgradeData = Data.upgrades.system.find((u) => u.id === 'static_discharge');
-    if (!upgradeData || !upgradeData.meta) return 0.25;
-
-    const meta = upgradeData.meta;
-    return (meta.baseChance || 0.25) + this.staticDischargeLevel * (meta.chancePerLevel || 0.05);
+    return this.getLevelData<StaticDischargeLevelData>('static_discharge')?.chance ?? 0;
   }
 
   getStaticDischargeDamage(): number {
-    if (this.staticDischargeLevel <= 0) return 0;
-    const upgradeData = Data.upgrades.system.find((u) => u.id === 'static_discharge');
-    if (!upgradeData || !upgradeData.meta) return 3;
-
-    const meta = upgradeData.meta;
-    return (meta.baseDamage || 3) + this.staticDischargeLevel * (meta.damagePerLevel || 2);
+    return this.getLevelData<StaticDischargeLevelData>('static_discharge')?.damage ?? 0;
   }
 
   getStaticDischargeRange(): number {
-    if (this.staticDischargeLevel <= 0) return 0;
-    const upgradeData = Data.upgrades.system.find((u) => u.id === 'static_discharge');
-    if (!upgradeData || !upgradeData.meta) return 250;
-
-    const meta = upgradeData.meta;
-    return (meta.baseRange || 250) + this.staticDischargeLevel * (meta.rangePerLevel || 50);
+    return this.getLevelData<StaticDischargeLevelData>('static_discharge')?.range ?? 0;
   }
 
   // ========== 자기장 ==========
-  addMagnetLevel(level: number): void {
-    this.magnetLevel += level;
-  }
-
   getMagnetLevel(): number {
-    return this.magnetLevel;
+    return this.getUpgradeStack('magnet');
   }
 
   getMagnetRadius(): number {
-    if (this.magnetLevel <= 0) return 0;
-    return Data.magnet.baseRadius + this.magnetLevel * Data.magnet.radiusPerLevel;
+    return this.getLevelData<MagnetLevelData>('magnet')?.radius ?? 0;
+  }
+
+  getMagnetForce(): number {
+    return this.getLevelData<MagnetLevelData>('magnet')?.force ?? 0;
   }
 
   // ========== 미사일 ==========
-  addMissileLevel(level: number): void {
-    this.missileLevel += level;
+  getMissileLevel(): number {
+    return this.getUpgradeStack('missile');
   }
 
-  getMissileLevel(): number {
-    return this.missileLevel;
+  getMissileDamage(): number {
+    return this.getLevelData<MissileLevelData>('missile')?.damage ?? 0;
+  }
+
+  getMissileCount(): number {
+    return this.getLevelData<MissileLevelData>('missile')?.count ?? 0;
   }
 
   // ========== 유틸리티 ==========
@@ -309,55 +242,18 @@ export class UpgradeSystem {
     const stack = this.getUpgradeStack(upgradeId);
     if (stack <= 0) return upgradeData.description;
 
-    const template = upgradeData.descriptionTemplate;
+    if (!upgradeData.levels) return upgradeData.description;
+    const index = Math.min(stack, upgradeData.levels.length) - 1;
+    const levelData = upgradeData.levels[index];
 
-    switch (upgradeData.effectType) {
-      case 'cursorSizeBonus': {
-        const percentage = Math.round(upgradeData.value * stack * 100);
-        const meta = upgradeData.meta!;
-        const damage = (meta.baseDamage || 0) + stack * (meta.damagePerLevel || 0);
-        return template
-          .replace('{value}', percentage.toString())
-          .replace('{damage}', damage.toString());
-      }
-
-      case 'electricShockLevel': {
-        const meta = upgradeData.meta!;
-        const radius = meta.baseRadius! + stack * meta.radiusPerLevel!;
-        const damage = (meta.baseDamage || 0) + stack * (meta.damagePerLevel || 1);
-        return template
-          .replace('{radius}', radius.toString())
-          .replace('{damage}', damage.toString());
-      }
-
-      case 'staticDischargeLevel': {
-        const meta = upgradeData.meta!;
-        const chance = Math.round(
-          ((meta.baseChance || 0.25) + stack * (meta.chancePerLevel || 0.05)) * 100
-        );
-        const damage = (meta.baseDamage || 3) + stack * (meta.damagePerLevel || 2);
-        const radius = (meta.baseRange || 250) + stack * (meta.rangePerLevel || 50);
-        return template
-          .replace('{chance}', chance.toString())
-          .replace('{radius}', radius.toString())
-          .replace('{damage}', damage.toString());
-      }
-
-      case 'magnetLevel': {
-        const meta = upgradeData.meta!;
-        const radius = meta.baseRadius! + stack * meta.radiusPerLevel!;
-        return template.replace('{radius}', radius.toString());
-      }
-
-      case 'missileLevel': {
-        const stack = this.getUpgradeStack(upgradeId);
-        const count = 1 + stack;
-        return template.replace('{count}', count.toString());
-      }
-
-      default:
-        return upgradeData.description;
+    let result = upgradeData.descriptionTemplate;
+    for (const [key, value] of Object.entries(levelData)) {
+      const displayValue = key === 'chance' || key === 'sizeBonus'
+        ? Math.round((value as number) * 100)
+        : value;
+      result = result.replace(`{${key}}`, String(displayValue));
     }
+    return result;
   }
 
   // 선택 화면용 미리보기 설명 (현재 → 다음 레벨)
@@ -365,74 +261,92 @@ export class UpgradeSystem {
     const upgradeData = Data.upgrades.system.find((u) => u.id === upgradeId);
     if (!upgradeData) return '';
 
+    // fullHeal 등 levels가 없는 업그레이드
+    if (!upgradeData.levels) return upgradeData.description;
+
     const currentStack = this.getUpgradeStack(upgradeId);
     const nextStack = currentStack + 1;
 
-    switch (upgradeData.effectType) {
-      case 'cursorSizeBonus': {
-        const currentPct = Math.round(upgradeData.value * currentStack * 100);
-        const nextPct = Math.round(upgradeData.value * nextStack * 100);
-        const meta = upgradeData.meta!;
-        const currentDamage = (meta.baseDamage || 0) + currentStack * (meta.damagePerLevel || 0);
-        const nextDamage = (meta.baseDamage || 0) + nextStack * (meta.damagePerLevel || 0);
+    if (nextStack > upgradeData.levels.length) return upgradeData.description;
 
-        if (currentStack === 0) {
-          return `커서 범위 +${nextPct}%, 데미지 +${nextDamage}`;
+    const nextData = upgradeData.levels[nextStack - 1];
+
+    if (currentStack === 0) {
+      // 처음 획득: 다음 레벨 수치만 표시
+      return this.formatLevelPreview(upgradeData.effectType, null, nextData);
+    }
+
+    const currentData = upgradeData.levels[currentStack - 1];
+    return this.formatLevelPreview(upgradeData.effectType, currentData, nextData);
+  }
+
+  private formatLevelPreview(
+    effectType: string,
+    current: Record<string, unknown> | null,
+    next: Record<string, unknown>
+  ): string {
+    switch (effectType) {
+      case 'cursorSizeBonus': {
+        const nextPct = Math.round((next.sizeBonus as number) * 100);
+        const nextDmg = next.damage as number;
+        if (!current) {
+          return `커서 범위 +${nextPct}%, 데미지 +${nextDmg}`;
         }
-        return `범위 ${currentPct}%→${nextPct}%, 데미지 ${currentDamage}→${nextDamage}`;
+        const curPct = Math.round((current.sizeBonus as number) * 100);
+        const curDmg = current.damage as number;
+        return `범위 ${curPct}%→${nextPct}%, 데미지 ${curDmg}→${nextDmg}`;
       }
 
       case 'electricShockLevel': {
-        const meta = upgradeData.meta!;
-        const curRadius = meta.baseRadius! + currentStack * meta.radiusPerLevel!;
-        const nextRadius = meta.baseRadius! + nextStack * meta.radiusPerLevel!;
-        const curDamage = (meta.baseDamage || 0) + currentStack * (meta.damagePerLevel || 1);
-        const nextDamage = (meta.baseDamage || 0) + nextStack * (meta.damagePerLevel || 1);
-        if (currentStack === 0) {
-          return `반경 ${nextRadius}px, ${nextDamage} 데미지`;
+        const nextRadius = next.radius as number;
+        const nextDmg = next.damage as number;
+        if (!current) {
+          return `반경 ${nextRadius}px, ${nextDmg} 데미지`;
         }
-        return `반경 ${curRadius}→${nextRadius}px, 데미지 ${curDamage}→${nextDamage}`;
+        const curRadius = current.radius as number;
+        const curDmg = current.damage as number;
+        return `반경 ${curRadius}→${nextRadius}px, 데미지 ${curDmg}→${nextDmg}`;
       }
 
       case 'staticDischargeLevel': {
-        const meta = upgradeData.meta!;
-        const curChance = Math.round(
-          ((meta.baseChance || 0.25) + currentStack * (meta.chancePerLevel || 0.05)) * 100
-        );
-        const nextChance = Math.round(
-          ((meta.baseChance || 0.25) + nextStack * (meta.chancePerLevel || 0.05)) * 100
-        );
-        const nextDamage = (meta.baseDamage || 3) + nextStack * (meta.damagePerLevel || 2);
-        const curRadius = (meta.baseRange || 250) + currentStack * (meta.rangePerLevel || 50);
-        const nextRadius = (meta.baseRange || 250) + nextStack * (meta.rangePerLevel || 50);
-
-        if (currentStack === 0) {
-          return `${nextChance}% 확률로 ${nextRadius}px 내 적 타격 (${nextDamage} 데미지)`;
+        const nextChance = Math.round((next.chance as number) * 100);
+        const nextDmg = next.damage as number;
+        const nextRange = next.range as number;
+        if (!current) {
+          return `${nextChance}% 확률로 ${nextRange}px 내 적 타격 (${nextDmg} 데미지)`;
         }
-        return `확률 ${curChance}%→${nextChance}%, 사거리 ${curRadius}→${nextRadius}px`;
+        const curChance = Math.round((current.chance as number) * 100);
+        const curRange = current.range as number;
+        return `확률 ${curChance}%→${nextChance}%, 사거리 ${curRange}→${nextRange}px`;
       }
 
       case 'magnetLevel': {
-        const meta = upgradeData.meta!;
-        const curRadius = meta.baseRadius! + currentStack * meta.radiusPerLevel!;
-        const nextRadius = meta.baseRadius! + nextStack * meta.radiusPerLevel!;
-        if (currentStack === 0) {
-          return `끌어당김 반경 ${nextRadius}px`;
+        const nextRadius = next.radius as number;
+        const nextForce = next.force as number;
+        if (!current) {
+          return `끌어당김 반경 ${nextRadius}px, 힘 ${nextForce}`;
         }
-        return `끌어당김 반경 ${curRadius}→${nextRadius}px`;
+        const curRadius = current.radius as number;
+        const curForce = current.force as number;
+        return `반경 ${curRadius}→${nextRadius}px, 힘 ${curForce}→${nextForce}`;
       }
 
       case 'missileLevel': {
-        const curCount = 1 + currentStack;
-        const nextCount = 1 + nextStack;
-        if (currentStack === 0) {
-          return `발사되는 미사일 수: ${nextCount}개`;
+        const nextCount = next.count as number;
+        const nextDmg = next.damage as number;
+        if (!current) {
+          return `미사일 ${nextCount}발 (${nextDmg} 데미지)`;
         }
-        return `미사일 수 ${curCount} → ${nextCount}개`;
+        const curCount = current.count as number;
+        const curDmg = current.damage as number;
+        if (curDmg !== nextDmg) {
+          return `미사일 ${curCount}→${nextCount}발, 데미지 ${curDmg}→${nextDmg}`;
+        }
+        return `미사일 수 ${curCount} → ${nextCount}발`;
       }
 
       default:
-        return upgradeData.description;
+        return '';
     }
   }
 }

@@ -40,7 +40,7 @@ vi.mock('../src/utils/EventBus', () => ({
   },
 }));
 
-describe('UpgradeSystem - 간소화된 시스템', () => {
+describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -49,181 +49,241 @@ describe('UpgradeSystem - 간소화된 시스템', () => {
     vi.restoreAllMocks();
   });
 
-  describe('커서 크기', () => {
-    it('커서 크기 보너스 추적', async () => {
+  describe('레벨 0 (미적용 상태)', () => {
+    it('모든 getter가 0을 반환해야 함', async () => {
       const { UpgradeSystem } = await import('../src/systems/UpgradeSystem');
       const upgrade = new UpgradeSystem();
 
       expect(upgrade.getCursorSizeBonus()).toBe(0);
-      upgrade.addCursorSizeBonus(0.03);
-      expect(upgrade.getCursorSizeBonus()).toBeCloseTo(0.03);
-      upgrade.addCursorSizeBonus(0.03);
-      expect(upgrade.getCursorSizeBonus()).toBeCloseTo(0.06);
-    });
-  });
-
-  describe('전기 충격', () => {
-    it('전기 충격 레벨 추적', async () => {
-      const { UpgradeSystem } = await import('../src/systems/UpgradeSystem');
-      const upgrade = new UpgradeSystem();
-
+      expect(upgrade.getCursorDamageBonus()).toBe(0);
       expect(upgrade.getElectricShockLevel()).toBe(0);
-      upgrade.addElectricShockLevel(1);
-      expect(upgrade.getElectricShockLevel()).toBe(1);
-      upgrade.addElectricShockLevel(1);
-      expect(upgrade.getElectricShockLevel()).toBe(2);
-    });
-  });
-
-  describe('정전기 방출', () => {
-    it('정전기 방출 레벨 추적', async () => {
-      const { UpgradeSystem } = await import('../src/systems/UpgradeSystem');
-      const upgrade = new UpgradeSystem();
-
+      expect(upgrade.getElectricShockRadius()).toBe(0);
+      expect(upgrade.getElectricShockDamage()).toBe(0);
       expect(upgrade.getStaticDischargeLevel()).toBe(0);
-      upgrade.addStaticDischargeLevel(1);
-      expect(upgrade.getStaticDischargeLevel()).toBe(1);
-      upgrade.addStaticDischargeLevel(1);
-      expect(upgrade.getStaticDischargeLevel()).toBe(2);
-    });
-  });
-
-  describe('자기장', () => {
-    it('자기장 레벨 추적', async () => {
-      const { UpgradeSystem } = await import('../src/systems/UpgradeSystem');
-      const upgrade = new UpgradeSystem();
-
+      expect(upgrade.getStaticDischargeChance()).toBe(0);
+      expect(upgrade.getStaticDischargeDamage()).toBe(0);
+      expect(upgrade.getStaticDischargeRange()).toBe(0);
       expect(upgrade.getMagnetLevel()).toBe(0);
-      upgrade.addMagnetLevel(1);
-      expect(upgrade.getMagnetLevel()).toBe(1);
-      upgrade.addMagnetLevel(1);
-      expect(upgrade.getMagnetLevel()).toBe(2);
-      upgrade.addMagnetLevel(1);
-      expect(upgrade.getMagnetLevel()).toBe(3);
+      expect(upgrade.getMagnetRadius()).toBe(0);
+      expect(upgrade.getMagnetForce()).toBe(0);
+      expect(upgrade.getMissileLevel()).toBe(0);
+      expect(upgrade.getMissileDamage()).toBe(0);
+      expect(upgrade.getMissileCount()).toBe(0);
     });
   });
 
-  describe('미사일', () => {
-    it('미사일 레벨 추적', async () => {
-      const { UpgradeSystem } = await import('../src/systems/UpgradeSystem');
+  describe('커서 크기 (cursor_size)', () => {
+    it('레벨 1 수치 확인', async () => {
+      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
       const upgrade = new UpgradeSystem();
+      const cursorUpgrade = UPGRADES.find((u) => u.id === 'cursor_size')!;
 
-      expect(upgrade.getMissileLevel()).toBe(0);
-      upgrade.addMissileLevel(1);
+      upgrade.applyUpgrade(cursorUpgrade);
+      expect(upgrade.getUpgradeStack('cursor_size')).toBe(1);
+      expect(upgrade.getCursorSizeBonus()).toBeCloseTo(0.3);
+      expect(upgrade.getCursorDamageBonus()).toBe(2);
+    });
+
+    it('레벨 3 수치 확인', async () => {
+      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const upgrade = new UpgradeSystem();
+      const cursorUpgrade = UPGRADES.find((u) => u.id === 'cursor_size')!;
+
+      for (let i = 0; i < 3; i++) upgrade.applyUpgrade(cursorUpgrade);
+      expect(upgrade.getUpgradeStack('cursor_size')).toBe(3);
+      expect(upgrade.getCursorSizeBonus()).toBeCloseTo(0.9);
+      expect(upgrade.getCursorDamageBonus()).toBe(6);
+    });
+
+    it('레벨 5 (맥스) 수치 확인', async () => {
+      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const upgrade = new UpgradeSystem();
+      const cursorUpgrade = UPGRADES.find((u) => u.id === 'cursor_size')!;
+
+      for (let i = 0; i < 5; i++) upgrade.applyUpgrade(cursorUpgrade);
+      expect(upgrade.getUpgradeStack('cursor_size')).toBe(5);
+      expect(upgrade.getCursorSizeBonus()).toBeCloseTo(1.5);
+      expect(upgrade.getCursorDamageBonus()).toBe(10);
+    });
+  });
+
+  describe('전기 충격 (electric_shock)', () => {
+    it('레벨 1 수치 확인', async () => {
+      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const upgrade = new UpgradeSystem();
+      const electricUpgrade = UPGRADES.find((u) => u.id === 'electric_shock')!;
+
+      upgrade.applyUpgrade(electricUpgrade);
+      expect(upgrade.getElectricShockLevel()).toBe(1);
+      expect(upgrade.getElectricShockRadius()).toBe(320);
+      expect(upgrade.getElectricShockDamage()).toBe(2);
+    });
+
+    it('레벨 3 수치 확인', async () => {
+      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const upgrade = new UpgradeSystem();
+      const electricUpgrade = UPGRADES.find((u) => u.id === 'electric_shock')!;
+
+      for (let i = 0; i < 3; i++) upgrade.applyUpgrade(electricUpgrade);
+      expect(upgrade.getElectricShockRadius()).toBe(400);
+      expect(upgrade.getElectricShockDamage()).toBe(4);
+    });
+
+    it('레벨 5 수치 확인', async () => {
+      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const upgrade = new UpgradeSystem();
+      const electricUpgrade = UPGRADES.find((u) => u.id === 'electric_shock')!;
+
+      for (let i = 0; i < 5; i++) upgrade.applyUpgrade(electricUpgrade);
+      expect(upgrade.getElectricShockRadius()).toBe(480);
+      expect(upgrade.getElectricShockDamage()).toBe(6);
+    });
+  });
+
+  describe('정전기 방출 (static_discharge)', () => {
+    it('레벨 1 수치 확인', async () => {
+      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const upgrade = new UpgradeSystem();
+      const staticUpgrade = UPGRADES.find((u) => u.id === 'static_discharge')!;
+
+      upgrade.applyUpgrade(staticUpgrade);
+      expect(upgrade.getStaticDischargeLevel()).toBe(1);
+      expect(upgrade.getStaticDischargeChance()).toBeCloseTo(0.30);
+      expect(upgrade.getStaticDischargeDamage()).toBe(5);
+      expect(upgrade.getStaticDischargeRange()).toBe(300);
+    });
+
+    it('레벨 5 수치 확인', async () => {
+      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const upgrade = new UpgradeSystem();
+      const staticUpgrade = UPGRADES.find((u) => u.id === 'static_discharge')!;
+
+      for (let i = 0; i < 5; i++) upgrade.applyUpgrade(staticUpgrade);
+      expect(upgrade.getStaticDischargeChance()).toBeCloseTo(0.50);
+      expect(upgrade.getStaticDischargeDamage()).toBe(13);
+      expect(upgrade.getStaticDischargeRange()).toBe(500);
+    });
+  });
+
+  describe('자기장 (magnet)', () => {
+    it('레벨 1 수치 확인', async () => {
+      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const upgrade = new UpgradeSystem();
+      const magnetUpgrade = UPGRADES.find((u) => u.id === 'magnet')!;
+
+      upgrade.applyUpgrade(magnetUpgrade);
+      expect(upgrade.getMagnetLevel()).toBe(1);
+      expect(upgrade.getMagnetRadius()).toBe(180);
+      expect(upgrade.getMagnetForce()).toBe(300);
+    });
+
+    it('레벨 5 수치 확인', async () => {
+      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const upgrade = new UpgradeSystem();
+      const magnetUpgrade = UPGRADES.find((u) => u.id === 'magnet')!;
+
+      for (let i = 0; i < 5; i++) upgrade.applyUpgrade(magnetUpgrade);
+      expect(upgrade.getMagnetRadius()).toBe(260);
+      expect(upgrade.getMagnetForce()).toBe(380);
+    });
+  });
+
+  describe('미사일 (missile)', () => {
+    it('레벨 1 수치 확인', async () => {
+      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const upgrade = new UpgradeSystem();
+      const missileUpgrade = UPGRADES.find((u) => u.id === 'missile')!;
+
+      upgrade.applyUpgrade(missileUpgrade);
       expect(upgrade.getMissileLevel()).toBe(1);
-      upgrade.addMissileLevel(1);
-      expect(upgrade.getMissileLevel()).toBe(2);
+      expect(upgrade.getMissileDamage()).toBe(100);
+      expect(upgrade.getMissileCount()).toBe(2);
+    });
+
+    it('레벨 3 수치 확인', async () => {
+      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const upgrade = new UpgradeSystem();
+      const missileUpgrade = UPGRADES.find((u) => u.id === 'missile')!;
+
+      for (let i = 0; i < 3; i++) upgrade.applyUpgrade(missileUpgrade);
+      expect(upgrade.getMissileDamage()).toBe(100);
+      expect(upgrade.getMissileCount()).toBe(4);
+    });
+
+    it('비선형 수치: 레벨 4→5 시 damage 100→150 점프', async () => {
+      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const upgrade = new UpgradeSystem();
+      const missileUpgrade = UPGRADES.find((u) => u.id === 'missile')!;
+
+      // 레벨 4
+      for (let i = 0; i < 4; i++) upgrade.applyUpgrade(missileUpgrade);
+      expect(upgrade.getMissileDamage()).toBe(150);
+      expect(upgrade.getMissileCount()).toBe(5);
+
+      // 레벨 5
+      upgrade.applyUpgrade(missileUpgrade);
+      expect(upgrade.getMissileDamage()).toBe(200);
+      expect(upgrade.getMissileCount()).toBe(6);
+    });
+  });
+
+  describe('스택 제한', () => {
+    it('7회 적용해도 levels.length(5)에서 캡', async () => {
+      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const upgrade = new UpgradeSystem();
+      const cursorUpgrade = UPGRADES.find((u) => u.id === 'cursor_size')!;
+
+      for (let i = 0; i < 7; i++) upgrade.applyUpgrade(cursorUpgrade);
+
+      expect(upgrade.getUpgradeStack('cursor_size')).toBe(5);
+      expect(upgrade.getCursorSizeBonus()).toBeCloseTo(1.5);
+      expect(upgrade.getCursorDamageBonus()).toBe(10);
+    });
+
+    it('모든 어빌리티 maxStack이 levels.length와 일치', async () => {
+      const { UPGRADES } = await import('../src/systems/UpgradeSystem');
+
+      const levelUpgrades = UPGRADES.filter(
+        (u) => u.id !== 'health_pack'
+      );
+
+      for (const upgrade of levelUpgrades) {
+        expect(upgrade.maxStack).toBe(5);
+      }
     });
   });
 
   describe('리셋', () => {
-    it('모든 값이 리셋되어야 함', async () => {
-      const { UpgradeSystem } = await import('../src/systems/UpgradeSystem');
+    it('reset() 후 모든 스택 0, 모든 getter 0', async () => {
+      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
       const upgrade = new UpgradeSystem();
 
-      // 값 설정
-      upgrade.addCursorSizeBonus(0.4);
-      upgrade.addElectricShockLevel(2);
-      upgrade.addStaticDischargeLevel(1);
-      upgrade.addMagnetLevel(3);
-      upgrade.addMissileLevel(1);
+      // 모든 어빌리티 적용
+      for (const u of UPGRADES) {
+        if (u.id !== 'health_pack') {
+          for (let i = 0; i < 3; i++) upgrade.applyUpgrade(u);
+        }
+      }
 
       // 리셋
       upgrade.reset();
 
       // 확인
       expect(upgrade.getCursorSizeBonus()).toBe(0);
+      expect(upgrade.getCursorDamageBonus()).toBe(0);
       expect(upgrade.getElectricShockLevel()).toBe(0);
+      expect(upgrade.getElectricShockRadius()).toBe(0);
+      expect(upgrade.getElectricShockDamage()).toBe(0);
       expect(upgrade.getStaticDischargeLevel()).toBe(0);
+      expect(upgrade.getStaticDischargeChance()).toBe(0);
+      expect(upgrade.getStaticDischargeDamage()).toBe(0);
+      expect(upgrade.getStaticDischargeRange()).toBe(0);
       expect(upgrade.getMagnetLevel()).toBe(0);
+      expect(upgrade.getMagnetRadius()).toBe(0);
+      expect(upgrade.getMagnetForce()).toBe(0);
       expect(upgrade.getMissileLevel()).toBe(0);
-    });
-  });
-
-  describe('업그레이드 적용', () => {
-    it('넓은 타격 스택 (maxStack=5)', async () => {
-      const { UpgradeSystem } = await import('../src/systems/UpgradeSystem');
-      const upgrade = new UpgradeSystem();
-
-      const upgrades = upgrade.getRandomUpgrades(5);
-      const cursorUpgrade = upgrades.find((u) => u.id === 'cursor_size');
-
-      if (cursorUpgrade) {
-        // maxStack이 5이므로 5번까지 중첩 가능
-        for (let i = 0; i < 7; i++) {
-          upgrade.applyUpgrade(cursorUpgrade);
-        }
-        expect(upgrade.getUpgradeStack('cursor_size')).toBe(5);
-        expect(upgrade.getCursorSizeBonus()).toBeCloseTo(1.5); // 0.3 * 5
-        expect(upgrade.getCursorDamageBonus()).toBe(10); // 2 * 5
-      }
-    });
-    it('전기 충격 스택 (maxStack=5)', async () => {
-      const { UpgradeSystem } = await import('../src/systems/UpgradeSystem');
-      const upgrade = new UpgradeSystem();
-
-      const upgrades = upgrade.getRandomUpgrades(5);
-      const electricUpgrade = upgrades.find((u) => u.id === 'electric_shock');
-
-      if (electricUpgrade) {
-        // maxStack은 5
-        for (let i = 0; i < 7; i++) {
-          upgrade.applyUpgrade(electricUpgrade);
-        }
-        expect(upgrade.getUpgradeStack('electric_shock')).toBe(5);
-        expect(upgrade.getElectricShockLevel()).toBe(5);
-      }
-    });
-
-    it('정전기 방출 스택 (maxStack=5)', async () => {
-      const { UpgradeSystem } = await import('../src/systems/UpgradeSystem');
-      const upgrade = new UpgradeSystem();
-
-      const upgrades = upgrade.getRandomUpgrades(10);
-      const staticUpgrade = upgrades.find((u) => u.id === 'static_discharge');
-
-      if (staticUpgrade) {
-        // maxStack은 5
-        for (let i = 0; i < 7; i++) {
-          upgrade.applyUpgrade(staticUpgrade);
-        }
-        expect(upgrade.getUpgradeStack('static_discharge')).toBe(5);
-        expect(upgrade.getStaticDischargeLevel()).toBe(5);
-      }
-    });
-
-    it('자기장 스택 (maxStack=5)', async () => {
-      const { UpgradeSystem } = await import('../src/systems/UpgradeSystem');
-      const upgrade = new UpgradeSystem();
-
-      const upgrades = upgrade.getRandomUpgrades(5);
-      const magnetUpgrade = upgrades.find((u) => u.id === 'magnet');
-
-      if (magnetUpgrade) {
-        // maxStack은 5
-        for (let i = 0; i < 7; i++) {
-          upgrade.applyUpgrade(magnetUpgrade);
-        }
-        expect(upgrade.getUpgradeStack('magnet')).toBe(5);
-        expect(upgrade.getMagnetLevel()).toBe(5);
-      }
-    });
-
-    it('미사일 스택 (maxStack=5)', async () => {
-      const { UpgradeSystem } = await import('../src/systems/UpgradeSystem');
-      const upgrade = new UpgradeSystem();
-
-      const upgrades = upgrade.getRandomUpgrades(5);
-      const missileUpgrade = upgrades.find((u) => u.id === 'missile');
-
-      if (missileUpgrade) {
-        // maxStack은 5
-        for (let i = 0; i < 7; i++) {
-          upgrade.applyUpgrade(missileUpgrade);
-        }
-        expect(upgrade.getUpgradeStack('missile')).toBe(5);
-        expect(upgrade.getMissileLevel()).toBe(5);
-      }
+      expect(upgrade.getMissileDamage()).toBe(0);
+      expect(upgrade.getMissileCount()).toBe(0);
     });
   });
 });

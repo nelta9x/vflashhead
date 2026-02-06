@@ -50,11 +50,11 @@
     "main": "'Orbitron', 'Black Han Sans', sans-serif",
     "korean": "'Black Han Sans', 'Orbitron', sans-serif"
   },
+  "playerAttack": {
+    "baseMissileCount": 1,
+    "baseMissileDamage": 100
+  },
   "magnet": {
-    "baseRadius": 99,
-    "radiusPerLevel": 25,
-    "baseForce": 280,
-    "forcePerLevel": 20,
     "minPullDistance": 30
   },
   "gameGrid": {

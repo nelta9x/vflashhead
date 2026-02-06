@@ -215,15 +215,16 @@
       "id": "cursor_size",
       "name": "넓은 타격",
       "description": "커서 판정 범위 및 데미지 증가",
-      "descriptionTemplate": "커서 판정 범위가 {value}% 증가하고, 데미지가 {damage} 증가합니다.",
+      "descriptionTemplate": "커서 판정 범위가 {sizeBonus}% 증가하고, 데미지가 {damage} 증가합니다.",
       "rarity": "common",
       "effectType": "cursorSizeBonus",
-      "value": 0.3,
-      "maxStack": 5,
-      "meta": {
-        "baseDamage": 0,
-        "damagePerLevel": 2
-      }
+      "levels": [
+        { "sizeBonus": 0.3, "damage": 2 },
+        { "sizeBonus": 0.6, "damage": 4 },
+        { "sizeBonus": 0.9, "damage": 6 },
+        { "sizeBonus": 1.2, "damage": 8 },
+        { "sizeBonus": 1.5, "damage": 10 }
+      ]
     },
     {
       "id": "electric_shock",
@@ -232,60 +233,58 @@
       "descriptionTemplate": "반경 {radius}px 내 접시에 {damage} 데미지를 줍니다.",
       "rarity": "common",
       "effectType": "electricShockLevel",
-      "value": 1,
-      "maxStack": 5,
-      "meta": {
-        "baseRadius": 280,
-        "radiusPerLevel": 40,
-        "baseDamage": 1,
-        "damagePerLevel": 1
-      }
+      "levels": [
+        { "radius": 320, "damage": 2 },
+        { "radius": 360, "damage": 3 },
+        { "radius": 400, "damage": 4 },
+        { "radius": 440, "damage": 5 },
+        { "radius": 480, "damage": 6 }
+      ]
     },
     {
       "id": "static_discharge",
       "name": "정전기 방출",
       "description": "접시 파괴 시 주변 적에게 번개 발사",
-      "descriptionTemplate": "접시 파괴 시 {chance}% 확률로 {radius}px 내 적에게 {damage} 데미지의 번개를 발사합니다.",
+      "descriptionTemplate": "접시 파괴 시 {chance}% 확률로 {range}px 내 적에게 {damage} 데미지의 번개를 발사합니다.",
       "rarity": "common",
       "effectType": "staticDischargeLevel",
-      "value": 1,
-      "maxStack": 5,
-      "meta": {
-        "baseChance": 0.25,
-        "chancePerLevel": 0.05,
-        "baseDamage": 3,
-        "damagePerLevel": 2,
-        "baseRange": 250,
-        "rangePerLevel": 50
-      }
+      "levels": [
+        { "chance": 0.30, "damage": 5, "range": 300 },
+        { "chance": 0.35, "damage": 7, "range": 350 },
+        { "chance": 0.40, "damage": 9, "range": 400 },
+        { "chance": 0.45, "damage": 11, "range": 450 },
+        { "chance": 0.50, "damage": 13, "range": 500 }
+      ]
     },
     {
       "id": "magnet",
       "name": "자기장",
       "description": "커서 주변 접시 끌어당김",
-      "descriptionTemplate": "반경 {radius}px 내 접시가 커서 쪽으로 끌려옵니다.",
+      "descriptionTemplate": "반경 {radius}px 내 접시가 {force}의 힘으로 끌려옵니다.",
       "rarity": "common",
       "effectType": "magnetLevel",
-      "value": 1,
-      "maxStack": 5,
-      "meta": {
-        "baseRadius": 160,
-        "radiusPerLevel": 20
-      }
+      "levels": [
+        { "radius": 180, "force": 300 },
+        { "radius": 200, "force": 320 },
+        { "radius": 220, "force": 340 },
+        { "radius": 240, "force": 360 },
+        { "radius": 260, "force": 380 }
+      ]
     },
     {
       "id": "missile",
       "name": "강화 미사일",
       "description": "풀 차지 공격 시 보스에게 발사되는 미사일 수 증가",
-      "descriptionTemplate": "풀 차지 공격 시 보스에게 {count}발의 미사일을 연속 발사합니다.",
+      "descriptionTemplate": "풀 차지 공격 시 보스에게 {count}발의 미사일({damage} 데미지)을 연속 발사합니다.",
       "rarity": "common",
       "effectType": "missileLevel",
-      "value": 1,
-      "maxStack": 5,
-      "meta": {
-        "baseDamage": 0,
-        "damagePerLevel": 1
-      }
+      "levels": [
+        { "damage": 100, "count": 2 },
+        { "damage": 100, "count": 3 },
+        { "damage": 100, "count": 4 },
+        { "damage": 150, "count": 5 },
+        { "damage": 200, "count": 6 }
+      ]
     },
     {
       "id": "health_pack",

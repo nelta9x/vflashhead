@@ -100,11 +100,7 @@ import { COLORS, FONTS } from '../data/constants';
     "korean": "'Black Han Sans', 'Orbitron', sans-serif" // 한국어 우선 폰트
   },
   "magnet": {
-    "baseRadius": 70,       // 자기장 기본 범위 (px)
-    "radiusPerLevel": 25,   // 레벨당 추가 범위
-    "baseForce": 30,        // 기본 당기는 힘 (px/sec)
-    "forcePerLevel": 20,    // 레벨당 추가 힘
-    "minPullDistance": 30   // 최소 당김 거리
+    "minPullDistance": 30   // 최소 당김 거리 (레벨별 수치는 upgrades.json의 magnet.levels에서 관리)
   }
 }
 ```
@@ -323,26 +319,51 @@ import { COLORS, FONTS } from '../data/constants';
 
 #### 시스템 업그레이드
 
+시스템 업그레이드는 `levels` 배열 기반으로 동작합니다. 각 레벨마다 임의의 수치를 설정할 수 있어, 비선형적인 성장 곡선 설계가 가능합니다. `maxStack`은 `levels.length`에서 자동 파생됩니다.
+
 ```json
 {
   "system": [
     {
       "id": "cursor_size",
       "name": "넓은 타격",
-      "description": "커서 판정 범위가 6% 증가합니다.",
-      "rarity": "rare",
-      "effectType": "cursorSizeBonus",  // 효과 타입
-      "value": 0.06,                    // 적용 값
-      "maxStack": 5
+      "description": "커서 판정 범위 및 데미지 증가",
+      "descriptionTemplate": "커서 판정 범위가 {sizeBonus}% 증가하고, 데미지가 {damage} 증가합니다.",
+      "rarity": "common",
+      "effectType": "cursorSizeBonus",
+      "levels": [
+        { "sizeBonus": 0.3, "damage": 2 },
+        { "sizeBonus": 0.6, "damage": 4 },
+        { "sizeBonus": 0.9, "damage": 6 },
+        { "sizeBonus": 1.2, "damage": 8 },
+        { "sizeBonus": 1.5, "damage": 10 }
+      ]
     }
   ]
 }
 ```
 
-**effectType 종류**:
-- `cursorSizeBonus`: 커서 크기 증가 (value = 비율)
-- `electricShockLevel`: 전기 충격 레벨 (value = 레벨 증가량)
-- `magnetLevel`: 자기장 레벨 (value = 레벨 증가량)
+**levels 배열 규칙**:
+- 배열의 인덱스 0이 레벨 1, 인덱스 4가 레벨 5
+- 각 레벨에서 모든 필드를 독립적으로 설정 가능 (비선형 성장)
+- `maxStack`은 `levels.length`에서 자동 결정
+- `health_pack`은 `levels`가 없으며 `maxStack`을 직접 지정
+
+**어빌리티별 levels 필드**:
+
+| 어빌리티 | 필드 | 설명 |
+|----------|------|------|
+| `cursor_size` | `sizeBonus` | 커서 크기 증가 비율 (0.3 = 30%) |
+| | `damage` | 추가 데미지 |
+| `electric_shock` | `radius` | 충격 범위 (px) |
+| | `damage` | 데미지 |
+| `static_discharge` | `chance` | 발동 확률 (0.30 = 30%) |
+| | `damage` | 데미지 |
+| | `range` | 사거리 (px) |
+| `magnet` | `radius` | 끌어당김 범위 (px) |
+| | `force` | 끌어당기는 힘 (px/sec) |
+| `missile` | `damage` | 미사일 데미지 |
+| | `count` | 미사일 발사 수 |
 
 ---
 

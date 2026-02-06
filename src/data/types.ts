@@ -151,12 +151,18 @@ export interface AudioConfig {
   bgm: AudioBGMConfig;
 }
 
+export interface PlayerAttackConfig {
+  baseMissileCount: number;
+  baseMissileDamage: number;
+}
+
 export interface GameConfig {
   screen: ScreenConfig;
   player: PlayerConfig;
   upgradeUI: UpgradeUIConfig;
   waveTransition: WaveTransitionConfig;
   monsterAttack: MonsterAttackConfig;
+  playerAttack: PlayerAttackConfig;
   fonts: {
     main: string;
     korean: string;
@@ -485,6 +491,36 @@ export interface WeaponUpgradeData {
   maxStack: number;
 }
 
+// 레벨별 데이터 인터페이스
+export interface CursorSizeLevelData {
+  sizeBonus: number;
+  damage: number;
+}
+export interface ElectricShockLevelData {
+  radius: number;
+  damage: number;
+}
+export interface StaticDischargeLevelData {
+  chance: number;
+  damage: number;
+  range: number;
+}
+export interface MagnetLevelData {
+  radius: number;
+  force: number;
+}
+export interface MissileLevelData {
+  damage: number;
+  count: number;
+}
+
+export type SystemUpgradeLevelData =
+  | CursorSizeLevelData
+  | ElectricShockLevelData
+  | StaticDischargeLevelData
+  | MagnetLevelData
+  | MissileLevelData;
+
 export interface SystemUpgradeData {
   id: string;
   name: string;
@@ -492,18 +528,8 @@ export interface SystemUpgradeData {
   descriptionTemplate?: string;
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
   effectType: string;
-  value: number;
-  maxStack: number;
-  meta?: {
-    baseRadius?: number;
-    radiusPerLevel?: number;
-    baseDamage?: number;
-    damagePerLevel?: number;
-    baseChance?: number;
-    chancePerLevel?: number;
-    baseRange?: number;
-    rangePerLevel?: number;
-  };
+  levels?: SystemUpgradeLevelData[];
+  maxStack?: number; // health_pack 등 소모품 전용
 }
 
 export interface UpgradeTimingConfig {
@@ -564,10 +590,6 @@ export interface WeaponsConfig {
 
 // ========== 자기장 시스템 ==========
 export interface MagnetConfig {
-  baseRadius: number;
-  radiusPerLevel: number;
-  baseForce: number;
-  forcePerLevel: number;
   minPullDistance: number;
 }
 

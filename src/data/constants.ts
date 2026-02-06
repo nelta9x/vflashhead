@@ -107,10 +107,6 @@ export const WAVE_TRANSITION = {
 
 // 자기장 시스템
 export const MAGNET = {
-  BASE_RADIUS: Data.magnet.baseRadius,
-  RADIUS_PER_LEVEL: Data.magnet.radiusPerLevel,
-  BASE_FORCE: Data.magnet.baseForce,
-  FORCE_PER_LEVEL: Data.magnet.forcePerLevel,
   MIN_PULL_DISTANCE: Data.magnet.minPullDistance,
 } as const;
 

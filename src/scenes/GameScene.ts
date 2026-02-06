@@ -469,7 +469,10 @@ export class GameScene extends Phaser.Scene {
         projectile.destroy(); // 기존 충전용 구체 제거
 
         // 2. Fire Phase (순차적 발사!)
-        const missileCount = 1 + this.upgradeSystem.getMissileLevel();
+        const baseAttack = Data.gameConfig.playerAttack;
+        const missileCount = this.upgradeSystem.getMissileLevel() > 0
+          ? this.upgradeSystem.getMissileCount()
+          : baseAttack.baseMissileCount;
         const fireX = pointer.worldX;
         const fireY = pointer.worldY;
 
@@ -555,13 +558,16 @@ export class GameScene extends Phaser.Scene {
       onComplete: () => {
         missile.destroy();
 
-        // 데미지 1 + 업그레이드 보너스 적용
-        const totalDamage = 1 + this.upgradeSystem.getCursorDamageBonus();
+        // 미사일 데미지 적용
+        const attackConfig = Data.gameConfig.playerAttack;
+        const totalDamage = this.upgradeSystem.getMissileLevel() > 0
+          ? this.upgradeSystem.getMissileDamage()
+          : attackConfig.baseMissileDamage;
         this.monsterSystem.takeDamage(totalDamage);
 
         // 타격 피드백 (마지막 발사일수록 더 강하게)
         if (index === total - 1) {
-          this.feedbackSystem.onBossDamaged(curTargetX, curTargetY, total);
+          this.feedbackSystem.onBossDamaged(curTargetX, curTargetY, totalDamage * total);
           // 마지막 발사 시 카메라 효과 강화
           this.cameras.main.shake(config.impact.shakeDuration, config.impact.shakeIntensity * 1.5);
         } else {
@@ -967,7 +973,7 @@ export class GameScene extends Phaser.Scene {
 
     // 자기장 범위/힘 계산
     const magnetRadius = this.upgradeSystem.getMagnetRadius();
-    const magnetForce = MAGNET.BASE_FORCE + magnetLevel * MAGNET.FORCE_PER_LEVEL;
+    const magnetForce = this.upgradeSystem.getMagnetForce();
 
     // delta를 초 단위로 변환
     const deltaSeconds = delta / 1000;

@@ -298,6 +298,21 @@
         { "hpBonus": 2, "dropChanceBonus": 0.02 },
         { "hpBonus": 3, "dropChanceBonus": 0.03 }
       ]
+    },
+    {
+      "id": "orbiting_orb",
+      "name": "수호의 구체",
+      "description": "커서 주변을 회전하는 구체 생성 (자기장 레벨에 비례해 크기 증가)",
+      "descriptionTemplate": "구체 {count}개가 초당 {speed}회전하며 {damage} 피해를 줍니다.",
+      "rarity": "rare",
+      "effectType": "orbitingOrbLevel",
+      "levels": [
+        { "count": 1, "damage": 5, "speed": 100, "radius": 120, "size": 10 },
+        { "count": 2, "damage": 8, "speed": 120, "radius": 130, "size": 12 },
+        { "count": 3, "damage": 12, "speed": 140, "radius": 140, "size": 14 },
+        { "count": 4, "damage": 18, "speed": 160, "radius": 150, "size": 16 },
+        { "count": 5, "damage": 25, "speed": 180, "radius": 160, "size": 18 }
+      ]
     }
   ]
 }

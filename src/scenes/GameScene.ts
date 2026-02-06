@@ -28,10 +28,12 @@ import { StarBackground } from '../effects/StarBackground';
 import { GridRenderer } from '../effects/GridRenderer';
 import { LaserRenderer } from '../effects/LaserRenderer';
 import { CursorRenderer } from '../effects/CursorRenderer';
+import { OrbRenderer } from '../effects/OrbRenderer';
 import { FeedbackSystem } from '../systems/FeedbackSystem';
 import { SoundSystem } from '../systems/SoundSystem';
 import { MonsterSystem } from '../systems/MonsterSystem';
 import { GaugeSystem } from '../systems/GaugeSystem';
+import { OrbSystem } from '../systems/OrbSystem';
 import { InGameUpgradeUI } from '../ui/InGameUpgradeUI';
 import { WaveCountdownUI } from '../ui/WaveCountdownUI';
 
@@ -49,6 +51,7 @@ export class GameScene extends Phaser.Scene {
   private soundSystem!: SoundSystem;
   private monsterSystem!: MonsterSystem;
   private gaugeSystem!: GaugeSystem;
+  private orbSystem!: OrbSystem;
 
   // UI & 이펙트
   private hud!: HUD;
@@ -75,6 +78,7 @@ export class GameScene extends Phaser.Scene {
   private gridRenderer!: GridRenderer;
   private cursorRenderer!: CursorRenderer;
   private laserRenderer!: LaserRenderer;
+  private orbRenderer!: OrbRenderer;
 
   // BGM
   private bgm: Phaser.Sound.BaseSound | null = null;
@@ -146,6 +150,10 @@ export class GameScene extends Phaser.Scene {
     this.cursorRenderer = new CursorRenderer(this);
     this.cursorRenderer.setDepth(1000); // 최상위에 표시
 
+    // 구체(Orb) 렌더러 생성
+    this.orbRenderer = new OrbRenderer(this);
+    this.orbRenderer.setDepth(1001);
+
     // 레이저 렌더러 생성
     this.laserRenderer = new LaserRenderer(this);
 
@@ -176,6 +184,7 @@ export class GameScene extends Phaser.Scene {
     this.healthPackSystem = new HealthPackSystem(this, this.upgradeSystem);
     this.monsterSystem = new MonsterSystem();
     this.gaugeSystem = new GaugeSystem(this.comboSystem);
+    this.orbSystem = new OrbSystem(this.upgradeSystem);
 
     // 이펙트 시스템
     this.particleManager = new ParticleManager(this);
@@ -879,6 +888,7 @@ export class GameScene extends Phaser.Scene {
     this.waveCountdownUI.destroy();
     if (this.cursorTrail) this.cursorTrail.destroy();
     if (this.gaugeSystem) this.gaugeSystem.destroy();
+    if (this.orbRenderer) this.orbRenderer.destroy();
   }
 
   update(_time: number, delta: number): void {
@@ -927,6 +937,11 @@ export class GameScene extends Phaser.Scene {
 
     // 자기장 효과 업데이트
     this.updateMagnetEffect(scaledDelta);
+
+    // 구체 어빌리티 업데이트
+    const pointer = this.input.activePointer;
+    this.orbSystem.update(scaledDelta, this.gameTime, pointer.worldX, pointer.worldY, this.dishPool);
+    this.orbRenderer.render(this.orbSystem.getOrbs());
 
     // 커서 범위 기반 공격 처리
     this.updateCursorAttack();

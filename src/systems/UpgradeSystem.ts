@@ -231,6 +231,15 @@ export class UpgradeSystem {
     return this.getLevelData<HealthPackLevelData>('health_pack')?.dropChanceBonus ?? 0;
   }
 
+  // ========== 수호의 구체 ==========
+  getOrbitingOrbLevel(): number {
+    return this.getUpgradeStack('orbiting_orb');
+  }
+
+  getOrbitingOrbData(): OrbitingOrbLevelData | null {
+    return this.getLevelData<OrbitingOrbLevelData>('orbiting_orb');
+  }
+
   // ========== 유틸리티 ==========
   getUpgradeStack(upgradeId: string): number {
     return this.upgradeStacks.get(upgradeId) || 0;
@@ -398,6 +407,11 @@ export class UpgradeSystem {
         return current
           ? Data.formatTemplate('upgrade.preview.health_pack.upgrade', params)
           : Data.formatTemplate('upgrade.preview.health_pack.new', params);
+
+      case 'orbitingOrbLevel':
+        return current
+          ? Data.formatTemplate('upgrade.preview.orbiting_orb.upgrade', params)
+          : Data.formatTemplate('upgrade.preview.orbiting_orb.new', params);
 
       default:
         return '';

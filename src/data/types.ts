@@ -536,13 +536,22 @@ export interface HealthPackLevelData {
   dropChanceBonus: number;
 }
 
+export interface OrbitingOrbLevelData {
+  count: number;
+  damage: number;
+  speed: number;
+  radius: number;
+  size: number;
+}
+
 export type SystemUpgradeLevelData =
   | CursorSizeLevelData
   | ElectricShockLevelData
   | StaticDischargeLevelData
   | MagnetLevelData
   | MissileLevelData
-  | HealthPackLevelData;
+  | HealthPackLevelData
+  | OrbitingOrbLevelData;
 
 export interface SystemUpgradeData {
   id: string;

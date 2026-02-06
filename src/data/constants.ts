@@ -17,6 +17,8 @@ export const COLORS = {
   RED: Data.colors.numeric.red,
   GREEN: Data.colors.numeric.green,
   WHITE: Data.colors.numeric.white,
+  ORB_CORE: Data.colors.numeric.orbCore,
+  ORB_GLOW: Data.colors.numeric.orbGlow,
   DARK_BG: Data.colors.numeric.darkBg,
   DARK_PURPLE: Data.colors.numeric.darkPurple,
 } as const;
@@ -29,6 +31,8 @@ export const COLORS_HEX = {
   RED: Data.colors.hex.red,
   GREEN: Data.colors.hex.green,
   WHITE: Data.colors.hex.white,
+  ORB_CORE: Data.colors.hex.orbCore,
+  ORB_GLOW: Data.colors.hex.orbGlow,
   DARK_BG: Data.colors.hex.darkBg,
   DARK_PURPLE: Data.colors.hex.darkPurple,
 } as const;

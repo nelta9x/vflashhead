@@ -6,6 +6,8 @@
     "red": "#ff0044",
     "green": "#00ff88",
     "white": "#ffffff",
+    "orbCore": "#ffffff",
+    "orbGlow": "#88ccff",
     "darkBg": "#0a0a0f",
     "darkPurple": "#1a0a2e"
   },
@@ -16,6 +18,8 @@
     "red": 16711748,
     "green": 65416,
     "white": 16777215,
+    "orbCore": 16777215,
+    "orbGlow": 8965375,
     "darkBg": 657423,
     "darkPurple": 1706542
   }

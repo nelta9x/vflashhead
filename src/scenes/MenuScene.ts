@@ -286,16 +286,16 @@ export class MenuScene extends Phaser.Scene {
     this.menuCursorGraphics.lineStyle(
       1 + perspectiveFactor * 2,
       Data.gameConfig.player.cursorColorNumeric,
-      0.2 + perspectiveFactor * 0.4
+      0.4 + perspectiveFactor * 0.4
     );
     this.menuCursorGraphics.strokeCircle(x, y, currentRadius);
 
     // 2. 내부 채우기
-    this.menuCursorGraphics.fillStyle(Data.gameConfig.player.cursorColorNumeric, 0.05 + perspectiveFactor * 0.1);
+    this.menuCursorGraphics.fillStyle(Data.gameConfig.player.cursorColorNumeric, 0.1 + perspectiveFactor * 0.2);
     this.menuCursorGraphics.fillCircle(x, y, currentRadius);
 
     // 4. 중앙 점
-    this.menuCursorGraphics.fillStyle(COLORS.WHITE, 0.5 + perspectiveFactor * 0.5);
+    this.menuCursorGraphics.fillStyle(COLORS.WHITE, 0.7 + perspectiveFactor * 0.3);
     this.menuCursorGraphics.fillCircle(x, y, 2 * (0.5 + perspectiveFactor * 0.5));
   }
 

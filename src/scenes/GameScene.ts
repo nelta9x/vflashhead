@@ -1099,7 +1099,7 @@ export class GameScene extends Phaser.Scene {
     ).color;
     const baseColor = isReady ? readyColor : Data.gameConfig.player.cursorColorNumeric;
 
-    this.attackRangeIndicator.lineStyle(2, baseColor, 0.5);
+    this.attackRangeIndicator.lineStyle(2, baseColor, 0.8);
     this.attackRangeIndicator.strokeCircle(x, y, cursorRadius);
 
     // 내부 게이지 채우기
@@ -1107,18 +1107,18 @@ export class GameScene extends Phaser.Scene {
       // 에너지가 어느정도 차있냐에 따라서 커서 내부가 채워지도록 함
       // ratio에 따라 반지름을 조절하여 채워지는 연출
       const fillRadius = cursorRadius * this.gaugeRatio;
-      this.attackRangeIndicator.fillStyle(baseColor, isReady ? 0.3 : 0.2);
+      this.attackRangeIndicator.fillStyle(baseColor, isReady ? 0.5 : 0.4);
       this.attackRangeIndicator.fillCircle(x, y, fillRadius);
 
       if (isReady) {
         // 준비 완료 시 글로우 효과
-        this.attackRangeIndicator.lineStyle(4, readyColor, 0.3);
+        this.attackRangeIndicator.lineStyle(4, readyColor, 0.4);
         this.attackRangeIndicator.strokeCircle(x, y, cursorRadius + 2);
       }
     }
 
-    // 기본 내부 채우기 (매우 반투명)
-    this.attackRangeIndicator.fillStyle(baseColor, 0.05);
+    // 기본 내부 채우기 (반투명)
+    this.attackRangeIndicator.fillStyle(baseColor, 0.15);
     this.attackRangeIndicator.fillCircle(x, y, cursorRadius);
 
     // 중앙 점

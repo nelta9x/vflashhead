@@ -9,8 +9,8 @@
     "cursorHitbox": {
       "baseRadius": 30
     },
-    "cursorColor": "#bbddff",
-    "cursorColorNumeric": 12312063
+    "cursorColor": "#f0f8ff",
+    "cursorColorNumeric": 15792383
   },
   "upgradeUI": {
     "boxWidth": 200,

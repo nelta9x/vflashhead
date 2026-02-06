@@ -9,6 +9,6 @@
   "minBossDistance": 150,
   "fillSpawn": {
     "maxPerFrame": 1,
-    "cooldownMs": 50
+    "cooldownMs": 300
   }
 }

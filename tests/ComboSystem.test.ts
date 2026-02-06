@@ -86,20 +86,20 @@ describe('ComboSystem', () => {
   });
 
   describe('update', () => {
-    // 동적 타임아웃 공식: max(600, 1500 - combo*15 - wave*80)
-    // combo=1, wave=1일 때: max(600, 1500 - 15 - 80) = 1405ms
+    // 동적 타임아웃 공식: max(700, 1800 - combo*12 - wave*50)
+    // combo=1, wave=1일 때: max(700, 1800 - 12 - 50) = 1738ms
 
     it('타임아웃 후에 콤보가 리셋되어야 함', () => {
       comboSystem.increment();
-      // combo=1, wave=1 → timeout = 1405ms
-      comboSystem.update(1405);
+      // combo=1, wave=1 → timeout = 1738ms
+      comboSystem.update(1738);
       expect(comboSystem.getCombo()).toBe(0);
     });
 
     it('타임아웃 미만에서는 콤보가 유지되어야 함', () => {
       comboSystem.increment();
-      // combo=1, wave=1 → timeout = 1405ms
-      comboSystem.update(1404);
+      // combo=1, wave=1 → timeout = 1738ms
+      comboSystem.update(1737);
       expect(comboSystem.getCombo()).toBe(1);
     });
 
@@ -108,7 +108,7 @@ describe('ComboSystem', () => {
       comboSystem.update(1000); // 1000ms 경과
       comboSystem.increment(); // 타이머 리셋
       comboSystem.update(1000); // 또 1000ms 경과 (총 리셋 후 1000ms)
-      // combo=2, wave=1 → timeout = max(600, 1500 - 30 - 80) = 1390ms
+      // combo=2, wave=1 → timeout = max(700, 1800 - 24 - 50) = 1726ms
       expect(comboSystem.getCombo()).toBe(2);
     });
   });
@@ -130,19 +130,19 @@ describe('ComboSystem', () => {
   });
 
   describe('getTimeRemaining / getTimeRatio', () => {
-    // 동적 타임아웃: combo=1, wave=1 → 1405ms
+    // 동적 타임아웃: combo=1, wave=1 → 1738ms
     it('남은 시간이 정확해야 함', () => {
       comboSystem.increment();
       comboSystem.update(500);
-      // timeout = 1405ms, elapsed = 500ms → remaining = 905ms
-      expect(comboSystem.getTimeRemaining()).toBe(905);
+      // timeout = 1738ms, elapsed = 500ms → remaining = 1238ms
+      expect(comboSystem.getTimeRemaining()).toBe(1238);
     });
 
     it('시간 비율이 정확해야 함', () => {
       comboSystem.increment();
       comboSystem.update(500);
-      // timeout = 1405ms, elapsed = 500ms → ratio = 905 / 1405 ≈ 0.644
-      expect(comboSystem.getTimeRatio()).toBeCloseTo(0.644, 2);
+      // timeout = 1738ms, elapsed = 500ms → ratio = 1238 / 1738 ≈ 0.712
+      expect(comboSystem.getTimeRatio()).toBeCloseTo(0.712, 2);
     });
 
     it('콤보가 0이면 0을 반환해야 함', () => {

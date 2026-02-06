@@ -173,19 +173,18 @@ export class WaveSystem {
     const activeCount = this.getDishPool().getActiveCount();
     const fillSpawn = Data.spawn.fillSpawn;
 
-    // fill spawn: 최소 접시 수 보장
-    if (
-      activeCount < this.waveConfig.minDishCount &&
-      this.timeSinceLastFillSpawn >= fillSpawn.cooldownMs
-    ) {
-      this.spawnDish();
-      this.timeSinceLastFillSpawn = 0;
-    }
-
-    // normal spawn: 기존 간격 기반 스폰 유지
-    if (this.timeSinceLastSpawn >= this.waveConfig.spawnInterval) {
-      this.spawnDish();
-      this.timeSinceLastSpawn = 0;
+    if (activeCount < this.waveConfig.minDishCount) {
+      // fill spawn: 최소 접시 수 미달 시 빠르게 보충
+      if (this.timeSinceLastFillSpawn >= fillSpawn.cooldownMs) {
+        this.spawnDish();
+        this.timeSinceLastFillSpawn = 0;
+      }
+    } else {
+      // normal spawn: 최소 수량 확보 후 일반 간격 스폰
+      if (this.timeSinceLastSpawn >= this.waveConfig.spawnInterval) {
+        this.spawnDish();
+        this.timeSinceLastSpawn = 0;
+      }
     }
   }
 

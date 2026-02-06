@@ -83,7 +83,7 @@
     "upgrade.preview.missile.new": "{count} Missiles ({damage} Dmg)",
     "upgrade.preview.missile.upgrade": "{curCount} -> {nextCount} Missiles, Dmg {curDmg} -> {nextDmg}",
     "upgrade.preview.missile.upgrade_count": "Missiles {curCount} -> {nextCount}",
-    "upgrade.preview.health_pack.new": "Max HP +{hpBonus}, Drop +{dropChance}%",
+    "upgrade.preview.health_pack.new": "Max HP +{hpBonus}, Drop +{Drop}%",
     "upgrade.preview.health_pack.upgrade": "Max HP {curHp} -> {nextHp}, Drop {curDrop}% -> {nextDrop}%"
   },
   "ko": {
@@ -170,7 +170,7 @@
     "upgrade.preview.missile.new": "미사일 {count}발 ({damage} 데미지)",
     "upgrade.preview.missile.upgrade": "미사일 {curCount}→{nextCount}발, 데미지 {curDmg}→{nextDmg}",
     "upgrade.preview.missile.upgrade_count": "미사일 수 {curCount} → {nextCount}발",
-    "upgrade.preview.health_pack.new": "최대 체력 +{hpBonus}, 드롭 확률 +{dropChance}%",
+    "upgrade.preview.health_pack.new": "최대 체력 +{hpBonus}, 드롭 확률 +{Drop}%",
     "upgrade.preview.health_pack.upgrade": "최대 체력 {curHp}→{nextHp}, 드롭 확률 {curDrop}%→{nextDrop}%"
   }
 }

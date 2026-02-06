@@ -607,6 +607,23 @@ export interface MagnetConfig {
   minPullDistance: number;
 }
 
+export interface ShatterEffectConfig {
+  shardCount: number;
+  minSize: number;
+  maxSize: number;
+  energyShardRatio: number;
+  gravity: number;
+  minVelocity: number;
+  maxVelocity: number;
+  upwardForce: number;
+  minDuration: number;
+  maxDuration: number;
+  rotationSpeedRange: number;
+  sparkCount: number;
+  sparkTravelDistance: number;
+  sparkDuration: number;
+}
+
 // ========== 보스 설정 ==========
 export interface BossConfig {
   depth: number;
@@ -637,6 +654,7 @@ export interface BossConfig {
       initialAlpha: number;
       duration: number;
     };
+    shatter: ShatterEffectConfig;
     breakParticles: {
       count: number;
       radius: number;

@@ -173,4 +173,22 @@ export class FeedbackSystem {
     // 5. 사운드
     this.soundSystem.playBossImpactSound();
   }
+
+  // 보스 아머 파괴 피드백
+  onBossArmorBreak(x: number, y: number, innerRadius: number, outerRadius: number, bodyColor: number): void {
+    // 1. 화면 효과: 강한 흔들림
+    const feedback = Data.boss.feedback.armorBreakShake;
+    this.screenShake.shake(feedback.intensity * 1000, feedback.duration); // intensity 보정 필요 (shake intensity vs pixels)
+
+    // 2. 사운드 효과: 묵직한 폭발음
+    this.soundSystem.playBossImpactSound();
+
+    // 3. 충격파 연출 (Expanding Ring)
+    const config = Data.boss.visual;
+    const sw = config.shockwave;
+    this.particleManager.createShieldEffect(x, y, COLORS.WHITE); // 기존 ShieldEffect 활용 또는 별도 충격파 구현
+
+    // 4. 게이지 파편 shattering & falling 효과
+    this.particleManager.createBossGaugeShatter(x, y, innerRadius, outerRadius, bodyColor);
+  }
 }

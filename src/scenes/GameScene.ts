@@ -215,7 +215,7 @@ export class GameScene extends Phaser.Scene {
     this.dishPool = new ObjectPool<Dish>(() => new Dish(this, 0, 0, 'basic'), 10, 50);
 
     // 보스 생성 (화면 상단 중앙)
-    this.boss = new Boss(this, GAME_WIDTH / 2, 100);
+    this.boss = new Boss(this, GAME_WIDTH / 2, 100, this.feedbackSystem);
     this.boss.setDepth(Data.boss.depth);
   }
 

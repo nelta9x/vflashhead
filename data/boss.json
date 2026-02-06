@@ -31,6 +31,22 @@
       "initialAlpha": 0.8,
       "duration": 400
     },
+    "shatter": {
+      "shardCount": 25,
+      "minSize": 4,
+      "maxSize": 12,
+      "energyShardRatio": 0.7,
+      "gravity": 800,
+      "minVelocity": 100,
+      "maxVelocity": 300,
+      "upwardForce": 150,
+      "minDuration": 1000,
+      "maxDuration": 2000,
+      "rotationSpeedRange": 15,
+      "sparkCount": 15,
+      "sparkTravelDistance": 100,
+      "sparkDuration": 500
+    },
     "breakParticles": {
       "count": 10,
       "radius": 5,

@@ -378,6 +378,10 @@ export interface BossAttackConfig {
     innerTrailAlphaMultiplier: number;
     hitStopTimescale: number;
     hitStopDuration: number;
+    trackingOffset?: {
+      x: number;
+      y: number;
+    };
   };
   impact: {
     shakeIntensity: number;

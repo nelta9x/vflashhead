@@ -154,7 +154,11 @@
       "innerTrailWidthMultiplier": 0.4,
       "innerTrailAlphaMultiplier": 0.8,
       "hitStopTimescale": 0.05,
-      "hitStopDuration": 200
+      "hitStopDuration": 200,
+      "trackingOffset": {
+        "x": 20,
+        "y": 10
+      }
     },
     "impact": {
       "shakeIntensity": 0.005,

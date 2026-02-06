@@ -495,8 +495,9 @@ export class GameScene extends Phaser.Scene {
     const curStartY = startY + Phaser.Math.Between(-offsetRange, offsetRange);
 
     // 타겟 오프셋 (보스 중심에서 약간씩 빗나가게 하여 뭉치지 않게 함)
-    const targetOffsetX = Phaser.Math.Between(-20, 20);
-    const targetOffsetY = Phaser.Math.Between(-10, 10);
+    const tracking = config.fire.trackingOffset || { x: 20, y: 10 };
+    const targetOffsetX = Phaser.Math.Between(-tracking.x, tracking.x);
+    const targetOffsetY = Phaser.Math.Between(-tracking.y, tracking.y);
 
     // 미사일 객체 생성
     const missile = this.add.circle(curStartX, curStartY, 8 + 4 * intensity, mainColor);

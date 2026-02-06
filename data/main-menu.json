@@ -23,7 +23,6 @@
   "grid": {
     "horizonRatio": 0.6,
     "size": 60,
-    "speed": 0.15,
     "verticalLines": 150,
     "horizontalLines": 15
   },

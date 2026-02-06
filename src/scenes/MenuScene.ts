@@ -297,6 +297,7 @@ export class MenuScene extends Phaser.Scene {
   private updateMenuDishes(delta: number): void {
     const config = Data.mainMenu.dishSpawn;
     const gridConfig = Data.mainMenu.grid;
+    const globalGridConfig = Data.gameConfig.gameGrid;
     const cursorConfig = Data.mainMenu.cursor;
     const horizonY = GAME_HEIGHT * gridConfig.horizonRatio;
 
@@ -316,7 +317,7 @@ export class MenuScene extends Phaser.Scene {
       // 원근감 이동 (아래로 갈수록 빨라짐)
       const verticalRange = GAME_HEIGHT - horizonY;
       const perspectiveFactor = (dish.y - horizonY) / verticalRange;
-      const speed = gridConfig.speed * delta * (1 + perspectiveFactor * config.speedMultiplier);
+      const speed = globalGridConfig.speed * delta * (1 + perspectiveFactor * config.speedMultiplier);
 
       dish.y += speed;
 
@@ -397,8 +398,9 @@ export class MenuScene extends Phaser.Scene {
   }
 
   update(time: number, delta: number): void {
+    const globalConfig = Data.gameConfig.gameGrid;
     this.updateGrid(delta);
-    this.starBackground.update(delta, time, Data.mainMenu.grid.speed);
+    this.starBackground.update(delta, time, globalConfig.speed);
     this.updateBoss(delta);
     this.updateMenuCursor(delta);
     this.updateMenuDishes(delta);
@@ -426,7 +428,7 @@ export class MenuScene extends Phaser.Scene {
     }
 
     // 2. 움직이는 가로선 (원근법 적용)
-    this.gridOffset += delta * config.speed;
+    this.gridOffset += delta * globalConfig.speed;
     const maxRange = config.horizontalLines * config.size;
     if (this.gridOffset >= config.size) {
       this.gridOffset -= config.size;

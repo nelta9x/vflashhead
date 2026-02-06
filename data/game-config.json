@@ -59,7 +59,7 @@
   },
   "gameGrid": {
     "size": 60,
-    "speed": 0.1,
+    "speed": 0.15,
     "alpha": 0.12,
     "color": "#00ffff",
     "depth": -1,

@@ -67,6 +67,9 @@ export interface GridConfig {
   color: string;
   depth: number;
   lineWidth: number;
+  horizonRatio?: number;
+  verticalLines?: number;
+  horizontalLines?: number;
 }
 
 export interface StarsConfig {

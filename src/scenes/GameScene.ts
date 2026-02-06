@@ -161,25 +161,49 @@ export class GameScene extends Phaser.Scene {
     const config = Data.gameConfig.gameGrid;
     this.gridGraphics.clear();
 
-    this.gridGraphics.lineStyle(config.lineWidth, COLORS.CYAN, config.alpha);
+    const horizonY = GAME_HEIGHT * (config.horizonRatio ?? 0.6);
+    const vanishingPointX = GAME_WIDTH / 2;
+    const verticalSpread = 8;
+    const verticalLines = config.verticalLines ?? 150;
+    const horizontalLines = config.horizontalLines ?? 15;
 
-    // 수직선
-    for (let x = 0; x <= GAME_WIDTH; x += config.size) {
-      this.gridGraphics.moveTo(x, 0);
-      this.gridGraphics.lineTo(x, GAME_HEIGHT);
+    // 1. 세로선 (원근법)
+    this.gridGraphics.lineStyle(config.lineWidth, COLORS.CYAN, config.alpha);
+    
+    for (let i = 0; i <= verticalLines; i++) {
+      const xOffset = (i - verticalLines / 2) * (GAME_WIDTH / 25);
+      const startX = vanishingPointX + xOffset * 0.08; 
+      const endX = vanishingPointX + xOffset * verticalSpread; 
+
+      this.gridGraphics.moveTo(startX, horizonY);
+      this.gridGraphics.lineTo(endX, GAME_HEIGHT);
     }
 
-    // 수평선 (상하로 흐름)
+    // 2. 움직이는 가로선 (원근법)
     this.gridOffset += delta * config.speed;
+    const maxRange = horizontalLines * config.size;
     if (this.gridOffset >= config.size) {
       this.gridOffset -= config.size;
     }
 
-    for (let y = this.gridOffset - config.size; y <= GAME_HEIGHT; y += config.size) {
-      this.gridGraphics.moveTo(0, y);
-      this.gridGraphics.lineTo(GAME_WIDTH, y);
+    for (let i = 0; i < horizontalLines; i++) {
+      const progress = (i * config.size + this.gridOffset) / maxRange;
+      const perspectiveProgress = Math.pow(progress, 2.0);
+      const y = horizonY + perspectiveProgress * (GAME_HEIGHT - horizonY);
+
+      if (y > GAME_HEIGHT) continue;
+
+      const widthAtY = GAME_WIDTH * verticalSpread;
+      this.gridGraphics.moveTo(vanishingPointX - widthAtY / 2, y);
+      this.gridGraphics.lineTo(vanishingPointX + widthAtY / 2, y);
     }
 
+    this.gridGraphics.strokePath();
+
+    // 지평선 강조
+    this.gridGraphics.lineStyle(2, COLORS.CYAN, config.alpha * 1.5);
+    this.gridGraphics.moveTo(0, horizonY);
+    this.gridGraphics.lineTo(GAME_WIDTH, horizonY);
     this.gridGraphics.strokePath();
   }
 

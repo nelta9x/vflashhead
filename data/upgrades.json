@@ -218,11 +218,11 @@
       "descriptionTemplate": "커서 판정 범위가 {value}% 증가하고, 데미지가 {damage} 증가합니다.",
       "rarity": "common",
       "effectType": "cursorSizeBonus",
-      "value": 0.2,
+      "value": 0.3,
       "maxStack": 5,
       "meta": {
         "baseDamage": 0,
-        "damagePerLevel": 1
+        "damagePerLevel": 2
       }
     },
     {
@@ -269,7 +269,7 @@
       "value": 1,
       "maxStack": 5,
       "meta": {
-        "baseRadius": 130,
+        "baseRadius": 160,
         "radiusPerLevel": 20
       }
     },

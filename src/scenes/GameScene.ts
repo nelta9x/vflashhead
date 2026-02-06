@@ -1040,11 +1040,11 @@ export class GameScene extends Phaser.Scene {
       const magnetRadius = this.upgradeSystem.getMagnetRadius();
 
       // 자기장 범위 (마젠타, 더 투명하게)
-      this.attackRangeIndicator.lineStyle(1, COLORS.MAGENTA, 0.15);
+      this.attackRangeIndicator.lineStyle(1, COLORS.MAGENTA, 0.25);
       this.attackRangeIndicator.strokeCircle(x, y, magnetRadius);
 
-      // 내부 채우기 (매우 투명)
-      this.attackRangeIndicator.fillStyle(COLORS.MAGENTA, 0.02);
+      // 내부 채우기
+      this.attackRangeIndicator.fillStyle(COLORS.MAGENTA, 0.04);
       this.attackRangeIndicator.fillCircle(x, y, magnetRadius);
     }
 

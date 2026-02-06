@@ -99,6 +99,6 @@
   },
   "damage": {
     "playerDamage": 10,
-    "damageInterval": 200
+    "damageInterval": 150
   }
 }

@@ -352,7 +352,7 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
 
     // 자기장 글로우 (보라색/마젠타)
     if (this.isBeingPulled) {
-      const magnetAlpha = 0.25; // 깜빡임 없이 고정된 투명도 사용
+      const magnetAlpha = 0.15; // 깜빡임 없이 고정된 투명도 사용
       this.graphics.fillStyle(COLORS.MAGENTA, magnetAlpha);
       this.graphics.fillCircle(pullOffsetX, pullOffsetY, this.size + 15);
     }

@@ -154,8 +154,8 @@ describe('UpgradeSystem - 간소화된 시스템', () => {
           upgrade.applyUpgrade(cursorUpgrade);
         }
         expect(upgrade.getUpgradeStack('cursor_size')).toBe(5);
-        expect(upgrade.getCursorSizeBonus()).toBeCloseTo(1.0); // 0.2 * 5
-        expect(upgrade.getCursorDamageBonus()).toBe(5); // 1 * 5
+        expect(upgrade.getCursorSizeBonus()).toBeCloseTo(1.5); // 0.3 * 5
+        expect(upgrade.getCursorDamageBonus()).toBe(10); // 2 * 5
       }
     });
     it('전기 충격 스택 (maxStack=5)', async () => {

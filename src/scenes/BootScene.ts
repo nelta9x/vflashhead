@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS, GAME_WIDTH, GAME_HEIGHT, FONTS } from '../data/constants';
 import { SoundSystem } from '../systems/SoundSystem';
+import { Data } from '../data/DataManager';
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -43,7 +44,8 @@ export class BootScene extends Phaser.Scene {
   }
 
   private loadAudioAssets(): void {
-    this.load.audio('bgm', 'assets/audio/guitar-sound.mp3');
+    const audioConfig = Data.gameConfig.audio.bgm;
+    this.load.audio(audioConfig.key, audioConfig.path);
   }
 
   private createProceduralAssets(): void {

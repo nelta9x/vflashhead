@@ -33,6 +33,7 @@ export class WaveSystem {
 
   private wavePhase: WavePhase = 'waiting';
   private countdownTimer: number = 0;
+  private countdownElapsed: number = 0;
   private pendingWaveNumber: number = 1;
 
   constructor(
@@ -124,6 +125,7 @@ export class WaveSystem {
     this.pendingWaveNumber = waveNumber;
     this.wavePhase = 'countdown';
     this.countdownTimer = WAVE_TRANSITION.COUNTDOWN_DURATION;
+    this.countdownElapsed = 0;
     EventBus.getInstance().emit(GameEvents.WAVE_COUNTDOWN_START, waveNumber);
   }
 
@@ -147,12 +149,22 @@ export class WaveSystem {
     this.totalGameTime += delta;
 
     if (this.wavePhase === 'countdown') {
-      const prevSecond = Math.ceil(this.countdownTimer / 1000);
-      this.countdownTimer -= delta;
-      const currentSecond = Math.ceil(this.countdownTimer / 1000);
+      const duration = Math.max(1, WAVE_TRANSITION.COUNTDOWN_DURATION);
+      const countFrom = Math.max(1, WAVE_TRANSITION.COUNT_FROM ?? 3);
+      const stepDuration = duration / countFrom;
+      const clampedPrevElapsed = Math.min(this.countdownElapsed, duration);
+      const prevStep = Math.floor(clampedPrevElapsed / stepDuration);
 
-      if (prevSecond !== currentSecond && currentSecond >= 0) {
-        EventBus.getInstance().emit(GameEvents.WAVE_COUNTDOWN_TICK, currentSecond);
+      this.countdownElapsed += delta;
+      const clampedCurrentElapsed = Math.min(this.countdownElapsed, duration);
+      const currentStep = Math.floor(clampedCurrentElapsed / stepDuration);
+      this.countdownTimer -= delta;
+
+      if (currentStep > prevStep) {
+        const lastStep = Math.min(currentStep, countFrom);
+        for (let step = prevStep + 1; step <= lastStep; step++) {
+          EventBus.getInstance().emit(GameEvents.WAVE_COUNTDOWN_TICK, Math.max(0, countFrom - step));
+        }
       }
 
       if (this.countdownTimer <= 0) {

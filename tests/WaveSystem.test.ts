@@ -88,7 +88,7 @@ vi.mock('../src/data/constants', () => ({
   SPAWN_AREA: { minX: 0, maxX: 800, minY: 0, maxY: 600 },
   MIN_DISH_DISTANCE: 50,
   MIN_BOSS_DISTANCE: 200,
-  WAVE_TRANSITION: { COUNTDOWN_DURATION: 3000 },
+  WAVE_TRANSITION: { COUNTDOWN_DURATION: 3000, COUNT_FROM: 3 },
 }));
 
 describe('WaveSystem', () => {

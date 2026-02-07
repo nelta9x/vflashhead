@@ -51,9 +51,9 @@ export class WaveCountdownUI {
     this.visible = true;
     this.waveLabel.setText(Data.t('hud.wave_starting', waveNumber));
     
-    // 설정된 지속 시간에 맞춰 초기 텍스트 설정 (예: 3000ms -> '3')
-    const initialSeconds = Math.ceil(Data.gameConfig.waveTransition.countdownDuration / 1000);
-    this.countdownText.setText(initialSeconds.toString());
+    // 설정된 시작 카운트 값 표시 (예: countFrom=3 -> '3')
+    const initialCount = Math.max(1, Data.gameConfig.waveTransition.countFrom ?? 3);
+    this.countdownText.setText(initialCount.toString());
     this.countdownText.setColor(Data.getColorHex(config.number.color));
     
     this.container.setVisible(true);

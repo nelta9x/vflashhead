@@ -93,7 +93,8 @@ import { COLORS, FONTS } from '../data/constants';
     "boxYOffset": 150   // 화면 하단에서의 거리
   },
   "waveTransition": {
-    "countdownDuration": 3000  // 웨이브 시작 전 카운트다운 (ms)
+    "countdownDuration": 1000, // 웨이브 시작 전 카운트다운 총 시간 (ms)
+    "countFrom": 3             // 카운트 시작 숫자 (예: 3 -> 3,2,1)
   },
   "fonts": {
     "main": "'Orbitron', 'Black Han Sans', sans-serif", // 기본 폰트

@@ -117,6 +117,7 @@ export const UPGRADE_UI = {
 // 웨이브 전환
 export const WAVE_TRANSITION = {
   COUNTDOWN_DURATION: Data.gameConfig.waveTransition.countdownDuration,
+  COUNT_FROM: Data.gameConfig.waveTransition.countFrom,
 } as const;
 
 // 자기장 시스템

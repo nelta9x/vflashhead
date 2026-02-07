@@ -31,6 +31,7 @@ export interface UpgradeUIConfig {
 
 export interface WaveTransitionConfig {
   countdownDuration: number;
+  countFrom: number;
 }
 
 export interface LaserAttackConfig {

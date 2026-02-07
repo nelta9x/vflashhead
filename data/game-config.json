@@ -21,7 +21,8 @@
     "boxYOffset": 220
   },
   "waveTransition": {
-    "countdownDuration": 3000
+    "countdownDuration": 1000,
+    "countFrom": 3
   },
   "waveCountdownUI": {
     "label": {

@@ -659,6 +659,7 @@ export interface SystemUpgradeData {
   descriptionTemplate?: string;
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
   effectType: string;
+  hitInterval?: number;
   levels?: SystemUpgradeLevelData[];
   maxStack?: number; // health_pack 등 소모품 전용
 }

@@ -131,6 +131,7 @@
       "descriptionTemplate": "구체 {count}개가 초당 {speed}회전하며 {damage} 피해를 줍니다.",
       "rarity": "rare",
       "effectType": "orbitingOrbLevel",
+      "hitInterval": 300,
       "levels": [
         { "count": 1, "damage": 5, "speed": 100, "radius": 120, "size": 10 },
         { "count": 2, "damage": 8, "speed": 120, "radius": 130, "size": 12 },

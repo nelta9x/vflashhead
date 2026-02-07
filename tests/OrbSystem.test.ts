@@ -31,6 +31,7 @@ describe('OrbSystem', () => {
       getOrbitingOrbLevel: vi.fn(),
       getOrbitingOrbData: vi.fn(),
       getMagnetLevel: vi.fn().mockReturnValue(0),
+      getSystemUpgrade: vi.fn().mockReturnValue({ hitInterval: 300 }),
     };
 
     mockDishes = [];
@@ -168,17 +169,18 @@ describe('OrbSystem', () => {
       isDangerous: () => true,
       isFullySpawned: vi.fn(),
       applyDamage: vi.fn(),
+      forceDestroy: vi.fn(),
     };
     mockDishes.push(mockBomb);
 
     // Case 1: Dangerous and NOT fully spawned
     mockBomb.isFullySpawned.mockReturnValue(false);
     system.update(100, 1000, 0, 0, mockDishPool);
-    expect(mockBomb.applyDamage).not.toHaveBeenCalled();
+    expect(mockBomb.forceDestroy).not.toHaveBeenCalled();
 
     // Case 2: Dangerous and fully spawned
     mockBomb.isFullySpawned.mockReturnValue(true);
     system.update(100, 2000, 0, 0, mockDishPool);
-    expect(mockBomb.applyDamage).toHaveBeenCalledWith(10);
+    expect(mockBomb.forceDestroy).toHaveBeenCalled();
   });
 });

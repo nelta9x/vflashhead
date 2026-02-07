@@ -15,7 +15,6 @@ export class OrbSystem {
 
   // Cooldown tracking per dish: Map<Dish, NextHitTime>
   private lastHitTimes: WeakMap<Dish, number> = new WeakMap();
-  private readonly HIT_INTERVAL = 300; // ms between hits on the same target
 
   private orbPositions: OrbPosition[] = [];
 
@@ -35,6 +34,9 @@ export class OrbSystem {
       this.orbPositions = [];
       return;
     }
+
+    const upgradeData = this.upgradeSystem.getSystemUpgrade('orbiting_orb');
+    const hitInterval = upgradeData?.hitInterval ?? 300;
 
     const stats = this.upgradeSystem.getOrbitingOrbData();
     if (!stats) return;
@@ -72,14 +74,15 @@ export class OrbSystem {
     }
 
     // Check Collisions
-    this.checkCollisions(gameTime, dishPool, stats.damage, finalSize);
+    this.checkCollisions(gameTime, dishPool, stats.damage, finalSize, hitInterval);
   }
 
   private checkCollisions(
     gameTime: number,
     dishPool: ObjectPool<Dish>,
     damage: number,
-    orbSize: number
+    orbSize: number,
+    hitInterval: number
   ): void {
     dishPool.forEach((dish) => {
       if (!dish.active) return;
@@ -101,10 +104,15 @@ export class OrbSystem {
       if (hit) {
         const nextHitTime = this.lastHitTimes.get(dish) || 0;
         if (gameTime >= nextHitTime) {
-          // Deal Damage
-          dish.applyDamage(damage);
+          // 폭탄(dangerous)은 HP와 관계없이 즉시 제거
+          if (dish.isDangerous()) {
+            dish.forceDestroy();
+          } else {
+            // 일반 접시는 데미지 적용
+            dish.applyDamage(damage);
+          }
           // Set Cooldown
-          this.lastHitTimes.set(dish, gameTime + this.HIT_INTERVAL);
+          this.lastHitTimes.set(dish, gameTime + hitInterval);
         }
       }
     });

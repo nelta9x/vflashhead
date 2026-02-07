@@ -679,47 +679,7 @@ export class SoundSystem {
     noiseSrc.start(now);
   }
 
-  /**
-   * 업그레이드 선택 사운드 (마리오 파워업 스타일)
-   */
-  playUpgradeSound(): void {
-    if (this.scene) {
-      // 오디오 파일이 로드되어 있으면 그것을 사용
-      if (this.scene.sound.get('upgrade_selected')) {
-        this.scene.sound.play('upgrade_selected');
-        return;
-      }
-    }
 
-    // 파일이 없거나 로드되지 않았으면 신디사이저로 폴백
-    if (!this.ensureContext()) return;
-    const ctx = this.audioContext!;
-    const now = ctx.currentTime;
-
-    // 마리오 파워업 스타일: 빠른 아르페지오 상승 (G3 -> B3 -> D4 -> G4 -> B4 -> D5 ...)
-    // Mushroom sound: g3(196), b3(246.9), d4(293.7), g4(392), b4(493.9), d5(587.3), g5(784), b5(987.8) ...
-    // 대략적인 주파수 상승 시퀀스
-    const freqs = [196, 247, 294, 392, 494, 587, 784, 988, 1175, 1568]; 
-    const duration = 0.06; // 각 노트 길이
-
-    freqs.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.type = 'square'; // 8비트 느낌을 위해 square 파형 사용
-      osc.frequency.setValueAtTime(freq, now + i * duration);
-
-      gain.gain.setValueAtTime(0.1, now + i * duration);
-      gain.gain.linearRampToValueAtTime(0.1, now + i * duration + duration * 0.8);
-      gain.gain.linearRampToValueAtTime(0, now + i * duration + duration);
-
-      osc.connect(gain);
-      gain.connect(this.masterGain!);
-
-      osc.start(now + i * duration);
-      osc.stop(now + i * duration + duration);
-    });
-  }
 
   /**
    * 업그레이드 선택 사운드 (마리오 파워업 스타일)

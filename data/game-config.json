@@ -52,8 +52,8 @@
     "korean": "'Black Han Sans', 'Orbitron', sans-serif"
   },
   "render": {
-    "pixelArt": true,
-    "antialias": false
+    "pixelArt": false,
+    "antialias": true
   },
   "textSettings": {
     "resolution": 2,

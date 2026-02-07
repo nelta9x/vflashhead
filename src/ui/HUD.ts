@@ -287,10 +287,9 @@ export class HUD {
       config.iconSize +
       config.levelOffsetY +
       config.levelFontSize +
-      config.panelPaddingY * 2 +
-      4;
+      config.panelPaddingY * 2;
     const iconY = -panelHeight / 2 + config.panelPaddingY + config.iconSize / 2;
-    const levelY = iconY + config.iconSize / 2 + config.levelOffsetY;
+    const levelY = panelHeight / 2 - config.panelPaddingY;
 
     this.abilityContainer.setPosition(GAME_WIDTH / 2, GAME_HEIGHT - config.bottomMargin - panelHeight / 2);
     this.abilityContainer.setVisible(true);
@@ -369,7 +368,7 @@ export class HUD {
           stroke: Data.getColorHex(config.levelStrokeColor),
           strokeThickness: config.levelStrokeThickness,
         })
-        .setOrigin(0.5);
+        .setOrigin(0.5, 1);
       entryContainer.add(levelText);
 
       abilityContainer.add(entryContainer);

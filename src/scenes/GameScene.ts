@@ -69,6 +69,7 @@ export class GameScene extends Phaser.Scene {
   private gameTime: number = 0;
   private isGameOver: boolean = false;
   private isPaused: boolean = false;
+  private isUpgrading: boolean = false;
   private gaugeRatio: number = 0;
 
   // 웨이브 전환 상태
@@ -253,14 +254,26 @@ export class GameScene extends Phaser.Scene {
       this.hud.showWaveComplete(waveNumber);
       this.clearAllDishes();
 
-      // 다음 웨이브 번호 저장 후 카운트다운과 업그레이드 UI 동시 표시
+      // 다음 웨이브 번호 저장 후 업그레이드 UI만 먼저 표시
       this.pendingWaveNumber = waveNumber + 1;
       this.time.delayedCall(500, () => {
         if (this.isGameOver) return;
-        // 카운트다운과 업그레이드 UI 동시 시작
+        this.isUpgrading = true;
+        this.inGameUpgradeUI.show();
+      });
+    });
+
+    // 업그레이드 선택 완료
+    EventBus.getInstance().on(GameEvents.UPGRADE_SELECTED, () => {
+      if (this.isGameOver) return;
+      
+      this.isUpgrading = false;
+      
+      // 업그레이드 선택 후에만 다음 웨이브 카운트다운 시작
+      this.time.delayedCall(300, () => {
+        if (this.isGameOver) return;
         this.waveSystem.startCountdown(this.pendingWaveNumber);
         this.waveCountdownUI.show(this.pendingWaveNumber);
-        this.inGameUpgradeUI.show();
       });
     });
 
@@ -910,6 +923,15 @@ export class GameScene extends Phaser.Scene {
 
     // 슬로우 모션 적용된 델타 타임 계산
     const scaledDelta = delta * this.time.timeScale;
+
+    // 업그레이드 선택 중에는 생존 시간과 주요 게임 로직 중단
+    if (this.isUpgrading) {
+      this.inGameUpgradeUI.update(scaledDelta);
+      this.starBackground.update(scaledDelta, _time, Data.gameConfig.gameGrid.speed);
+      this.gridRenderer.update(scaledDelta);
+      this.updateAttackRangeIndicator();
+      return;
+    }
 
     // 시간 업데이트
     this.gameTime += scaledDelta;

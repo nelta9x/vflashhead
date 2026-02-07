@@ -11,6 +11,7 @@
       "dangerous": false,
       "invulnerable": false,
       "lifetime": 4000,
+      "playerDamage": 1,
       "spawnAnimation": {
         "duration": 150,
         "ease": "Back.easeOut"
@@ -27,6 +28,7 @@
       "dangerous": false,
       "invulnerable": false,
       "lifetime": 4000,
+      "playerDamage": 1,
       "spawnAnimation": {
         "duration": 150,
         "ease": "Back.easeOut"
@@ -43,6 +45,7 @@
       "dangerous": false,
       "invulnerable": false,
       "lifetime": 4500,
+      "playerDamage": 1,
       "spawnAnimation": {
         "duration": 150,
         "ease": "Back.easeOut"
@@ -59,6 +62,8 @@
       "dangerous": true,
       "invulnerable": true,
       "lifetime": 1800,
+      "playerDamage": 1,
+      "resetCombo": true,
       "spawnAnimation": {
         "duration": 150,
         "ease": "Back.easeOut"
@@ -75,6 +80,7 @@
       "dangerous": false,
       "invulnerable": false,
       "lifetime": 2500,
+      "playerDamage": 1,
       "spawnAnimation": {
         "duration": 150,
         "ease": "Back.easeOut"
@@ -91,6 +97,7 @@
       "dangerous": false,
       "invulnerable": false,
       "lifetime": 6500,
+      "playerDamage": 1,
       "spawnAnimation": {
         "duration": 200,
         "ease": "Back.easeOut"

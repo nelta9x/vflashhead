@@ -585,6 +585,8 @@ export interface DishData {
   invulnerable: boolean;
   lifetime: number;
   spawnAnimation: SpawnAnimationConfig;
+  playerDamage?: number;
+  resetCombo?: boolean;
 }
 
 export interface DishDamageConfig {

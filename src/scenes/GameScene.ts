@@ -642,6 +642,7 @@ export class GameScene extends Phaser.Scene {
     isDangerous: boolean;
   }): void {
     const { dish, x, y, isDangerous } = data;
+    const dishData = Data.getDishData(dish.getDishType());
 
     // 지뢰 타임아웃: 조용히 사라짐 (피드백/패널티 없음)
     if (isDangerous) {
@@ -652,7 +653,11 @@ export class GameScene extends Phaser.Scene {
 
     // 일반 접시 놓침: 피드백 + HP 감소 + 콤보 리셋
     this.feedbackSystem.onDishMissed(x, y, dish.getColor(), dish.getDishType());
-    this.healthSystem.takeDamage(1);
+    
+    // 설정된 데미지 적용 (기본값 1)
+    const damage = dishData?.playerDamage ?? 1;
+    this.healthSystem.takeDamage(damage);
+    
     this.comboSystem.reset();
 
     // 풀에서 제거
@@ -674,15 +679,20 @@ export class GameScene extends Phaser.Scene {
 
   private onDishDestroyed(data: { dish: Dish; x: number; y: number; byAbility?: boolean }): void {
     const { dish, x, y, byAbility } = data;
+    const dishData = Data.getDishData(dish.getDishType());
 
-    // 지뢰(Bomb) 터짐
+    // 지뢰(Bomb) 또는 특수 위험 접시 터짐 처리
     if (dish.isDangerous()) {
       // 어빌리티(수호의 오브 등)로 파괴된 경우 데미지 없음
-      if (!byAbility) {
-        // HP 1 감소
-        this.healthSystem.takeDamage(1);
-        // 콤보 리셋
-        this.comboSystem.reset();
+      if (!byAbility && dishData) {
+        // 설정된 데미지 적용 (기본값 1)
+        const damage = dishData.playerDamage ?? 1;
+        this.healthSystem.takeDamage(damage);
+
+        // 설정에 따라 콤보 리셋
+        if (dishData.resetCombo) {
+          this.comboSystem.reset();
+        }
       }
 
       // 피드백 효과 (폭발)

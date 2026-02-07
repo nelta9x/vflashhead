@@ -178,7 +178,7 @@
     "hit": { "key": "hit", "path": "assets/audio/hit.wav", "volume": 0.35 },
     "miss": { "key": "miss", "path": "assets/audio/miss.wav", "volume": 0.25 },
     "heal": { "key": "heal", "path": "assets/audio/heal.wav", "volume": 0.4 },
-    "player_charge": { "key": "player_charge", "path": "assets/audio/player_charge.wav", "volume": 0.25 },
+    "player_charge": { "key": "player_charge", "path": "assets/audio/player_charge.wav", "volume": 0.1 },
     "boss_charge": { "key": "boss_charge", "path": "assets/audio/boss_charge.wav", "volume": 0.35 },
     "boss_fire": { "key": "boss_fire", "path": "assets/audio/boss_fire.wav", "volume": 0.45 },
     "boss_impact": { "key": "boss_impact", "path": "assets/audio/boss_impact.wav", "volume": 0.5 }

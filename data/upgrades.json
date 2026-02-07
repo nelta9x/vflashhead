@@ -52,6 +52,21 @@
       ]
     },
     {
+      "id": "critical_chance",
+      "name": "치명타 확률",
+      "description": "플레이어의 치명타 확률 증가",
+      "descriptionTemplate": "플레이어의 치명타 확률이 {criticalChance}% 증가합니다.",
+      "rarity": "common",
+      "effectType": "criticalChanceBonus",
+      "levels": [
+        { "criticalChance": 0.05 },
+        { "criticalChance": 0.10 },
+        { "criticalChance": 0.15 },
+        { "criticalChance": 0.20 },
+        { "criticalChance": 0.25 }
+      ]
+    },
+    {
       "id": "electric_shock",
       "name": "전기 충격",
       "description": "주변 접시에 번개 데미지",

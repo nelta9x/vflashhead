@@ -587,9 +587,13 @@ export class GameScene extends Phaser.Scene {
           this.upgradeSystem.getMissileLevel() > 0
             ? this.upgradeSystem.getMissileDamage()
             : attackConfig.baseMissileDamage;
-        
+
         // 치명타 판정
-        const isCritical = Math.random() < attackConfig.criticalChance;
+        const criticalChance = Math.min(
+          1,
+          attackConfig.criticalChance + this.upgradeSystem.getCriticalChanceBonus()
+        );
+        const isCritical = Math.random() < criticalChance;
         if (isCritical) {
           totalDamage *= attackConfig.criticalMultiplier;
         }
@@ -868,6 +872,7 @@ export class GameScene extends Phaser.Scene {
       const options = {
         cursorSizeBonus: this.upgradeSystem.getCursorSizeBonus(),
         damageBonus: this.upgradeSystem.getCursorDamageBonus(),
+        criticalChance: this.upgradeSystem.getCriticalChanceBonus(),
       };
       dish.spawn(x, y, type, speedMultiplier, options);
       this.dishes.add(dish);

@@ -300,7 +300,10 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
     const damageBonus = this.upgradeOptions.damageBonus || 0;
     
     // 기본 치명타 확률 + 업그레이드 확률
-    const critChance = (damageConfig.criticalChance || 0) + (this.upgradeOptions.criticalChance || 0);
+    const critChance = Math.min(
+      1,
+      (damageConfig.criticalChance || 0) + (this.upgradeOptions.criticalChance || 0)
+    );
     const critMultiplier = damageConfig.criticalMultiplier || 2;
 
     let damage = baseDamage + damageBonus;
@@ -712,7 +715,7 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
     if (!this.active || this.invulnerable) return;
 
     const damageConfig = Data.dishes.damage;
-    const totalCritChance = (damageConfig.criticalChance || 0) + criticalChance;
+    const totalCritChance = Math.min(1, (damageConfig.criticalChance || 0) + criticalChance);
     const critMultiplier = damageConfig.criticalMultiplier || 2;
 
     let totalDamage = baseDamage + damageBonus;

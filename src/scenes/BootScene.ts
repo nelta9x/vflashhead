@@ -70,6 +70,7 @@ export class BootScene extends Phaser.Scene {
   private loadIconAssets(): void {
     const icons = [
       'cursor_size',
+      'critical_chance',
       'electric_shock',
       'static_discharge',
       'magnet',

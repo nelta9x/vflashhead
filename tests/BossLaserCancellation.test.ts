@@ -131,6 +131,7 @@ describe('Boss Laser Cancellation Logic', () => {
     };
     gameScene.upgradeSystem = {
       getMissileLevel: () => 0,
+      getCriticalChanceBonus: () => 0,
       getCursorSizeBonus: () => 0,
       getCursorDamageBonus: () => 0
     };

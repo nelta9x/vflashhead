@@ -625,6 +625,9 @@ export interface CursorSizeLevelData {
   sizeBonus: number;
   damage: number;
 }
+export interface CriticalChanceLevelData {
+  criticalChance: number;
+}
 export interface ElectricShockLevelData {
   radius: number;
   damage: number;
@@ -657,6 +660,7 @@ export interface OrbitingOrbLevelData {
 
 export type SystemUpgradeLevelData =
   | CursorSizeLevelData
+  | CriticalChanceLevelData
   | ElectricShockLevelData
   | StaticDischargeLevelData
   | MagnetLevelData

@@ -57,6 +57,8 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
       expect(upgrade.getCursorSizeBonus()).toBe(0);
       expect(upgrade.getCursorDamageBonus()).toBe(0);
+      expect(upgrade.getCriticalChanceLevel()).toBe(0);
+      expect(upgrade.getCriticalChanceBonus()).toBe(0);
       expect(upgrade.getElectricShockLevel()).toBe(0);
       expect(upgrade.getElectricShockRadius()).toBe(0);
       expect(upgrade.getElectricShockDamage()).toBe(0);
@@ -105,6 +107,28 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
       expect(upgrade.getUpgradeStack('cursor_size')).toBe(5);
       expect(upgrade.getCursorSizeBonus()).toBeCloseTo(1.5);
       expect(upgrade.getCursorDamageBonus()).toBe(10);
+    });
+  });
+
+  describe('치명타 확률 (critical_chance)', () => {
+    it('레벨 1 수치 확인', async () => {
+      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const upgrade = new UpgradeSystem();
+      const criticalUpgrade = UPGRADES.find((u) => u.id === 'critical_chance')!;
+
+      upgrade.applyUpgrade(criticalUpgrade);
+      expect(upgrade.getCriticalChanceLevel()).toBe(1);
+      expect(upgrade.getCriticalChanceBonus()).toBeCloseTo(0.05);
+    });
+
+    it('레벨 5 수치 확인', async () => {
+      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const upgrade = new UpgradeSystem();
+      const criticalUpgrade = UPGRADES.find((u) => u.id === 'critical_chance')!;
+
+      for (let i = 0; i < 5; i++) upgrade.applyUpgrade(criticalUpgrade);
+      expect(upgrade.getCriticalChanceLevel()).toBe(5);
+      expect(upgrade.getCriticalChanceBonus()).toBeCloseTo(0.25);
     });
   });
 
@@ -298,6 +322,8 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
       // 확인
       expect(upgrade.getCursorSizeBonus()).toBe(0);
       expect(upgrade.getCursorDamageBonus()).toBe(0);
+      expect(upgrade.getCriticalChanceLevel()).toBe(0);
+      expect(upgrade.getCriticalChanceBonus()).toBe(0);
       expect(upgrade.getElectricShockLevel()).toBe(0);
       expect(upgrade.getElectricShockRadius()).toBe(0);
       expect(upgrade.getElectricShockDamage()).toBe(0);

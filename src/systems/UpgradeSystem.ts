@@ -2,6 +2,7 @@ import { Data } from '../data/DataManager';
 import type {
   SystemUpgradeData,
   CursorSizeLevelData,
+  CriticalChanceLevelData,
   ElectricShockLevelData,
   StaticDischargeLevelData,
   MagnetLevelData,
@@ -164,6 +165,15 @@ export class UpgradeSystem {
     return this.getLevelData<CursorSizeLevelData>('cursor_size')?.damage ?? 0;
   }
 
+  // ========== 치명타 확률 ==========
+  getCriticalChanceLevel(): number {
+    return this.getUpgradeStack('critical_chance');
+  }
+
+  getCriticalChanceBonus(): number {
+    return this.getLevelData<CriticalChanceLevelData>('critical_chance')?.criticalChance ?? 0;
+  }
+
   // ========== 전기 충격 ==========
   getElectricShockLevel(): number {
     return this.getUpgradeStack('electric_shock');
@@ -281,7 +291,10 @@ export class UpgradeSystem {
     for (const [key, value] of Object.entries(levelData)) {
       if (typeof value === 'number') {
         params[key] =
-          key === 'chance' || key === 'sizeBonus' || key === 'dropChanceBonus'
+          key === 'chance' ||
+          key === 'sizeBonus' ||
+          key === 'dropChanceBonus' ||
+          key === 'criticalChance'
             ? Math.round(value * 100)
             : value;
       } else {
@@ -338,7 +351,10 @@ export class UpgradeSystem {
         if (typeof value === 'number') {
           // 특수 필드는 % 변환
           const val =
-            key === 'chance' || key === 'sizeBonus' || key === 'dropChanceBonus'
+            key === 'chance' ||
+            key === 'sizeBonus' ||
+            key === 'dropChanceBonus' ||
+            key === 'criticalChance'
               ? Math.round(value * 100)
               : value;
           params[`${prefix}${key}`] = val;
@@ -353,6 +369,7 @@ export class UpgradeSystem {
           if (key === 'count') params[`${prefix}Count`] = val;
           if (key === 'hpBonus') params[`${prefix}Hp`] = val;
           if (key === 'dropChanceBonus') params[`${prefix}Drop`] = val;
+          if (key === 'criticalChance') params[`${prefix}CriticalChance`] = val;
         } else {
           params[`${prefix}${key}`] = String(value);
         }
@@ -372,7 +389,10 @@ export class UpgradeSystem {
       for (const [key, value] of Object.entries(next)) {
         if (typeof value === 'number') {
           const val =
-            key === 'chance' || key === 'sizeBonus' || key === 'dropChanceBonus'
+            key === 'chance' ||
+            key === 'sizeBonus' ||
+            key === 'dropChanceBonus' ||
+            key === 'criticalChance'
               ? Math.round(value * 100)
               : value;
           params[key] = val;
@@ -385,6 +405,11 @@ export class UpgradeSystem {
         return current
           ? Data.formatTemplate('upgrade.preview.cursor_size.upgrade', params)
           : Data.formatTemplate('upgrade.preview.cursor_size.new', params);
+
+      case 'criticalChanceBonus':
+        return current
+          ? Data.formatTemplate('upgrade.preview.critical_chance.upgrade', params)
+          : Data.formatTemplate('upgrade.preview.critical_chance.new', params);
 
       case 'electricShockLevel':
         return current

@@ -163,7 +163,7 @@
     "upgrade_selected": {
       "key": "upgrade_selected",
       "path": "assets/audio/upgrade_selected.wav",
-      "volume": 0.4,
+      "volume": 0.2,
       "synth": {
         "notes": [196, 247, 294, 392, 494, 587, 784, 988, 1175, 1568],
         "noteDuration": 0.06,

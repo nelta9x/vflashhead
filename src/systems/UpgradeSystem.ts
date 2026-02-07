@@ -7,6 +7,7 @@ import type {
   MagnetLevelData,
   MissileLevelData,
   HealthPackLevelData,
+  OrbitingOrbLevelData,
 } from '../data/types';
 import { EventBus, GameEvents } from '../utils/EventBus';
 
@@ -244,6 +245,10 @@ export class UpgradeSystem {
 
   getAllUpgradeStacks(): Map<string, number> {
     return new Map(this.upgradeStacks);
+  }
+
+  getSystemUpgrade(upgradeId: string): SystemUpgradeData | undefined {
+    return Data.upgrades.system.find((u) => u.id === upgradeId);
   }
 
   // ========== 동적 설명 생성 ==========

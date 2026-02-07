@@ -207,7 +207,6 @@ export class GameScene extends Phaser.Scene {
 
     // 웨이브 카운트다운 UI
     this.waveCountdownUI = new WaveCountdownUI(this);
-
   }
 
   private initializeEntities(): void {
@@ -264,7 +263,6 @@ export class GameScene extends Phaser.Scene {
         this.inGameUpgradeUI.show();
       });
     });
-
 
     // 카운트다운 틱
     EventBus.getInstance().on(GameEvents.WAVE_COUNTDOWN_TICK, (...args: unknown[]) => {
@@ -459,9 +457,10 @@ export class GameScene extends Phaser.Scene {
 
         // 2. Fire Phase (순차적 발사!)
         const baseAttack = Data.gameConfig.playerAttack;
-        const missileCount = this.upgradeSystem.getMissileLevel() > 0
-          ? this.upgradeSystem.getMissileCount()
-          : baseAttack.baseMissileCount;
+        const missileCount =
+          this.upgradeSystem.getMissileLevel() > 0
+            ? this.upgradeSystem.getMissileCount()
+            : baseAttack.baseMissileCount;
         const fireX = pointer.worldX;
         const fireY = pointer.worldY;
 
@@ -563,9 +562,10 @@ export class GameScene extends Phaser.Scene {
 
         // 미사일 데미지 적용
         const attackConfig = Data.gameConfig.playerAttack;
-        const totalDamage = this.upgradeSystem.getMissileLevel() > 0
-          ? this.upgradeSystem.getMissileDamage()
-          : attackConfig.baseMissileDamage;
+        const totalDamage =
+          this.upgradeSystem.getMissileLevel() > 0
+            ? this.upgradeSystem.getMissileDamage()
+            : attackConfig.baseMissileDamage;
         this.monsterSystem.takeDamage(totalDamage, curStartX, curStartY);
 
         // 타격 피드백 (마지막 발사일수록 더 강하게)
@@ -954,7 +954,13 @@ export class GameScene extends Phaser.Scene {
 
     // 구체 어빌리티 업데이트
     const pointer = this.input.activePointer;
-    this.orbSystem.update(scaledDelta, this.gameTime, pointer.worldX, pointer.worldY, this.dishPool);
+    this.orbSystem.update(
+      scaledDelta,
+      this.gameTime,
+      pointer.worldX,
+      pointer.worldY,
+      this.dishPool
+    );
     this.orbRenderer.render(this.orbSystem.getOrbs());
 
     // 커서 범위 기반 공격 처리
@@ -1119,13 +1125,13 @@ export class GameScene extends Phaser.Scene {
     }
 
     // 레이저 렌더링용 데이터 준비 (항상 렌더링하여 빈 상태일 때도 이전 레이저가 지워지도록 함)
-    const laserData = this.activeLasers.map(l => ({
+    const laserData = this.activeLasers.map((l) => ({
       ...l,
-      progress: (this.gameTime - l.startTime) / Data.gameConfig.monsterAttack.laser.warningDuration
+      progress: (this.gameTime - l.startTime) / Data.gameConfig.monsterAttack.laser.warningDuration,
     }));
-    
+
     this.laserRenderer.render(laserData);
-    
+
     if (this.activeLasers.length > 0) {
       this.checkLaserCollisions(delta);
     }

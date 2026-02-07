@@ -267,7 +267,7 @@ export class UpgradeSystem {
     }
 
     if (!upgradeData.levels) return Data.t(`upgrade.${upgradeId}.desc`);
-    
+
     const index = Math.min(stack, upgradeData.levels.length) - 1;
     const levelData = upgradeData.levels[index] as Record<string, number | string>;
 
@@ -275,9 +275,10 @@ export class UpgradeSystem {
     const params: Record<string, number | string> = {};
     for (const [key, value] of Object.entries(levelData)) {
       if (typeof value === 'number') {
-        params[key] = (key === 'chance' || key === 'sizeBonus' || key === 'dropChanceBonus')
-          ? Math.round(value * 100)
-          : value;
+        params[key] =
+          key === 'chance' || key === 'sizeBonus' || key === 'dropChanceBonus'
+            ? Math.round(value * 100)
+            : value;
       } else {
         params[key] = value;
       }
@@ -290,22 +291,22 @@ export class UpgradeSystem {
   // 선택 화면용 미리보기 설명 (현재 → 다음 레벨)
   getPreviewDescription(upgradeId: string): string {
     const upgradeData = Data.upgrades.system.find((u) => u.id === upgradeId);
-    
+
     // 시스템 업그레이드가 아니면 (무기 등) 일반 설명의 번역본 반환
     if (!upgradeData) {
-        return Data.t(`upgrade.${upgradeId}.desc`);
+      return Data.t(`upgrade.${upgradeId}.desc`);
     }
 
     // fullHeal 등 levels가 없는 업그레이드
     if (!upgradeData.levels) {
-        return Data.t(`upgrade.${upgradeId}.desc`);
+      return Data.t(`upgrade.${upgradeId}.desc`);
     }
 
     const currentStack = this.getUpgradeStack(upgradeId);
     const nextStack = currentStack + 1;
 
     if (nextStack > upgradeData.levels.length) {
-        return Data.t(`upgrade.${upgradeId}.desc`);
+      return Data.t(`upgrade.${upgradeId}.desc`);
     }
 
     const nextData = upgradeData.levels[nextStack - 1];
@@ -330,51 +331,53 @@ export class UpgradeSystem {
     const process = (prefix: string, data: Record<string, unknown>) => {
       for (const [key, value] of Object.entries(data)) {
         if (typeof value === 'number') {
-           // 특수 필드는 % 변환
-           const val = (key === 'chance' || key === 'sizeBonus' || key === 'dropChanceBonus') 
-             ? Math.round(value * 100) 
-             : value;
-           params[`${prefix}${key}`] = val;
-           
-           // 매핑을 위한 별칭 (템플릿 키와 일치시키기 위해)
-           if (key === 'sizeBonus') params[`${prefix}Size`] = val;
-           if (key === 'damage') params[`${prefix}Dmg`] = val;
-           if (key === 'radius') params[`${prefix}Radius`] = val;
-           if (key === 'chance') params[`${prefix}Chance`] = val;
-           if (key === 'range') params[`${prefix}Range`] = val;
-           if (key === 'force') params[`${prefix}Force`] = val;
-           if (key === 'count') params[`${prefix}Count`] = val;
-           if (key === 'hpBonus') params[`${prefix}Hp`] = val;
-           if (key === 'dropChanceBonus') params[`${prefix}Drop`] = val;
+          // 특수 필드는 % 변환
+          const val =
+            key === 'chance' || key === 'sizeBonus' || key === 'dropChanceBonus'
+              ? Math.round(value * 100)
+              : value;
+          params[`${prefix}${key}`] = val;
+
+          // 매핑을 위한 별칭 (템플릿 키와 일치시키기 위해)
+          if (key === 'sizeBonus') params[`${prefix}Size`] = val;
+          if (key === 'damage') params[`${prefix}Dmg`] = val;
+          if (key === 'radius') params[`${prefix}Radius`] = val;
+          if (key === 'chance') params[`${prefix}Chance`] = val;
+          if (key === 'range') params[`${prefix}Range`] = val;
+          if (key === 'force') params[`${prefix}Force`] = val;
+          if (key === 'count') params[`${prefix}Count`] = val;
+          if (key === 'hpBonus') params[`${prefix}Hp`] = val;
+          if (key === 'dropChanceBonus') params[`${prefix}Drop`] = val;
         } else {
-           params[`${prefix}${key}`] = String(value);
+          params[`${prefix}${key}`] = String(value);
         }
       }
     };
 
     if (current) process('cur', current);
-    process(current ? 'next' : '', next); // new일때는 prefix 없이 사용하거나 next? 
+    process(current ? 'next' : '', next); // new일때는 prefix 없이 사용하거나 next?
     // Wait, for 'new', I used keys like {sizeBonus} without prefix in locales.json.
     // For 'upgrade', I used {curSize}, {nextSize}.
-    
+
     // 재조정: new일 때는 prefix 없음. upgrade일 때는 cur/next prefix.
     if (!current) {
-        // Reset params to remove 'next' prefix for simple keys if needed, 
-        // but my helper added 'nextSize'. 
-        // I need to add raw keys for 'new' case.
-        for (const [key, value] of Object.entries(next)) {
-             if (typeof value === 'number') {
-                const val = (key === 'chance' || key === 'sizeBonus' || key === 'dropChanceBonus') 
-                  ? Math.round(value * 100) 
-                  : value;
-                params[key] = val;
-             }
+      // Reset params to remove 'next' prefix for simple keys if needed,
+      // but my helper added 'nextSize'.
+      // I need to add raw keys for 'new' case.
+      for (const [key, value] of Object.entries(next)) {
+        if (typeof value === 'number') {
+          const val =
+            key === 'chance' || key === 'sizeBonus' || key === 'dropChanceBonus'
+              ? Math.round(value * 100)
+              : value;
+          params[key] = val;
         }
+      }
     }
 
     switch (effectType) {
       case 'cursorSizeBonus':
-        return current 
+        return current
           ? Data.formatTemplate('upgrade.preview.cursor_size.upgrade', params)
           : Data.formatTemplate('upgrade.preview.cursor_size.new', params);
 
@@ -396,7 +399,7 @@ export class UpgradeSystem {
       case 'missileLevel':
         if (!current) return Data.formatTemplate('upgrade.preview.missile.new', params);
         if (current.damage !== next.damage) {
-             return Data.formatTemplate('upgrade.preview.missile.upgrade', params);
+          return Data.formatTemplate('upgrade.preview.missile.upgrade', params);
         }
         return Data.formatTemplate('upgrade.preview.missile.upgrade_count', params);
 

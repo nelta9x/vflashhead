@@ -9,14 +9,16 @@ export class LaserRenderer {
     this.graphics.setDepth(1500);
   }
 
-  public render(lasers: Array<{
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
-    isFiring: boolean;
-    progress: number;
-  }>): void {
+  public render(
+    lasers: Array<{
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+      isFiring: boolean;
+      progress: number;
+    }>
+  ): void {
     this.graphics.clear();
     const config = Data.gameConfig.monsterAttack.laser;
     const color = Phaser.Display.Color.HexStringToColor(config.color).color;

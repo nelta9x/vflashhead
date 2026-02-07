@@ -33,7 +33,7 @@ export class GameOverScene extends Phaser.Scene {
 
   create(): void {
     this.cameras.main.fadeIn(500);
-    
+
     // 커서 다시 표시 (GameScene에서 숨겼을 수 있음)
     this.input.setDefaultCursor('default');
 
@@ -48,7 +48,7 @@ export class GameOverScene extends Phaser.Scene {
       const zone = this.add.zone(0, 0, GAME_WIDTH, GAME_HEIGHT);
       zone.setOrigin(0);
       zone.setInteractive();
-      
+
       zone.once('pointerdown', () => {
         this.cameras.main.fadeOut(500);
         this.cameras.main.once('camerafadeoutcomplete', () => {

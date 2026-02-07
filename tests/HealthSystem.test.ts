@@ -82,7 +82,7 @@ describe('HealthSystem Upgrade Effects', () => {
 
       const hpBonus = 2;
       health.setMaxHp(INITIAL_HP + hpBonus);
-      
+
       expect(health.getMaxHp()).toBe(7);
     });
   });

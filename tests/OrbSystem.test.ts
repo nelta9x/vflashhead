@@ -8,7 +8,7 @@ vi.mock('phaser', () => {
         Distance: {
           Between: (x1: number, y1: number, x2: number, y2: number) => {
             return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-          }
+          },
         },
         DegToRad: (deg: number) => deg * (Math.PI / 180),
       },
@@ -36,7 +36,7 @@ describe('OrbSystem', () => {
     mockDishes = [];
     mockDishPool = {
       forEach: vi.fn((callback) => {
-        mockDishes.forEach(dish => callback(dish));
+        mockDishes.forEach((dish) => callback(dish));
       }),
     };
 
@@ -45,9 +45,9 @@ describe('OrbSystem', () => {
 
   it('should not spawn orbs if level is 0', () => {
     mockUpgradeSystem.getOrbitingOrbLevel.mockReturnValue(0);
-    
+
     system.update(100, 0, 0, 0, mockDishPool);
-    
+
     expect(system.getOrbs()).toHaveLength(0);
   });
 
@@ -58,11 +58,11 @@ describe('OrbSystem', () => {
       damage: 10,
       speed: 100,
       radius: 100,
-      size: 10
+      size: 10,
     });
 
     system.update(100, 0, 0, 0, mockDishPool);
-    
+
     const orbs = system.getOrbs();
     expect(orbs).toHaveLength(2);
     // Initial angle 0 + speed update.
@@ -79,7 +79,7 @@ describe('OrbSystem', () => {
       damage: 10,
       speed: 0, // Stop rotation for easy calc
       radius: 100,
-      size: 10
+      size: 10,
     });
 
     // Player at 0,0. Orb at 100,0. Size 10.
@@ -105,7 +105,7 @@ describe('OrbSystem', () => {
       damage: 10,
       speed: 0,
       radius: 100,
-      size: 10
+      size: 10,
     });
 
     const mockDish = {
@@ -139,7 +139,7 @@ describe('OrbSystem', () => {
       damage: 10,
       speed: 0,
       radius: 100,
-      size: 10
+      size: 10,
     });
     mockUpgradeSystem.getMagnetLevel.mockReturnValue(5); // Level 5 Magnet
 

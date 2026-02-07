@@ -102,7 +102,7 @@ class DataManager {
       } catch (e) {
         // navigator might be unavailable
       }
-      
+
       this.currentLang = detectedLang as 'en' | 'ko';
     }
   }
@@ -129,6 +129,11 @@ class DataManager {
 
   public getLanguage(): 'en' | 'ko' {
     return this.currentLang;
+  }
+
+  public getFont(): string {
+    const locale = this.locales[this.currentLang];
+    return locale.fontFamily || this.gameConfig.fonts.main;
   }
 
   public t(key: string, ...args: (string | number)[]): string {

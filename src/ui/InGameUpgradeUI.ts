@@ -113,7 +113,7 @@ export class InGameUpgradeUI {
 
     // 아이콘 표시 (SVG 스프라이트 또는 텍스트 폴백)
     const iconY = -BOX_HEIGHT / 2 + 32;
-    
+
     // 텍스처가 존재하는지 확인
     if (this.scene.textures.exists(upgrade.id)) {
       const iconSprite = this.scene.add.image(0, iconY, upgrade.id);

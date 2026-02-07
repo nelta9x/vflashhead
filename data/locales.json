@@ -1,5 +1,6 @@
 {
   "en": {
+    "fontFamily": "'Orbitron', 'Black Han Sans', sans-serif",
     "menu.title": "FLASHHEAD",
     "menu.start": "CLICK TO START",
     "menu.best_wave": "BEST WAVE {0}",
@@ -15,10 +16,10 @@
     "gameover.max_combo": "MAX COMBO",
     "gameover.new_best": "NEW BEST",
     "gameover.click_menu": "CLICK TO MENU",
-    
+
     "damage.combo": "x{0}",
     "damage.critical": "{0}!",
-    
+
     "upgrade.rapid_fire.name": "Rapid Fire",
     "upgrade.rapid_fire.desc": "Fire rate increases by 25%.",
     "upgrade.damage_up.name": "Damage Up",
@@ -55,7 +56,7 @@
     "upgrade.bullet_hell.desc": "Projectiles +3, Fire Rate +50%",
     "upgrade.perfect_critical.name": "Perfect Critical",
     "upgrade.perfect_critical.desc": "Crit Chance +20%, Multiplier +1.0",
-    
+
     "upgrade.cursor_size.name": "Wide Strike",
     "upgrade.cursor_size.desc": "Cursor hit area and damage increased.",
     "upgrade.cursor_size.desc_template": "Cursor hit area +{sizeBonus}%, Damage +{damage}.",
@@ -96,6 +97,7 @@
     "upgrade.preview.orbiting_orb.upgrade": "{curCount} -> {nextCount} Orbs, Dmg {curDmg} -> {nextDmg}"
   },
   "ko": {
+    "fontFamily": "'NeoDunggeunmoPro', 'Black Han Sans', 'Orbitron', sans-serif",
     "menu.title": "FLASHHEAD",
     "menu.start": "클릭하여 시작",
     "menu.best_wave": "최고 기록: 웨이브 {0}",

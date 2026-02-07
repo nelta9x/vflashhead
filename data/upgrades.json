@@ -74,11 +74,11 @@
       "rarity": "common",
       "effectType": "staticDischargeLevel",
       "levels": [
-        { "chance": 0.30, "damage": 5, "range": 300 },
+        { "chance": 0.3, "damage": 5, "range": 300 },
         { "chance": 0.35, "damage": 7, "range": 350 },
-        { "chance": 0.40, "damage": 9, "range": 400 },
+        { "chance": 0.4, "damage": 9, "range": 400 },
         { "chance": 0.45, "damage": 11, "range": 450 },
-        { "chance": 0.50, "damage": 13, "range": 500 }
+        { "chance": 0.5, "damage": 13, "range": 500 }
       ]
     },
     {

@@ -714,7 +714,8 @@ export interface BossConfig {
 
 // ========== 다국어 지원 ==========
 export interface LocaleData {
-  [key: string]: string;
+  fontFamily?: string;
+  [key: string]: string | undefined;
 }
 
 export interface LocalesConfig {

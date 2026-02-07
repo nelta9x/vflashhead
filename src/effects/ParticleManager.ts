@@ -590,7 +590,13 @@ export class ParticleManager {
   /**
    * 보스 게이지(아머) 파괴 시 파편이 사방으로 튀며 아래로 떨어지는 연출
    */
-  createBossGaugeShatter(x: number, y: number, innerRadius: number, outerRadius: number, bodyColor: number): void {
+  createBossGaugeShatter(
+    x: number,
+    y: number,
+    innerRadius: number,
+    outerRadius: number,
+    bodyColor: number
+  ): void {
     const config = Data.boss.visual.shatter;
 
     // 1. 게이지 파편 shattering & falling 효과
@@ -604,24 +610,24 @@ export class ParticleManager {
       // 파편 그래픽
       const shard = this.scene.add.graphics();
       shard.setDepth(1999);
-      
+
       const size = Phaser.Math.Between(config.minSize, config.maxSize);
       // 색상 다양화: 에너지 비중(energyShardRatio)만큼 빨간색, 나머지는 아머 색상
       const isEnergy = Math.random() < config.energyShardRatio;
       const color = isEnergy ? COLORS.RED : bodyColor;
       const alpha = isEnergy ? 1 : 0.8;
-      
+
       shard.fillStyle(color, alpha);
-      
+
       // 랜덤한 다각형 파편 그리기 (3~5개 꼭짓점)
       const points = [];
       const numPoints = Phaser.Math.Between(3, 5);
       for (let j = 0; j < numPoints; j++) {
         const pAngle = (j / numPoints) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
-        const pRadius = size / 2 * (0.5 + Math.random() * 0.5);
+        const pRadius = (size / 2) * (0.5 + Math.random() * 0.5);
         points.push({ x: Math.cos(pAngle) * pRadius, y: Math.sin(pAngle) * pRadius });
       }
-      
+
       shard.fillPoints(points, true);
 
       // 테두리 추가 (에너지 파편인 경우)
@@ -634,8 +640,13 @@ export class ParticleManager {
       shard.setRotation(Math.random() * Math.PI * 2);
 
       // 물리 효과 시뮬레이션 (초기 속도 + 중력)
-      const velocityX = (Math.cos(angle) * 0.5 + (Math.random() - 0.5)) * Phaser.Math.Between(config.minVelocity, config.maxVelocity);
-      const velocityY = (Math.sin(angle) * 0.5 + (Math.random() - 0.5)) * Phaser.Math.Between(config.minVelocity, config.maxVelocity) - config.upwardForce;
+      const velocityX =
+        (Math.cos(angle) * 0.5 + (Math.random() - 0.5)) *
+        Phaser.Math.Between(config.minVelocity, config.maxVelocity);
+      const velocityY =
+        (Math.sin(angle) * 0.5 + (Math.random() - 0.5)) *
+          Phaser.Math.Between(config.minVelocity, config.maxVelocity) -
+        config.upwardForce;
       const gravity = config.gravity;
       const rotationSpeed = (Math.random() - 0.5) * config.rotationSpeedRange;
       const duration = Phaser.Math.Between(config.minDuration, config.maxDuration);
@@ -652,7 +663,7 @@ export class ParticleManager {
           shard.setPosition(curX, curY);
           shard.setRotation(shard.rotation + rotationSpeed * 0.016);
         },
-        onComplete: () => shard.destroy()
+        onComplete: () => shard.destroy(),
       });
     }
 
@@ -675,7 +686,7 @@ export class ParticleManager {
         alpha: 0,
         scale: 0,
         duration: config.sparkDuration,
-        onComplete: () => spark.destroy()
+        onComplete: () => spark.destroy(),
       });
     }
   }

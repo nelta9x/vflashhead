@@ -58,10 +58,10 @@ export class BootScene extends Phaser.Scene {
       'static_discharge',
       'magnet',
       'missile',
-      'health_pack'
+      'health_pack',
     ];
 
-    icons.forEach(icon => {
+    icons.forEach((icon) => {
       this.load.svg(icon, `assets/icons/${icon}.svg`, { width: 64, height: 64 });
     });
   }

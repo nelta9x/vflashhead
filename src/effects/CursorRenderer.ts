@@ -12,12 +12,7 @@ export class CursorRenderer {
   /**
    * 메뉴용 원근감 커서 렌더링
    */
-  public renderMenuCursor(
-    x: number, 
-    y: number, 
-    radius: number, 
-    perspectiveFactor: number
-  ): void {
+  public renderMenuCursor(x: number, y: number, radius: number, perspectiveFactor: number): void {
     this.graphics.clear();
 
     // 1. 외곽 원 (원근감이 적용된 두께와 크기)
@@ -29,7 +24,10 @@ export class CursorRenderer {
     this.graphics.strokeCircle(x, y, radius);
 
     // 2. 내부 채우기
-    this.graphics.fillStyle(Data.gameConfig.player.cursorColorNumeric, 0.1 + perspectiveFactor * 0.2);
+    this.graphics.fillStyle(
+      Data.gameConfig.player.cursorColorNumeric,
+      0.1 + perspectiveFactor * 0.2
+    );
     this.graphics.fillCircle(x, y, radius);
 
     // 3. 중앙 점

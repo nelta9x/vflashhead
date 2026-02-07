@@ -486,9 +486,12 @@ describe('Dish Upgrade Effects', () => {
 
       dish.applyDamage(10);
 
-      expect(EventBus.getInstance().emit).toHaveBeenCalledWith('dish_damaged', expect.objectContaining({
-        byAbility: true
-      }));
+      expect(EventBus.getInstance().emit).toHaveBeenCalledWith(
+        'dish_damaged',
+        expect.objectContaining({
+          byAbility: true,
+        })
+      );
     });
 
     it('should emit DISH_DAMAGED with byAbility: true when applyDamageWithUpgrades is called', async () => {
@@ -500,9 +503,12 @@ describe('Dish Upgrade Effects', () => {
 
       dish.applyDamageWithUpgrades(10, 0, 0);
 
-      expect(EventBus.getInstance().emit).toHaveBeenCalledWith('dish_damaged', expect.objectContaining({
-        byAbility: true
-      }));
+      expect(EventBus.getInstance().emit).toHaveBeenCalledWith(
+        'dish_damaged',
+        expect.objectContaining({
+          byAbility: true,
+        })
+      );
     });
 
     it('should emit DISH_DAMAGED with byAbility: false when takeDamage is called', async () => {
@@ -515,9 +521,12 @@ describe('Dish Upgrade Effects', () => {
       // takeDamage is private, so use any to call it
       (dish as any).takeDamage(true);
 
-      expect(EventBus.getInstance().emit).toHaveBeenCalledWith('dish_damaged', expect.objectContaining({
-        byAbility: false
-      }));
+      expect(EventBus.getInstance().emit).toHaveBeenCalledWith(
+        'dish_damaged',
+        expect.objectContaining({
+          byAbility: false,
+        })
+      );
     });
   });
 });

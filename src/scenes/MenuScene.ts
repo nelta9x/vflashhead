@@ -35,7 +35,7 @@ export class MenuScene extends Phaser.Scene {
     this.isTransitioning = false;
     // 배경색 채우기
     this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, COLORS.DARK_BG).setOrigin(0, 0).setDepth(-10);
-    
+
     this.starBackground = new StarBackground(this, Data.mainMenu.stars);
     this.bossRenderer = new MenuBossRenderer(this);
     this.gridRenderer = new GridRenderer(this);
@@ -56,29 +56,38 @@ export class MenuScene extends Phaser.Scene {
   private createLanguageButton(): void {
     const config = Data.mainMenu.languageUI;
     const currentLang = Data.getLanguage();
-    
+
     const container = this.add.container(config.x, config.y);
-    
+
     // 1. EN 텍스트
-    const enText = this.add.text(-config.spacing * 2, 0, 'EN', {
-      fontFamily: FONTS.MAIN,
-      fontSize: config.fontSize,
-      color: currentLang === 'en' ? COLORS_HEX.CYAN : COLORS_HEX.WHITE,
-    }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
+    const enText = this.add
+      .text(-config.spacing * 2, 0, 'EN', {
+        fontFamily: FONTS.MAIN,
+        fontSize: config.fontSize,
+        color: currentLang === 'en' ? COLORS_HEX.CYAN : COLORS_HEX.WHITE,
+      })
+      .setOrigin(0.5, 0)
+      .setInteractive({ useHandCursor: true });
 
     // 2. 구분선
-    const separator = this.add.text(-config.spacing, 0, '|', {
-      fontFamily: FONTS.MAIN,
-      fontSize: '16px',
-      color: COLORS_HEX.WHITE,
-    }).setOrigin(0.5, 0).setAlpha(0.3);
+    const separator = this.add
+      .text(-config.spacing, 0, '|', {
+        fontFamily: FONTS.MAIN,
+        fontSize: '16px',
+        color: COLORS_HEX.WHITE,
+      })
+      .setOrigin(0.5, 0)
+      .setAlpha(0.3);
 
     // 3. KO 텍스트
-    const koText = this.add.text(0, 0, 'KO', {
-      fontFamily: FONTS.MAIN,
-      fontSize: config.fontSize,
-      color: currentLang === 'ko' ? COLORS_HEX.CYAN : COLORS_HEX.WHITE,
-    }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
+    const koText = this.add
+      .text(0, 0, 'KO', {
+        fontFamily: FONTS.MAIN,
+        fontSize: config.fontSize,
+        color: currentLang === 'ko' ? COLORS_HEX.CYAN : COLORS_HEX.WHITE,
+      })
+      .setOrigin(0.5, 0)
+      .setInteractive({ useHandCursor: true });
 
     container.add([enText, separator, koText]);
 
@@ -117,12 +126,14 @@ export class MenuScene extends Phaser.Scene {
     });
 
     // 호버 효과
-    [enText, koText].forEach(t => {
+    [enText, koText].forEach((t) => {
       t.on('pointerover', () => {
         if (t.alpha < 1) t.setAlpha(0.8);
       });
       t.on('pointerout', () => {
-        const isThisActive = (t === enText && Data.getLanguage() === 'en') || (t === koText && Data.getLanguage() === 'ko');
+        const isThisActive =
+          (t === enText && Data.getLanguage() === 'en') ||
+          (t === koText && Data.getLanguage() === 'ko');
         t.setAlpha(isThisActive ? 1 : config.inactiveAlpha);
       });
     });
@@ -280,7 +291,8 @@ export class MenuScene extends Phaser.Scene {
       // 원근감 이동 (아래로 갈수록 빨라짐)
       const verticalRange = GAME_HEIGHT - horizonY;
       const perspectiveFactor = (dish.y - horizonY) / verticalRange;
-      const speed = globalGridConfig.speed * delta * (1 + perspectiveFactor * config.speedMultiplier);
+      const speed =
+        globalGridConfig.speed * delta * (1 + perspectiveFactor * config.speedMultiplier);
 
       dish.y += speed;
 

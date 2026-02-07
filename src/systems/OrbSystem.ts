@@ -12,7 +12,7 @@ export interface OrbPosition {
 export class OrbSystem {
   private upgradeSystem: UpgradeSystem;
   private currentAngle: number = 0;
-  
+
   // Cooldown tracking per dish: Map<Dish, NextHitTime>
   private lastHitTimes: WeakMap<Dish, number> = new WeakMap();
   private readonly HIT_INTERVAL = 300; // ms between hits on the same target
@@ -24,10 +24,10 @@ export class OrbSystem {
   }
 
   update(
-    delta: number, 
-    gameTime: number, 
-    playerX: number, 
-    playerY: number, 
+    delta: number,
+    gameTime: number,
+    playerX: number,
+    playerY: number,
     dishPool: ObjectPool<Dish>
   ): void {
     const level = this.upgradeSystem.getOrbitingOrbLevel();
@@ -42,7 +42,7 @@ export class OrbSystem {
     // Magnet Synergy: Increase Size
     const magnetLevel = this.upgradeSystem.getMagnetLevel();
     // Base size + 20% per magnet level
-    const synergySizeMultiplier = 1 + (magnetLevel * 0.2); 
+    const synergySizeMultiplier = 1 + magnetLevel * 0.2;
     const finalSize = stats.size * synergySizeMultiplier;
 
     // Update Angle
@@ -58,16 +58,16 @@ export class OrbSystem {
     const angleStep = 360 / count;
 
     for (let i = 0; i < count; i++) {
-      const angleDeg = this.currentAngle + (i * angleStep);
+      const angleDeg = this.currentAngle + i * angleStep;
       const angleRad = Phaser.Math.DegToRad(angleDeg);
-      
+
       const orbX = playerX + Math.cos(angleRad) * radius;
       const orbY = playerY + Math.sin(angleRad) * radius;
 
       this.orbPositions.push({
         x: orbX,
         y: orbY,
-        size: finalSize
+        size: finalSize,
       });
     }
 
@@ -76,13 +76,13 @@ export class OrbSystem {
   }
 
   private checkCollisions(
-    gameTime: number, 
-    dishPool: ObjectPool<Dish>, 
-    damage: number, 
+    gameTime: number,
+    dishPool: ObjectPool<Dish>,
+    damage: number,
     orbSize: number
   ): void {
-    dishPool.forEach(dish => {
-      if (!dish.active || dish.isDangerous()) return; // Don't hit bombs automatically with orbs? 
+    dishPool.forEach((dish) => {
+      if (!dish.active || dish.isDangerous()) return; // Don't hit bombs automatically with orbs?
       // Actually, hitting bombs with orbs might be bad if it kills the player.
       // But "Protective Orbs" usually defend.
       // In Vampire Survivors, Bible hits everything.
@@ -92,13 +92,13 @@ export class OrbSystem {
       // If it's a bomb, applyDamage -> destroy -> explosion.
       // Usually "Projectiles" trigger bombs. Orbs are projectiles.
       // Let's keep it consistent: Orbs hit everything.
-      
+
       // Collision Check (Circle vs Circle)
       // Iterate all orbs
       let hit = false;
       for (const orb of this.orbPositions) {
         const dist = Phaser.Math.Distance.Between(orb.x, orb.y, dish.x, dish.y);
-        if (dist <= (orbSize + dish.getSize())) {
+        if (dist <= orbSize + dish.getSize()) {
           hit = true;
           break;
         }

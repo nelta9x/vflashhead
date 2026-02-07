@@ -15,20 +15,20 @@ export class GridRenderer {
   public update(delta: number): void {
     const config = Data.mainMenu.grid;
     const globalConfig = Data.gameConfig.gameGrid;
-    
+
     this.graphics.clear();
-    
+
     const horizonY = GAME_HEIGHT * config.horizonRatio;
     const vanishingPointX = GAME_WIDTH / 2;
     const verticalSpread = 8; // 좌우로 퍼지는 강도
 
     // 1. 세로선 (원근법)
     this.graphics.lineStyle(globalConfig.lineWidth, COLORS.CYAN, globalConfig.alpha);
-    
+
     for (let i = 0; i <= config.verticalLines!; i++) {
       const xOffset = (i - config.verticalLines! / 2) * (GAME_WIDTH / 25);
-      const startX = vanishingPointX + xOffset * 0.08; 
-      const endX = vanishingPointX + xOffset * verticalSpread; 
+      const startX = vanishingPointX + xOffset * 0.08;
+      const endX = vanishingPointX + xOffset * verticalSpread;
 
       this.graphics.moveTo(startX, horizonY);
       this.graphics.lineTo(endX, GAME_HEIGHT);

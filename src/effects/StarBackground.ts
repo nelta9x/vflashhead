@@ -52,11 +52,11 @@ export class StarBackground {
       const sizeFactor = star.size / this.config.maxSize;
       const baseRatio = this.config.parallaxRatio;
       const variation = this.config.sizeSpeedFactor;
-      
+
       // 공식: gridSpeed * 기본비율 * (1 - variation/2 + sizeFactor * variation)
       // 예: 0.1 * (0.8 + sizeFactor * 0.4) 와 비슷하게 동작하도록 설정
       const parallaxSpeed = gridSpeed * baseRatio * (1 - variation * 0.5 + sizeFactor * variation);
-      
+
       star.y += parallaxSpeed * delta;
 
       // 경계 체크 및 리셋

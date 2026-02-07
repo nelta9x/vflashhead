@@ -175,7 +175,13 @@ export class FeedbackSystem {
   }
 
   // 보스 아머 파괴 피드백
-  onBossArmorBreak(x: number, y: number, innerRadius: number, outerRadius: number, bodyColor: number): void {
+  onBossArmorBreak(
+    x: number,
+    y: number,
+    innerRadius: number,
+    outerRadius: number,
+    bodyColor: number
+  ): void {
     // 1. 화면 효과: 강한 흔들림
     const feedback = Data.boss.feedback.armorBreakShake;
     this.screenShake.shake(feedback.intensity * 1000, feedback.duration); // intensity 보정 필요 (shake intensity vs pixels)

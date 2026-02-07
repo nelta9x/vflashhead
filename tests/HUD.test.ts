@@ -18,7 +18,13 @@ vi.mock('../src/data/DataManager', () => ({
 vi.mock('../src/data/constants', () => ({
   GAME_WIDTH: 800,
   COLORS: { RED: 0xff0000 },
-  COLORS_HEX: { WHITE: '#ffffff', GREEN: '#00ff00', YELLOW: '#ffff00', RED: '#ff0000', CYAN: '#00ffff' },
+  COLORS_HEX: {
+    WHITE: '#ffffff',
+    GREEN: '#00ff00',
+    YELLOW: '#ffff00',
+    RED: '#ff0000',
+    CYAN: '#00ffff',
+  },
   INITIAL_HP: 5,
   FONTS: { MAIN: 'Arial' },
 }));
@@ -119,7 +125,7 @@ describe('HUD', () => {
 
     healthSystem.setMaxHp(7);
     hud.update(0);
-    
+
     // syncHpHearts should have added 2 more hearts
     expect(mockScene.add.graphics).toHaveBeenCalledTimes(2);
   });
@@ -127,10 +133,10 @@ describe('HUD', () => {
   it('should decrease heart count when maxHp decreases', () => {
     // Get the hearts created during initialization
     const initialGraphics = mockScene.add.graphics.mock.results.map((r: any) => r.value);
-    
+
     healthSystem.setMaxHp(3);
     hud.update(0);
-    
+
     // Should have called destroy on the last 2 hearts (index 3 and 4)
     expect(initialGraphics[4].destroy).toHaveBeenCalled();
     expect(initialGraphics[3].destroy).toHaveBeenCalled();

@@ -63,16 +63,7 @@ export class Boss extends Phaser.GameObjects.Container {
     this.add(this.core);
 
     // 코어 내부 강한 광원
-    this.coreLight = scene.add.arc(
-      0,
-      0,
-      config.core.radius * 0.4,
-      0,
-      360,
-      false,
-      0xffffff,
-      0.8
-    );
+    this.coreLight = scene.add.arc(0, 0, config.core.radius * 0.4, 0, 360, false, 0xffffff, 0.8);
     this.add(this.coreLight);
 
     // 아머를 그릴 그래픽스
@@ -249,8 +240,10 @@ export class Boss extends Phaser.GameObjects.Container {
     const mov = Data.boss.movement;
 
     // movementTime 기반으로 드리프트 적용
-    this.baseX = this.homeX + Math.sin(this.movementTime * mov.drift.xFrequency) * mov.drift.xAmplitude;
-    this.baseY = this.homeY + Math.sin(this.movementTime * mov.drift.yFrequency) * mov.drift.yAmplitude;
+    this.baseX =
+      this.homeX + Math.sin(this.movementTime * mov.drift.xFrequency) * mov.drift.xAmplitude;
+    this.baseY =
+      this.homeY + Math.sin(this.movementTime * mov.drift.yFrequency) * mov.drift.yAmplitude;
 
     // bounds 클램프
     this.baseX = Phaser.Math.Clamp(this.baseX, mov.bounds.minX, mov.bounds.maxX);
@@ -320,7 +313,11 @@ export class Boss extends Phaser.GameObjects.Container {
     if (config.core.glowLevels) {
       config.core.glowLevels.forEach((level) => {
         this.glowGraphics.fillStyle(COLORS.RED, level.alpha * pulseFactor);
-        this.glowGraphics.fillCircle(0, 0, config.core.radius * level.radius * (1 + dangerLevel * 0.2));
+        this.glowGraphics.fillCircle(
+          0,
+          0,
+          config.core.radius * level.radius * (1 + dangerLevel * 0.2)
+        );
       });
     }
 

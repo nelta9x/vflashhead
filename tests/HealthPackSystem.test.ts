@@ -116,7 +116,7 @@ describe('HealthPackSystem', () => {
       Math.random = vi.fn(() => 0.01); // 성공 확률
 
       mockAcquire.mockClear();
-      
+
       // 4.9초 업데이트 (5초 미만)
       system.update(4900, 10000);
       expect(mockAcquire).not.toHaveBeenCalled();
@@ -154,7 +154,9 @@ describe('HealthPackSystem', () => {
       expect(system.getSpawnChance()).toBe(0.04);
 
       // 힐팩 수집
-      const collectCallback = mockOn.mock.calls.find((call) => call[0] === GameEvents.HEALTH_PACK_COLLECTED)?.[1];
+      const collectCallback = mockOn.mock.calls.find(
+        (call) => call[0] === GameEvents.HEALTH_PACK_COLLECTED
+      )?.[1];
       if (collectCallback) {
         collectCallback({ pack: {} });
       }
@@ -164,7 +166,9 @@ describe('HealthPackSystem', () => {
     });
 
     it('should release pack on collected', () => {
-      const callback = mockOn.mock.calls.find((call) => call[0] === GameEvents.HEALTH_PACK_COLLECTED)?.[1];
+      const callback = mockOn.mock.calls.find(
+        (call) => call[0] === GameEvents.HEALTH_PACK_COLLECTED
+      )?.[1];
       if (callback) {
         const pack = {};
         callback({ pack });
@@ -173,7 +177,9 @@ describe('HealthPackSystem', () => {
     });
 
     it('should release pack on missed', () => {
-      const callback = mockOn.mock.calls.find((call) => call[0] === GameEvents.HEALTH_PACK_MISSED)?.[1];
+      const callback = mockOn.mock.calls.find(
+        (call) => call[0] === GameEvents.HEALTH_PACK_MISSED
+      )?.[1];
       if (callback) {
         const pack = {};
         callback({ pack });

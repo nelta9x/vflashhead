@@ -149,7 +149,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
       upgrade.applyUpgrade(staticUpgrade);
       expect(upgrade.getStaticDischargeLevel()).toBe(1);
-      expect(upgrade.getStaticDischargeChance()).toBeCloseTo(0.30);
+      expect(upgrade.getStaticDischargeChance()).toBeCloseTo(0.3);
       expect(upgrade.getStaticDischargeDamage()).toBe(5);
       expect(upgrade.getStaticDischargeRange()).toBe(300);
     });
@@ -160,7 +160,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
       const staticUpgrade = UPGRADES.find((u) => u.id === 'static_discharge')!;
 
       for (let i = 0; i < 5; i++) upgrade.applyUpgrade(staticUpgrade);
-      expect(upgrade.getStaticDischargeChance()).toBeCloseTo(0.50);
+      expect(upgrade.getStaticDischargeChance()).toBeCloseTo(0.5);
       expect(upgrade.getStaticDischargeDamage()).toBe(13);
       expect(upgrade.getStaticDischargeRange()).toBe(500);
     });
@@ -237,7 +237,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
       upgrade.applyUpgrade(hpUpgrade);
       expect(upgrade.getHealthPackLevel()).toBe(1);
       expect(upgrade.getHealthPackDropBonus()).toBeCloseTo(0.01);
-      
+
       // 이벤트 발생 확인
       expect(mockEmit).toHaveBeenCalledWith('healthPack:upgraded', { hpBonus: 1 });
     });
@@ -250,7 +250,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
       for (let i = 0; i < 3; i++) upgrade.applyUpgrade(hpUpgrade);
       expect(upgrade.getHealthPackLevel()).toBe(3);
       expect(upgrade.getHealthPackDropBonus()).toBeCloseTo(0.03);
-      
+
       // 마지막 호출 이벤트 확인
       expect(mockEmit).toHaveBeenLastCalledWith('healthPack:upgraded', { hpBonus: 3 });
     });
@@ -272,9 +272,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
     it('모든 어빌리티 maxStack이 levels.length와 일치', async () => {
       const { UPGRADES } = await import('../src/systems/UpgradeSystem');
 
-      const levelUpgrades = UPGRADES.filter(
-        (u) => u.id !== 'health_pack'
-      );
+      const levelUpgrades = UPGRADES.filter((u) => u.id !== 'health_pack');
 
       for (const upgrade of levelUpgrades) {
         expect(upgrade.maxStack).toBe(5);
@@ -320,16 +318,25 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
     it('모든 시스템 업그레이드의 이름과 설명 키가 존재해야 함', async () => {
       const { Data } = await import('../src/data/DataManager');
       const languages: ('en' | 'ko')[] = ['en', 'ko'];
-      
+
       for (const lang of languages) {
         Data.setLanguage(lang);
         const locale = Data.locales[lang];
 
         for (const upgrade of Data.upgrades.system) {
-          expect(locale[`upgrade.${upgrade.id}.name`], `Missing name for ${upgrade.id} in ${lang}`).toBeDefined();
-          expect(locale[`upgrade.${upgrade.id}.desc`], `Missing desc for ${upgrade.id} in ${lang}`).toBeDefined();
+          expect(
+            locale[`upgrade.${upgrade.id}.name`],
+            `Missing name for ${upgrade.id} in ${lang}`
+          ).toBeDefined();
+          expect(
+            locale[`upgrade.${upgrade.id}.desc`],
+            `Missing desc for ${upgrade.id} in ${lang}`
+          ).toBeDefined();
           if (upgrade.descriptionTemplate) {
-            expect(locale[`upgrade.${upgrade.id}.desc_template`], `Missing desc_template for ${upgrade.id} in ${lang}`).toBeDefined();
+            expect(
+              locale[`upgrade.${upgrade.id}.desc_template`],
+              `Missing desc_template for ${upgrade.id} in ${lang}`
+            ).toBeDefined();
           }
         }
       }
@@ -345,16 +352,19 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
         const upgradeSystem = new UpgradeSystem();
 
         for (const upgradeData of Data.upgrades.system) {
-          const upgradeObj = UPGRADES.find(u => u.id === upgradeData.id)!;
-          
+          const upgradeObj = UPGRADES.find((u) => u.id === upgradeData.id)!;
+
           // 0레벨부터 만렙까지 확인
           const maxLevel = upgradeData.levels ? upgradeData.levels.length : 1;
           for (let level = 0; level <= maxLevel; level++) {
             if (level > 0) upgradeSystem.applyUpgrade(upgradeObj);
-            
+
             const desc = upgradeSystem.getFormattedDescription(upgradeData.id);
             // { 또는 } 가 포함되어 있으면 치환 실패로 간주
-            expect(desc, `Unreplaced tag in ${upgradeData.id} (Level ${level}, ${lang}): ${desc}`).not.toMatch(/\{|\}/);
+            expect(
+              desc,
+              `Unreplaced tag in ${upgradeData.id} (Level ${level}, ${lang}): ${desc}`
+            ).not.toMatch(/\{|\}/);
           }
         }
       }
@@ -370,14 +380,17 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
         const upgradeSystem = new UpgradeSystem();
 
         for (const upgradeData of Data.upgrades.system) {
-          const upgradeObj = UPGRADES.find(u => u.id === upgradeData.id)!;
-          
+          const upgradeObj = UPGRADES.find((u) => u.id === upgradeData.id)!;
+
           const maxLevel = upgradeData.levels ? upgradeData.levels.length : 1;
           for (let level = 0; level < maxLevel; level++) {
             // 현재 level 상태에서 다음 레벨 미리보기 생성
             const preview = upgradeSystem.getPreviewDescription(upgradeData.id);
-            expect(preview, `Unreplaced tag in preview ${upgradeData.id} (From Level ${level}, ${lang}): ${preview}`).not.toMatch(/\{|\}/);
-            
+            expect(
+              preview,
+              `Unreplaced tag in preview ${upgradeData.id} (From Level ${level}, ${lang}): ${preview}`
+            ).not.toMatch(/\{|\}/);
+
             upgradeSystem.applyUpgrade(upgradeObj);
           }
         }

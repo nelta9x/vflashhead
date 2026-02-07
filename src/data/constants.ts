@@ -60,8 +60,12 @@ export const INITIAL_HP = Data.gameConfig.player.initialHp;
 
 // 폰트 설정
 export const FONTS = {
-  MAIN: Data.gameConfig.fonts.main,
-  KOREAN: Data.gameConfig.fonts.korean,
+  get MAIN() {
+    return Data.getFont();
+  },
+  get KOREAN() {
+    return Data.getFont();
+  },
 } as const;
 
 // 접시 생존 시간 (밀리초)

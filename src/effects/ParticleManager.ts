@@ -1,3 +1,6 @@
+import Phaser from 'phaser';
+import { COLORS } from '../data/constants';
+import { Data } from '../data/DataManager';
 import { SoundSystem } from '../systems/SoundSystem';
 
 // 무지개 색상 배열
@@ -21,7 +24,6 @@ export class ParticleManager {
   }
 
   private createEmitters(): void {
-    // ... 기존 코드와 동일 ...
     // 기본 폭발 이미터
     const explosionEmitter = this.scene.add.particles(0, 0, 'particle', {
       speed: { min: 100, max: 300 },
@@ -141,118 +143,6 @@ export class ParticleManager {
     }
   }
 
-  // 에너지 획득 연출: 접시에서 커서로 날아가는 파티클
-  createEnergyEffect(x: number, y: number, combo: number, cursorRadius: number): void {
-    const config = Data.feedback.energyEffect;
-    const pointer = this.scene.input.activePointer;
-
-    // 콤보 등급에 따른 색상 결정
-    const comboConfig = Data.feedback.damageText.combo;
-    const { thresholds, colors } = comboConfig;
-    let colorStr: string;
-
-    if (combo >= thresholds.ultra) colorStr = colors.ultra;
-    else if (combo >= thresholds.high) colorStr = colors.high;
-    else if (combo >= thresholds.mid) colorStr = colors.mid;
-    else colorStr = colors.low;
-
-    const color = parseInt(colorStr.replace('#', ''), 16);
-    const size = config.baseSize + Math.min(config.maxSizeBonus, combo / config.comboDivision);
-
-    // 1. 에너지 구슬 생성
-    const particle = this.scene.add.circle(x, y, size, color, config.alpha);
-    particle.setDepth(100);
-
-    // 2. 꼬리 효과 (트레일) 생성
-    const trail = this.scene.add.particles(0, 0, 'particle', {
-      follow: particle,
-      scale: { start: size / 10, end: 0 },
-      lifespan: config.trailLifespan,
-      blendMode: 'ADD',
-      tint: color,
-      frequency: 20,
-    });
-    trail.setDepth(99);
-
-    // 3. 글로우 효과
-    const glow = this.scene.add.graphics();
-    glow.setDepth(99);
-
-    // 4. 이동 로직 (2차 베지에 곡선)
-    const angle = Math.random() * Math.PI * 2;
-    const cpX = x + Math.cos(angle) * config.knockbackDistance;
-    const cpY = y + Math.sin(angle) * config.knockbackDistance;
-
-    const startX = x;
-    const startY = y;
-
-    let isAbsorbed = false;
-
-    const tween = this.scene.tweens.add({
-      targets: { t: 0 },
-      t: 1,
-      duration: config.duration,
-      ease: 'Sine.easeIn',
-      onUpdate: (_tween, target) => {
-        if (isAbsorbed) return;
-
-        const t = target.t;
-        const oneMinusT = 1 - t;
-        const targetX = pointer.worldX;
-        const targetY = pointer.worldY;
-
-        particle.x = oneMinusT * oneMinusT * startX + 2 * oneMinusT * t * cpX + t * t * targetX;
-
-        particle.y = oneMinusT * oneMinusT * startY + 2 * oneMinusT * t * cpY + t * t * targetY;
-
-        // 실시간 거리 체크: 플레이어의 범위(cursorRadius)에 닿았는지 확인
-        const dist = Phaser.Math.Distance.Between(particle.x, particle.y, targetX, targetY);
-
-        // 너무 초반(튕겨나가는 중)에 흡수되는 것을 방지하기 위해 t > 0.2 조건 추가
-        if (t > 0.2 && dist <= cursorRadius) {
-          isAbsorbed = true;
-          this.completeEnergyEffect(particle, glow, trail, color, config.trailLifespan);
-          tween.stop();
-          return;
-        }
-
-        if (glow.active) {
-          glow.clear();
-          glow.fillStyle(color, config.glowAlpha);
-          const currentGlowSize = size * config.glowScale * (0.5 + 0.5 * t);
-          glow.fillCircle(particle.x, particle.y, currentGlowSize);
-        }
-      },
-      onComplete: () => {
-        if (!isAbsorbed) {
-          this.completeEnergyEffect(particle, glow, trail, color, config.trailLifespan);
-        }
-      },
-    });
-  }
-
-  // 에너지 효과 종료 공통 로직
-  private completeEnergyEffect(
-    particle: Phaser.GameObjects.Arc,
-    glow: Phaser.GameObjects.Graphics,
-    trail: Phaser.GameObjects.Particles.ParticleEmitter,
-    color: number,
-    trailLifespan: number
-  ): void {
-    const x = particle.x;
-    const y = particle.y;
-
-    particle.destroy();
-    glow.destroy();
-
-    this.scene.time.delayedCall(trailLifespan, () => {
-      trail.destroy();
-    });
-
-    // 닿은 지점에 히트 이펙트
-    this.createHitEffect(x, y, color);
-  }
-
   createUpgradeAbsorption(
     startX: number,
     startY: number,
@@ -324,11 +214,9 @@ export class ParticleManager {
     }
   }
 
-  // 업그레이드 흡수 완료 시 임팩트
   private createUpgradeImpact(x: number, y: number, color: number): void {
     const config = Data.feedback.upgradeAbsorption;
     
-    // 강렬한 링 퍼짐
     const ring = this.scene.add.graphics();
     ring.lineStyle(5, color, 1);
     ring.strokeCircle(0, 0, config.impactRingSize);
@@ -345,10 +233,8 @@ export class ParticleManager {
       onComplete: () => ring.destroy(),
     });
 
-    // 스타버스트
     this.createStarburst(x, y, color);
 
-    // 커서 펄스 (커서가 있는 위치에 빛나는 원 생성)
     const glow = this.scene.add.circle(x, y, config.impactGlowSize, color, 0.8);
     glow.setDepth(2003);
     glow.setBlendMode(Phaser.BlendModes.ADD);
@@ -363,14 +249,113 @@ export class ParticleManager {
     });
   }
 
-  // 무지개 폭발 이펙트
+  createEnergyEffect(x: number, y: number, combo: number, cursorRadius: number): void {
+    const config = Data.feedback.energyEffect;
+    const pointer = this.scene.input.activePointer;
+
+    const comboConfig = Data.feedback.damageText.combo;
+    const { thresholds, colors } = comboConfig;
+    let colorStr: string;
+
+    if (combo >= thresholds.ultra) colorStr = colors.ultra;
+    else if (combo >= thresholds.high) colorStr = colors.high;
+    else if (combo >= thresholds.mid) colorStr = colors.mid;
+    else colorStr = colors.low;
+
+    const color = parseInt(colorStr.replace('#', ''), 16);
+    const size = config.baseSize + Math.min(config.maxSizeBonus, combo / config.comboDivision);
+
+    const particle = this.scene.add.circle(x, y, size, color, config.alpha);
+    particle.setDepth(100);
+
+    const trail = this.scene.add.particles(0, 0, 'particle', {
+      follow: particle,
+      scale: { start: size / 10, end: 0 },
+      lifespan: config.trailLifespan,
+      blendMode: 'ADD',
+      tint: color,
+      frequency: 20,
+    });
+    trail.setDepth(99);
+
+    const glow = this.scene.add.graphics();
+    glow.setDepth(99);
+
+    const angle = Math.random() * Math.PI * 2;
+    const cpX = x + Math.cos(angle) * config.knockbackDistance;
+    const cpY = y + Math.sin(angle) * config.knockbackDistance;
+
+    const startX = x;
+    const startY = y;
+
+    let isAbsorbed = false;
+
+    const tween = this.scene.tweens.add({
+      targets: { t: 0 },
+      t: 1,
+      duration: config.duration,
+      ease: 'Sine.easeIn',
+      onUpdate: (_tween, target) => {
+        if (isAbsorbed) return;
+
+        const t = target.t;
+        const oneMinusT = 1 - t;
+        const targetX = pointer.worldX;
+        const targetY = pointer.worldY;
+
+        particle.x = oneMinusT * oneMinusT * startX + 2 * oneMinusT * t * cpX + t * t * targetX;
+        particle.y = oneMinusT * oneMinusT * startY + 2 * oneMinusT * t * cpY + t * t * targetY;
+
+        const dist = Phaser.Math.Distance.Between(particle.x, particle.y, targetX, targetY);
+
+        if (t > 0.2 && dist <= cursorRadius) {
+          isAbsorbed = true;
+          this.completeEnergyEffect(particle, glow, trail, color, config.trailLifespan);
+          tween.stop();
+          return;
+        }
+
+        if (glow.active) {
+          glow.clear();
+          glow.fillStyle(color, config.glowAlpha);
+          const currentGlowSize = size * config.glowScale * (0.5 + 0.5 * t);
+          glow.fillCircle(particle.x, particle.y, currentGlowSize);
+        }
+      },
+      onComplete: () => {
+        if (!isAbsorbed) {
+          this.completeEnergyEffect(particle, glow, trail, color, config.trailLifespan);
+        }
+      },
+    });
+  }
+
+  private completeEnergyEffect(
+    particle: Phaser.GameObjects.Arc,
+    glow: Phaser.GameObjects.Graphics,
+    trail: Phaser.GameObjects.Particles.ParticleEmitter,
+    color: number,
+    trailLifespan: number
+  ): void {
+    const x = particle.x;
+    const y = particle.y;
+
+    particle.destroy();
+    glow.destroy();
+
+    this.scene.time.delayedCall(trailLifespan, () => {
+      trail.destroy();
+    });
+
+    this.createHitEffect(x, y, color);
+  }
+
   createRainbowExplosion(x: number, y: number, particleMultiplier: number = 1): void {
     const emitter = this.emitters.get('explosion');
     if (!emitter) return;
 
     const baseCount = Math.floor(5 * particleMultiplier);
 
-    // 각 무지개 색상으로 순차적 폭발
     RAINBOW_COLORS.forEach((color, index) => {
       this.scene.time.delayedCall(index * 30, () => {
         emitter.setParticleTint(color);
@@ -378,7 +363,6 @@ export class ParticleManager {
       });
     });
 
-    // 무지개 링 효과
     this.createRainbowRingEffect(x, y);
   }
 
@@ -403,7 +387,6 @@ export class ParticleManager {
     });
   }
 
-  // 전기 충격 이펙트
   createElectricEffect(x: number, y: number, targets: { x: number; y: number }[]): void {
     targets.forEach((target, index) => {
       this.scene.time.delayedCall(index * 50, () => {
@@ -411,7 +394,6 @@ export class ParticleManager {
       });
     });
 
-    // 중심에 스파크
     this.createSparkBurst(x, y, COLORS.CYAN);
   }
 
@@ -419,7 +401,6 @@ export class ParticleManager {
     const lightning = this.scene.add.graphics();
     lightning.lineStyle(3, COLORS.CYAN, 1);
 
-    // 번개 경로 생성 (지그재그)
     const segments = 5;
     const points: { x: number; y: number }[] = [{ x: x1, y: y1 }];
 
@@ -429,21 +410,16 @@ export class ParticleManager {
       const baseY = y1 + (y2 - y1) * t;
       const offset = (Math.random() - 0.5) * 30;
 
-      // 수직 방향으로 오프셋
       const dx = x2 - x1;
       const dy = y2 - y1;
       const len = Math.sqrt(dx * dx + dy * dy);
       const nx = -dy / len;
       const ny = dx / len;
 
-      points.push({
-        x: baseX + nx * offset,
-        y: baseY + ny * offset,
-      });
+      points.push({ x: baseX + nx * offset, y: baseY + ny * offset });
     }
     points.push({ x: x2, y: y2 });
 
-    // 번개 그리기
     lightning.beginPath();
     lightning.moveTo(points[0].x, points[0].y);
     for (let i = 1; i < points.length; i++) {
@@ -451,7 +427,6 @@ export class ParticleManager {
     }
     lightning.strokePath();
 
-    // 글로우 효과
     const glow = this.scene.add.graphics();
     glow.lineStyle(8, COLORS.CYAN, 0.3);
     glow.beginPath();
@@ -461,7 +436,6 @@ export class ParticleManager {
     }
     glow.strokePath();
 
-    // 페이드 아웃
     this.scene.tweens.add({
       targets: [lightning, glow],
       alpha: 0,
@@ -473,23 +447,19 @@ export class ParticleManager {
     });
   }
 
-  // 불꽃놀이 폭발 (3배 강화)
   createFireworksExplosion(x: number, y: number, color: number): void {
     const emitter = this.emitters.get('explosion');
     if (!emitter) return;
 
-    // 3배 파티클
     emitter.setParticleTint(color);
     emitter.explode(60, x, y);
 
-    // 3배 링
     for (let i = 0; i < 3; i++) {
       this.scene.time.delayedCall(i * 50, () => {
         this.createRingEffect(x, y, color);
       });
     }
 
-    // 추가 스타버스트
     this.createStarburst(x, y, color);
     this.createSparkBurst(x, y, color);
   }
@@ -502,7 +472,6 @@ export class ParticleManager {
     emitter.explode(8, x, y);
   }
 
-  // 강화된 히트 스파크 (업그레이드용)
   createEnhancedHitSparks(x: number, y: number, color: number, level: number): void {
     const emitter = this.emitters.get('spark');
     if (!emitter) return;
@@ -511,12 +480,10 @@ export class ParticleManager {
     emitter.setParticleTint(color);
     emitter.explode(sparkCount, x, y);
 
-    // 레벨 2 이상: 추가 링
     if (level >= 2) {
       this.createRingEffect(x, y, color);
     }
 
-    // 레벨 3: 스타버스트
     if (level >= 3) {
       this.createStarburst(x, y, color);
     }
@@ -528,8 +495,6 @@ export class ParticleManager {
 
     emitter.setParticleTint(COLORS.YELLOW);
     emitter.explode(25, x, y);
-
-    // 추가 스타버스트 효과
     this.createStarburst(x, y, COLORS.YELLOW);
   }
 
@@ -618,7 +583,6 @@ export class ParticleManager {
     emitter.setParticleTint(color);
     emitter.explode(15, x, y);
 
-    // 상승하는 + 모양 파티클 효과
     this.createHealRing(x, y, color);
     this.createHealSparkles(x, y, color);
   }
@@ -640,15 +604,7 @@ export class ParticleManager {
     });
   }
 
-import { SoundSystem } from '../systems/SoundSystem';
-
-// 무지개 색상 배열
-const RAINBOW_COLORS = [
-// ... existing code ...
-export class ParticleManager {
-// ... existing code ...
   private createHealSparkles(x: number, y: number, color: number): void {
-    // 상승하는 작은 파티클들
     for (let i = 0; i < 8; i++) {
       const offsetX = Phaser.Math.Between(-20, 20);
       const sparkle = this.scene.add.circle(x + offsetX, y, 3, color, 1);
@@ -666,119 +622,7 @@ export class ParticleManager {
     }
   }
 
-  createUpgradeAbsorption(
-    startX: number,
-    startY: number,
-    endX: number,
-    endY: number,
-    color: number,
-    onComplete?: () => void
-  ): void {
-    const config = Data.feedback.upgradeAbsorption;
-    const { 
-      particleCount, 
-      duration, 
-      particleSizeMin, 
-      particleSizeMax, 
-      startSpread,
-      spreadDuration,
-      spreadEase,
-      suctionEase,
-      suctionDelayMax
-    } = config;
-
-    // 사운드 재생
-    SoundSystem.getInstance().playUpgradeSound();
-
-    // 1. 입자 흡수 연출 (Particle Stream)
-    for (let i = 0; i < particleCount; i++) {
-      const size = Phaser.Math.Between(particleSizeMin, particleSizeMax);
-      const particle = this.scene.add.circle(startX, startY, size, color, 1);
-      particle.setDepth(2000);
-
-      // 시작 위치 랜덤 오프셋 (스프레드) - 처음엔 확 퍼졌다가
-      const spreadAngle = Math.random() * Math.PI * 2;
-      const spreadDist = Math.random() * startSpread;
-      const spreadX = startX + Math.cos(spreadAngle) * spreadDist;
-      const spreadY = startY + Math.sin(spreadAngle) * spreadDist;
-
-      // 1단계: 퍼지기
-      this.scene.tweens.add({
-        targets: particle,
-        x: spreadX,
-        y: spreadY,
-        duration: spreadDuration,
-        ease: spreadEase,
-        onComplete: () => {
-          // 2단계: 커서로 흡수되기
-          // 딜레이를 주어 순차적으로 빨려들어가는 느낌
-          const delay = Math.random() * suctionDelayMax;
-
-          this.scene.tweens.add({
-            targets: particle,
-            x: endX,
-            y: endY,
-            scale: 0, // 점점 작아지며 흡수
-            alpha: { from: 1, to: 0.5 },
-            duration: duration,
-            delay: delay,
-            ease: suctionEase, // 빨려들어가는 가속감
-            onComplete: () => {
-              particle.destroy();
-              // 마지막 입자가 도착할 즈음 임팩트 실행 (한 번만)
-              if (i === particleCount - 1) {
-                this.createUpgradeImpact(endX, endY, color);
-                if (onComplete) onComplete();
-              }
-            },
-          });
-        }
-      });
-    }
-  }
-
-  // 업그레이드 흡수 완료 시 임팩트
-  private createUpgradeImpact(x: number, y: number, color: number): void {
-    const config = Data.feedback.upgradeAbsorption;
-    
-    // 강렬한 링 퍼짐
-    const ring = this.scene.add.graphics();
-    ring.lineStyle(5, color, 1);
-    ring.strokeCircle(0, 0, config.impactRingSize);
-    ring.setPosition(x, y);
-    ring.setDepth(2002);
-
-    this.scene.tweens.add({
-      targets: ring,
-      scaleX: config.impactRingScale,
-      scaleY: config.impactRingScale,
-      alpha: 0,
-      duration: 400,
-      ease: 'Power2',
-      onComplete: () => ring.destroy(),
-    });
-
-    // 스타버스트
-    this.createStarburst(x, y, color);
-
-    // 커서 펄스 (커서가 있는 위치에 빛나는 원 생성)
-    const glow = this.scene.add.circle(x, y, config.impactGlowSize, color, 0.8);
-    glow.setDepth(2003);
-    glow.setBlendMode(Phaser.BlendModes.ADD);
-
-    this.scene.tweens.add({
-      targets: glow,
-      scale: config.impactGlowScale,
-      alpha: 0,
-      duration: 300,
-      ease: 'Sine.easeOut',
-      onComplete: () => glow.destroy(),
-    });
-  }
-
-  // 방어막 효과
   createShieldEffect(x: number, y: number, color: number): void {
-    // 육각형 방어막
     const shield = this.scene.add.graphics();
     shield.setPosition(x, y);
     shield.lineStyle(4, color, 1);
@@ -790,10 +634,7 @@ export class ParticleManager {
 
     for (let i = 0; i < sides; i++) {
       const angle = (i / sides) * Math.PI * 2 - Math.PI / 2;
-      points.push({
-        x: Math.cos(angle) * radius,
-        y: Math.sin(angle) * radius,
-      });
+      points.push({ x: Math.cos(angle) * radius, y: Math.sin(angle) * radius });
     }
 
     shield.fillPoints(points, true);
@@ -809,13 +650,9 @@ export class ParticleManager {
       onComplete: () => shield.destroy(),
     });
 
-    // 스파크 추가
     this.createSparkBurst(x, y, color);
   }
 
-  /**
-   * 보스 게이지(아머) 파괴 시 파편이 사방으로 튀며 아래로 떨어지는 연출
-   */
   createBossGaugeShatter(
     x: number,
     y: number,
@@ -825,27 +662,22 @@ export class ParticleManager {
   ): void {
     const config = Data.boss.visual.shatter;
 
-    // 1. 게이지 파편 shattering & falling 효과
     for (let i = 0; i < config.shardCount; i++) {
-      // 보스 주변(아머 위치)에서 랜덤하게 생성
       const angle = Math.random() * Math.PI * 2;
       const radius = Phaser.Math.Between(innerRadius, outerRadius);
       const startX = x + Math.cos(angle) * radius;
       const startY = y + Math.sin(angle) * radius;
 
-      // 파편 그래픽
       const shard = this.scene.add.graphics();
       shard.setDepth(1999);
 
       const size = Phaser.Math.Between(config.minSize, config.maxSize);
-      // 색상 다양화: 에너지 비중(energyShardRatio)만큼 빨간색, 나머지는 아머 색상
       const isEnergy = Math.random() < config.energyShardRatio;
       const color = isEnergy ? COLORS.RED : bodyColor;
       const alpha = isEnergy ? 1 : 0.8;
 
       shard.fillStyle(color, alpha);
 
-      // 랜덤한 다각형 파편 그리기 (3~5개 꼭짓점)
       const points = [];
       const numPoints = Phaser.Math.Between(3, 5);
       for (let j = 0; j < numPoints; j++) {
@@ -856,7 +688,6 @@ export class ParticleManager {
 
       shard.fillPoints(points, true);
 
-      // 테두리 추가 (에너지 파편인 경우)
       if (isEnergy) {
         shard.lineStyle(1, 0xffffff, 0.5);
         shard.strokePoints(points, true);
@@ -865,7 +696,6 @@ export class ParticleManager {
       shard.setPosition(startX, startY);
       shard.setRotation(Math.random() * Math.PI * 2);
 
-      // 물리 효과 시뮬레이션 (초기 속도 + 중력)
       const velocityX =
         (Math.cos(angle) * 0.5 + (Math.random() - 0.5)) *
         Phaser.Math.Between(config.minVelocity, config.maxVelocity);
@@ -893,7 +723,6 @@ export class ParticleManager {
       });
     }
 
-    // 2. 추가 스파크/먼지 효과
     for (let i = 0; i < config.sparkCount; i++) {
       const angle = Math.random() * Math.PI * 2;
       const spark = this.scene.add.circle(

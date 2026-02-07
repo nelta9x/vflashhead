@@ -370,8 +370,6 @@ export class GameScene extends Phaser.Scene {
 
   private performPlayerAttack(): void {
     const pointer = this.input.activePointer;
-    const endX = this.boss.x;
-    const endY = this.boss.y;
     const config = Data.feedback.bossAttack;
 
     // 색상 변환

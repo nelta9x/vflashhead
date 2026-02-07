@@ -381,8 +381,8 @@ export class GameScene extends Phaser.Scene {
     // 1. Charge Phase (에네르기파 스타일 기 모으기)
     const chargeDuration = config.charge.duration;
 
-    // 사운드 재생: 기 모으기
-    this.soundSystem.playBossChargeSound();
+    // 사운드 재생: 플레이어 전용 충전음 (8비트 톤)
+    this.soundSystem.playPlayerChargeSound();
 
     // 발사체 생성 (빛나는 구체 느낌)
     const projectile = this.add.circle(

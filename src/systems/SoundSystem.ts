@@ -176,6 +176,13 @@ export class SoundSystem {
   }
 
   /**
+   * 플레이어 공격 기 모으기 사운드
+   */
+  playPlayerChargeSound(): void {
+    this.playSound('player_charge');
+  }
+
+  /**
    * 보스 공격 기 모으기 사운드
    */
   playBossChargeSound(): void {

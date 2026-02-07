@@ -723,13 +723,14 @@ export class SoundSystem {
 
   /**
    * 업그레이드 선택 사운드 (마리오 파워업 스타일)
+   * 실제 오디오 파일(.wav) 재생을 우선하며, 실패 시 신디사이저로 대체합니다.
    */
   playUpgradeSound(): void {
     const config = Data.gameConfig.audio.upgrade_selected;
     if (!config) return;
 
     if (this.scene) {
-      // 오디오 파일이 로드되어 있고 사용 가능한지 확인
+      // 1. 실제 오디오 파일이 캐시에 존재하는지 확인
       if (this.scene.cache.audio.exists(config.key)) {
         try {
           this.scene.sound.play(config.key, { volume: config.volume });
@@ -740,7 +741,7 @@ export class SoundSystem {
       }
     }
 
-    // 파일이 없거나 로드되지 않았으면 신디사이저로 폴백
+    // 2. 파일 재생 실패 또는 부재 시 신디사이저로 폴백
     if (!this.ensureContext() || !config.synth) return;
     const ctx = this.audioContext!;
     const now = ctx.currentTime;

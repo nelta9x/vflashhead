@@ -162,7 +162,7 @@
     },
     "upgrade_selected": {
       "key": "upgrade_selected",
-      "path": "assets/audio/powerup.mp3",
+      "path": "assets/audio/upgrade_selected.wav",
       "volume": 0.5,
       "synth": {
         "notes": [196, 247, 294, 392, 494, 587, 784, 988, 1175, 1568],

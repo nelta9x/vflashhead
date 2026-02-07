@@ -376,7 +376,6 @@ export class GameScene extends Phaser.Scene {
   }
 
   private performPlayerAttack(): void {
-    const pointer = this.input.activePointer;
     const config = Data.feedback.bossAttack;
 
     // 색상 변환
@@ -391,8 +390,8 @@ export class GameScene extends Phaser.Scene {
 
     // 발사체 생성 (빛나는 구체 느낌)
     const projectile = this.add.circle(
-      pointer.worldX,
-      pointer.worldY,
+      this.cursorX,
+      this.cursorY,
       config.charge.initialRadius,
       mainColor
     );
@@ -427,8 +426,8 @@ export class GameScene extends Phaser.Scene {
       ease: 'Linear',
       onUpdate: (_tween, target) => {
         const p = target.progress;
-        const curX = pointer.worldX;
-        const curY = pointer.worldY;
+        const curX = this.cursorX;
+        const curY = this.cursorY;
 
         // 위치 동기화
         projectile.setPosition(curX, curY);
@@ -487,8 +486,8 @@ export class GameScene extends Phaser.Scene {
 
         for (let i = 0; i < missileCount; i++) {
           this.time.delayedCall(i * config.fire.missileInterval, () => {
-            // 발사 시점의 실시간 커서 위치 사용
-            this.fireSequentialMissile(pointer.worldX, pointer.worldY, i, missileCount);
+            // 발사 시점의 실시간 커서 위치 사용 (this.cursorX/Y가 매번 현재 위치를 참조함)
+            this.fireSequentialMissile(this.cursorX, this.cursorY, i, missileCount);
           });
         }
       },

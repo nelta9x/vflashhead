@@ -7,27 +7,27 @@
   "rarityWeights": {
     "early": {
       "common": 25,
-      "rare": 25,
-      "epic": 25,
-      "legendary": 25
+      "rare": 15,
+      "epic": 8,
+      "legendary": 4
     },
     "mid": {
       "common": 25,
-      "rare": 25,
-      "epic": 25,
-      "legendary": 25
+      "rare": 15,
+      "epic": 8,
+      "legendary": 4
     },
     "late": {
       "common": 25,
-      "rare": 25,
-      "epic": 25,
-      "legendary": 25
+      "rare": 15,
+      "epic": 8,
+      "legendary": 4
     },
     "endgame": {
       "common": 25,
-      "rare": 25,
-      "epic": 25,
-      "legendary": 25
+      "rare": 15,
+      "epic": 8,
+      "legendary": 4
     }
   },
   "rarityThresholds": {
@@ -101,7 +101,7 @@
       "name": "강화 미사일",
       "description": "풀 차지 공격 시 보스에게 발사되는 미사일 수 증가",
       "descriptionTemplate": "풀 차지 공격 시 보스에게 {count}발의 미사일({damage} 데미지)을 연속 발사합니다.",
-      "rarity": "common",
+      "rarity": "legendary",
       "effectType": "missileLevel",
       "levels": [
         { "damage": 100, "count": 2 },

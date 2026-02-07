@@ -32,6 +32,7 @@ export class HUD {
     this.waveText = this.scene.add.text(GAME_WIDTH - 20, 10, Data.t('hud.wave', 1), {
       fontFamily: FONTS.MAIN,
       fontSize: '16px',
+      fontStyle: 'normal',
       color: COLORS_HEX.WHITE,
       stroke: '#000000',
       strokeThickness: 3,
@@ -42,6 +43,7 @@ export class HUD {
     this.timerText = this.scene.add.text(GAME_WIDTH - 20, 32, '0:00', {
       fontFamily: FONTS.MAIN,
       fontSize: '24px',
+      fontStyle: 'normal',
       color: COLORS_HEX.GREEN,
       stroke: '#000000',
       strokeThickness: 4,
@@ -52,6 +54,7 @@ export class HUD {
     this.feverText = this.scene.add.text(GAME_WIDTH / 2, 100, Data.t('hud.fever_time'), {
       fontFamily: FONTS.MAIN,
       fontSize: '32px',
+      fontStyle: 'normal',
       color: COLORS_HEX.YELLOW,
       stroke: COLORS_HEX.RED,
       strokeThickness: 4,
@@ -224,6 +227,7 @@ export class HUD {
     const text = this.scene.add.text(GAME_WIDTH / 2, 200, Data.t('hud.wave_complete', waveNumber), {
       fontFamily: FONTS.MAIN,
       fontSize: '36px',
+      fontStyle: 'normal',
       color: COLORS_HEX.GREEN,
       stroke: '#000000',
       strokeThickness: 4,

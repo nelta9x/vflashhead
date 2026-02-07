@@ -138,6 +138,7 @@ export class InGameUpgradeUI {
       .text(0, -BOX_HEIGHT / 2 + 58, Data.t(`upgrade.${upgrade.id}.name`), {
         fontFamily: FONTS.KOREAN,
         fontSize: '14px',
+        fontStyle: 'normal',
         color: COLORS_HEX.WHITE,
         wordWrap: { width: BOX_WIDTH - 20 },
         align: 'center',
@@ -151,6 +152,7 @@ export class InGameUpgradeUI {
       .text(0, -BOX_HEIGHT / 2 + 88, previewDesc, {
         fontFamily: FONTS.KOREAN,
         fontSize: '12px',
+        fontStyle: 'normal',
         color: '#cccccc',
         wordWrap: { width: BOX_WIDTH - 24 },
         align: 'center',

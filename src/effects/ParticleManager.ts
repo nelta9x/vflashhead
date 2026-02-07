@@ -164,45 +164,50 @@ export class ParticleManager {
       suctionDelayMax
     } = config;
 
-    // 사운드 재생
-    SoundSystem.getInstance().playUpgradeSound();
+    let soundPlayed = false;
 
-    // 1. 입자 흡수 연출 (Particle Stream)
+    // 1. 입자 생성 및 확산 연출 (Slow Spread)
     for (let i = 0; i < particleCount; i++) {
       const size = Phaser.Math.Between(particleSizeMin, particleSizeMax);
       const particle = this.scene.add.circle(startX, startY, size, color, 1);
       particle.setDepth(2000);
 
-      // 시작 위치 랜덤 오프셋 (스프레드) - 처음엔 확 퍼졌다가
+      // 시작 위치 랜덤 오프셋 (스프레드) - 처음엔 넓고 천천히 퍼짐
       const spreadAngle = Math.random() * Math.PI * 2;
       const spreadDist = Math.random() * startSpread;
       const spreadX = startX + Math.cos(spreadAngle) * spreadDist;
       const spreadY = startY + Math.sin(spreadAngle) * spreadDist;
 
-      // 1단계: 퍼지기
+      // 1단계: 천천히 퍼지기
       this.scene.tweens.add({
         targets: particle,
         x: spreadX,
         y: spreadY,
-        duration: spreadDuration,
+        alpha: 0.8,
+        duration: spreadDuration + Math.random() * 200,
         ease: spreadEase,
         onComplete: () => {
-          // 2단계: 커서로 흡수되기
-          // 딜레이를 주어 순차적으로 빨려들어가는 느낌
+          // 2단계 시작 시점에 사운드 재생 (한 번만)
+          if (!soundPlayed) {
+            SoundSystem.getInstance().playUpgradeSound();
+            soundPlayed = true;
+          }
+
+          // 2단계: 커서로 빠르게 흡수되기 (Accelerating Suction)
           const delay = Math.random() * suctionDelayMax;
 
           this.scene.tweens.add({
             targets: particle,
             x: endX,
             y: endY,
-            scale: 0, // 점점 작아지며 흡수
-            alpha: { from: 1, to: 0.5 },
+            scale: 0,
+            alpha: { from: 0.8, to: 1 },
             duration: duration,
             delay: delay,
-            ease: suctionEase, // 빨려들어가는 가속감
+            ease: suctionEase, 
             onComplete: () => {
               particle.destroy();
-              // 마지막 입자가 도착할 즈음 임팩트 실행 (한 번만)
+              // 마지막 입자가 도착할 때 임팩트 실행
               if (i === particleCount - 1) {
                 this.createUpgradeImpact(endX, endY, color);
                 if (onComplete) onComplete();

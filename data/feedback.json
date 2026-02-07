@@ -179,18 +179,18 @@
     }
   },
   "upgradeAbsorption": {
-    "particleCount": 30,
-    "duration": 600,
+    "particleCount": 40,
+    "duration": 500,
     "particleSizeMin": 3,
-    "particleSizeMax": 7,
-    "startSpread": 100,
-    "spreadDuration": 300,
-    "spreadEase": "Back.easeOut",
-    "suctionEase": "Back.easeIn",
-    "suctionDelayMax": 200,
-    "impactRingSize": 20,
-    "impactRingScale": 4,
-    "impactGlowSize": 35,
-    "impactGlowScale": 2.5
+    "particleSizeMax": 8,
+    "startSpread": 180,
+    "spreadDuration": 800,
+    "spreadEase": "Cubic.easeOut",
+    "suctionEase": "Expo.easeIn",
+    "suctionDelayMax": 300,
+    "impactRingSize": 25,
+    "impactRingScale": 5,
+    "impactGlowSize": 40,
+    "impactGlowScale": 3.0
   }
 }

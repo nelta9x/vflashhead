@@ -2,8 +2,6 @@ import Phaser from 'phaser';
 import { Dish } from '../entities/Dish';
 import { UpgradeSystem } from './UpgradeSystem';
 import { ObjectPool } from '../utils/ObjectPool';
-import { Data } from '../data/DataManager';
-import { EventBus, GameEvents } from '../utils/EventBus';
 
 export interface OrbPosition {
   x: number;

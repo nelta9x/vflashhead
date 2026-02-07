@@ -72,7 +72,6 @@ export class BootScene extends Phaser.Scene {
       'cursor_size',
       'critical_chance',
       'electric_shock',
-      'static_discharge',
       'magnet',
       'missile',
       'health_pack',

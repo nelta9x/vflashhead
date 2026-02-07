@@ -779,15 +779,6 @@ export class GameScene extends Phaser.Scene {
     );
 
     // ===== 업그레이드 효과 적용 =====
-    // 정전기 방출 (파괴 시 확률적으로 번개 발사)
-    const staticDischargeLevel = this.upgradeSystem.getStaticDischargeLevel();
-    if (staticDischargeLevel > 0) {
-      const chance = this.upgradeSystem.getStaticDischargeChance();
-      if (Math.random() < chance) {
-        this.triggerStaticDischarge(x, y, dish);
-      }
-    }
-
     // 전기 충격 (주변 접시에 데미지)
     const electricLevel = this.upgradeSystem.getElectricShockLevel();
     if (electricLevel > 0) {
@@ -798,37 +789,6 @@ export class GameScene extends Phaser.Scene {
     // 풀에서 제거
     this.dishes.remove(dish);
     this.dishPool.release(dish);
-  }
-
-  // 정전기 방출: 파괴된 위치에서 다른 접시로 번개 발사
-  private triggerStaticDischarge(startX: number, startY: number, excludeDish: Dish): void {
-    const damage = this.upgradeSystem.getStaticDischargeDamage();
-    const range = this.upgradeSystem.getStaticDischargeRange();
-
-    // 유효한 타겟 찾기 (화면에 있는 활성 접시, 자신 제외, 폭탄 제외, 사거리 내)
-    const targets: Dish[] = [];
-    this.dishPool.forEach((d) => {
-      if (d !== excludeDish && d.active && !d.isDangerous()) {
-        const dist = Phaser.Math.Distance.Between(startX, startY, d.x, d.y);
-        if (dist <= range) {
-          targets.push(d);
-        }
-      }
-    });
-
-    if (targets.length > 0) {
-      // 랜덤 타겟 선정
-      const target = Phaser.Utils.Array.GetRandom(targets);
-
-      // 데미지 적용
-      target.applyDamage(damage);
-
-      // 시각적 피드백 (번개)
-      this.feedbackSystem.onStaticDischarge(startX, startY, target.x, target.y);
-
-      // 사운드 (히트 사운드 재사용)
-      this.soundSystem.playHitSound();
-    }
   }
 
   // 전기 충격: 주변 접시에 데미지

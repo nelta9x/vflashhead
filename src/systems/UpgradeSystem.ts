@@ -4,7 +4,6 @@ import type {
   CursorSizeLevelData,
   CriticalChanceLevelData,
   ElectricShockLevelData,
-  StaticDischargeLevelData,
   MagnetLevelData,
   MissileLevelData,
   HealthPackLevelData,
@@ -185,23 +184,6 @@ export class UpgradeSystem {
 
   getElectricShockDamage(): number {
     return this.getLevelData<ElectricShockLevelData>('electric_shock')?.damage ?? 0;
-  }
-
-  // ========== 정전기 방출 ==========
-  getStaticDischargeLevel(): number {
-    return this.getUpgradeStack('static_discharge');
-  }
-
-  getStaticDischargeChance(): number {
-    return this.getLevelData<StaticDischargeLevelData>('static_discharge')?.chance ?? 0;
-  }
-
-  getStaticDischargeDamage(): number {
-    return this.getLevelData<StaticDischargeLevelData>('static_discharge')?.damage ?? 0;
-  }
-
-  getStaticDischargeRange(): number {
-    return this.getLevelData<StaticDischargeLevelData>('static_discharge')?.range ?? 0;
   }
 
   // ========== 자기장 ==========
@@ -415,11 +397,6 @@ export class UpgradeSystem {
         return current
           ? Data.formatTemplate('upgrade.preview.electric_shock.upgrade', params)
           : Data.formatTemplate('upgrade.preview.electric_shock.new', params);
-
-      case 'staticDischargeLevel':
-        return current
-          ? Data.formatTemplate('upgrade.preview.static_discharge.upgrade', params)
-          : Data.formatTemplate('upgrade.preview.static_discharge.new', params);
 
       case 'magnetLevel':
         return current

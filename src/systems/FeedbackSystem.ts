@@ -144,12 +144,6 @@ export class FeedbackSystem {
     this.screenShake.shake(5, 100);
   }
 
-  // 정전기 방출 효과 (단일 대상 번개)
-  onStaticDischarge(x: number, y: number, targetX: number, targetY: number): void {
-    this.particleManager.createElectricEffect(x, y, [{ x: targetX, y: targetY }]);
-    this.screenShake.shake(3, 50);
-  }
-
   // 보스 데미지 피드백
   onBossDamaged(x: number, y: number, damage: number, isCritical: boolean = false): void {
     // 1. 데미지 텍스트 (치명타면 크리티컬 효과, 아니면 보스 데미지 효과)

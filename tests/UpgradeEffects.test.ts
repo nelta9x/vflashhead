@@ -62,10 +62,6 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
       expect(upgrade.getElectricShockLevel()).toBe(0);
       expect(upgrade.getElectricShockRadius()).toBe(0);
       expect(upgrade.getElectricShockDamage()).toBe(0);
-      expect(upgrade.getStaticDischargeLevel()).toBe(0);
-      expect(upgrade.getStaticDischargeChance()).toBe(0);
-      expect(upgrade.getStaticDischargeDamage()).toBe(0);
-      expect(upgrade.getStaticDischargeRange()).toBe(0);
       expect(upgrade.getMagnetLevel()).toBe(0);
       expect(upgrade.getMagnetRadius()).toBe(0);
       expect(upgrade.getMagnetForce()).toBe(0);
@@ -162,31 +158,6 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
       for (let i = 0; i < 5; i++) upgrade.applyUpgrade(electricUpgrade);
       expect(upgrade.getElectricShockRadius()).toBe(480);
       expect(upgrade.getElectricShockDamage()).toBe(6);
-    });
-  });
-
-  describe('정전기 방출 (static_discharge)', () => {
-    it('레벨 1 수치 확인', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
-      const upgrade = new UpgradeSystem();
-      const staticUpgrade = UPGRADES.find((u) => u.id === 'static_discharge')!;
-
-      upgrade.applyUpgrade(staticUpgrade);
-      expect(upgrade.getStaticDischargeLevel()).toBe(1);
-      expect(upgrade.getStaticDischargeChance()).toBeCloseTo(0.3);
-      expect(upgrade.getStaticDischargeDamage()).toBe(5);
-      expect(upgrade.getStaticDischargeRange()).toBe(300);
-    });
-
-    it('레벨 5 수치 확인', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
-      const upgrade = new UpgradeSystem();
-      const staticUpgrade = UPGRADES.find((u) => u.id === 'static_discharge')!;
-
-      for (let i = 0; i < 5; i++) upgrade.applyUpgrade(staticUpgrade);
-      expect(upgrade.getStaticDischargeChance()).toBeCloseTo(0.5);
-      expect(upgrade.getStaticDischargeDamage()).toBe(13);
-      expect(upgrade.getStaticDischargeRange()).toBe(500);
     });
   });
 
@@ -327,10 +298,6 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
       expect(upgrade.getElectricShockLevel()).toBe(0);
       expect(upgrade.getElectricShockRadius()).toBe(0);
       expect(upgrade.getElectricShockDamage()).toBe(0);
-      expect(upgrade.getStaticDischargeLevel()).toBe(0);
-      expect(upgrade.getStaticDischargeChance()).toBe(0);
-      expect(upgrade.getStaticDischargeDamage()).toBe(0);
-      expect(upgrade.getStaticDischargeRange()).toBe(0);
       expect(upgrade.getMagnetLevel()).toBe(0);
       expect(upgrade.getMagnetRadius()).toBe(0);
       expect(upgrade.getMagnetForce()).toBe(0);

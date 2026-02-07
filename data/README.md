@@ -321,9 +321,6 @@ import { COLORS, FONTS } from '../data/constants';
 | | `damage` | 추가 데미지 |
 | `electric_shock` | `radius` | 충격 범위 (px) |
 | | `damage` | 데미지 |
-| `static_discharge` | `chance` | 발동 확률 (0.30 = 30%) |
-| | `damage` | 데미지 |
-| | `range` | 사거리 (px) |
 | `magnet` | `radius` | 끌어당김 범위 (px) |
 | | `force` | 끌어당기는 힘 (px/sec) |
 | `missile` | `damage` | 미사일 데미지 |

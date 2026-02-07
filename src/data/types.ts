@@ -781,11 +781,6 @@ export interface ElectricShockLevelData {
   radius: number;
   damage: number;
 }
-export interface StaticDischargeLevelData {
-  chance: number;
-  damage: number;
-  range: number;
-}
 export interface MagnetLevelData {
   radius: number;
   force: number;
@@ -811,7 +806,6 @@ export type SystemUpgradeLevelData =
   | CursorSizeLevelData
   | CriticalChanceLevelData
   | ElectricShockLevelData
-  | StaticDischargeLevelData
   | MagnetLevelData
   | MissileLevelData
   | HealthPackLevelData

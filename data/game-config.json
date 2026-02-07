@@ -16,7 +16,7 @@
     "boxWidth": 300,
     "boxHeight": 400,
     "boxSpacing": 45,
-    "hoverDuration": 300,
+    "hoverDuration": 1000,
     "boxYOffset": 220
   },
   "waveTransition": {

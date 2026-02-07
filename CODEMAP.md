@@ -5,12 +5,15 @@
 ## 🏗️ 전체 아키텍처 및 흐름
 
 ### 0. 설계 원칙: 외형과 로직의 분리
+
 본 프로젝트는 **관심사의 분리(SoC)**를 위해 로직 제어층과 시각 렌더링층을 엄격히 분리합니다.
+
 - **Scene/System**: 게임의 상태(State)와 규칙(Rule)을 관리합니다. "무엇이 어디에 있는가?"와 "무슨 일이 일어나는가?"를 결정합니다.
 - **Renderer (src/effects/)**: 전달받은 상태를 바탕으로 화면에 그립니다. "어떻게 보이는가?"를 결정하며, `Phaser.Graphics` API를 전담하여 사용합니다.
 - **이점**: 로직의 변경 없이 Renderer만 교체하여 게임의 테마나 그래픽 스타일을 완전히 바꿀 수 있습니다.
 
 ### 1. 진입점 및 씬 (Scenes)
+
 - **`src/main.ts`**: 게임 인스턴스 생성 및 씬 등록 (`Boot`, `Menu`, `Game`, `GameOver`).
 - **`src/scenes/BootScene.ts`**: 초기 로딩 화면. 에셋 프리로딩(오디오, SVG 아이콘), 프로그레스 바 표시.
 - **`src/scenes/MenuScene.ts`**: 메인 메뉴. 타이틀, 시작 버튼, 별 배경, 보스 애니메이션, 그리드 효과, 언어 선택 UI 처리.
@@ -21,7 +24,9 @@
 - **`src/scenes/GameOverScene.ts`**: 게임 오버 화면. 최종 스탯(최대 콤보, 웨이브, 생존 시간) 표시, 재시작 안내, 페이드 전환.
 
 ### 2. 핵심 게임 로직 (Systems)
+
 `src/systems/` 디렉토리에는 특정 기능을 담당하는 독립적인 클래스들이 위치합니다.
+
 - **`WaveSystem.ts`**: 웨이브 구성, 적 스폰 타이밍, 카운트다운 관리. `waves.json` 설정을 기반으로 하며, 모든 적이 처리되면 `WAVE_COMPLETED`를 발생시킵니다.
 - **`ComboSystem.ts`**: 콤보 증가, 타임아웃 처리, 마일스톤 관리. 콤보 수치에 따라 `COMBO_MILESTONE` 이벤트를 발생시켜 연출을 트리거합니다.
 - **`UpgradeSystem.ts`**: 플레이어 어빌리티 관리 및 업그레이드 효과 적용. `upgrades.json`의 확률 기반으로 선택지를 생성합니다. 다국어 템플릿 치환 로직 포함.
@@ -35,7 +40,9 @@
 - **`HealthPackSystem.ts`**: 기본 확률 및 누적 수집 보너스를 기반으로 힐팩을 스폰합니다. 업그레이드 시스템과 연동됩니다.
 
 ### 3. 엔티티 및 오브젝트 (Entities)
+
 `src/entities/` 디렉토리에는 물리적인 게임 오브젝트가 위치하며, `Dish`와 `HealthPack`은 `ObjectPool`에 의해 재사용됩니다.
+
 - **`Dish.ts`**: 주요 적인 '접시'.
   - `spawn()`: 초기화 및 애니메이션 시작.
   - `applyDamage()`: HP 감소 및 파괴 로직.
@@ -44,6 +51,7 @@
 - **`HealthPack.ts`**: 낙하하는 힐 아이템 오브젝트. 커서와 충돌 시 `HEALTH_PACK_COLLECTED` 이벤트를 발생시킵니다.
 
 ### 4. 시각 효과 및 UI (Effects & UI)
+
 - **`src/effects/`**:
   - `ParticleManager`: 폭발 및 피격 파티클 생성.
   - `ScreenShake`: 카메라 흔들림 효과.
@@ -56,7 +64,11 @@
   - **`MenuDishRenderer.ts`**: 메인 메뉴에서 배경으로 쓰이는 접시의 렌더링 로직.
   - **`CursorRenderer.ts`**: 메뉴/인게임 커서 외형, 공격 게이지, 자기장/전기 충격 범위, 그리고 플레이어 HP 세그먼트 링을 통합 렌더링.
 - **`src/ui/`**:
-  - `HUD`: 실시간 점수, 보스 HP 바, 웨이브 카운터, 생존 타이머, 피버타임, 어빌리티 요약 표시.
+  - `HUD`: HUD 오케스트레이터. 매 프레임 컨텍스트(커서 위치, 업그레이드 선택 상태)를 받아 표시 정책을 적용하며, 도크바 hover 진행도(기본 1.2초 누적 정지)를 씬에 제공합니다.
+  - `hud/AbilitySummaryWidget`: 보유 어빌리티 슬롯 렌더링, 도크 영역(맥OS 스타일 오버레이/게이지/재개 힌트) 렌더링, hover 영역 계산(기본 폭 또는 어빌리티 수에 따라 확장), 슬롯 hover 툴팁 카드(아이콘/이름/레벨/설명) 렌더링을 담당합니다. 도크가 열린 동안에만 슬롯과 슬롯 툴팁을 표시합니다.
+  - `hud/DockPauseController`: 도크바 hover 누적 시간(기본 1200ms) 기반으로 게임 일시정지 조건을 계산하는 상태 컨트롤러.
+  - `hud/WaveTimerWidget`: 웨이브/생존 시간 텍스트와 피버 상태 렌더링.
+  - `hud/WaveTimerVisibilityPolicy`: 웨이브/생존 시간 노출 규칙(업그레이드 페이즈 우선, hover 기반 표시) 판단.
   - `InGameUpgradeUI`: 웨이브 사이 업그레이드 선택 화면 (3개 선택지, 호버 프로그레스 바, 레어리티 색상).
   - `DamageText`: 타격 시 데미지 수치 팝업 (오브젝트 풀링, 크리티컬 색상 처리).
   - `WaveCountdownUI`: 다음 웨이브 시작 전 카운트다운 표시.
@@ -93,34 +105,34 @@
 시스템 간의 결합도를 낮추기 위해 `EventBus`를 통한 이벤트 기반 통신을 사용합니다.
 모든 이벤트 정의는 `src/utils/EventBus.ts`의 `GameEvents` 객체에 있습니다.
 
-| 이벤트 카테고리 | 주요 이벤트 | 발생 시점 | 발행자 | 주요 구독자 |
-|-----------------|-------------|-----------|--------|-------------|
-| **접시(적)** | `DISH_DESTROYED` | 접시 파괴 시 | `Dish` | `GaugeSystem`, `GameScene` |
-| | `DISH_SPAWNED` | 접시 스폰 시 | `Dish` | — |
-| | `DISH_DAMAGED` | 접시 피격 시 | `Dish` | `GameScene` |
-| | `DISH_MISSED` | 접시가 놓쳤을 때 (수명 만료) | `Dish` | `GameScene` |
-| **콤보** | `COMBO_INCREASED` | 콤보 증가 시 | `ComboSystem` | — |
-| | `COMBO_RESET` | 콤보 리셋 시 | `ComboSystem` | — |
-| | `COMBO_MILESTONE` | 특정 콤보 수 도달 시 | `ComboSystem` | `GameScene` |
-| **웨이브** | `WAVE_STARTED` | 웨이브 정식 시작 시 | `WaveSystem` | `Boss`, `MonsterSystem`, `GaugeSystem` |
-| | `WAVE_COMPLETED` | 모든 접시 처리 시 | `WaveSystem` | `GameScene` |
-| | `WAVE_COUNTDOWN_START` | 카운트다운 시작 시 | `WaveSystem` | — |
-| | `WAVE_COUNTDOWN_TICK` | 카운트다운 틱마다 | `WaveSystem` | `GameScene` |
-| | `WAVE_READY` | 카운트다운 완료, 웨이브 준비됨 | `WaveSystem` | `GameScene` |
-| **업그레이드** | `UPGRADE_SELECTED` | 업그레이드 선택 시 | `InGameUpgradeUI` | `GameScene` |
-| **점수** | `SCORE_CHANGED` | 점수 갱신 시 | `ScoreSystem` | — |
-| **플레이어 상태** | `HP_CHANGED` | 데미지/회복 발생 시 | `HealthSystem` | `HealthPackSystem`, `GameScene` |
-| | `GAME_OVER` | HP가 0이 될 때 | `HealthSystem` | `GameScene` |
-| | `GAME_PAUSED` | 게임 일시정지 시 | `GameScene` | — |
-| | `GAME_RESUMED` | 게임 재개 시 | `GameScene` | — |
-| | `HEALTH_PACK_UPGRADED` | 힐팩 업그레이드 적용 시 | `UpgradeSystem` | `GameScene` (최대 HP 증가 로직) |
-| **힐팩** | `HEALTH_PACK_SPAWNED` | 힐팩 스폰 시 | `HealthPack` | — |
-| | `HEALTH_PACK_COLLECTED` | 힐팩 획득 시 | `HealthPack` | `HealthPackSystem`, `GameScene` |
-| | `HEALTH_PACK_MISSED` | 힐팩 놓쳤을 때 | `HealthPack` | `HealthPackSystem` |
-| **보스 & 게이지** | `MONSTER_HP_CHANGED`| 보스 HP 변화 시 | `MonsterSystem` | `Boss`, `GameScene` |
-| | `MONSTER_DIED` | 보스 사망 시 | `MonsterSystem` | `Boss`, `GameScene` |
-| | `GAUGE_UPDATED` | 게이지 수치 변경 시 | `GaugeSystem` | `GameScene` |
-| | `PLAYER_ATTACK` | 게이지 완충 후 공격 시 | `GaugeSystem` | `GameScene` |
+| 이벤트 카테고리   | 주요 이벤트             | 발생 시점                      | 발행자            | 주요 구독자                            |
+| ----------------- | ----------------------- | ------------------------------ | ----------------- | -------------------------------------- |
+| **접시(적)**      | `DISH_DESTROYED`        | 접시 파괴 시                   | `Dish`            | `GaugeSystem`, `GameScene`             |
+|                   | `DISH_SPAWNED`          | 접시 스폰 시                   | `Dish`            | —                                      |
+|                   | `DISH_DAMAGED`          | 접시 피격 시                   | `Dish`            | `GameScene`                            |
+|                   | `DISH_MISSED`           | 접시가 놓쳤을 때 (수명 만료)   | `Dish`            | `GameScene`                            |
+| **콤보**          | `COMBO_INCREASED`       | 콤보 증가 시                   | `ComboSystem`     | —                                      |
+|                   | `COMBO_RESET`           | 콤보 리셋 시                   | `ComboSystem`     | —                                      |
+|                   | `COMBO_MILESTONE`       | 특정 콤보 수 도달 시           | `ComboSystem`     | `GameScene`                            |
+| **웨이브**        | `WAVE_STARTED`          | 웨이브 정식 시작 시            | `WaveSystem`      | `Boss`, `MonsterSystem`, `GaugeSystem` |
+|                   | `WAVE_COMPLETED`        | 모든 접시 처리 시              | `WaveSystem`      | `GameScene`                            |
+|                   | `WAVE_COUNTDOWN_START`  | 카운트다운 시작 시             | `WaveSystem`      | —                                      |
+|                   | `WAVE_COUNTDOWN_TICK`   | 카운트다운 틱마다              | `WaveSystem`      | `GameScene`                            |
+|                   | `WAVE_READY`            | 카운트다운 완료, 웨이브 준비됨 | `WaveSystem`      | `GameScene`                            |
+| **업그레이드**    | `UPGRADE_SELECTED`      | 업그레이드 선택 시             | `InGameUpgradeUI` | `GameScene`                            |
+| **점수**          | `SCORE_CHANGED`         | 점수 갱신 시                   | `ScoreSystem`     | —                                      |
+| **플레이어 상태** | `HP_CHANGED`            | 데미지/회복 발생 시            | `HealthSystem`    | `HealthPackSystem`, `GameScene`        |
+|                   | `GAME_OVER`             | HP가 0이 될 때                 | `HealthSystem`    | `GameScene`                            |
+|                   | `GAME_PAUSED`           | 게임 일시정지 시               | `GameScene`       | —                                      |
+|                   | `GAME_RESUMED`          | 게임 재개 시                   | `GameScene`       | —                                      |
+|                   | `HEALTH_PACK_UPGRADED`  | 힐팩 업그레이드 적용 시        | `UpgradeSystem`   | `GameScene` (최대 HP 증가 로직)        |
+| **힐팩**          | `HEALTH_PACK_SPAWNED`   | 힐팩 스폰 시                   | `HealthPack`      | —                                      |
+|                   | `HEALTH_PACK_COLLECTED` | 힐팩 획득 시                   | `HealthPack`      | `HealthPackSystem`, `GameScene`        |
+|                   | `HEALTH_PACK_MISSED`    | 힐팩 놓쳤을 때                 | `HealthPack`      | `HealthPackSystem`                     |
+| **보스 & 게이지** | `MONSTER_HP_CHANGED`    | 보스 HP 변화 시                | `MonsterSystem`   | `Boss`, `GameScene`                    |
+|                   | `MONSTER_DIED`          | 보스 사망 시                   | `MonsterSystem`   | `Boss`, `GameScene`                    |
+|                   | `GAUGE_UPDATED`         | 게이지 수치 변경 시            | `GaugeSystem`     | `GameScene`                            |
+|                   | `PLAYER_ATTACK`         | 게이지 완충 후 공격 시         | `GaugeSystem`     | `GameScene`                            |
 
 ---
 

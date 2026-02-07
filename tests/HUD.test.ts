@@ -38,6 +38,38 @@ vi.mock('../src/data/DataManager', () => ({
           rightMargin: 20,
           bottomMargin: 20,
           spacing: 26,
+          virtualBarWidthRatio: 0.5,
+          dockPauseHoldDurationMs: 1200,
+          dockPauseGauge: {
+            height: 6,
+            insetX: 18,
+            bottomInset: 8,
+            cornerRadius: 3,
+            bgColor: 'darkBg',
+            bgAlpha: 0.45,
+            fillColor: 'cyan',
+            fillAlpha: 0.95,
+            borderColor: 'darkCyan',
+            borderAlpha: 0.9,
+            borderWidth: 1,
+          },
+          dockOverlay: {
+            cornerRadius: 12,
+            bgColor: 'darkBg',
+            bgAlpha: 0.58,
+            borderColor: 'cyan',
+            borderAlpha: 0.45,
+            borderWidth: 1.5,
+            highlightColor: 'white',
+            highlightAlpha: 0.12,
+            highlightHeight: 10,
+            resumeHintFontSize: 14,
+            resumeHintColor: 'cyan',
+            resumeHintStrokeColor: 'darkBg',
+            resumeHintStrokeThickness: 3,
+            resumeHintAlpha: 0.95,
+            resumeHintOffsetY: 12,
+          },
         },
         timerColors: {
           default: 'green',
@@ -202,7 +234,7 @@ describe('HUD', () => {
 
   it('should update safely when maxHp increases', () => {
     healthSystem.setMaxHp(7);
-    hud.update(0);
+    hud.update(0, { cursorX: 0, cursorY: 0, isUpgradeSelectionVisible: false }, 0);
 
     // HP is rendered by cursor ring now, so no top-heart graphics are created.
     expect(mockScene.add.graphics).toHaveBeenCalledTimes(0);
@@ -210,7 +242,7 @@ describe('HUD', () => {
 
   it('should update safely when maxHp decreases', () => {
     healthSystem.setMaxHp(3);
-    hud.update(0);
+    hud.update(0, { cursorX: 0, cursorY: 0, isUpgradeSelectionVisible: false }, 0);
 
     expect(mockScene.add.graphics).toHaveBeenCalledTimes(0);
   });

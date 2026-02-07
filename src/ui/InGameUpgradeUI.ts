@@ -104,15 +104,18 @@ export class InGameUpgradeUI {
     const { BOX_HEIGHT } = UPGRADE_UI;
     const upgradeUiConfig = Data.gameConfig.upgradeUI;
     const abilityConfig = Data.gameConfig.hud.abilityDisplay;
+    const gaugeCfg = Data.gameConfig.hud.waveTimerDisplay.dockPauseGauge;
+    const dockBottomReserve = gaugeCfg.height + gaugeCfg.bottomInset;
 
-    const abilityPanelHeight =
-      abilityConfig.iconSize +
-      abilityConfig.levelOffsetY +
-      abilityConfig.levelFontSize +
-      abilityConfig.panelPaddingY * 2;
-    const abilityTopY = GAME_HEIGHT - abilityConfig.bottomMargin - abilityPanelHeight;
-    const maxYWithoutOverlap =
-      abilityTopY - upgradeUiConfig.avoidAbilityUiGap - BOX_HEIGHT / 2;
+    const abilityPanelHeight = abilityConfig.levelInsideIcon
+      ? abilityConfig.iconSize + abilityConfig.panelPaddingY * 2
+      : abilityConfig.iconSize +
+        abilityConfig.levelOffsetY +
+        abilityConfig.levelFontSize +
+        abilityConfig.panelPaddingY * 2;
+    const abilityTopY =
+      GAME_HEIGHT - abilityConfig.bottomMargin - dockBottomReserve - abilityPanelHeight;
+    const maxYWithoutOverlap = abilityTopY - upgradeUiConfig.avoidAbilityUiGap - BOX_HEIGHT / 2;
     const minVisibleY = BOX_HEIGHT / 2 + 20;
 
     return Math.max(minVisibleY, Math.min(baseY, maxYWithoutOverlap));
@@ -275,7 +278,9 @@ export class InGameUpgradeUI {
     if (!this.visible) return;
 
     const gameScene = this.scene as any;
-    const cursorPos = gameScene.getCursorPosition ? gameScene.getCursorPosition() : { x: gameScene.input.activePointer.worldX, y: gameScene.input.activePointer.worldY };
+    const cursorPos = gameScene.getCursorPosition
+      ? gameScene.getCursorPosition()
+      : { x: gameScene.input.activePointer.worldX, y: gameScene.input.activePointer.worldY };
     const { BOX_WIDTH, BOX_HEIGHT, HOVER_DURATION } = UPGRADE_UI;
 
     for (const box of this.boxes) {
@@ -335,13 +340,15 @@ export class InGameUpgradeUI {
     const startX = box.container.x;
     const startY = box.container.y;
     const gameScene = this.scene as any;
-    const cursorPos = gameScene.getCursorPosition ? gameScene.getCursorPosition() : { x: gameScene.input.activePointer.worldX, y: gameScene.input.activePointer.worldY };
-    
+    const cursorPos = gameScene.getCursorPosition
+      ? gameScene.getCursorPosition()
+      : { x: gameScene.input.activePointer.worldX, y: gameScene.input.activePointer.worldY };
+
     this.particleManager.createUpgradeAbsorption(
-      startX, 
-      startY, 
-      cursorPos.x, 
-      cursorPos.y, 
+      startX,
+      startY,
+      cursorPos.x,
+      cursorPos.y,
       box.borderColor,
       () => {
         // 이펙트 완료 후 이벤트 발생

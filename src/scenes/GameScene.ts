@@ -35,6 +35,7 @@ import { GaugeSystem } from '../systems/GaugeSystem';
 import { OrbSystem } from '../systems/OrbSystem';
 import { InGameUpgradeUI } from '../ui/InGameUpgradeUI';
 import { WaveCountdownUI } from '../ui/WaveCountdownUI';
+import { HudFrameContext } from '../ui/hud/types';
 
 export class GameScene extends Phaser.Scene {
   private dishPool!: ObjectPool<Dish>;
@@ -1026,13 +1027,23 @@ export class GameScene extends Phaser.Scene {
     // 커서 범위 계산 (여러 곳에서 사용하므로 미리 계산)
     const cursorSizeBonus = this.upgradeSystem.getCursorSizeBonus();
     const cursorRadius = CURSOR_HITBOX.BASE_RADIUS * (1 + cursorSizeBonus);
+    const hudContext = this.getHudFrameContext();
 
     // 업그레이드 선택 중에는 생존 시간과 주요 게임 로직 중단
     if (this.isUpgrading) {
       this.inGameUpgradeUI.update(delta);
+      this.hud.update(this.gameTime, hudContext, delta);
       this.starBackground.update(delta, _time, Data.gameConfig.gameGrid.speed);
       this.gridRenderer.update(delta);
       this.cursorTrail.update(delta, cursorRadius, this.cursorX, this.cursorY); // 트레일 업데이트 추가
+      this.updateAttackRangeIndicator();
+      return;
+    }
+
+    const hudInteraction = this.hud.updateInteractionState(hudContext, delta);
+    if (hudInteraction.shouldPauseGame) {
+      this.hud.render(this.gameTime);
+      this.cursorTrail.update(delta, cursorRadius, this.cursorX, this.cursorY);
       this.updateAttackRangeIndicator();
       return;
     }
@@ -1054,7 +1065,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     // HUD 업데이트
-    this.hud.update(this.gameTime);
+    this.hud.render(this.gameTime);
 
     // 보스 업데이트
     this.boss.update(delta);
@@ -1380,6 +1391,18 @@ export class GameScene extends Phaser.Scene {
 
   public getCursorPosition(): { x: number; y: number } {
     return { x: this.cursorX, y: this.cursorY };
+  }
+
+  public isUpgradeSelectionVisible(): boolean {
+    return this.isUpgrading && this.inGameUpgradeUI.isVisible();
+  }
+
+  private getHudFrameContext(): HudFrameContext {
+    return {
+      cursorX: this.cursorX,
+      cursorY: this.cursorY,
+      isUpgradeSelectionVisible: this.isUpgradeSelectionVisible(),
+    };
   }
 
   private checkLaserCollisions(_delta: number): void {

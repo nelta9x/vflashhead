@@ -58,7 +58,39 @@
     "waveTimerDisplay": {
       "rightMargin": 20,
       "bottomMargin": 20,
-      "spacing": 26
+      "spacing": 26,
+      "virtualBarWidthRatio": 0.5,
+      "dockPauseHoldDurationMs": 1200,
+      "dockPauseGauge": {
+        "height": 6,
+        "insetX": 18,
+        "bottomInset": 8,
+        "cornerRadius": 3,
+        "bgColor": "darkBg",
+        "bgAlpha": 0.45,
+        "fillColor": "cyan",
+        "fillAlpha": 0.95,
+        "borderColor": "darkCyan",
+        "borderAlpha": 0.9,
+        "borderWidth": 1
+      },
+      "dockOverlay": {
+        "cornerRadius": 12,
+        "bgColor": "darkBg",
+        "bgAlpha": 0.58,
+        "borderColor": "cyan",
+        "borderAlpha": 0.45,
+        "borderWidth": 1.5,
+        "highlightColor": "white",
+        "highlightAlpha": 0,
+        "highlightHeight": 0,
+        "resumeHintFontSize": 14,
+        "resumeHintColor": "cyan",
+        "resumeHintStrokeColor": "darkBg",
+        "resumeHintStrokeThickness": 3,
+        "resumeHintAlpha": 0.95,
+        "resumeHintOffsetY": 12
+      }
     },
     "timerColors": {
       "default": "green",
@@ -100,6 +132,50 @@
       "panelCornerRadius": 8,
       "levelOffsetY": 8,
       "levelFontSize": 12,
+      "levelInsideIcon": true,
+      "levelInsetX": 3,
+      "levelInsetY": 2,
+      "levelBadgeColor": "darkBg",
+      "levelBadgeAlpha": 0.9,
+      "levelBadgePaddingX": 2,
+      "levelBadgePaddingY": 1,
+      "levelBadgeCornerRadius": 2,
+      "tooltip": {
+        "width": 260,
+        "minHeight": 110,
+        "offsetY": 14,
+        "screenMargin": 12,
+        "paddingX": 12,
+        "paddingY": 10,
+        "headerGap": 8,
+        "headerBottomGap": 8,
+        "levelNameGap": 2,
+        "minBottomPadding": 8,
+        "iconSize": 34,
+        "iconPadding": 3,
+        "iconCornerRadius": 6,
+        "iconBgColor": "darkPurple",
+        "iconBgAlpha": 0.95,
+        "iconBorderColor": "cyan",
+        "iconBorderAlpha": 0.8,
+        "iconBorderWidth": 1.2,
+        "fallbackIconFontSize": 20,
+        "titleFontSize": 14,
+        "levelFontSize": 12,
+        "descFontSize": 12,
+        "lineSpacing": 1,
+        "nameColor": "white",
+        "levelColor": "cyan",
+        "descColor": "white",
+        "textStrokeColor": "darkBg",
+        "textStrokeThickness": 2,
+        "cardColor": "darkBg",
+        "cardAlpha": 0.94,
+        "cardBorderColor": "cyan",
+        "cardBorderAlpha": 0.82,
+        "cardBorderWidth": 1.5,
+        "cardCornerRadius": 8
+      },
       "fallbackIconFontSize": 18,
       "levelTextColor": "white",
       "levelStrokeColor": "darkBg",
@@ -239,14 +315,34 @@
         "gain": 0.1
       }
     },
-    "destroy_basic": { "key": "destroy_basic", "path": "assets/audio/destroy_basic.wav", "volume": 0.35 },
-    "destroy_golden": { "key": "destroy_golden", "path": "assets/audio/destroy_golden.wav", "volume": 0.35 },
-    "destroy_crystal": { "key": "destroy_crystal", "path": "assets/audio/destroy_crystal.wav", "volume": 0.35 },
-    "destroy_bomb": { "key": "destroy_bomb", "path": "assets/audio/destroy_bomb.wav", "volume": 0.45 },
+    "destroy_basic": {
+      "key": "destroy_basic",
+      "path": "assets/audio/destroy_basic.wav",
+      "volume": 0.35
+    },
+    "destroy_golden": {
+      "key": "destroy_golden",
+      "path": "assets/audio/destroy_golden.wav",
+      "volume": 0.35
+    },
+    "destroy_crystal": {
+      "key": "destroy_crystal",
+      "path": "assets/audio/destroy_crystal.wav",
+      "volume": 0.35
+    },
+    "destroy_bomb": {
+      "key": "destroy_bomb",
+      "path": "assets/audio/destroy_bomb.wav",
+      "volume": 0.45
+    },
     "hit": { "key": "hit", "path": "assets/audio/hit.wav", "volume": 0.35 },
     "miss": { "key": "miss", "path": "assets/audio/miss.wav", "volume": 0.25 },
     "heal": { "key": "heal", "path": "assets/audio/heal.wav", "volume": 0.4 },
-    "player_charge": { "key": "player_charge", "path": "assets/audio/player_charge.wav", "volume": 0.1 },
+    "player_charge": {
+      "key": "player_charge",
+      "path": "assets/audio/player_charge.wav",
+      "volume": 0.1
+    },
     "boss_charge": { "key": "boss_charge", "path": "assets/audio/boss_charge.wav", "volume": 0.35 },
     "boss_fire": { "key": "boss_fire", "path": "assets/audio/boss_fire.wav", "volume": 0.45 },
     "boss_impact": { "key": "boss_impact", "path": "assets/audio/boss_impact.wav", "volume": 0.5 }

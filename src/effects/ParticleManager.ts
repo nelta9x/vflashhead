@@ -165,7 +165,6 @@ export class ParticleManager {
     } = config;
 
     const pointer = this.scene.input.activePointer;
-    let soundPlayed = false;
 
     // 1. 입자 생성 및 확산 연출 (Slow Spread)
     for (let i = 0; i < particleCount; i++) {
@@ -188,12 +187,6 @@ export class ParticleManager {
         duration: spreadDuration + Math.random() * 200,
         ease: spreadEase,
         onComplete: () => {
-          // 2단계 시작 시점에 사운드 재생 (한 번만)
-          if (!soundPlayed) {
-            SoundSystem.getInstance().playUpgradeSound();
-            soundPlayed = true;
-          }
-
           // 2단계: 커서의 "현재" 위치로 빠르게 흡수되기 (Dynamic Suction)
           const delay = Math.random() * suctionDelayMax;
           const currentSpreadX = particle.x;
@@ -215,7 +208,7 @@ export class ParticleManager {
             },
             onComplete: () => {
               particle.destroy();
-              // 마지막 입자가 도착할 때 현재 커서 위치에 임팩트 실행
+              // 마지막 입자가 도착할 때 현재 커서 위치에 임팩트 실행 및 사운드 재생
               if (i === particleCount - 1) {
                 this.createUpgradeImpact(pointer.worldX, pointer.worldY, color);
                 if (onComplete) onComplete();
@@ -228,6 +221,9 @@ export class ParticleManager {
   }
 
   private createUpgradeImpact(x: number, y: number, color: number): void {
+    // 사운드 재생 (완전히 흡수된 시점)
+    SoundSystem.getInstance().playUpgradeSound();
+
     const config = Data.feedback.upgradeAbsorption;
     
     const ring = this.scene.add.graphics();

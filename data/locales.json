@@ -17,6 +17,9 @@
     "gameover.new_best": "NEW BEST",
     "gameover.click_menu": "CLICK TO MENU",
 
+    "feedback.bomb_removed": "REMOVED!",
+    "feedback.interrupted": "INTERRUPTED!",
+
     "damage.combo": "x{0}",
     "damage.critical": "{0}!",
 
@@ -113,6 +116,9 @@
     "gameover.max_combo": "최대 콤보",
     "gameover.new_best": "신기록 달성",
     "gameover.click_menu": "메뉴로 돌아가기",
+
+    "feedback.bomb_removed": "제거됨!",
+    "feedback.interrupted": "차단됨!",
 
     "damage.combo": "x{0}",
     "damage.critical": "{0}!",

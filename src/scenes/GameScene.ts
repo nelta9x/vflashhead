@@ -694,8 +694,8 @@ export class GameScene extends Phaser.Scene {
           this.comboSystem.reset();
         }
       } else if (byAbility) {
-        // 어빌리티로 파괴 시 "REMOVED!" 텍스트 표시
-        this.damageText.showText(x, y - 40, 'REMOVED!', COLORS.CYAN);
+        // 어빌리티로 파괴 시 "REMOVED!" 텍스트 표시 (다국어 지원)
+        this.damageText.showText(x, y - 40, Data.t('feedback.bomb_removed'), COLORS.CYAN);
       }
 
       // 피드백 효과 (폭발)
@@ -1203,8 +1203,8 @@ export class GameScene extends Phaser.Scene {
       // 보스 이동 재개 (혹시 멈춰있었다면)
       this.boss.unfreeze();
 
-      // 시각적 피드백: 레이저가 취소되었음을 알림
-      this.damageText.showText(this.boss.x, this.boss.y - 60, 'INTERRUPTED!', COLORS.CYAN);
+      // 시각적 피드백: 레이저가 취소되었음을 알림 (다국어 지원)
+      this.damageText.showText(this.boss.x, this.boss.y - 60, Data.t('feedback.interrupted'), COLORS.CYAN);
       
       // 렌더러 즉시 갱신 (잔상 제거)
       if (this.activeLasers.length === 0) {

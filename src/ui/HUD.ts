@@ -35,7 +35,8 @@ export class HUD {
       fontStyle: 'normal',
       color: COLORS_HEX.WHITE,
       stroke: '#000000',
-      strokeThickness: 3,
+      strokeThickness: 1.5,
+      resolution: 2,
     });
     this.waveText.setOrigin(1, 0);
 
@@ -46,7 +47,8 @@ export class HUD {
       fontStyle: 'normal',
       color: COLORS_HEX.GREEN,
       stroke: '#000000',
-      strokeThickness: 4,
+      strokeThickness: 2,
+      resolution: 2,
     });
     this.timerText.setOrigin(1, 0);
 
@@ -57,7 +59,8 @@ export class HUD {
       fontStyle: 'normal',
       color: COLORS_HEX.YELLOW,
       stroke: COLORS_HEX.RED,
-      strokeThickness: 4,
+      strokeThickness: 2,
+      resolution: 2,
     });
     this.feverText.setOrigin(0.5, 0);
     this.feverText.setVisible(false);
@@ -230,7 +233,8 @@ export class HUD {
       fontStyle: 'normal',
       color: COLORS_HEX.GREEN,
       stroke: '#000000',
-      strokeThickness: 4,
+      strokeThickness: 2,
+      resolution: 2,
     });
     text.setOrigin(0.5);
 

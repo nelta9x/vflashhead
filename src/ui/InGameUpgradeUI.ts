@@ -137,11 +137,12 @@ export class InGameUpgradeUI {
     const name = this.scene.add
       .text(0, -BOX_HEIGHT / 2 + 58, Data.t(`upgrade.${upgrade.id}.name`), {
         fontFamily: FONTS.KOREAN,
-        fontSize: '14px',
+        fontSize: '16px',
         fontStyle: 'normal',
         color: COLORS_HEX.WHITE,
         wordWrap: { width: BOX_WIDTH - 20 },
         align: 'center',
+        resolution: 2,
       })
       .setOrigin(0.5);
     container.add(name);
@@ -156,6 +157,7 @@ export class InGameUpgradeUI {
         color: '#cccccc',
         wordWrap: { width: BOX_WIDTH - 24 },
         align: 'center',
+        resolution: 2,
       })
       .setOrigin(0.5, 0);
     container.add(descText);

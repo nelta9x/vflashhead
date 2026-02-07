@@ -196,11 +196,5 @@
     "impactRingEase": "Power2",
     "impactGlowDuration": 300,
     "impactGlowEase": "Sine.easeOut"
-  },
-  "bombDestructionByAbility": {
-    "shake": 8,
-    "shakeDuration": 250,
-    "slowMotion": 0.05,
-    "slowDuration": 200
   }
 }

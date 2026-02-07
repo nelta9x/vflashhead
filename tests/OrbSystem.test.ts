@@ -31,22 +31,6 @@ vi.mock('../src/utils/EventBus', async () => {
   };
 });
 
-// Mock DataManager
-vi.mock('../src/data/DataManager', () => {
-  return {
-    Data: {
-      feedback: {
-        bombDestructionByAbility: {
-          shake: 8,
-          shakeDuration: 250,
-          slowMotion: 0.05,
-          slowDuration: 200,
-        },
-      },
-    },
-  };
-});
-
 import { OrbSystem } from '../src/systems/OrbSystem';
 
 describe('OrbSystem', () => {
@@ -219,9 +203,5 @@ describe('OrbSystem', () => {
     mockBomb.x = 125; // Distance = 25. <= 30.
     system.update(100, 3000, 0, 0, mockDishPool);
     expect(mockBomb.forceDestroy).toHaveBeenCalled();
-
-    // Verify feedback events
-    expect(mockEmit).toHaveBeenCalledWith(GameEvents.SCREEN_SHAKE, expect.any(Object));
-    expect(mockEmit).toHaveBeenCalledWith(GameEvents.SLOW_MOTION, expect.any(Object));
   });
 });

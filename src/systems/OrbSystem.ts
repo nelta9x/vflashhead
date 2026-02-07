@@ -110,19 +110,6 @@ export class OrbSystem {
           // 폭탄(dangerous)은 HP와 관계없이 즉시 제거
           if (dish.isDangerous()) {
             dish.forceDestroy();
-
-            // 연출 효과 추가 (보스 게이지 파괴와 유사)
-            const feedback = Data.feedback.bombDestructionByAbility;
-            if (feedback) {
-              EventBus.getInstance().emit(GameEvents.SCREEN_SHAKE, {
-                intensity: feedback.shake,
-                duration: feedback.shakeDuration,
-              });
-              EventBus.getInstance().emit(GameEvents.SLOW_MOTION, {
-                timescale: feedback.slowMotion,
-                duration: feedback.slowDuration,
-              });
-            }
           } else {
             // 일반 접시는 데미지 적용
             dish.applyDamage(damage);

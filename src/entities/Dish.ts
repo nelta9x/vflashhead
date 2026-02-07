@@ -69,6 +69,9 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
   private isHovered: boolean = false;
   private blinkPhase: number = 0;
 
+  // 스폰 정보
+  private spawnDuration: number = 150;
+
   // HP 시스템
   private currentHp: number = 3;
   private maxHp: number = 3;
@@ -193,6 +196,7 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
 
     // 스폰 애니메이션 (JSON에서 로드)
     const spawnAnim = dishData?.spawnAnimation ?? { duration: 150, ease: 'Back.easeOut' };
+    this.spawnDuration = spawnAnim.duration;
     this.setScale(0);
     this.setAlpha(0);
     this.scene.tweens.add({
@@ -233,6 +237,10 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
 
   isDangerous(): boolean {
     return this.dangerous;
+  }
+
+  isFullySpawned(): boolean {
+    return this.elapsedTime >= this.spawnDuration;
   }
 
   private explodeBomb(): void {

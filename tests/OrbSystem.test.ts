@@ -149,4 +149,36 @@ describe('OrbSystem', () => {
     // Base 10. Magnet 5 * 0.2 = +100% -> 2.0x -> 20.
     expect(orb.size).toBe(20);
   });
+
+  it('should hit dangerous dishes only when fully spawned', () => {
+    mockUpgradeSystem.getOrbitingOrbLevel.mockReturnValue(1);
+    mockUpgradeSystem.getOrbitingOrbData.mockReturnValue({
+      count: 1,
+      damage: 10,
+      speed: 0,
+      radius: 100,
+      size: 10,
+    });
+
+    const mockBomb = {
+      active: true,
+      x: 100,
+      y: 0,
+      getSize: () => 10,
+      isDangerous: () => true,
+      isFullySpawned: vi.fn(),
+      applyDamage: vi.fn(),
+    };
+    mockDishes.push(mockBomb);
+
+    // Case 1: Dangerous and NOT fully spawned
+    mockBomb.isFullySpawned.mockReturnValue(false);
+    system.update(100, 1000, 0, 0, mockDishPool);
+    expect(mockBomb.applyDamage).not.toHaveBeenCalled();
+
+    // Case 2: Dangerous and fully spawned
+    mockBomb.isFullySpawned.mockReturnValue(true);
+    system.update(100, 2000, 0, 0, mockDishPool);
+    expect(mockBomb.applyDamage).toHaveBeenCalledWith(10);
+  });
 });

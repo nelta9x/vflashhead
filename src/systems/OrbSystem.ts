@@ -82,16 +82,10 @@ export class OrbSystem {
     orbSize: number
   ): void {
     dishPool.forEach((dish) => {
-      if (!dish.active || dish.isDangerous()) return; // Don't hit bombs automatically with orbs?
-      // Actually, hitting bombs with orbs might be bad if it kills the player.
-      // But "Protective Orbs" usually defend.
-      // In Vampire Survivors, Bible hits everything.
-      // If bomb explodes on contact, user might get hurt.
-      // Let's assume Orbs trigger bombs safely or just hit them.
-      // Existing logic: Dish.applyDamage triggers explosion if hp <= 0.
-      // If it's a bomb, applyDamage -> destroy -> explosion.
-      // Usually "Projectiles" trigger bombs. Orbs are projectiles.
-      // Let's keep it consistent: Orbs hit everything.
+      if (!dish.active) return;
+      
+      // 폭탄(dangerous)은 완전히 스폰된 후에만 타격 가능
+      if (dish.isDangerous() && !dish.isFullySpawned()) return;
 
       // Collision Check (Circle vs Circle)
       // Iterate all orbs

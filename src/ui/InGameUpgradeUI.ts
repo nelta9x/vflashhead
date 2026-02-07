@@ -134,15 +134,16 @@ export class InGameUpgradeUI {
     }
 
     // 이름
+    const textCfg = Data.gameConfig.textSettings;
     const name = this.scene.add
       .text(0, -BOX_HEIGHT / 2 + 58, Data.t(`upgrade.${upgrade.id}.name`), {
         fontFamily: FONTS.KOREAN,
-        fontSize: '16px',
+        fontSize: `${textCfg.upgradeUI.nameSize}px`,
         fontStyle: 'normal',
         color: COLORS_HEX.WHITE,
         wordWrap: { width: BOX_WIDTH - 20 },
         align: 'center',
-        resolution: 2,
+        resolution: textCfg.resolution,
       })
       .setOrigin(0.5);
     container.add(name);
@@ -152,12 +153,12 @@ export class InGameUpgradeUI {
     const descText = this.scene.add
       .text(0, -BOX_HEIGHT / 2 + 88, previewDesc, {
         fontFamily: FONTS.KOREAN,
-        fontSize: '12px',
+        fontSize: `${textCfg.upgradeUI.descSize}px`,
         fontStyle: 'normal',
         color: '#cccccc',
         wordWrap: { width: BOX_WIDTH - 24 },
         align: 'center',
-        resolution: 2,
+        resolution: textCfg.resolution,
       })
       .setOrigin(0.5, 0);
     container.add(descText);

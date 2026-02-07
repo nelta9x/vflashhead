@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 export { GAME_WIDTH, GAME_HEIGHT, COLORS, COLORS_HEX } from './constants';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './constants';
+import { Data } from './DataManager';
 
 export const gameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -20,8 +21,8 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   render: {
-    pixelArt: true,
-    antialias: false,
+    pixelArt: Data.gameConfig.render.pixelArt,
+    antialias: Data.gameConfig.render.antialias,
   },
   audio: {
     disableWebAudio: false,

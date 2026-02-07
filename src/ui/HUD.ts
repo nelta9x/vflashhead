@@ -29,38 +29,39 @@ export class HUD {
 
   private createUI(): void {
     // 웨이브 (우측 상단, 타이머 위)
+    const textCfg = Data.gameConfig.textSettings;
     this.waveText = this.scene.add.text(GAME_WIDTH - 20, 10, Data.t('hud.wave', 1), {
       fontFamily: FONTS.MAIN,
-      fontSize: '16px',
+      fontSize: `${textCfg.hud.waveSize}px`,
       fontStyle: 'normal',
       color: COLORS_HEX.WHITE,
       stroke: '#000000',
-      strokeThickness: 1.5,
-      resolution: 2,
+      strokeThickness: textCfg.hud.strokeThickness,
+      resolution: textCfg.resolution,
     });
     this.waveText.setOrigin(1, 0);
 
     // 생존 시간 (우측 상단) - 정순 카운트
     this.timerText = this.scene.add.text(GAME_WIDTH - 20, 32, '0:00', {
       fontFamily: FONTS.MAIN,
-      fontSize: '24px',
+      fontSize: `${textCfg.hud.timerSize}px`,
       fontStyle: 'normal',
       color: COLORS_HEX.GREEN,
       stroke: '#000000',
-      strokeThickness: 2,
-      resolution: 2,
+      strokeThickness: textCfg.hud.timerStrokeThickness,
+      resolution: textCfg.resolution,
     });
     this.timerText.setOrigin(1, 0);
 
     // 피버 타임 텍스트 (숨김)
     this.feverText = this.scene.add.text(GAME_WIDTH / 2, 100, Data.t('hud.fever_time'), {
       fontFamily: FONTS.MAIN,
-      fontSize: '32px',
+      fontSize: `${textCfg.hud.feverSize}px`,
       fontStyle: 'normal',
       color: COLORS_HEX.YELLOW,
       stroke: COLORS_HEX.RED,
-      strokeThickness: 2,
-      resolution: 2,
+      strokeThickness: textCfg.hud.timerStrokeThickness,
+      resolution: textCfg.resolution,
     });
     this.feverText.setOrigin(0.5, 0);
     this.feverText.setVisible(false);
@@ -227,14 +228,15 @@ export class HUD {
   }
 
   showWaveComplete(waveNumber: number): void {
+    const textCfg = Data.gameConfig.textSettings;
     const text = this.scene.add.text(GAME_WIDTH / 2, 200, Data.t('hud.wave_complete', waveNumber), {
       fontFamily: FONTS.MAIN,
-      fontSize: '36px',
+      fontSize: `${textCfg.hud.completeSize}px`,
       fontStyle: 'normal',
       color: COLORS_HEX.GREEN,
       stroke: '#000000',
-      strokeThickness: 2,
-      resolution: 2,
+      strokeThickness: textCfg.hud.timerStrokeThickness,
+      resolution: textCfg.resolution,
     });
     text.setOrigin(0.5);
 

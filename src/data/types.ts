@@ -183,6 +183,25 @@ export interface GameConfig {
     main: string;
     korean: string;
   };
+  render: {
+    pixelArt: boolean;
+    antialias: boolean;
+  };
+  textSettings: {
+    resolution: number;
+    upgradeUI: {
+      nameSize: number;
+      descSize: number;
+    };
+    hud: {
+      waveSize: number;
+      timerSize: number;
+      feverSize: number;
+      completeSize: number;
+      strokeThickness: number;
+      timerStrokeThickness: number;
+    };
+  };
   magnet: MagnetConfig;
   gameGrid: GridConfig;
   stars: StarsConfig;

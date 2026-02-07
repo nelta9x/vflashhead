@@ -51,6 +51,25 @@
     "main": "'Orbitron', 'Black Han Sans', sans-serif",
     "korean": "'Black Han Sans', 'Orbitron', sans-serif"
   },
+  "render": {
+    "pixelArt": true,
+    "antialias": false
+  },
+  "textSettings": {
+    "resolution": 2,
+    "upgradeUI": {
+      "nameSize": 16,
+      "descSize": 12
+    },
+    "hud": {
+      "waveSize": 16,
+      "timerSize": 24,
+      "feverSize": 32,
+      "completeSize": 36,
+      "strokeThickness": 1.5,
+      "timerStrokeThickness": 2
+    }
+  },
   "playerAttack": {
     "baseMissileCount": 1,
     "baseMissileDamage": 100

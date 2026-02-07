@@ -7,6 +7,19 @@ vi.mock('../src/data/DataManager', () => ({
     formatTemplate: vi.fn((key) => key),
     gameConfig: {
       gameGrid: { speed: 100 },
+      render: { pixelArt: true, antialias: false },
+      textSettings: {
+        resolution: 2,
+        upgradeUI: { nameSize: 16, descSize: 12 },
+        hud: {
+          waveSize: 16,
+          timerSize: 24,
+          feverSize: 32,
+          completeSize: 36,
+          strokeThickness: 1.5,
+          timerStrokeThickness: 2,
+        },
+      },
     },
     upgrades: {
       system: [],

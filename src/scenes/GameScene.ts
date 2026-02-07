@@ -21,7 +21,6 @@ import { HealthPackSystem } from '../systems/HealthPackSystem';
 import { HUD } from '../ui/HUD';
 import { ParticleManager } from '../effects/ParticleManager';
 import { ScreenShake } from '../effects/ScreenShake';
-import { SlowMotion } from '../effects/SlowMotion';
 import { DamageText } from '../ui/DamageText';
 import { CursorTrail } from '../effects/CursorTrail';
 import { StarBackground } from '../effects/StarBackground';
@@ -60,7 +59,6 @@ export class GameScene extends Phaser.Scene {
   private waveCountdownUI!: WaveCountdownUI;
   private particleManager!: ParticleManager;
   private screenShake!: ScreenShake;
-  private slowMotion!: SlowMotion;
   private damageText!: DamageText;
   private cursorTrail!: CursorTrail;
   private starBackground!: StarBackground;
@@ -174,7 +172,6 @@ export class GameScene extends Phaser.Scene {
     // 이펙트 시스템 (가장 먼저 초기화)
     this.particleManager = new ParticleManager(this);
     this.screenShake = new ScreenShake(this);
-    this.slowMotion = new SlowMotion(this);
     this.damageText = new DamageText(this);
     this.cursorTrail = new CursorTrail(this);
     this.soundSystem = SoundSystem.getInstance();
@@ -183,7 +180,6 @@ export class GameScene extends Phaser.Scene {
       this,
       this.particleManager,
       this.screenShake,
-      this.slowMotion,
       this.damageText,
       this.soundSystem
     );
@@ -971,7 +967,6 @@ export class GameScene extends Phaser.Scene {
     this.waveSystem.update(scaledDelta);
     this.upgradeSystem.update(scaledDelta, this.gameTime);
     this.healthPackSystem.update(scaledDelta, this.gameTime);
-    this.slowMotion.update(delta); // SlowMotion 시스템 자체는 실제 시간(delta)으로 업데이트해야 함
 
     // 접시 업데이트
     this.dishPool.forEach((dish) => {
@@ -1107,6 +1102,9 @@ export class GameScene extends Phaser.Scene {
     const magnetLevel = this.upgradeSystem.getMagnetLevel();
     const magnetRadius = this.upgradeSystem.getMagnetRadius();
 
+    // 전기 충격 데이터
+    const electricLevel = this.upgradeSystem.getElectricShockLevel();
+
     // 렌더링 위임
     this.cursorRenderer.renderAttackIndicator(
       x,
@@ -1114,7 +1112,9 @@ export class GameScene extends Phaser.Scene {
       cursorRadius,
       this.gaugeRatio,
       magnetRadius,
-      magnetLevel
+      magnetLevel,
+      electricLevel,
+      this.gameTime
     );
   }
 

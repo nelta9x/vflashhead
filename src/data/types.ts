@@ -334,8 +334,6 @@ export interface HealthPackConfig {
 export interface ComboMilestoneEffect {
   shake: number;
   shakeDuration: number;
-  slowMotion?: number;
-  slowDuration?: number;
 }
 
 export interface ParticleConfig {

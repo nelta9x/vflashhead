@@ -3,14 +3,12 @@ import { COLORS } from '../data/constants';
 import { Data } from '../data/DataManager';
 import { ParticleManager } from '../effects/ParticleManager';
 import { ScreenShake } from '../effects/ScreenShake';
-import { SlowMotion } from '../effects/SlowMotion';
 import { DamageText } from '../ui/DamageText';
 import { SoundSystem } from './SoundSystem';
 
 export class FeedbackSystem {
   private particleManager: ParticleManager;
   private screenShake: ScreenShake;
-  private slowMotion: SlowMotion;
   private damageText: DamageText;
   private soundSystem: SoundSystem;
 
@@ -18,13 +16,11 @@ export class FeedbackSystem {
     _scene: Phaser.Scene,
     particleManager: ParticleManager,
     screenShake: ScreenShake,
-    slowMotion: SlowMotion,
     damageText: DamageText,
     soundSystem: SoundSystem
   ) {
     this.particleManager = particleManager;
     this.screenShake = screenShake;
-    this.slowMotion = slowMotion;
     this.damageText = damageText;
     this.soundSystem = soundSystem;
   }
@@ -60,10 +56,6 @@ export class FeedbackSystem {
 
     if (effect) {
       this.screenShake.shake(effect.shake, effect.shakeDuration);
-
-      if (effect.slowMotion !== undefined && effect.slowDuration !== undefined) {
-        this.slowMotion.trigger(effect.slowMotion, effect.slowDuration);
-      }
     }
 
     // 콤보 사운드 재생
@@ -121,8 +113,6 @@ export class FeedbackSystem {
     this.screenShake.shake(15, 250);
     // 폭발 파티클
     this.particleManager.createExplosion(x, y, 0xff0044, 'bomb');
-    // 슬로우모션
-    this.slowMotion.trigger(0.3, 300);
     // 폭발 사운드
     this.soundSystem.playDestroySound('bomb');
   }
@@ -130,8 +120,6 @@ export class FeedbackSystem {
   onHpLost(): void {
     // 강한 화면 흔들림
     this.screenShake.shake(12, 200);
-    // 짧은 슬로우모션
-    this.slowMotion.trigger(0.5, 200);
   }
 
   onHealthPackCollected(x: number, y: number): void {
@@ -173,10 +161,7 @@ export class FeedbackSystem {
       this.particleManager.createRainbowExplosion(x, y, 1.5);
     }
 
-    // 4. 슬로우 모션 (짧게)
-    this.slowMotion.trigger(isCritical ? 0.2 : 0.3, 150);
-
-    // 5. 사운드
+    // 4. 사운드
     this.soundSystem.playBossImpactSound();
   }
 

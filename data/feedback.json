@@ -74,27 +74,19 @@
     },
     "10": {
       "shake": 5,
-      "shakeDuration": 200,
-      "slowMotion": 0.3,
-      "slowDuration": 500
+      "shakeDuration": 200
     },
     "25": {
       "shake": 8,
-      "shakeDuration": 250,
-      "slowMotion": 0.2,
-      "slowDuration": 800
+      "shakeDuration": 250
     },
     "50": {
       "shake": 12,
-      "shakeDuration": 300,
-      "slowMotion": 0.1,
-      "slowDuration": 1000
+      "shakeDuration": 300
     },
     "100": {
       "shake": 15,
-      "shakeDuration": 400,
-      "slowMotion": 0.05,
-      "slowDuration": 1500
+      "shakeDuration": 400
     }
   },
   "particles": {

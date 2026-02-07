@@ -195,12 +195,7 @@ export class SoundSystem {
   playBossImpactSound(): void {
     const config = Data.gameConfig.audio.boss_impact;
     if (this.scene && this.scene.cache.audio.exists(config.key)) {
-      // 미세한 피치 변동으로 묵직함에 다양성 부여 (0.9 ~ 1.1)
-      const randomRate = 0.9 + Math.random() * 0.2;
-      this.scene.sound.play(config.key, { 
-        volume: config.volume,
-        rate: randomRate
-      });
+      this.scene.sound.play(config.key, { volume: config.volume });
     }
   }
 

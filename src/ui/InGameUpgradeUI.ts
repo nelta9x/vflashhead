@@ -319,15 +319,15 @@ export class InGameUpgradeUI {
       startY, 
       pointer.worldX, 
       pointer.worldY, 
-      box.borderColor
+      box.borderColor,
+      () => {
+        // 이펙트 완료 후 이벤트 발생
+        EventBus.getInstance().emit(GameEvents.UPGRADE_SELECTED, upgrade);
+      }
     );
 
     // UI 숨김 애니메이션
     this.hideWithAnimation();
-
-    this.scene.time.delayedCall(150, () => {
-      EventBus.getInstance().emit(GameEvents.UPGRADE_SELECTED, upgrade);
-    });
   }
 
   isVisible(): boolean {

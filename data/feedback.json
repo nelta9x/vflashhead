@@ -191,6 +191,10 @@
     "impactRingSize": 25,
     "impactRingScale": 5,
     "impactGlowSize": 40,
-    "impactGlowScale": 3.0
+    "impactGlowScale": 3.0,
+    "impactRingDuration": 400,
+    "impactRingEase": "Power2",
+    "impactGlowDuration": 300,
+    "impactGlowEase": "Sine.easeOut"
   }
 }

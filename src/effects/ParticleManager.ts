@@ -237,8 +237,8 @@ export class ParticleManager {
       scaleX: config.impactRingScale,
       scaleY: config.impactRingScale,
       alpha: 0,
-      duration: 400,
-      ease: 'Power2',
+      duration: config.impactRingDuration,
+      ease: config.impactRingEase,
       onComplete: () => ring.destroy(),
     });
 
@@ -252,8 +252,8 @@ export class ParticleManager {
       targets: glow,
       scale: config.impactGlowScale,
       alpha: 0,
-      duration: 300,
-      ease: 'Sine.easeOut',
+      duration: config.impactGlowDuration,
+      ease: config.impactGlowEase,
       onComplete: () => glow.destroy(),
     });
   }

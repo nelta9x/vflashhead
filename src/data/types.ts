@@ -206,6 +206,28 @@ export interface BootConfig {
   };
 }
 
+export interface HudConfig {
+  timerColors: {
+    default: string;
+    mid: string;
+    high: string;
+    ultra: string;
+  };
+  timerThresholds: {
+    mid: number;
+    high: number;
+    ultra: number;
+  };
+  hpDisplay: {
+    startX: number;
+    startY: number;
+    spacing: number;
+    heartSize: number;
+    filledColor: string;
+    emptyColor: string;
+  };
+}
+
 export interface GameConfig {
   screen: ScreenConfig;
   defaultLanguage: string;
@@ -214,6 +236,7 @@ export interface GameConfig {
   waveTransition: WaveTransitionConfig;
   gameOver: GameOverConfig;
   boot: BootConfig;
+  hud: HudConfig;
   monsterAttack: MonsterAttackConfig;
   playerAttack: PlayerAttackConfig;
   fonts: {

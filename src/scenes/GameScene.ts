@@ -178,6 +178,7 @@ export class GameScene extends Phaser.Scene {
     this.damageText = new DamageText(this);
     this.cursorTrail = new CursorTrail(this);
     this.soundSystem = SoundSystem.getInstance();
+    this.soundSystem.setScene(this);
     this.feedbackSystem = new FeedbackSystem(
       this,
       this.particleManager,

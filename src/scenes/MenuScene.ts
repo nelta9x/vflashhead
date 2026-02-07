@@ -45,6 +45,10 @@ export class MenuScene extends Phaser.Scene {
 
     this.cursorTrail = new CursorTrail(this);
     this.cursorRenderer = new CursorRenderer(this);
+    
+    // 사운드 시스템 씬 설정
+    SoundSystem.getInstance().setScene(this);
+
     this.createTitle();
     this.createStartUI();
     this.createBestWave();

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS, COLORS_HEX, FONTS } from '../data/constants';
 import { Data } from '../data/DataManager';
+import { SoundSystem } from '../systems/SoundSystem';
 
 interface GameStats {
   maxCombo: number;
@@ -33,6 +34,9 @@ export class GameOverScene extends Phaser.Scene {
 
   create(): void {
     this.cameras.main.fadeIn(500);
+
+    // 사운드 시스템 씬 설정
+    SoundSystem.getInstance().setScene(this);
 
     // 커서 다시 표시 (GameScene에서 숨겼을 수 있음)
     this.input.setDefaultCursor('default');

@@ -59,10 +59,12 @@ export class BootScene extends Phaser.Scene {
 
   private loadAudioAssets(): void {
     const audioConfig = Data.gameConfig.audio;
-    this.load.audio(audioConfig.bgm.key, audioConfig.bgm.path);
-    if (audioConfig.upgrade_selected) {
-      this.load.audio(audioConfig.upgrade_selected.key, audioConfig.upgrade_selected.path);
-    }
+    // 모든 오디오 설정 항목을 순회하며 로드
+    Object.values(audioConfig).forEach((config: any) => {
+      if (config.key && config.path) {
+        this.load.audio(config.key, config.path);
+      }
+    });
   }
 
   private loadIconAssets(): void {

@@ -8,6 +8,11 @@ vi.mock('phaser', () => {
         Graphics: vi.fn(),
       },
       Scene: vi.fn(),
+      Math: {
+        Clamp: vi.fn((value: number, min: number, max: number) => Math.min(Math.max(value, min), max)),
+        DegToRad: vi.fn((degrees: number) => (degrees * Math.PI) / 180),
+        Linear: vi.fn((start: number, end: number, t: number) => start + (end - start) * t),
+      },
       Display: {
         Color: {
           HexStringToColor: vi.fn(() => ({ color: 0xff0000 }))

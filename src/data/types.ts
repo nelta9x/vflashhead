@@ -264,6 +264,11 @@ export interface BootConfig {
 }
 
 export interface HudConfig {
+  waveTimerDisplay: {
+    rightMargin: number;
+    bottomMargin: number;
+    spacing: number;
+  };
   timerColors: {
     default: string;
     mid: string;

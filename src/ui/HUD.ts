@@ -47,9 +47,14 @@ export class HUD {
   }
 
   private createUI(): void {
-    // 웨이브 (우측 상단, 타이머 위)
+    // 웨이브/타이머 (우측 하단)
     const textCfg = Data.gameConfig.textSettings;
-    this.waveText = this.scene.add.text(GAME_WIDTH - 20, 10, Data.t('hud.wave', 1), {
+    const waveTimerCfg = Data.gameConfig.hud.waveTimerDisplay;
+    const rightX = GAME_WIDTH - waveTimerCfg.rightMargin;
+    const timerY = GAME_HEIGHT - waveTimerCfg.bottomMargin;
+    const waveY = timerY - waveTimerCfg.spacing;
+
+    this.waveText = this.scene.add.text(rightX, waveY, Data.t('hud.wave', 1), {
       fontFamily: FONTS.MAIN,
       fontSize: `${textCfg.hud.waveSize}px`,
       fontStyle: 'normal',
@@ -58,10 +63,10 @@ export class HUD {
       strokeThickness: textCfg.hud.strokeThickness,
       resolution: textCfg.resolution,
     });
-    this.waveText.setOrigin(1, 0);
+    this.waveText.setOrigin(1, 1);
 
-    // 생존 시간 (우측 상단) - 정순 카운트
-    this.timerText = this.scene.add.text(GAME_WIDTH - 20, 32, '0:00', {
+    // 생존 시간 (우측 하단) - 정순 카운트
+    this.timerText = this.scene.add.text(rightX, timerY, '0:00', {
       fontFamily: FONTS.MAIN,
       fontSize: `${textCfg.hud.timerSize}px`,
       fontStyle: 'normal',
@@ -70,7 +75,7 @@ export class HUD {
       strokeThickness: textCfg.hud.timerStrokeThickness,
       resolution: textCfg.resolution,
     });
-    this.timerText.setOrigin(1, 0);
+    this.timerText.setOrigin(1, 1);
 
     // 피버 타임 텍스트 (숨김)
     this.feverText = this.scene.add.text(GAME_WIDTH / 2, 100, Data.t('hud.fever_time'), {

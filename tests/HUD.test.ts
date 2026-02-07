@@ -34,6 +34,11 @@ vi.mock('../src/data/DataManager', () => ({
         },
       },
       hud: {
+        waveTimerDisplay: {
+          rightMargin: 20,
+          bottomMargin: 20,
+          spacing: 26,
+        },
         timerColors: {
           default: 'green',
           mid: 'brightGreen',
@@ -87,6 +92,7 @@ vi.mock('../src/data/DataManager', () => ({
 // Mock constants
 vi.mock('../src/data/constants', () => ({
   GAME_WIDTH: 800,
+  GAME_HEIGHT: 600,
   COLORS: { RED: 0xff0000 },
   COLORS_HEX: {
     WHITE: '#ffffff',

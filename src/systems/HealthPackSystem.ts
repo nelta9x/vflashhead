@@ -40,7 +40,27 @@ export class HealthPackSystem {
       pack.update(delta);
     });
 
-    // 쿨다운 체크
+    this.checkSpawning(delta, gameTime);
+  }
+
+  /**
+   * 커서 위치와 힐팩 간의 충돌을 체크하여 수집 처리 (키보드 조작 대응)
+   */
+  checkCollection(cursorX: number, cursorY: number, cursorRadius: number): void {
+    this.pool.forEach((pack) => {
+      if (!pack.active) return;
+
+      const dist = Phaser.Math.Distance.Between(cursorX, cursorY, pack.x, pack.y);
+      const hitDistance = cursorRadius + pack.getRadius();
+
+      if (dist <= hitDistance) {
+        pack.collect();
+      }
+    });
+  }
+
+  // 쿨다운 체크
+  private checkSpawning(delta: number, gameTime: number): void {
     if (gameTime < this.lastSpawnTime + HEAL_PACK.COOLDOWN) {
       return;
     }

@@ -7,6 +7,11 @@ vi.mock('phaser', () => {
       Scene: class {},
       Math: {
         Between: vi.fn((min, _max) => min),
+        Distance: {
+          Between: vi.fn((x1, y1, x2, y2) => {
+            return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+          }),
+        },
       },
     },
   };
@@ -185,6 +190,31 @@ describe('HealthPackSystem', () => {
         callback({ pack });
         expect(mockRelease).toHaveBeenCalledWith(pack);
       }
+    });
+  });
+
+  describe('checkCollection', () => {
+    it('should collect pack if cursor is in range', () => {
+      const mockPackForCollection = {
+        active: true,
+        x: 100,
+        y: 100,
+        getRadius: vi.fn(() => 20),
+        collect: vi.fn(),
+      };
+
+      mockForEach.mockImplementation((callback) => {
+        callback(mockPackForCollection);
+      });
+
+      // 커서 반경 30, 팩 반경 20 -> 50 이내면 수집
+      // 1. 범위 밖 (거리 60)
+      system.checkCollection(100, 160, 30);
+      expect(mockPackForCollection.collect).not.toHaveBeenCalled();
+
+      // 2. 범위 안 (거리 40)
+      system.checkCollection(100, 140, 30);
+      expect(mockPackForCollection.collect).toHaveBeenCalledTimes(1);
     });
   });
 });

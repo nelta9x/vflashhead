@@ -1041,6 +1041,7 @@ export class GameScene extends Phaser.Scene {
     this.waveSystem.update(delta);
     this.upgradeSystem.update(delta, this.gameTime);
     this.healthPackSystem.update(delta, this.gameTime);
+    this.healthPackSystem.checkCollection(this.cursorX, this.cursorY, cursorRadius);
 
     // 접시 업데이트
     this.dishPool.forEach((dish) => {
@@ -1099,9 +1100,8 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    const pointer = this.input.activePointer;
-    const cursorX = pointer.worldX;
-    const cursorY = pointer.worldY;
+    const cursorX = this.cursorX;
+    const cursorY = this.cursorY;
 
     // 자기장 범위/힘 계산
     const magnetRadius = this.upgradeSystem.getMagnetRadius();
@@ -1272,14 +1272,13 @@ export class GameScene extends Phaser.Scene {
 
   private triggerBossLaserAttack(): void {
     const config = Data.gameConfig.monsterAttack.laser;
-    const pointer = this.input.activePointer;
 
     const startX = this.boss.x;
     const startY = this.boss.y;
 
     // 보스→커서 방향 벡터
-    const dx = pointer.x - startX;
-    const dy = pointer.y - startY;
+    const dx = this.cursorX - startX;
+    const dy = this.cursorY - startY;
     const len = Math.sqrt(dx * dx + dy * dy);
 
     // 보스와 커서가 거의 같은 위치면 발사 취소 (불합리한 피격 방지)

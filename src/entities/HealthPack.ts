@@ -76,7 +76,7 @@ export class HealthPack extends Phaser.GameObjects.Container implements Poolable
     });
   }
 
-  private collect(): void {
+  public collect(): void {
     if (!this.active) return;
 
     this.active = false;
@@ -102,6 +102,10 @@ export class HealthPack extends Phaser.GameObjects.Container implements Poolable
         this.deactivate();
       },
     });
+  }
+
+  public getRadius(): number {
+    return Data.healthPack.hitboxSize;
   }
 
   private drawHealthPack(): void {

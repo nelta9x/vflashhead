@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { Data } from '../data/DataManager';
 
 /**
  * Web Audio API 기반 프로그래매틱 사운드 시스템
@@ -728,10 +729,14 @@ export class SoundSystem {
     if (!config) return;
 
     if (this.scene) {
-      // 오디오 파일이 로드되어 있으면 그것을 사용
-      if (this.scene.sound.get(config.key)) {
-        this.scene.sound.play(config.key, { volume: config.volume });
-        return;
+      // 오디오 파일이 로드되어 있고 사용 가능한지 확인
+      if (this.scene.cache.audio.exists(config.key)) {
+        try {
+          this.scene.sound.play(config.key, { volume: config.volume });
+          return;
+        } catch (e) {
+          console.warn('Failed to play upgrade sound file, falling back to synth:', e);
+        }
       }
     }
 

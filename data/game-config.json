@@ -13,11 +13,11 @@
     "cursorColorNumeric": 15792383
   },
   "upgradeUI": {
-    "boxWidth": 200,
-    "boxHeight": 160,
-    "boxSpacing": 30,
+    "boxWidth": 400,
+    "boxHeight": 320,
+    "boxSpacing": 60,
     "hoverDuration": 300,
-    "boxYOffset": 150
+    "boxYOffset": 360
   },
   "waveTransition": {
     "countdownDuration": 3000
@@ -114,8 +114,8 @@
   "textSettings": {
     "resolution": 2,
     "upgradeUI": {
-      "nameSize": 16,
-      "descSize": 16
+      "nameSize": 32,
+      "descSize": 24
     },
     "hud": {
       "waveSize": 16,

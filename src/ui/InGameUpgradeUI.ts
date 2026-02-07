@@ -112,8 +112,8 @@ export class InGameUpgradeUI {
     container.add(bg);
 
     // 아이콘 표시 (SVG 스프라이트 또는 텍스트 폴백)
-    const iconY = -BOX_HEIGHT / 2 + 35;
-    const iconSize = 40;
+    const iconY = -BOX_HEIGHT / 2 + 70;
+    const iconSize = 80;
 
     // 텍스처가 존재하는지 확인
     if (this.scene.textures.exists(upgrade.id)) {
@@ -127,7 +127,7 @@ export class InGameUpgradeUI {
       const icon = this.scene.add
         .text(0, iconY, iconSymbol, {
           fontFamily: FONTS.MAIN,
-          fontSize: '30px',
+          fontSize: '60px',
           color: `#${borderColor.toString(16).padStart(6, '0')}`,
         })
         .setOrigin(0.5);
@@ -137,12 +137,12 @@ export class InGameUpgradeUI {
     // 이름
     const textCfg = Data.gameConfig.textSettings;
     const name = this.scene.add
-      .text(0, -BOX_HEIGHT / 2 + 62, Data.t(`upgrade.${upgrade.id}.name`), {
+      .text(0, -BOX_HEIGHT / 2 + 120, Data.t(`upgrade.${upgrade.id}.name`), {
         fontFamily: FONTS.KOREAN,
         fontSize: `${textCfg.upgradeUI.nameSize}px`,
         fontStyle: 'normal',
         color: COLORS_HEX.WHITE,
-        wordWrap: { width: BOX_WIDTH - 20 },
+        wordWrap: { width: BOX_WIDTH - 40 },
         align: 'center',
         resolution: textCfg.resolution,
       })
@@ -152,12 +152,12 @@ export class InGameUpgradeUI {
     // 효과 미리보기 설명
     const previewDesc = this.upgradeSystem.getPreviewDescription(upgrade.id);
     const descText = this.scene.add
-      .text(0, -BOX_HEIGHT / 2 + 98, previewDesc, {
+      .text(0, -BOX_HEIGHT / 2 + 180, previewDesc, {
         fontFamily: FONTS.KOREAN,
         fontSize: `${textCfg.upgradeUI.descSize}px`,
         fontStyle: 'normal',
         color: '#cccccc',
-        wordWrap: { width: BOX_WIDTH - 24 },
+        wordWrap: { width: BOX_WIDTH - 48 },
         align: 'center',
         resolution: textCfg.resolution,
       })
@@ -166,11 +166,11 @@ export class InGameUpgradeUI {
 
     // 진행바 배경
     const progressBarBg = this.scene.add.graphics();
-    const barWidth = BOX_WIDTH - 40;
-    const barHeight = 6;
-    const barY = BOX_HEIGHT / 2 - 15;
+    const barWidth = BOX_WIDTH - 80;
+    const barHeight = 12;
+    const barY = BOX_HEIGHT / 2 - 30;
     progressBarBg.fillStyle(0x333333, 0.8);
-    progressBarBg.fillRoundedRect(-barWidth / 2, barY - barHeight / 2, barWidth, barHeight, 3);
+    progressBarBg.fillRoundedRect(-barWidth / 2, barY - barHeight / 2, barWidth, barHeight, 6);
     container.add(progressBarBg);
 
     // 진행바
@@ -197,23 +197,23 @@ export class InGameUpgradeUI {
   ): void {
     graphics.clear();
     graphics.fillStyle(hovered ? 0x2a1a4e : 0x1a0a2e, 0.95);
-    graphics.fillRoundedRect(-width / 2, -height / 2, width, height, 10);
-    graphics.lineStyle(hovered ? 3 : 2, borderColor, hovered ? 1 : 0.7);
-    graphics.strokeRoundedRect(-width / 2, -height / 2, width, height, 10);
+    graphics.fillRoundedRect(-width / 2, -height / 2, width, height, 20);
+    graphics.lineStyle(hovered ? 6 : 4, borderColor, hovered ? 1 : 0.7);
+    graphics.strokeRoundedRect(-width / 2, -height / 2, width, height, 20);
   }
 
   private updateProgressBar(box: UpgradeBox): void {
     const { BOX_WIDTH, BOX_HEIGHT, HOVER_DURATION } = UPGRADE_UI;
-    const barWidth = BOX_WIDTH - 40;
-    const barHeight = 6;
-    const barY = BOX_HEIGHT / 2 - 15;
+    const barWidth = BOX_WIDTH - 80;
+    const barHeight = 12;
+    const barY = BOX_HEIGHT / 2 - 30;
 
     box.progressBar.clear();
 
     if (box.hoverProgress > 0) {
       const fillWidth = barWidth * (box.hoverProgress / HOVER_DURATION);
       box.progressBar.fillStyle(box.borderColor, 1);
-      box.progressBar.fillRoundedRect(-barWidth / 2, barY - barHeight / 2, fillWidth, barHeight, 3);
+      box.progressBar.fillRoundedRect(-barWidth / 2, barY - barHeight / 2, fillWidth, barHeight, 6);
     }
   }
 

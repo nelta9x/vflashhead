@@ -18,6 +18,7 @@ export interface PlayerConfig {
   cursorHitbox: CursorHitboxConfig;
   cursorColor: string;
   cursorColorNumeric: number;
+  cursorSpeed: number;
 }
 
 export interface UpgradeUIConfig {
@@ -147,10 +148,17 @@ export interface MenuConfig {
   title: {
     yOffset: number;
     fontSize: string;
+    color: string;
+    shadowColor: string;
     shadowBlur: number;
     moveDuration: number;
     moveY: number;
     padding: number;
+  };
+  startPrompt: {
+    yOffset: number;
+    fontSize: string;
+    color: string;
   };
   languageUI: LanguageUIConfig;
 }
@@ -495,8 +503,12 @@ export interface UpgradeAbsorptionConfig {
   suctionDelayMax: number;
   impactRingSize: number;
   impactRingScale: number;
+  impactRingDuration: number;
+  impactRingEase: string;
   impactGlowSize: number;
   impactGlowScale: number;
+  impactGlowDuration: number;
+  impactGlowEase: string;
 }
 
 export interface FeedbackConfig {

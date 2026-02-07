@@ -253,8 +253,25 @@ export class InGameUpgradeUI {
   update(delta: number): void {
     if (!this.visible) return;
 
-    const pointer = this.scene.input.activePointer;
+    const gameScene = this.scene as any;
+    const cursorPos = gameScene.getCursorPosition ? gameScene.getCursorPosition() : { x: gameScene.input.activePointer.worldX, y: gameScene.input.activePointer.worldY };
     const { BOX_WIDTH, BOX_HEIGHT, HOVER_DURATION } = UPGRADE_UI;
+
+    // 키보드 숫자 키 입력 처리 (1, 2, 3)
+    if (this.scene.input.keyboard) {
+      if (this.scene.input.keyboard.checkDown(this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ONE), 250)) {
+        if (this.boxes[0]) this.selectUpgrade(this.boxes[0]);
+        return;
+      }
+      if (this.scene.input.keyboard.checkDown(this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TWO), 250)) {
+        if (this.boxes[1]) this.selectUpgrade(this.boxes[1]);
+        return;
+      }
+      if (this.scene.input.keyboard.checkDown(this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.THREE), 250)) {
+        if (this.boxes[2]) this.selectUpgrade(this.boxes[2]);
+        return;
+      }
+    }
 
     for (const box of this.boxes) {
       const bounds = new Phaser.Geom.Rectangle(
@@ -265,7 +282,7 @@ export class InGameUpgradeUI {
       );
 
       const wasHovered = box.isHovered;
-      box.isHovered = bounds.contains(pointer.worldX, pointer.worldY);
+      box.isHovered = bounds.contains(cursorPos.x, cursorPos.y);
 
       // 호버 상태 변경 시 배경 업데이트
       if (wasHovered !== box.isHovered) {
@@ -312,13 +329,14 @@ export class InGameUpgradeUI {
     // mainContainer는 (0,0)에 있으므로 box 좌표가 곧 월드 좌표와 동일함 (단, 카메라 스크롤 없다는 가정)
     const startX = box.container.x;
     const startY = box.container.y;
-    const pointer = this.scene.input.activePointer;
+    const gameScene = this.scene as any;
+    const cursorPos = gameScene.getCursorPosition ? gameScene.getCursorPosition() : { x: gameScene.input.activePointer.worldX, y: gameScene.input.activePointer.worldY };
     
     this.particleManager.createUpgradeAbsorption(
       startX, 
       startY, 
-      pointer.worldX, 
-      pointer.worldY, 
+      cursorPos.x, 
+      cursorPos.y, 
       box.borderColor,
       () => {
         // 이펙트 완료 후 이벤트 발생

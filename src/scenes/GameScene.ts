@@ -82,6 +82,17 @@ export class GameScene extends Phaser.Scene {
   // BGM
   private bgm: Phaser.Sound.BaseSound | null = null;
 
+  // 커서 시스템
+  private cursorX: number = 0;
+  private cursorY: number = 0;
+  private cursorKeys!: Phaser.Types.Input.Keyboard.CursorKeys;
+  private wasdKeys!: {
+    W: Phaser.Input.Keyboard.Key;
+    A: Phaser.Input.Keyboard.Key;
+    S: Phaser.Input.Keyboard.Key;
+    D: Phaser.Input.Keyboard.Key;
+  };
+
   // 보스 레이저 공격 관련
   private laserNextTime: number = 0;
   private activeLasers: Array<{
@@ -666,6 +677,27 @@ export class GameScene extends Phaser.Scene {
   }
 
   private setupInput(): void {
+    // 키보드 초기화
+    if (this.input.keyboard) {
+      this.cursorKeys = this.input.keyboard.createCursorKeys();
+      this.wasdKeys = {
+        W: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+        A: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+        S: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+        D: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+      };
+    }
+
+    // 커서 초기 위치 설정
+    this.cursorX = this.input.activePointer.worldX;
+    this.cursorY = this.input.activePointer.worldY;
+
+    // 마우스 이동 시 커서 위치 동기화
+    this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+      this.cursorX = pointer.worldX;
+      this.cursorY = pointer.worldY;
+    });
+
     // ESC로 일시정지
     this.input.keyboard?.on('keydown-ESC', () => {
       if (this.isGameOver) return;
@@ -958,6 +990,35 @@ export class GameScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     if (this.isGameOver || this.isPaused) return;
 
+    // 키보드 이동 처리
+    if (this.input.keyboard) {
+      const speed = Data.gameConfig.player.cursorSpeed;
+      const moveDistance = (speed * delta) / 1000;
+      let dx = 0;
+      let dy = 0;
+
+      if (this.cursorKeys.left.isDown || this.wasdKeys.A.isDown) dx -= 1;
+      if (this.cursorKeys.right.isDown || this.wasdKeys.D.isDown) dx += 1;
+      if (this.cursorKeys.up.isDown || this.wasdKeys.W.isDown) dy -= 1;
+      if (this.cursorKeys.down.isDown || this.wasdKeys.S.isDown) dy += 1;
+
+      if (dx !== 0 || dy !== 0) {
+        // 대각선 이동 시 속도 정규화
+        if (dx !== 0 && dy !== 0) {
+          const factor = 1 / Math.sqrt(2);
+          dx *= factor;
+          dy *= factor;
+        }
+
+        this.cursorX += dx * moveDistance;
+        this.cursorY += dy * moveDistance;
+
+        // 화면 경계 제한
+        this.cursorX = Phaser.Math.Clamp(this.cursorX, 0, GAME_WIDTH);
+        this.cursorY = Phaser.Math.Clamp(this.cursorY, 0, GAME_HEIGHT);
+      }
+    }
+
     // 커서 범위 계산 (여러 곳에서 사용하므로 미리 계산)
     const cursorSizeBonus = this.upgradeSystem.getCursorSizeBonus();
     const cursorRadius = CURSOR_HITBOX.BASE_RADIUS * (1 + cursorSizeBonus);
@@ -967,7 +1028,7 @@ export class GameScene extends Phaser.Scene {
       this.inGameUpgradeUI.update(delta);
       this.starBackground.update(delta, _time, Data.gameConfig.gameGrid.speed);
       this.gridRenderer.update(delta);
-      this.cursorTrail.update(delta, cursorRadius); // 트레일 업데이트 추가
+      this.cursorTrail.update(delta, cursorRadius, this.cursorX, this.cursorY); // 트레일 업데이트 추가
       this.updateAttackRangeIndicator();
       return;
     }
@@ -994,7 +1055,7 @@ export class GameScene extends Phaser.Scene {
     this.boss.update(delta);
 
     // 커서 트레일 업데이트
-    this.cursorTrail.update(delta, cursorRadius);
+    this.cursorTrail.update(delta, cursorRadius, this.cursorX, this.cursorY);
 
     // 인게임 업그레이드 UI 업데이트
     this.inGameUpgradeUI.update(delta);
@@ -1009,12 +1070,11 @@ export class GameScene extends Phaser.Scene {
     this.updateMagnetEffect(delta);
 
     // 구체 어빌리티 업데이트
-    const pointer = this.input.activePointer;
     this.orbSystem.update(
       delta,
       this.gameTime,
-      pointer.worldX,
-      pointer.worldY,
+      this.cursorX,
+      this.cursorY,
       this.dishPool
     );
     this.orbRenderer.render(this.orbSystem.getOrbs());
@@ -1083,9 +1143,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private updateCursorAttack(): void {
-    const pointer = this.input.activePointer;
-    const cursorX = pointer.worldX;
-    const cursorY = pointer.worldY;
+    const cursorX = this.cursorX;
+    const cursorY = this.cursorY;
 
     // 커서 히트박스 크기
     const cursorSizeBonus = this.upgradeSystem.getCursorSizeBonus();
@@ -1104,9 +1163,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private updateAttackRangeIndicator(): void {
-    const pointer = this.input.activePointer;
-    const x = pointer.worldX;
-    const y = pointer.worldY;
+    const x = this.cursorX;
+    const y = this.cursorY;
 
     // 커서 히트박스 크기 계산
     const cursorSizeBonus = this.upgradeSystem.getCursorSizeBonus();
@@ -1313,10 +1371,13 @@ export class GameScene extends Phaser.Scene {
     };
   }
 
+  public getCursorPosition(): { x: number; y: number } {
+    return { x: this.cursorX, y: this.cursorY };
+  }
+
   private checkLaserCollisions(_delta: number): void {
-    const pointer = this.input.activePointer;
-    const px = pointer.worldX;
-    const py = pointer.worldY;
+    const px = this.cursorX;
+    const py = this.cursorY;
     const config = Data.gameConfig.monsterAttack.laser;
 
     // 커서 히트박스 크기

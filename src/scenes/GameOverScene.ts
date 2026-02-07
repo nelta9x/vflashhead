@@ -53,12 +53,19 @@ export class GameOverScene extends Phaser.Scene {
       zone.setOrigin(0);
       zone.setInteractive();
 
-      zone.once('pointerdown', () => {
+      const returnToMenu = () => {
         this.cameras.main.fadeOut(500);
         this.cameras.main.once('camerafadeoutcomplete', () => {
           this.scene.start('MenuScene');
         });
-      });
+      };
+
+      zone.once('pointerdown', returnToMenu);
+      
+      if (this.input.keyboard) {
+        this.input.keyboard.once('keydown-SPACE', returnToMenu);
+        this.input.keyboard.once('keydown-ENTER', returnToMenu);
+      }
     });
   }
 

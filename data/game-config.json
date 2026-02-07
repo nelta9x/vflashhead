@@ -10,7 +10,8 @@
       "baseRadius": 30
     },
     "cursorColor": "#f0f8ff",
-    "cursorColorNumeric": 15792383
+    "cursorColorNumeric": 15792383,
+    "cursorSpeed": 800
   },
   "upgradeUI": {
     "boxWidth": 300,

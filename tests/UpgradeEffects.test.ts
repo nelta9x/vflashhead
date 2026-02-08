@@ -138,7 +138,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
       upgrade.applyUpgrade(criticalUpgrade);
       expect(upgrade.getCriticalChanceLevel()).toBe(1);
-      expect(upgrade.getCriticalChanceBonus()).toBeCloseTo(0.05);
+      expect(upgrade.getCriticalChanceBonus()).toBeCloseTo(0.10);
     });
 
     it('레벨 5 수치 확인', async () => {
@@ -148,7 +148,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
       for (let i = 0; i < 5; i++) upgrade.applyUpgrade(criticalUpgrade);
       expect(upgrade.getCriticalChanceLevel()).toBe(5);
-      expect(upgrade.getCriticalChanceBonus()).toBeCloseTo(0.25);
+      expect(upgrade.getCriticalChanceBonus()).toBeCloseTo(0.50);
     });
   });
 

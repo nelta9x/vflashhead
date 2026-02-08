@@ -484,16 +484,21 @@ import { COLORS, FONTS } from '../data/constants';
     "charge": {
       "energyConverge": {
         "color": "#ffffff",
-        "particleCount": 24,
-        "outerRadiusMultiplier": 1.8,
-        "outerRadiusPadding": 26,
-        "innerRadius": 12,
-        "minParticleRadius": 1.5,
-        "maxParticleRadius": 4.2,
-        "swirlTurns": 1.3,
-        "alphaMin": 0.2,
-        "alphaMax": 0.85,
-        "wobbleRadius": 8
+        "particleCount": 56,
+        "outerRadiusMultiplier": 3.6,
+        "outerRadiusPadding": 92,
+        "innerRadius": 3,
+        "minParticleRadius": 2.4,
+        "maxParticleRadius": 8.0,
+        "swirlTurns": 3.8,
+        "alphaMin": 0.35,
+        "alphaMax": 1.0,
+        "wobbleRadius": 20,
+        "angleJitter": 1.1,
+        "radiusJitter": 34,
+        "alphaFlicker": 0.45,
+        "chaosRateMin": 7,
+        "chaosRateMax": 22
       }
     }
   }
@@ -509,6 +514,42 @@ import { COLORS, FONTS } from '../data/constants';
 - `swirlTurns`: 충전 동안 입자가 회전하는 총 바퀴 수
 - `alphaMin`/`alphaMax`: 충전 진행도에 따른 알파 범위
 - `wobbleRadius`: 수렴 중 진동(노이즈) 반경
+- `angleJitter`: 각도 불규칙 흔들림 강도 (라디안)
+- `radiusJitter`: 반경 불규칙 흔들림 강도 (px)
+- `alphaFlicker`: 알파 깜빡임 강도 (0~1)
+- `chaosRateMin`/`chaosRateMax`: 불규칙 진동 속도 범위
+
+#### 미사일 발사 직전 커서 글로우 (`bossAttack.fire.preFireGlow`)
+
+미사일이 발사되기 직전, 커서 주변에 짧은 백색 글로우 펄스를 표시합니다.
+
+```json
+{
+  "bossAttack": {
+    "fire": {
+      "preFireGlow": {
+        "color": "#ffffff",
+        "duration": 90,
+        "outerRadiusMultiplier": 1.25,
+        "outerRadiusPadding": 12,
+        "maxScale": 1.35,
+        "alpha": 0.45,
+        "ringWidth": 2,
+        "ringAlpha": 0.9
+      }
+    }
+  }
+}
+```
+
+- `color`: 발사 직전 글로우 색상
+- `duration`: 글로우 펄스 지속 시간(ms)
+- `outerRadiusMultiplier`: 기본 시작 반경 계수 (`cursorRadius * multiplier`)
+- `outerRadiusPadding`: 시작 반경 여유값 (`cursorRadius + padding`)
+- `maxScale`: 펄스 종료 시 반경 확장 배율
+- `alpha`: 채움 글로우 최대 알파
+- `ringWidth`: 외곽 링 두께
+- `ringAlpha`: 외곽 링 최대 알파
 
 ---
 

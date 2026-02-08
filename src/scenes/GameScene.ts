@@ -638,6 +638,7 @@ export class GameScene extends Phaser.Scene {
     // 색상 변환
     const mainColor = Phaser.Display.Color.HexStringToColor(config.mainColor).color;
     const accentColor = Phaser.Display.Color.HexStringToColor(config.accentColor).color;
+    const preFireGlowColor = Phaser.Display.Color.HexStringToColor(config.fire.preFireGlow.color).color;
 
     // 1. Charge Phase (에네르기파 스타일 기 모으기)
     const chargeDuration = config.charge.duration;
@@ -681,6 +682,16 @@ export class GameScene extends Phaser.Scene {
 
             const nearestBoss = this.findNearestAliveBoss(this.cursorX, this.cursorY);
             if (!nearestBoss) return;
+
+            const cursorRadius =
+              CURSOR_HITBOX.BASE_RADIUS * (1 + this.upgradeSystem.getCursorSizeBonus());
+            this.getPlayerAttackRenderer().showPreFireCursorGlow(
+              this.cursorX,
+              this.cursorY,
+              cursorRadius,
+              preFireGlowColor,
+              config.fire.preFireGlow
+            );
 
             // 발사 시점의 실시간 커서 위치 사용 (this.cursorX/Y가 매번 현재 위치를 참조함)
             this.fireSequentialMissile(

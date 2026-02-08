@@ -25,6 +25,7 @@ function createMockGraphics() {
     fillStyle: vi.fn(),
     fillCircle: vi.fn(),
     lineStyle: vi.fn(),
+    strokeCircle: vi.fn(),
     beginPath: vi.fn(),
     moveTo: vi.fn(),
     lineTo: vi.fn(),
@@ -36,6 +37,7 @@ function createMockGraphics() {
   graphics.fillStyle.mockReturnValue(graphics);
   graphics.fillCircle.mockReturnValue(graphics);
   graphics.lineStyle.mockReturnValue(graphics);
+  graphics.strokeCircle.mockReturnValue(graphics);
   graphics.beginPath.mockReturnValue(graphics);
   graphics.moveTo.mockReturnValue(graphics);
   graphics.lineTo.mockReturnValue(graphics);
@@ -84,8 +86,10 @@ describe('PlayerAttackRenderer', () => {
   let glowGraphics: MockGraphics;
   let convergeGraphics: MockGraphics;
   let lightningGraphics: MockGraphics;
+  let preFireGlowGraphics: MockGraphics;
   let projectile: MockProjectile;
   let chargeParticles: MockParticleEmitter;
+  let tweenAddSpy = vi.fn();
 
   const chargeConfig: ChargeVisualConfig = {
     initialRadius: 5,
@@ -110,6 +114,11 @@ describe('PlayerAttackRenderer', () => {
       alphaMin: 0.2,
       alphaMax: 0.8,
       wobbleRadius: 0,
+      angleJitter: 0,
+      radiusJitter: 0,
+      alphaFlicker: 0,
+      chaosRateMin: 1,
+      chaosRateMax: 1,
     },
   };
 
@@ -117,10 +126,20 @@ describe('PlayerAttackRenderer', () => {
     glowGraphics = createMockGraphics();
     convergeGraphics = createMockGraphics();
     lightningGraphics = createMockGraphics();
+    preFireGlowGraphics = createMockGraphics();
     projectile = createMockProjectile();
     chargeParticles = createMockParticleEmitter();
+    tweenAddSpy = vi.fn((config: { onUpdate?: () => void; onComplete?: () => void }) => {
+      if (config.onUpdate) config.onUpdate();
+      if (config.onComplete) config.onComplete();
+    });
 
-    const graphicsQueue: MockGraphics[] = [glowGraphics, convergeGraphics, lightningGraphics];
+    const graphicsQueue: MockGraphics[] = [
+      glowGraphics,
+      convergeGraphics,
+      lightningGraphics,
+      preFireGlowGraphics,
+    ];
     const scene = {
       add: {
         circle: vi.fn(() => projectile),
@@ -132,6 +151,9 @@ describe('PlayerAttackRenderer', () => {
           return nextGraphics;
         }),
         particles: vi.fn(() => chargeParticles),
+      },
+      tweens: {
+        add: tweenAddSpy,
       },
     };
 
@@ -177,5 +199,25 @@ describe('PlayerAttackRenderer', () => {
     expect(convergeGraphics.destroy).toHaveBeenCalledTimes(1);
     expect(lightningGraphics.destroy).toHaveBeenCalledTimes(1);
     expect(chargeParticles.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows pre-fire glow outside cursor and cleans up after tween', () => {
+    renderer.showPreFireCursorGlow(100, 120, 40, 0xffffff, {
+      duration: 90,
+      outerRadiusMultiplier: 1.25,
+      outerRadiusPadding: 12,
+      maxScale: 1.35,
+      alpha: 0.45,
+      ringWidth: 2,
+      ringAlpha: 0.9,
+    });
+
+    const activeGlowGraphics =
+      glowGraphics.fillCircle.mock.calls.length > 0 ? glowGraphics : preFireGlowGraphics;
+    const firstGlowCall = activeGlowGraphics.fillCircle.mock.calls[0] as [number, number, number];
+    expect(firstGlowCall[2]).toBeGreaterThan(40);
+    expect(activeGlowGraphics.strokeCircle).toHaveBeenCalled();
+    expect(activeGlowGraphics.destroy).toHaveBeenCalledTimes(1);
+    expect(tweenAddSpy).toHaveBeenCalledTimes(1);
   });
 });

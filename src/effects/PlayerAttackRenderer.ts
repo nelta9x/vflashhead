@@ -24,6 +24,11 @@ export interface ChargeVisualConfig {
     alphaMin: number;
     alphaMax: number;
     wobbleRadius: number;
+    angleJitter: number;
+    radiusJitter: number;
+    alphaFlicker: number;
+    chaosRateMin: number;
+    chaosRateMax: number;
   };
 }
 
@@ -50,12 +55,26 @@ export interface BombWarningConfig {
   blinkInterval: number;
 }
 
+export interface PreFireCursorGlowConfig {
+  duration: number;
+  outerRadiusMultiplier: number;
+  outerRadiusPadding: number;
+  maxScale: number;
+  alpha: number;
+  ringWidth: number;
+  ringAlpha: number;
+}
+
 interface EnergyConvergeParticleSeed {
   angle: number;
   phase: number;
   radius: number;
   alphaScale: number;
   swirlDirection: number;
+  radialRateA: number;
+  radialRateB: number;
+  alphaRate: number;
+  noiseWeight: number;
 }
 
 export class PlayerAttackRenderer {
@@ -113,6 +132,9 @@ export class PlayerAttackRenderer {
       convergeConfig.maxParticleRadius
     );
     const particleCount = Math.max(0, Math.floor(convergeConfig.particleCount));
+    const minChaosRate = Math.min(convergeConfig.chaosRateMin, convergeConfig.chaosRateMax);
+    const maxChaosRate = Math.max(convergeConfig.chaosRateMin, convergeConfig.chaosRateMax);
+    const resolveChaosRate = () => minChaosRate + Math.random() * (maxChaosRate - minChaosRate);
     const convergeSeeds: EnergyConvergeParticleSeed[] = Array.from(
       { length: particleCount },
       () => ({
@@ -121,6 +143,10 @@ export class PlayerAttackRenderer {
         radius: minParticleRadius + Math.random() * (maxParticleRadius - minParticleRadius),
         alphaScale: 0.7 + Math.random() * 0.3,
         swirlDirection: Math.random() < 0.5 ? -1 : 1,
+        radialRateA: resolveChaosRate(),
+        radialRateB: resolveChaosRate(),
+        alphaRate: resolveChaosRate(),
+        noiseWeight: 0.35 + Math.random() * 0.65,
       })
     );
 
@@ -155,17 +181,31 @@ export class PlayerAttackRenderer {
           convergeConfig.alphaMin +
           (convergeConfig.alphaMax - convergeConfig.alphaMin) * clampedProgress;
         const swirlRotation = convergeConfig.swirlTurns * Math.PI * 2 * clampedProgress;
+        const irregularityScale = 1 - clampedProgress;
+        const chaosTime = clampedProgress * Math.PI * 2;
+        const alphaFlicker = Phaser.Math.Clamp(convergeConfig.alphaFlicker, 0, 1);
 
         convergeSeeds.forEach((seed) => {
           const wobble =
-            Math.sin(seed.phase + clampedProgress * Math.PI * 2) *
+            Math.sin(seed.phase + chaosTime * seed.radialRateA) *
             convergeConfig.wobbleRadius *
-            (1 - clampedProgress);
-          const currentRadius = Math.max(0, convergeRadius + wobble);
-          const angle = seed.angle + seed.swirlDirection * swirlRotation;
+            irregularityScale;
+          const radialJitter =
+            (Math.sin(seed.phase * seed.noiseWeight + chaosTime * seed.radialRateA) +
+              Math.cos(seed.phase + chaosTime * seed.radialRateB) * seed.noiseWeight) *
+            convergeConfig.radiusJitter *
+            irregularityScale;
+          const currentRadius = Math.max(0, convergeRadius + wobble + radialJitter);
+          const angleJitter =
+            Math.sin(seed.phase + chaosTime * seed.radialRateA) *
+            convergeConfig.angleJitter *
+            irregularityScale;
+          const angle = seed.angle + seed.swirlDirection * swirlRotation + angleJitter;
           const particleX = x + Math.cos(angle) * currentRadius;
           const particleY = y + Math.sin(angle) * currentRadius;
-          const particleAlpha = Phaser.Math.Clamp(baseAlpha * seed.alphaScale, 0, 1);
+          const flicker =
+            1 - alphaFlicker * Math.abs(Math.sin(seed.phase + chaosTime * seed.alphaRate));
+          const particleAlpha = Phaser.Math.Clamp(baseAlpha * seed.alphaScale * flicker, 0, 1);
 
           convergeEnergy.fillStyle(convergeColor, particleAlpha);
           convergeEnergy.fillCircle(particleX, particleY, seed.radius);
@@ -247,6 +287,49 @@ export class PlayerAttackRenderer {
       onComplete: () => {
         trail.destroy();
         this.activeGraphics.delete(trail);
+      },
+    });
+  }
+
+  public showPreFireCursorGlow(
+    x: number,
+    y: number,
+    cursorRadius: number,
+    color: number,
+    config: PreFireCursorGlowConfig
+  ): void {
+    const glow = this.scene.add.graphics();
+    glow.setDepth(2003);
+    this.activeGraphics.add(glow);
+
+    const pulse = { progress: 0 };
+    this.scene.tweens.add({
+      targets: pulse,
+      progress: 1,
+      duration: config.duration,
+      ease: 'Sine.easeOut',
+      onUpdate: () => {
+        if (!this.activeGraphics.has(glow)) return;
+
+        const p = Phaser.Math.Clamp(pulse.progress, 0, 1);
+        const baseRadius = Math.max(
+          cursorRadius * config.outerRadiusMultiplier,
+          cursorRadius + config.outerRadiusPadding
+        );
+        const glowRadius = baseRadius * (1 + p * (config.maxScale - 1));
+        const fadeAlpha = Math.max(0, (1 - p) * config.alpha);
+        const ringAlpha = Math.max(0, (1 - p) * config.ringAlpha);
+
+        glow.clear();
+        glow.fillStyle(color, fadeAlpha);
+        glow.fillCircle(x, y, glowRadius);
+        glow.lineStyle(config.ringWidth, color, ringAlpha);
+        glow.strokeCircle(x, y, glowRadius * 0.9);
+      },
+      onComplete: () => {
+        if (!this.activeGraphics.has(glow)) return;
+        glow.destroy();
+        this.activeGraphics.delete(glow);
       },
     });
   }

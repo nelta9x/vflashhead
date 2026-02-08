@@ -673,6 +673,11 @@ export interface BossAttackConfig {
       alphaMin: number;
       alphaMax: number;
       wobbleRadius: number;
+      angleJitter: number;
+      radiusJitter: number;
+      alphaFlicker: number;
+      chaosRateMin: number;
+      chaosRateMax: number;
     };
   };
   fire: {
@@ -688,6 +693,16 @@ export interface BossAttackConfig {
     trackingOffset?: {
       x: number;
       y: number;
+    };
+    preFireGlow: {
+      color: string;
+      duration: number;
+      outerRadiusMultiplier: number;
+      outerRadiusPadding: number;
+      maxScale: number;
+      alpha: number;
+      ringWidth: number;
+      ringAlpha: number;
     };
   };
   impact: {

@@ -12,6 +12,24 @@
 - **Renderer (src/effects/)**: 전달받은 상태를 바탕으로 화면에 그립니다. "어떻게 보이는가?"를 결정하며, `Phaser.Graphics` API를 전담하여 사용합니다.
 - **이점**: 로직의 변경 없이 Renderer만 교체하여 게임의 테마나 그래픽 스타일을 완전히 바꿀 수 있습니다.
 
+### 0.5 빠른 탐색: 체력 표시(중요)
+
+이 프로젝트의 체력 표시는 일반적인 "상단 가로 바"가 아니라 **인게임 오브젝트 통합형**입니다.
+
+- **플레이어 HP 표시**
+  - 렌더링 위치: `src/effects/CursorRenderer.ts`의 `drawHpRing()`
+  - 데이터 소스: `HealthSystem` (`getHp()`, `getMaxHp()`)
+  - 연결 지점: `src/scenes/GameScene.ts`의 `updateAttackRangeIndicator()`에서 현재/최대 HP를 `CursorRenderer.renderAttackIndicator()`로 전달
+  - 설정 파일: `data/game-config.json`의 `player.hpRing`
+- **보스 HP 표시**
+  - 렌더링 위치: `src/entities/Boss.ts`의 메뉴 스타일 아머 렌더링(`drawArmor()`, `drawGlow()`)
+  - 데이터 소스: `MonsterSystem`가 발행하는 `MONSTER_HP_CHANGED` (`current`, `max`, `ratio`)
+  - 세그먼트 계산: `src/entities/bossHpSegments.ts`의 `resolveBossHpSegmentState()`
+  - 설정 파일: `data/boss.json`의 `visual.armor`, `visual.armor.hpSegments`
+  - 동작 원칙: **아머 실루엣 조각 개수 자체가 HP 슬롯 수**를 표현하며, 규칙은 **100 HP = 1 슬롯(올림)** 입니다.
+- **주의**
+  - `data/game-config.json`의 `hud.hpDisplay`는 현재 상단 하트 UI 렌더링에 사용되지 않습니다(레거시/예약 설정).
+
 ### 1. 진입점 및 씬 (Scenes)
 
 - **`src/main.ts`**: 게임 인스턴스 생성 및 씬 등록 (`Boot`, `Menu`, `Game`, `GameOver`).
@@ -30,7 +48,7 @@
 - **`WaveSystem.ts`**: 웨이브 구성, 적 스폰 타이밍, 카운트다운 관리. `waves.json` 설정을 기반으로 하며, 모든 적이 처리되면 `WAVE_COMPLETED`를 발생시킵니다.
 - **`ComboSystem.ts`**: 콤보 증가, 타임아웃 처리, 마일스톤 관리. 콤보 수치에 따라 `COMBO_MILESTONE` 이벤트를 발생시켜 연출을 트리거합니다.
 - **`UpgradeSystem.ts`**: 플레이어 어빌리티 관리 및 업그레이드 효과 적용. `upgrades.json`의 확률 기반으로 선택지를 생성합니다. 다국어 템플릿 치환 로직 포함.
-- **`HealthSystem.ts`**: 플레이어 HP 관리. 데미지 수신 및 `HP_CHANGED` 이벤트를 통해 HUD와 연동됩니다. HP가 0이 되면 `GAME_OVER` 발생.
+- **`HealthSystem.ts`**: 플레이어 HP 관리. 데미지 수신 시 `HP_CHANGED` 이벤트를 발행하며, 현재 HP는 `GameScene -> CursorRenderer` 경로로 커서 통합형 링에 반영됩니다. HP가 0이 되면 `GAME_OVER` 발생.
 - **`MonsterSystem.ts`**: 보스 몬스터의 HP 관리 및 사망 로직. 웨이브 시작 시 `waves.json`의 설정을 기반으로 보스 HP를 설정합니다.
 - **`OrbSystem.ts`**: 플레이어 주변을 회전하는 보호 오브(Orb)의 로직 처리. 업그레이드 레벨에 따른 개수/속도/데미지 계산 및 자석(Magnet) 업그레이드와의 시너지(크기 증가)를 관리합니다.
 - **`GaugeSystem.ts`**: 콤보 수치에 따라 공격 게이지를 충전합니다. 게이지가 100%가 되면 `PLAYER_ATTACK` 이벤트를 발생시킵니다.
@@ -47,7 +65,7 @@
   - `spawn()`: 초기화 및 애니메이션 시작.
   - `applyDamage()`: HP 감소 및 파괴 로직.
   - `update()`: 생존 시간 체크 및 이동 로직.
-- **`Boss.ts`**: 보스 몬스터. HP 비율에 따른 시각적 변화, `MONSTER_HP_CHANGED`/`MONSTER_DIED` 이벤트 구독.
+- **`Boss.ts`**: 보스 몬스터. `MONSTER_HP_CHANGED`의 `current/max` 기반으로 아머 실루엣 조각 수를 계산해 체력을 표현합니다(`100 HP = 1 slot`, 올림). `MONSTER_DIED` 이벤트를 구독합니다.
 - **`HealthPack.ts`**: 낙하하는 힐 아이템 오브젝트. 커서와 충돌 시 `HEALTH_PACK_COLLECTED` 이벤트를 발생시킵니다.
 
 ### 4. 시각 효과 및 UI (Effects & UI)
@@ -90,7 +108,7 @@
   - `colors.json`: 게임 내 모든 색상 팔레트 및 테마 (숫자값/hex).
   - `dishes.json`: 적 종류별 체력, 포인트, 속도, 스케일, 특수 속성 설정.
   - `waves.json`: 웨이브별 구성, 난이도 곡선, 보스 HP, 무한 웨이브 스케일링 설정.
-  - `boss.json`: 보스 비주얼 및 공격 설정 (코어 반지름, 아머 조각, 레이저 공격).
+  - `boss.json`: 보스 비주얼 및 공격 설정 (코어 반지름, 아머 조각, 아머 HP 세그먼트 스케일링, 레이저 공격).
   - `upgrades.json`: 업그레이드 어빌리티 정의, 확률(Rarity), 효과 수치.
   - `feedback.json`: 연출용 수치 (흔들림 강도, 파티클 개수, 슬로우모션 강도, 커서 트레일 설정).
   - `combo.json`: 콤보 타임아웃, 마일스톤, 배율 공식, 게이지 보너스.

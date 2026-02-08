@@ -929,6 +929,15 @@ export interface BossConfig {
       borderColor: string;
       glowAlpha?: number;
       glowWidth?: number;
+      depletedBodyColor?: string;
+      depletedBodyAlpha?: number;
+      depletedBorderColor?: string;
+      depletedBorderAlpha?: number;
+      hpSegments?: {
+        minPieces: number;
+        maxPieces: number;
+        targetHpPerPiece: number;
+      };
     };
     shockwave: {
       initialRadius: number;

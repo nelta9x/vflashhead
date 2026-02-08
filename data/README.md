@@ -7,7 +7,8 @@
 ## 목차
 
 1. [빠른 시작: 무엇을 수정하려면?](#빠른-시작-무엇을-수정하려면)
-2. [파일별 상세 가이드](#파일별-상세-가이드)
+2. [체력 표시 빠른 맵](#체력-표시-빠른-맵)
+3. [파일별 상세 가이드](#파일별-상세-가이드)
    - [game-config.json](#game-configjson)
    - [waves.json](#wavesjson)
    - [dishes.json](#dishesjson)
@@ -17,6 +18,7 @@
    - [feedback.json](#feedbackjson)
    - [spawn.json](#spawnjson)
    - [colors.json](#colorsjson)
+   - [boss.json](#bossjson)
    - [weapons.json](#weaponsjson)
 
 ---
@@ -34,10 +36,25 @@
 | **업그레이드 효과** | `upgrades.json` | `system` |
 | **힐팩 스폰 확률** | `health-pack.json` | `spawnChanceByHp` |
 | **플레이어 초기 HP** | `game-config.json` | `player.initialHp` |
+| **플레이어 HP 링 스타일** | `game-config.json` | `player.hpRing` |
+| **보스 HP 세그먼트 스케일** | `boss.json` | `visual.armor.hpSegments` |
 | **폰트 설정** | `game-config.json` | `fonts` |
 | **커서 크기** | `game-config.json` | `player.cursorHitbox.baseRadius` |
 | **웨이브 지속 시간** | `waves.json` | `duration` |
 | **콤보 이펙트 강도** | `feedback.json` | `comboMilestones` |
+
+---
+
+## 체력 표시 빠른 맵
+
+세션이 초기화된 AI 어시스트도 아래 표만 보면 체력 UI 구현 위치를 바로 찾을 수 있습니다.
+
+| 대상 | 화면 형태 | 실제 렌더링 코드 | 상태 소스 | 설정 파일 |
+|------|-----------|------------------|-----------|-----------|
+| 플레이어 | 커서 둘레 세그먼트 링 | `src/effects/CursorRenderer.ts` (`drawHpRing`) | `HealthSystem` -> `GameScene.updateAttackRangeIndicator()` | `data/game-config.json` (`player.hpRing`) |
+| 보스 | 메뉴 스타일 아머 실루엣 슬롯 | `src/entities/Boss.ts` (`drawArmor`, `drawGlow`) + `src/entities/bossHpSegments.ts` | `MonsterSystem` -> `MONSTER_HP_CHANGED` | `data/boss.json` (`visual.armor`, `visual.armor.hpSegments`) |
+
+> 참고: `game-config.json`의 `hud.hpDisplay`는 현재 상단 하트 UI 렌더링에 사용되지 않는 레거시/예약 설정입니다.
 
 ---
 
@@ -113,6 +130,9 @@ import { COLORS, FONTS } from '../data/constants';
   }
 }
 ```
+
+플레이어 HP는 별도 HUD 바가 아니라 `CursorRenderer`의 커서 통합형 링으로 렌더링됩니다.
+`player.hpRing`은 해당 링 전용 설정입니다.
 
 ---
 
@@ -480,10 +500,17 @@ import { COLORS, FONTS } from '../data/constants';
       "pulseSpeed": 0.01     // 코어 깜빡임 속도
     },
     "armor": {
-      "maxPieces": 10,       // 총 아머 파편 개수 (HP 100% 일 때)
+      "maxPieces": 10,       // 기본 아머 파편 개수
       "radius": 55,          // 아머 외곽 반지름
       "innerRadius": 40,     // 아머 안쪽 반지름
-      "rotationSpeed": 0.0005 // 아머 회전 속도
+      "rotationSpeed": 0.0005, // 아머 회전 속도
+      "depletedBodyAlpha": 0.22, // 잃은 HP 슬롯(빈 칸) 본체 투명도
+      "depletedBorderAlpha": 0.42, // 잃은 HP 슬롯 테두리 투명도
+      "hpSegments": {
+        "minPieces": 1,          // 최소 슬롯 수
+        "maxPieces": 9999,       // 슬롯 상한 (사실상 제한 해제)
+        "targetHpPerPiece": 100  // 슬롯 1칸당 HP (100당 1칸, 나머지는 올림)
+      }
     },
     "shockwave": {
       "maxRadius": 120,      // 아머 파괴 시 충격파 최대 크기
@@ -492,6 +519,10 @@ import { COLORS, FONTS } from '../data/constants';
   }
 }
 ```
+
+`hpSegments`를 사용하면 보스 체력에 따라 아머 실루엣 조각 수가 자동 조절됩니다.
+현재 기본값은 **100 HP당 1칸, 나머지 HP가 있으면 1칸 추가(올림)** 규칙입니다.
+현재 슬롯 시각화는 별도 보조 링 없이 **아머 실루엣 조각 자체**로 표현됩니다.
 
 ---
 

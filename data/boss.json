@@ -22,6 +22,15 @@
       "bodyColor": "0x1a0505",
       "bodyAlpha": 0.9,
       "borderColor": "red",
+      "depletedBodyColor": "0x090202",
+      "depletedBodyAlpha": 0.22,
+      "depletedBorderColor": "0x5a1313",
+      "depletedBorderAlpha": 0.42,
+      "hpSegments": {
+        "minPieces": 1,
+        "maxPieces": 9999,
+        "targetHpPerPiece": 100
+      },
       "glowAlpha": 0.4,
       "glowWidth": 4
     },

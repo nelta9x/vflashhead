@@ -227,6 +227,36 @@ describe('DamageText', () => {
   });
 
   describe('showDamage', () => {
+    it('소수점 피해는 내림되어 표시되어야 함', async () => {
+      const { DamageText } = await import('../src/ui/DamageText');
+      const damageText = new DamageText(mockScene as unknown as Phaser.Scene);
+
+      damageText.showDamage(100, 200, 19.5, 'normal', 0);
+
+      const textObj = mockScene.texts[0];
+      expect(textObj.text).toBe('19');
+    });
+
+    it('크리티컬 소수점 피해도 내림되어 표시되어야 함', async () => {
+      const { DamageText } = await import('../src/ui/DamageText');
+      const damageText = new DamageText(mockScene as unknown as Phaser.Scene);
+
+      damageText.showDamage(100, 200, 19.5, 'critical', 0);
+
+      const textObj = mockScene.texts[0];
+      expect(textObj.text).toBe('19');
+    });
+
+    it('정수 피해는 그대로 표시되어야 함', async () => {
+      const { DamageText } = await import('../src/ui/DamageText');
+      const damageText = new DamageText(mockScene as unknown as Phaser.Scene);
+
+      damageText.showDamage(100, 200, 20, 'normal', 0);
+
+      const textObj = mockScene.texts[0];
+      expect(textObj.text).toBe('20');
+    });
+
     it('일반 피해 텍스트가 올바른 색상과 크기로 표시되어야 함', async () => {
       const { DamageText } = await import('../src/ui/DamageText');
       const damageText = new DamageText(mockScene as unknown as Phaser.Scene);
@@ -334,6 +364,40 @@ describe('DamageText', () => {
       // offsetX=25, offsetY=-5
       expect(comboTextObj.x).toBe(damageTextObj.x + 25);
       expect(comboTextObj.y).toBe(200 - 5);
+    });
+  });
+
+  describe('showBossDamage', () => {
+    it('보스 소수점 피해는 내림되어 표시되어야 함', async () => {
+      const { DamageText } = await import('../src/ui/DamageText');
+      const damageText = new DamageText(mockScene as unknown as Phaser.Scene);
+
+      damageText.showBossDamage(300, 120, 19.5);
+
+      const textObj = mockScene.texts[0];
+      expect(textObj.text).toBe('19');
+    });
+  });
+
+  describe('show/showCritical', () => {
+    it('show는 소수점 피해를 내림하여 표시해야 함', async () => {
+      const { DamageText } = await import('../src/ui/DamageText');
+      const damageText = new DamageText(mockScene as unknown as Phaser.Scene);
+
+      damageText.show(100, 200, 19.5);
+
+      const textObj = mockScene.texts[0];
+      expect(textObj.text).toBe('19');
+    });
+
+    it('showCritical은 소수점 피해를 내림한 값으로 표시해야 함', async () => {
+      const { DamageText } = await import('../src/ui/DamageText');
+      const damageText = new DamageText(mockScene as unknown as Phaser.Scene);
+
+      damageText.showCritical(100, 200, 19.5);
+
+      const textObj = mockScene.texts[0];
+      expect(textObj.text).toBe('19!');
     });
   });
 

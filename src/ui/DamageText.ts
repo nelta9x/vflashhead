@@ -20,6 +20,10 @@ export class DamageText {
   private activeTexts: Set<Phaser.GameObjects.Text> = new Set();
   private activeComboTexts: Set<Phaser.GameObjects.Text> = new Set();
 
+  private formatDamageForDisplay(damage: number): string {
+    return Math.floor(damage).toString();
+  }
+
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
 
@@ -63,7 +67,7 @@ export class DamageText {
     this.createDamageText({
       x,
       y,
-      text: damage.toString(),
+      text: this.formatDamageForDisplay(damage),
       color: config.color,
       fontSize: config.fontSize,
       isCritical: false,
@@ -75,7 +79,7 @@ export class DamageText {
     this.createDamageText({
       x,
       y,
-      text: Data.t('damage.critical', damage),
+      text: Data.t('damage.critical', this.formatDamageForDisplay(damage)),
       color: config.color,
       fontSize: config.fontSize,
       isCritical: true,
@@ -126,7 +130,7 @@ export class DamageText {
       rotation = Phaser.Math.FloatBetween(randomRotation.min, randomRotation.max);
     }
 
-    text.setText(damage.toString());
+    text.setText(this.formatDamageForDisplay(damage));
     text.setPosition(posX, y);
     text.setColor(typeConfig.color);
     text.setFontSize(finalFontSize);
@@ -256,7 +260,7 @@ export class DamageText {
     }
 
     // 보스용 특별 스타일 설정
-    text.setText(damage.toString());
+    text.setText(this.formatDamageForDisplay(damage));
     // 보스가 상단(y=80)에 있으므로, 숫자가 위로 올라가면 화면 밖으로 나감
     // 타격 지점보다 약간 아래에서 시작해서 아래로 떨어지거나 제자리에서 팝업되도록 수정
     text.setPosition(x + Phaser.Math.Between(-30, 30), y + 40);

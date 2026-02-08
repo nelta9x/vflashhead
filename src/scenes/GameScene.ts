@@ -480,6 +480,8 @@ export class GameScene extends Phaser.Scene {
     index: number,
     total: number
   ): void {
+    if (this.isGameOver) return;
+
     const config = Data.feedback.bossAttack;
     const mainColor = Phaser.Display.Color.HexStringToColor(config.mainColor).color;
     const innerTrailColor = Phaser.Display.Color.HexStringToColor(config.innerTrailColor).color;
@@ -522,6 +524,8 @@ export class GameScene extends Phaser.Scene {
       duration: speed,
       ease: 'Expo.In',
       onUpdate: (_tween, target) => {
+        if (this.isGameOver) return;
+
         const p = target.progress;
 
         // 보스의 현재 위치를 실시간으로 추적
@@ -538,6 +542,9 @@ export class GameScene extends Phaser.Scene {
         // 강렬함에 따라 트레일 두께 조절
         const baseWidth = missile.displayWidth * config.fire.trailWidthMultiplier;
         const trailWidth = baseWidth * (0.8 + 0.5 * intensity);
+        const pathRadius = Math.max(missile.displayWidth * 0.5, trailWidth * 0.5);
+
+        this.destroyDishesAlongMissileSegment(lastTrailX, lastTrailY, curX, curY, pathRadius);
 
         this.getPlayerAttackRenderer().spawnMissileTrail({
           fromX: lastTrailX,
@@ -555,11 +562,12 @@ export class GameScene extends Phaser.Scene {
         lastTrailY = curY;
       },
       onComplete: () => {
+        this.getPlayerAttackRenderer().destroyProjectile(missile);
+        if (this.isGameOver) return;
+
         // 폭발 시점의 보스 위치 재계산
         const finalTargetX = this.boss.x + targetOffsetX;
         const finalTargetY = this.boss.y + targetOffsetY;
-
-        this.getPlayerAttackRenderer().destroyProjectile(missile);
 
         // 미사일 데미지 적용
         const attackConfig = Data.gameConfig.playerAttack;
@@ -598,6 +606,67 @@ export class GameScene extends Phaser.Scene {
         }
       },
     });
+  }
+
+  private destroyDishesAlongMissileSegment(
+    fromX: number,
+    fromY: number,
+    toX: number,
+    toY: number,
+    pathRadius: number
+  ): void {
+    const hitCandidates: Dish[] = [];
+
+    this.dishPool.forEach((dish) => {
+      if (!dish.active) return;
+
+      if (dish.isDangerous() && !dish.isFullySpawned()) {
+        return;
+      }
+
+      const collisionRadius = pathRadius + dish.getSize();
+      if (!this.isPointInsideSegmentRadius(dish.x, dish.y, fromX, fromY, toX, toY, collisionRadius)) {
+        return;
+      }
+
+      hitCandidates.push(dish);
+    });
+
+    for (const dish of hitCandidates) {
+      if (!dish.active) continue;
+      if (dish.isDangerous()) {
+        dish.forceDestroy(true);
+      } else {
+        dish.forceDestroy(false);
+      }
+    }
+  }
+
+  private isPointInsideSegmentRadius(
+    pointX: number,
+    pointY: number,
+    segmentStartX: number,
+    segmentStartY: number,
+    segmentEndX: number,
+    segmentEndY: number,
+    radius: number
+  ): boolean {
+    const lineLenSq =
+      Math.pow(segmentEndX - segmentStartX, 2) + Math.pow(segmentEndY - segmentStartY, 2);
+
+    if (lineLenSq === 0) {
+      return Phaser.Math.Distance.Between(pointX, pointY, segmentStartX, segmentStartY) <= radius;
+    }
+
+    let t =
+      ((pointX - segmentStartX) * (segmentEndX - segmentStartX) +
+        (pointY - segmentStartY) * (segmentEndY - segmentStartY)) /
+      lineLenSq;
+    t = Math.max(0, Math.min(1, t));
+
+    const nearestX = segmentStartX + t * (segmentEndX - segmentStartX);
+    const nearestY = segmentStartY + t * (segmentEndY - segmentStartY);
+    return Phaser.Math.Distance.Between(pointX, pointY, nearestX, nearestY) <= radius;
   }
 
   private onDishDamaged(data: {

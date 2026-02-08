@@ -4,6 +4,60 @@
 
 ---
 
+## 2026-02-08: 미사일 경로 파괴 구현 시 이벤트 의미와 순회 안전성
+
+### 증상
+- 미사일 경로에서 접시를 즉시 파괴하는 기능을 추가할 때, 콤보/폭탄 피해 규칙이 의도와 다르게 동작할 위험이 있었음.
+- `ObjectPool.forEach()` 순회 중 바로 파괴를 수행하면 순회 대상 변경(비활성화/릴리즈)과 이벤트 콜백이 겹치며 불안정해질 수 있었음.
+- Tween `onUpdate`/`onComplete` 콜백은 게임오버 이후에도 실행될 수 있어 상태 전환 시 부작용 가능성이 있었음.
+
+### 원인
+**1. `byAbility`가 단순 메타데이터가 아니라 게임 규칙 분기점**
+
+`DISH_DESTROYED` 이벤트의 `byAbility` 값은 `GameScene.onDishDestroyed()`에서 다음을 직접 결정:
+- 일반 접시 콤보 증가 여부 (`if (!byAbility)`)
+- 폭탄 파괴 시 플레이어 피해/콤보 리셋 적용 여부
+
+즉, 신규 파괴 소스(미사일 경로)를 추가할 때 `byAbility` 의미를 명시적으로 설계하지 않으면 기존 규칙이 의도와 다르게 바뀔 수 있음.
+
+**2. 풀 순회 중 파괴 실행**
+
+파괴 메서드(`forceDestroy`)는 이벤트 발행과 오브젝트 비활성화/릴리즈 흐름을 트리거하므로,
+풀 순회 중 즉시 파괴하면 순회 안정성이 떨어질 수 있음.
+
+**3. 비동기 콜백의 실행 시점**
+
+Tween/Timer 콜백은 예약 시점과 실행 시점의 게임 상태가 다를 수 있음.
+게임오버/씬 전환 뒤에도 콜백이 실행되어 추가 파괴/데미지 적용이 일어날 수 있음.
+
+### 해결
+```typescript
+// 1) byAbility를 호출부에서 명시
+if (dish.isDangerous()) {
+  dish.forceDestroy(true);   // 폭탄 제거 (피해 없음)
+} else {
+  dish.forceDestroy(false);  // 일반 접시 직접 처치 (콤보 증가 경로)
+}
+
+// 2) 순회 중 즉시 파괴하지 않고 후보 스냅샷 후 처리
+const hitCandidates: Dish[] = [];
+this.dishPool.forEach((dish) => {
+  if (/* 경로 충돌 */) hitCandidates.push(dish);
+});
+for (const dish of hitCandidates) {
+  if (!dish.active) continue;
+  // 파괴 처리
+}
+
+// 3) 비동기 가드
+if (this.isGameOver) return;
+```
+
+### 교훈
+- **이벤트 payload 의미는 도메인 규칙 그 자체**: `byAbility` 같은 플래그는 단순 부가정보가 아니라 핵심 게임 규칙의 스위치일 수 있다. 신규 파괴/데미지 소스를 추가할 때는 이벤트 의미를 먼저 정의해야 한다.
+- **풀 순회와 파괴는 분리**: 순회 단계에서는 후보만 수집하고, 파괴는 별도 단계에서 수행하는 2단계 패턴이 안전하다.
+- **비동기 콜백은 항상 상태 가드**: `onUpdate`, `onComplete`, `delayedCall` 콜백 모두 실행 시점 기준으로 `isGameOver`/씬 상태를 검증해야 한다.
+
 ## 2024-02-04: 웨이브 시스템 버그 - 접시가 스폰되지 않음
 
 ### 증상

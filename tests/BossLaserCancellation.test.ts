@@ -66,7 +66,10 @@ const mockPhaser = {
     Between: (min: number, max: number) => Math.floor(Math.random() * (max - min + 1) + min),
     FloatBetween: (min: number, max: number) => Math.random() * (max - min) + min,
     DegToRad: (deg: number) => (deg * Math.PI) / 180,
-    Distance: { Between: () => 100 }
+    Distance: {
+      Between: (x1: number, y1: number, x2: number, y2: number) =>
+        Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
+    }
   }
 };
 
@@ -110,6 +113,9 @@ type GameSceneTestContext = {
     createHitEffect: (...args: unknown[]) => void;
     createExplosion: (...args: unknown[]) => void;
   };
+  dishPool: {
+    forEach: (callback: (dish: unknown) => void) => void;
+  };
   tweens: {
     add: (config: { onComplete?: () => void; onUpdate?: (...args: unknown[]) => void }) => void;
     pauseAll: (...args: unknown[]) => void;
@@ -124,6 +130,13 @@ type GameSceneTestContext = {
   isSimulationPaused: boolean;
   cancelBossChargingLasers: () => void;
   fireSequentialMissile: (x: number, y: number, index: number, count: number) => void;
+  destroyDishesAlongMissileSegment: (
+    fromX: number,
+    fromY: number,
+    toX: number,
+    toY: number,
+    pathRadius: number
+  ) => void;
   onDishDamaged: (data: {
     type: string;
     isCritical: boolean;
@@ -203,6 +216,9 @@ describe('Boss Laser Cancellation Logic', () => {
       createSparkBurst: vi.fn(),
       createHitEffect: vi.fn(),
       createExplosion: vi.fn()
+    };
+    gameScene.dishPool = {
+      forEach: vi.fn()
     };
     gameScene.tweens = {
       add: vi.fn((config) => {
@@ -298,6 +314,83 @@ describe('Boss Laser Cancellation Logic', () => {
     });
 
     expect(cancelSpy).not.toHaveBeenCalled();
+  });
+
+  it('미사일 경로 위 일반 접시는 forceDestroy(false)로 파괴되어야 함', () => {
+    const onPathDish = {
+      active: true,
+      x: 320,
+      y: 50,
+      getSize: () => 30,
+      isDangerous: () => false,
+      isFullySpawned: () => true,
+      forceDestroy: vi.fn()
+    };
+    const offPathDish = {
+      active: true,
+      x: 320,
+      y: 150,
+      getSize: () => 30,
+      isDangerous: () => false,
+      isFullySpawned: () => true,
+      forceDestroy: vi.fn()
+    };
+
+    gameScene.dishPool = {
+      forEach: (callback) => {
+        callback(onPathDish);
+        callback(offPathDish);
+      }
+    };
+
+    gameScene.destroyDishesAlongMissileSegment(0, 0, 640, 100, 10);
+
+    expect(onPathDish.forceDestroy).toHaveBeenCalledWith(false);
+    expect(offPathDish.forceDestroy).not.toHaveBeenCalled();
+  });
+
+  it('미사일 경로 위 완전 생성된 폭탄은 forceDestroy(true)로 제거되어야 함', () => {
+    const spawnedBomb = {
+      active: true,
+      x: 320,
+      y: 50,
+      getSize: () => 40,
+      isDangerous: () => true,
+      isFullySpawned: () => true,
+      forceDestroy: vi.fn()
+    };
+
+    gameScene.dishPool = {
+      forEach: (callback) => {
+        callback(spawnedBomb);
+      }
+    };
+
+    gameScene.destroyDishesAlongMissileSegment(0, 0, 640, 100, 10);
+
+    expect(spawnedBomb.forceDestroy).toHaveBeenCalledWith(true);
+  });
+
+  it('미사일 경로 위 폭탄이라도 완전 생성 전이면 제거되지 않아야 함', () => {
+    const unspawnedBomb = {
+      active: true,
+      x: 320,
+      y: 50,
+      getSize: () => 40,
+      isDangerous: () => true,
+      isFullySpawned: () => false,
+      forceDestroy: vi.fn()
+    };
+
+    gameScene.dishPool = {
+      forEach: (callback) => {
+        callback(unspawnedBomb);
+      }
+    };
+
+    gameScene.destroyDishesAlongMissileSegment(0, 0, 640, 100, 10);
+
+    expect(unspawnedBomb.forceDestroy).not.toHaveBeenCalled();
   });
 
   it('순차적 미사일 발사 시 각 미사일의 시작점이 현재 마우스 위치를 반영해야 함', () => {

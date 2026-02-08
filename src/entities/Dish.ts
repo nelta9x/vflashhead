@@ -554,9 +554,9 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
   }
 
   // 즉시 파괴
-  forceDestroy(): void {
+  forceDestroy(byAbility: boolean = true): void {
     if (!this.active) return;
-    this.destroyedByAbility = true;
+    this.destroyedByAbility = byAbility;
     this.destroy_dish();
   }
 

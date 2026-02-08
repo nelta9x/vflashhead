@@ -290,12 +290,12 @@ describe('Boss Laser Cancellation Logic', () => {
     // onDishDamaged를 통해 테스트
   });
 
-  it('보스 접시 피격 치명타 시 cancelBossChargingLasers가 호출되어야 함', () => {
+  it('앰버 접시 피격 치명타 시 cancelBossChargingLasers가 호출되어야 함', () => {
     const cancelSpy = vi.spyOn(gameScene, 'cancelBossChargingLasers');
     
     // onDishDamaged 호출 시뮬레이션
     gameScene.onDishDamaged({
-      type: 'boss',
+      type: 'amber',
       isCritical: true,
       damage: 10,
       dish: { getColor: () => 0xffffff }

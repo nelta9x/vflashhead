@@ -28,7 +28,7 @@
 | 수정 목표 | 파일 | 필드 |
 |----------|------|------|
 | **전체 난이도 조절** | `waves.json` | `spawnInterval`, `dishTypes` |
-| **접시 체력/점수** | `dishes.json` | `hp`, `points` |
+| **접시 체력** | `dishes.json` | `hp` |
 | **접시 생존 시간** | `dishes.json` | `lifetime` |
 | **콤보 타임아웃** | `combo.json` | `timeout.base`, `timeout.minimum` |
 | **콤보 배율** | `combo.json` | `multiplier.factor` |
@@ -197,8 +197,6 @@ import { COLORS, FONTS } from '../data/constants';
   "basic": {
     "name": "기본 접시",     // 표시 이름
     "hp": 10,               // 체력 (플레이어 데미지로 깎임)
-    "points": 100,          // 파괴 시 획득 점수
-    "speed": 110,           // 이동 속도 (현재 미사용)
     "color": "#00ffff",     // 색상 (hex)
     "size": 30,             // 접시 크기 (px)
     "chainReaction": false, // 파괴 시 연쇄 반응 여부
@@ -218,11 +216,11 @@ import { COLORS, FONTS } from '../data/constants';
 | 타입 | 특성 |
 |------|------|
 | `basic` | 기본 접시. 밸런스 기준점 |
-| `golden` | 높은 점수, 높은 HP |
+| `golden` | 높은 HP의 중후반 탱커 타입 |
 | `crystal` | `chainReaction: true` - 파괴 시 주변 접시에 영향 |
 | `bomb` | `dangerous: true`, `invulnerable: true` - 접촉 시 플레이어 피해, 파괴 불가 |
 | `mini` | 낮은 HP, 빠른 소멸 |
-| `boss` | 매우 높은 HP, 높은 점수 |
+| `amber` | 주황색 상위 접시. `crystal` 다음 단계(웨이브 10부터 등장) |
 
 #### 데미지 설정
 
@@ -532,7 +530,7 @@ import { COLORS, FONTS } from '../data/constants';
 
 1. **난이도 곡선**: `waves.json`의 `spawnInterval`을 조절. 웨이브 1은 1000ms, 웨이브 12는 200ms가 기본값.
 
-2. **점수 경제**: `dishes.json`의 `points` 값을 조절. 현재 비율은 basic:golden:crystal = 1:4:2.5
+2. **접시 생존성**: `dishes.json`의 `hp`, `lifetime` 값을 조절해 타입별 체감 난이도를 조절.
 
 3. **콤보 시스템**:
    - 쉽게 만들려면: `combo.json`의 `timeout.base` 증가, `timeout.minimum` 증가

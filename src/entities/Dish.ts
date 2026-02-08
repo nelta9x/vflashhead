@@ -6,7 +6,6 @@ import { EventBus, GameEvents } from '../utils/EventBus';
 import { DishRenderer } from '../effects/DishRenderer';
 
 interface DishConfig {
-  points: number;
   lifetime: number;
   color: number;
   chainReaction?: boolean;
@@ -32,7 +31,6 @@ function getDishConfig(type: string): DishConfig {
     // 폴백: basic 사용
     const basicData = Data.dishes.dishes.basic;
     return {
-      points: basicData.points,
       lifetime: basicData.lifetime,
       color: parseInt(basicData.color.replace('#', ''), 16),
       chainReaction: basicData.chainReaction,
@@ -44,7 +42,6 @@ function getDishConfig(type: string): DishConfig {
   }
 
   return {
-    points: dishData.points,
     lifetime: dishData.lifetime,
     color: parseInt(dishData.color.replace('#', ''), 16),
     chainReaction: dishData.chainReaction,
@@ -59,7 +56,6 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
   active: boolean = false;
   private graphics: Phaser.GameObjects.Graphics;
   private dishType: string = 'basic';
-  private points: number = 100;
   private lifetime: number = 2000;
   private elapsedTime: number = 0;
   private color: number = COLORS.CYAN;
@@ -146,7 +142,6 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
     const config = getDishConfig(type);
     const dishData = Data.getDishData(type);
 
-    this.points = config.points;
     this.lifetime = config.lifetime;
     this.elapsedTime = 0;
     this.blinkPhase = 0;
@@ -480,10 +475,6 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.enable = false;
     body.setVelocity(0, 0);
-  }
-
-  getPoints(): number {
-    return this.points;
   }
 
   getColor(): number {

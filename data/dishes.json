@@ -3,8 +3,6 @@
     "basic": {
       "name": "기본 접시",
       "hp": 10,
-      "points": 100,
-      "speed": 110,
       "color": "#00ffff",
       "size": 30,
       "chainReaction": false,
@@ -19,9 +17,7 @@
     },
     "golden": {
       "name": "골든 접시",
-      "hp": 25,
-      "points": 400,
-      "speed": 90,
+      "hp": 17,
       "color": "#ffff00",
       "size": 35,
       "chainReaction": false,
@@ -36,9 +32,7 @@
     },
     "crystal": {
       "name": "크리스탈 접시",
-      "hp": 20,
-      "points": 250,
-      "speed": 150,
+      "hp": 28,
       "color": "#ff00ff",
       "size": 25,
       "chainReaction": true,
@@ -54,8 +48,6 @@
     "bomb": {
       "name": "폭탄 접시",
       "hp": 999,
-      "points": 0,
-      "speed": 85,
       "color": "#ff0044",
       "size": 40,
       "chainReaction": false,
@@ -72,8 +64,6 @@
     "mini": {
       "name": "미니 접시",
       "hp": 5,
-      "points": 50,
-      "speed": 200,
       "color": "#00ff88",
       "size": 20,
       "chainReaction": false,
@@ -86,12 +76,10 @@
         "ease": "Back.easeOut"
       }
     },
-    "boss": {
-      "name": "보스 접시",
-      "hp": 80,
-      "points": 2000,
-      "speed": 55,
-      "color": "#ff00ff",
+    "amber": {
+      "name": "앰버 접시",
+      "hp": 30,
+      "color": "#ff8800",
       "size": 60,
       "chainReaction": false,
       "dangerous": false,

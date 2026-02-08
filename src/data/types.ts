@@ -769,8 +769,6 @@ export interface SpawnAnimationConfig {
 export interface DishData {
   name: string;
   hp: number;
-  points: number;
-  speed: number;
   color: string;
   size: number;
   chainReaction: boolean;

@@ -27,7 +27,6 @@ vi.mock('../data/dishes.json', () => ({
     dishes: {
       basic: {
         hp: 30,
-        points: 100,
         color: '#00ffff',
         chainReaction: false,
         dangerous: false,
@@ -36,7 +35,6 @@ vi.mock('../data/dishes.json', () => ({
       },
       golden: {
         hp: 20,
-        points: 400,
         color: '#ffff00',
         chainReaction: false,
         dangerous: false,
@@ -45,7 +43,6 @@ vi.mock('../data/dishes.json', () => ({
       },
       crystal: {
         hp: 40,
-        points: 250,
         color: '#ff00ff',
         chainReaction: true,
         dangerous: false,
@@ -54,7 +51,6 @@ vi.mock('../data/dishes.json', () => ({
       },
       bomb: {
         hp: 1,
-        points: 0,
         color: '#ff0044',
         chainReaction: false,
         dangerous: true,
@@ -63,7 +59,6 @@ vi.mock('../data/dishes.json', () => ({
       },
       mini: {
         hp: 15,
-        points: 50,
         color: '#00ff88',
         chainReaction: false,
         dangerous: false,

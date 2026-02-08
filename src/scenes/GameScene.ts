@@ -692,8 +692,8 @@ export class GameScene extends Phaser.Scene {
 
     if (isCritical) {
       this.feedbackSystem.onCriticalHit(x, y, damage, combo);
-      // 보스 접시 치명타 시 레이저 취소
-      if (data.type === 'boss') {
+      // 앰버 접시 치명타 시 레이저 취소
+      if (data.type === 'amber') {
         this.cancelBossChargingLasers();
       }
     } else {

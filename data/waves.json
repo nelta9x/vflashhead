@@ -113,10 +113,11 @@
       "dishCount": 5,
       "spawnInterval": 720,
       "dishTypes": [
-        { "type": "basic", "weight": 0.34 },
-        { "type": "golden", "weight": 0.24 },
+        { "type": "basic", "weight": 0.28 },
+        { "type": "golden", "weight": 0.22 },
         { "type": "crystal", "weight": 0.2 },
-        { "type": "bomb", "weight": 0.22 }
+        { "type": "bomb", "weight": 0.22 },
+        { "type": "amber", "weight": 0.08 }
       ],
       "bossHp": 2420,
       "laser": { "maxCount": 3, "minInterval": 2800, "maxInterval": 5500 }
@@ -127,10 +128,11 @@
       "dishCount": 6,
       "spawnInterval": 680,
       "dishTypes": [
-        { "type": "basic", "weight": 0.3 },
-        { "type": "golden", "weight": 0.24 },
-        { "type": "crystal", "weight": 0.22 },
-        { "type": "bomb", "weight": 0.24 }
+        { "type": "basic", "weight": 0.24 },
+        { "type": "golden", "weight": 0.22 },
+        { "type": "crystal", "weight": 0.2 },
+        { "type": "bomb", "weight": 0.22 },
+        { "type": "amber", "weight": 0.12 }
       ],
       "bossHp": 3050,
       "laser": { "maxCount": 3, "minInterval": 2500, "maxInterval": 5000 }
@@ -141,10 +143,11 @@
       "dishCount": 7,
       "spawnInterval": 640,
       "dishTypes": [
-        { "type": "basic", "weight": 0.26 },
-        { "type": "golden", "weight": 0.24 },
-        { "type": "crystal", "weight": 0.26 },
-        { "type": "bomb", "weight": 0.24 }
+        { "type": "basic", "weight": 0.2 },
+        { "type": "golden", "weight": 0.2 },
+        { "type": "crystal", "weight": 0.24 },
+        { "type": "bomb", "weight": 0.2 },
+        { "type": "amber", "weight": 0.16 }
       ],
       "bossHp": 3840,
       "laser": { "maxCount": 4, "minInterval": 2200, "maxInterval": 4500 }

@@ -66,8 +66,8 @@
     "upgrade.perfect_critical.desc": "Crit Chance +20%, Multiplier +1.0",
 
     "upgrade.cursor_size.name": "Wide Strike",
-    "upgrade.cursor_size.desc": "Cursor hit area and damage increased.",
-    "upgrade.cursor_size.desc_template": "Cursor hit area +{sizeBonus}%, Damage +{damage}.",
+    "upgrade.cursor_size.desc": "Cursor hit area and damage increased. Missile thickness also increases.",
+    "upgrade.cursor_size.desc_template": "Cursor hit area +{sizeBonus}%, Damage +{damage}, Missile Thickness +{missileThicknessBonus}%.",
     "upgrade.electric_shock.name": "Electric Shock",
     "upgrade.electric_shock.desc": "Lightning damage to nearby dishes.",
     "upgrade.electric_shock.desc_template": "Deals {damage} damage to dishes within {radius}px.",
@@ -85,8 +85,8 @@
     "upgrade.orbiting_orb.desc": "Spawns orbs circling the cursor (Size increases with Magnet Level, can remove bomb dishes).",
     "upgrade.orbiting_orb.desc_template": "{count} orbs orbiting at {speed} deg/s deal {damage} damage and remove bomb dishes.",
 
-    "upgrade.preview.cursor_size.new": "Cursor Area +{Size}%, Damage +{Dmg}",
-    "upgrade.preview.cursor_size.upgrade": "Area {curSize}% -> {nextSize}%, Damage {curDmg} -> {nextDmg}",
+    "upgrade.preview.cursor_size.new": "Cursor Area +{Size}%, Damage +{Dmg}, Missile Thickness +{MissileThickness}%",
+    "upgrade.preview.cursor_size.upgrade": "Area {curSize}% -> {nextSize}%, Damage {curDmg} -> {nextDmg}, Thickness {curMissileThickness}% -> {nextMissileThickness}%",
     "upgrade.preview.critical_chance.new": "Critical Chance +{CriticalChance}%",
     "upgrade.preview.critical_chance.upgrade": "Critical Chance {curCriticalChance}% -> {nextCriticalChance}%",
     "upgrade.preview.electric_shock.new": "Radius {Radius}px, {Dmg} Damage",
@@ -168,8 +168,8 @@
     "upgrade.perfect_critical.desc": "치명타 확률 +20%, 배율 +1.0",
 
     "upgrade.cursor_size.name": "넓은 타격",
-    "upgrade.cursor_size.desc": "커서 판정 범위 및 데미지 증가",
-    "upgrade.cursor_size.desc_template": "커서 판정 범위가 {sizeBonus}% 증가하고, 데미지가 {damage} 증가합니다.",
+    "upgrade.cursor_size.desc": "커서 판정 범위 및 데미지 증가, 미사일 굵기 증가",
+    "upgrade.cursor_size.desc_template": "커서 판정 범위가 {sizeBonus}% 증가하고, 데미지가 {damage} 증가하며, 미사일 굵기가 {missileThicknessBonus}% 증가합니다.",
     "upgrade.electric_shock.name": "전기 충격",
     "upgrade.electric_shock.desc": "주변 접시에 번개 데미지",
     "upgrade.electric_shock.desc_template": "반경 {radius}px 내 접시에 {damage} 데미지를 줍니다.",
@@ -187,8 +187,8 @@
     "upgrade.orbiting_orb.desc": "커서 주변을 회전하는 구체 생성 (자기장 레벨에 비례해 크기 증가, 폭탄 접시 제거 가능)",
     "upgrade.orbiting_orb.desc_template": "구체 {count}개가 초당 {speed}도 회전하며 {damage} 피해를 주고 폭탄 접시를 제거합니다.",
 
-    "upgrade.preview.cursor_size.new": "커서 범위 +{Size}%, 데미지 +{Dmg}",
-    "upgrade.preview.cursor_size.upgrade": "범위 {curSize}%→{nextSize}%, 데미지 {curDmg}→{nextDmg}",
+    "upgrade.preview.cursor_size.new": "커서 범위 +{Size}%, 데미지 +{Dmg}, 미사일 굵기 +{MissileThickness}%",
+    "upgrade.preview.cursor_size.upgrade": "범위 {curSize}%→{nextSize}%, 데미지 {curDmg}→{nextDmg}, 굵기 {curMissileThickness}%→{nextMissileThickness}%",
     "upgrade.preview.critical_chance.new": "치명타 확률 +{CriticalChance}%",
     "upgrade.preview.critical_chance.upgrade": "치명타 확률 {curCriticalChance}%→{nextCriticalChance}%",
     "upgrade.preview.electric_shock.new": "반경 {Radius}px, {Dmg} 데미지",

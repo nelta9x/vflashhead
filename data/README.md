@@ -312,7 +312,7 @@ import { COLORS, FONTS } from '../data/constants';
       "id": "cursor_size",
       "name": "넓은 타격",
       "description": "커서 판정 범위 및 데미지 증가",
-      "descriptionTemplate": "커서 판정 범위가 {sizeBonus}% 증가하고, 데미지가 {damage} 증가합니다.",
+      "descriptionTemplate": "커서 판정 범위가 {sizeBonus}% 증가하고, 데미지가 {damage} 증가하며, 미사일 굵기가 {missileThicknessBonus}% 증가합니다.",
       "rarity": "common",
       "effectType": "cursorSizeBonus",
       "levels": [

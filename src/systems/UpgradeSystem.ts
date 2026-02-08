@@ -336,6 +336,7 @@ export class UpgradeSystem {
           if (key === 'hpBonus') params[`${prefix}Hp`] = val;
           if (key === 'dropChanceBonus') params[`${prefix}Drop`] = val;
           if (key === 'criticalChance') params[`${prefix}CriticalChance`] = val;
+          if (key === 'missileThicknessBonus') params[`${prefix}MissileThickness`] = val;
         } else {
           params[`${prefix}${key}`] = String(value);
         }

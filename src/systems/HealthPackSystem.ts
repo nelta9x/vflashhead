@@ -9,7 +9,6 @@ export class HealthPackSystem {
   private pool: ObjectPool<HealthPack>;
   private lastSpawnTime: number = -HEAL_PACK.COOLDOWN; // 게임 시작 시 바로 스폰 가능
   private timeSinceLastCheck: number = 0;
-  private collectionBonus: number = 0;
   private upgradeSystem: UpgradeSystem;
 
   constructor(scene: Phaser.Scene, upgradeSystem: UpgradeSystem) {
@@ -24,7 +23,6 @@ export class HealthPackSystem {
     EventBus.getInstance().on(GameEvents.HEALTH_PACK_COLLECTED, (...args: unknown[]) => {
       const data = args[0] as { pack: HealthPack };
       this.releaseHealthPack(data.pack);
-      this.collectionBonus += HEAL_PACK.BONUS_CHANCE_PER_COLLECTION;
     });
 
     // 힐팩 놓침 이벤트 구독
@@ -77,7 +75,7 @@ export class HealthPackSystem {
     }
     this.timeSinceLastCheck = 0;
 
-    // 고정 기본 확률 + 누적 보너스 계산
+    // 고정 기본 확률 + 업그레이드 보너스 계산
     const spawnChance = this.getSpawnChance();
     if (spawnChance <= 0) {
       return;
@@ -91,7 +89,7 @@ export class HealthPackSystem {
 
   getSpawnChance(): number {
     const upgradeBonus = this.upgradeSystem.getHealthPackDropBonus();
-    return HEAL_PACK.BASE_SPAWN_CHANCE + this.collectionBonus + upgradeBonus;
+    return HEAL_PACK.BASE_SPAWN_CHANCE + upgradeBonus;
   }
 
   private spawnHealthPack(gameTime: number): void {
@@ -116,6 +114,5 @@ export class HealthPackSystem {
 
   clear(): void {
     this.pool.clear();
-    this.collectionBonus = 0;
   }
 }

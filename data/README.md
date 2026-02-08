@@ -34,7 +34,7 @@
 | **콤보 배율** | `combo.json` | `multiplier.factor` |
 | **업그레이드 출현율** | `upgrades.json` | `rarityWeights` |
 | **업그레이드 효과** | `upgrades.json` | `system` |
-| **힐팩 스폰 확률** | `health-pack.json` | `spawnChanceByHp` |
+| **힐팩 스폰 확률** | `health-pack.json` | `baseSpawnChance` |
 | **플레이어 초기 HP** | `game-config.json` | `player.initialHp` |
 | **플레이어 HP 링 스타일** | `game-config.json` | `player.hpRing` |
 | **보스 HP 세그먼트 스케일** | `boss.json` | `visual.armor.hpSegments` |
@@ -425,13 +425,8 @@ import { COLORS, FONTS } from '../data/constants';
   "hitboxSize": 35,       // 히트박스 크기 (px) - 클수록 획득 쉬움
   "cooldown": 15000,      // 스폰 쿨다운 (ms)
   "maxActive": 1,         // 동시에 존재 가능한 최대 개수
-  "spawnChanceByHp": {    // HP별 초당 스폰 확률
-    "5": 0,               // HP 5: 0% (스폰 안 함)
-    "4": 0.02,            // HP 4: 2%
-    "3": 0.04,            // HP 3: 4%
-    "2": 0.06,            // HP 2: 6%
-    "1": 0.10             // HP 1: 10%
-  }
+  "baseSpawnChance": 0.04, // 스폰 체크 1회당 기본 확률
+  "checkInterval": 5000   // 스폰 확률 체크 간격 (ms)
 }
 ```
 
@@ -602,4 +597,4 @@ import { COLORS, FONTS } from '../data/constants';
 
 4. **업그레이드 파워**: `upgrades.json`에서 `multiply` 값을 조절. 1.25 = 25% 증가.
 
-5. **생존성**: `health-pack.json`의 `spawnChanceByHp`를 조절하여 힐팩 출현율 변경.
+5. **생존성**: `health-pack.json`의 `baseSpawnChance`를 조절하여 힐팩 출현율 변경.

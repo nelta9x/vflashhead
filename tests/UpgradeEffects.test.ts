@@ -332,7 +332,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
       upgrade.applyUpgrade(hpUpgrade);
       expect(upgrade.getHealthPackLevel()).toBe(1);
-      expect(upgrade.getHealthPackDropBonus()).toBeCloseTo(0.01);
+      expect(upgrade.getHealthPackDropBonus()).toBeCloseTo(0.03);
 
       // 이벤트 발생 확인
       expect(mockEmit).toHaveBeenCalledWith('healthPack:upgraded', { hpBonus: 1 });
@@ -345,7 +345,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
       for (let i = 0; i < 3; i++) upgrade.applyUpgrade(hpUpgrade);
       expect(upgrade.getHealthPackLevel()).toBe(3);
-      expect(upgrade.getHealthPackDropBonus()).toBeCloseTo(0.03);
+      expect(upgrade.getHealthPackDropBonus()).toBeCloseTo(0.09);
 
       // 마지막 호출 이벤트 확인
       expect(mockEmit).toHaveBeenLastCalledWith('healthPack:upgraded', { hpBonus: 3 });

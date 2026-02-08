@@ -6,7 +6,6 @@
   "hitboxSize": 35,
   "cooldown": 15000,
   "maxActive": 1,
-  "bonusSpawnChancePerCollection": 0.01,
   "baseSpawnChance": 0.04,
   "checkInterval": 5000
 }

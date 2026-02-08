@@ -63,7 +63,7 @@
 - **`ScoreSystem.ts`**: 접시 파괴 시 점수 계산 및 콤보 배율 적용.
 - **`SoundSystem.ts`**: Phaser Sound API 및 Web Audio API 기반 사운드 시스템. 오디오 파일 재생을 우선하며, 부재 시 코드로 사운드를 합성(Fallback)합니다. 마스터 볼륨 제어, 일시정지 상태 복구 지원.
 - **`FeedbackSystem.ts`**: 시각적/청각적 피드백을 조율. `ParticleManager`, `ScreenShake`, `DamageText`를 통합 제어하여 타격감을 생성합니다. 보스 아머 파괴 및 플레이어 필살기 연출을 총괄합니다.
-- **`HealthPackSystem.ts`**: 기본 확률 및 누적 수집 보너스를 기반으로 힐팩을 스폰합니다. 업그레이드 시스템과 연동됩니다.
+- **`HealthPackSystem.ts`**: 기본 확률과 업그레이드 보너스를 기반으로 힐팩을 스폰합니다.
 
 ### 3. 엔티티 및 오브젝트 (Entities)
 
@@ -125,7 +125,7 @@
   - `upgrades.json`: 업그레이드 어빌리티 정의, 확률(Rarity), 효과 수치.
   - `feedback.json`: 연출용 수치 (흔들림 강도, 파티클 개수, 슬로우모션 강도, 커서 트레일 설정).
   - `combo.json`: 콤보 타임아웃, 마일스톤, 배율 공식, 게이지 보너스.
-  - `health-pack.json`: 힐팩 기본 스폰 확률, 수집 보너스, 낙하 속도 등 설정.
+  - `health-pack.json`: 힐팩 기본 스폰 확률, 낙하 속도 등 설정.
   - `spawn.json`: 스폰 영역(Area) 및 로직 설정.
   - `weapons.json`: 무기(공격) 기본 데미지 및 관련 데이터.
 

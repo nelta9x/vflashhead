@@ -28,7 +28,6 @@ vi.mock('../src/data/constants', () => ({
   HEAL_PACK: {
     COOLDOWN: 5000,
     MAX_ACTIVE: 1,
-    BONUS_CHANCE_PER_COLLECTION: 0.05,
     BASE_SPAWN_CHANCE: 0.04,
     CHECK_INTERVAL: 5000,
   },
@@ -157,7 +156,7 @@ describe('HealthPackSystem', () => {
   });
 
   describe('Event Handling', () => {
-    it('should increase spawn chance on collected', () => {
+    it('should not change spawn chance on collected', () => {
       expect(system.getSpawnChance()).toBe(0.04);
 
       // 힐팩 수집
@@ -168,8 +167,7 @@ describe('HealthPackSystem', () => {
         collectCallback({ pack: {} });
       }
 
-      // 0.04 + 0.05 = 0.09
-      expect(system.getSpawnChance()).toBeCloseTo(0.09);
+      expect(system.getSpawnChance()).toBe(0.04);
     });
 
     it('should release pack on collected', () => {

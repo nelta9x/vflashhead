@@ -134,7 +134,6 @@ export const HEAL_PACK = {
   HITBOX_SIZE: Data.healthPack.hitboxSize,
   COOLDOWN: Data.healthPack.cooldown,
   MAX_ACTIVE: Data.healthPack.maxActive,
-  BONUS_CHANCE_PER_COLLECTION: Data.healthPack.bonusSpawnChancePerCollection,
   BASE_SPAWN_CHANCE: Data.healthPack.baseSpawnChance,
   CHECK_INTERVAL: Data.healthPack.checkInterval,
 } as const;

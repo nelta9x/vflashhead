@@ -527,7 +527,6 @@ export interface HealthPackConfig {
   hitboxSize: number;
   cooldown: number;
   maxActive: number;
-  bonusSpawnChancePerCollection: number;
   baseSpawnChance: number;
   checkInterval: number;
   spawnChanceByHp?: Record<string, number>;

@@ -27,7 +27,8 @@
     "cursorColorNumeric": 15792383,
     "cursorSpeed": 1123,
     "input": {
-      "pointerPriorityMs": 120
+      "pointerPriorityMs": 120,
+      "keyboardAxisRampUpMs": 90
     }
   },
   "upgradeUI": {

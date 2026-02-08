@@ -40,7 +40,7 @@
 - **`src/scenes/BootScene.ts`**: 초기 로딩 화면. 에셋 프리로딩(오디오, SVG 아이콘), 프로그레스 바 표시.
 - **`src/scenes/MenuScene.ts`**: 메인 메뉴. 타이틀, 시작 버튼, 별 배경, 보스 애니메이션, 그리드 효과, 언어 선택 UI 처리.
 - **`src/scenes/GameScene.ts`**: **핵심 게임 루프**. 모든 시스템을 초기화하고 조율합니다.
-  - **입력 안정화**: 포인터/키보드 혼합 입력에서 포인터 우선 유예(`player.input.pointerPriorityMs`)를 적용하고, `window blur`/`visibilitychange`/`gameout`/pause-resume 시 키 상태를 리셋해 커서 stuck 이동을 방지합니다.
+  - **입력 안정화**: `PlayerCursorInputController`를 통해 포인터/키보드 혼합 입력을 관리하고, 포인터 우선 유예(`player.input.pointerPriorityMs`)와 키보드 축 가속(`player.input.keyboardAxisRampUpMs`)을 데이터 기반으로 적용합니다. 또한 `window blur`/`visibilitychange`/`gameout`/pause-resume 시 입력 상태를 리셋해 커서 stuck 이동을 방지합니다.
   - **플레이어 공격**: 게이지 완충 시 기 모으기(Charge) 및 순차 미사일(Sequential Missiles) 발사 로직을 관리하며, 시각 연출은 `PlayerAttackRenderer`에 위임합니다.
   - **보스 공격**: 멀티 보스(`Map<string, Boss>`) 기준으로 보스별 레이저 타이밍/취소/재개를 독립 제어합니다.
   - **블랙홀 어빌리티**: `BlackHoleSystem`의 흡인/피해 로직과 `BlackHoleRenderer`의 시각 연출을 매 프레임 동기화합니다.
@@ -60,6 +60,7 @@
 - **`MonsterSystem.ts`**: 보스 몬스터 HP/사망 상태를 `bossId`별 `Map`으로 관리합니다. 웨이브 시작 시 `bossTotalHp`를 가중치(`hpWeight`) 기반으로 분배하고, `MONSTER_HP_CHANGED`/`MONSTER_DIED`를 `bossId` 스냅샷 payload로 발행합니다.
 - **`OrbSystem.ts`**: 플레이어 주변을 회전하는 보호 오브(Orb)의 로직 처리. 업그레이드 레벨에 따른 개수/속도/데미지 계산 및 자석(Magnet) 업그레이드와의 시너지(크기 증가)를 관리합니다.
 - **`BlackHoleSystem.ts`**: 블랙홀 어빌리티 로직 처리. 레벨 데이터(`spawnInterval`, `spawnCount`, `radius`, `force`, `damageInterval`, `damage`) 기반으로 주기적 랜덤 블랙홀을 생성/교체하고, 접시·폭탄 흡인 및 접시/보스 피해 틱을 적용합니다.
+- **`PlayerCursorInputController.ts`**: `GameScene` 전용 입력 컨트롤러. 디지털 키 입력을 축(axis)으로 변환하고, 키다운 시 축 가속(0→1), 포인터 최신 입력 우선 유예, 입력 리셋/리스너 해제를 단일 책임으로 관리합니다.
 - **`GaugeSystem.ts`**: 콤보 수치에 따라 공격 게이지를 충전합니다. 게이지가 100%가 되면 `PLAYER_ATTACK` 이벤트를 발생시킵니다.
 - **`ScoreSystem.ts`**: 접시 파괴 시 점수 계산 및 콤보 배율 적용.
 - **`SoundSystem.ts`**: Phaser Sound API 및 Web Audio API 기반 사운드 시스템. 오디오 파일 재생을 우선하며, 부재 시 코드로 사운드를 합성(Fallback)합니다. 마스터 볼륨 제어, 일시정지 상태 복구 지원.

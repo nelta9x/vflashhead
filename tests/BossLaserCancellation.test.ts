@@ -708,93 +708,48 @@ describe('Boss Laser Cancellation Logic', () => {
     expect(inputScene.cursorY).toBe(720);
   });
 
-  it('resetMovementInput clears keyboard plugin and movement keys', () => {
-    const resetKeysSpy = vi.fn();
-    const keyResetSpy = vi.fn();
+  it('resetMovementInput delegates to input controller with scene timestamp', () => {
+    const controllerResetSpy = vi.fn();
     const inputScene = gameScene as unknown as {
       resetMovementInput: () => void;
-      input: {
-        activePointer: { worldX: number; worldY: number };
-        keyboard?: { resetKeys?: () => void };
+      inputController: {
+        resetMovementInput: (timestamp: number) => void;
       };
-      cursorKeys: {
-        left: { reset: () => void };
-        right: { reset: () => void };
-        up: { reset: () => void };
-        down: { reset: () => void };
-      };
-      wasdKeys: {
-        W: { reset: () => void };
-        A: { reset: () => void };
-        S: { reset: () => void };
-        D: { reset: () => void };
-      };
+      time: { now: number; timeScale: number };
     };
 
-    inputScene.input = {
-      activePointer: { worldX: 0, worldY: 0 },
-      keyboard: { resetKeys: resetKeysSpy },
+    inputScene.inputController = {
+      resetMovementInput: controllerResetSpy,
     };
-    inputScene.cursorKeys = {
-      left: { reset: keyResetSpy },
-      right: { reset: keyResetSpy },
-      up: { reset: keyResetSpy },
-      down: { reset: keyResetSpy },
-    };
-    inputScene.wasdKeys = {
-      W: { reset: keyResetSpy },
-      A: { reset: keyResetSpy },
-      S: { reset: keyResetSpy },
-      D: { reset: keyResetSpy },
-    };
+    inputScene.time = { ...inputScene.time, now: 4321 };
 
     inputScene.resetMovementInput();
 
-    expect(resetKeysSpy).toHaveBeenCalledTimes(1);
-    expect(keyResetSpy).toHaveBeenCalledTimes(8);
+    expect(controllerResetSpy).toHaveBeenCalledTimes(1);
+    expect(controllerResetSpy).toHaveBeenCalledWith(4321);
   });
 
-  it('shouldUseKeyboardMovement defers keyboard while pointer priority is active', () => {
+  it('shouldUseKeyboardMovement delegates to input controller', () => {
+    const shouldUseSpy = vi.fn().mockReturnValue(false);
     const inputScene = gameScene as unknown as {
       shouldUseKeyboardMovement: () => boolean;
-      pointerPriorityMs: number;
-      lastInputDevice: 'pointer' | 'keyboard';
-      lastPointerMoveAt: number;
+      inputController: {
+        shouldUseKeyboardMovement: (timestamp: number) => boolean;
+      };
       time: { now: number; timeScale: number };
-      cursorKeys: {
-        left: { isDown: boolean };
-        right: { isDown: boolean };
-        up: { isDown: boolean };
-        down: { isDown: boolean };
-      };
-      wasdKeys: {
-        W: { isDown: boolean };
-        A: { isDown: boolean };
-        S: { isDown: boolean };
-        D: { isDown: boolean };
-      };
     };
 
-    inputScene.pointerPriorityMs = 120;
-    inputScene.lastInputDevice = 'pointer';
-    inputScene.lastPointerMoveAt = 1000;
+    inputScene.inputController = {
+      shouldUseKeyboardMovement: shouldUseSpy,
+    };
     inputScene.time = { ...inputScene.time, now: 1050 };
-    inputScene.cursorKeys = {
-      left: { isDown: true },
-      right: { isDown: false },
-      up: { isDown: false },
-      down: { isDown: false },
-    };
-    inputScene.wasdKeys = {
-      W: { isDown: false },
-      A: { isDown: false },
-      S: { isDown: false },
-      D: { isDown: false },
-    };
 
     expect(inputScene.shouldUseKeyboardMovement()).toBe(false);
+    expect(shouldUseSpy).toHaveBeenCalledWith(1050);
 
+    shouldUseSpy.mockReturnValue(true);
     inputScene.time.now = 1200;
     expect(inputScene.shouldUseKeyboardMovement()).toBe(true);
+    expect(shouldUseSpy).toHaveBeenLastCalledWith(1200);
   });
 });

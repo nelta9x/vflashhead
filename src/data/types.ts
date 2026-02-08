@@ -15,6 +15,7 @@ export interface CursorHitboxConfig {
 
 export interface PlayerInputConfig {
   pointerPriorityMs: number;
+  keyboardAxisRampUpMs: number;
 }
 
 export interface PlayerConfig {

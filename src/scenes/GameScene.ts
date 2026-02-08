@@ -36,6 +36,7 @@ import { MonsterSystem } from '../systems/MonsterSystem';
 import { GaugeSystem } from '../systems/GaugeSystem';
 import { OrbSystem } from '../systems/OrbSystem';
 import { BlackHoleSystem } from '../systems/BlackHoleSystem';
+import { PlayerCursorInputController } from '../systems/PlayerCursorInputController';
 import { InGameUpgradeUI } from '../ui/InGameUpgradeUI';
 import { WaveCountdownUI } from '../ui/WaveCountdownUI';
 import { HudFrameContext } from '../ui/hud/types';
@@ -96,18 +97,8 @@ export class GameScene extends Phaser.Scene {
   // 커서 시스템
   private cursorX: number = 0;
   private cursorY: number = 0;
-  private lastInputDevice: 'pointer' | 'keyboard' = 'pointer';
-  private lastPointerMoveAt: number = Number.NEGATIVE_INFINITY;
-  private pointerPriorityMs: number = 0;
-  private cursorKeys!: Phaser.Types.Input.Keyboard.CursorKeys;
-  private wasdKeys!: {
-    W: Phaser.Input.Keyboard.Key;
-    A: Phaser.Input.Keyboard.Key;
-    S: Phaser.Input.Keyboard.Key;
-    D: Phaser.Input.Keyboard.Key;
-  };
+  private inputController!: PlayerCursorInputController;
   private pointerMoveHandler: ((pointer: Phaser.Input.Pointer) => void) | null = null;
-  private movementKeyDownHandler: ((event: KeyboardEvent) => void) | null = null;
   private escapeKeyHandler: (() => void) | null = null;
   private gameOutHandler: ((time: number, event: Event) => void) | null = null;
   private windowBlurHandler: (() => void) | null = null;
@@ -1010,36 +1001,25 @@ export class GameScene extends Phaser.Scene {
   }
 
   private setupInput(): void {
-    this.pointerPriorityMs = Math.max(0, Data.gameConfig.player.input.pointerPriorityMs);
+    const playerInputConfig = Data.gameConfig.player.input;
+    this.inputController = new PlayerCursorInputController({
+      pointerPriorityMs: playerInputConfig.pointerPriorityMs,
+      keyboardAxisRampUpMs: playerInputConfig.keyboardAxisRampUpMs,
+    });
 
     // 키보드 초기화
     if (this.input.keyboard) {
-      this.cursorKeys = this.input.keyboard.createCursorKeys();
-      this.wasdKeys = {
-        W: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
-        A: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
-        S: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
-        D: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
-      };
-
-      this.movementKeyDownHandler = (event: KeyboardEvent) => {
-        if (this.isMovementKeyCode(event.code)) {
-          this.lastInputDevice = 'keyboard';
-        }
-      };
-      this.input.keyboard.on('keydown', this.movementKeyDownHandler);
+      this.inputController.bindKeyboard(this.input.keyboard);
     }
 
     // 커서 초기 위치 설정
     this.applyCursorPosition(this.input.activePointer.worldX, this.input.activePointer.worldY);
-    this.lastInputDevice = 'pointer';
-    this.lastPointerMoveAt = this.getInputTimestamp();
+    this.inputController.onPointerInput(this.getInputTimestamp());
 
     // 마우스 이동 시 커서 위치 동기화
     this.pointerMoveHandler = (pointer: Phaser.Input.Pointer) => {
       this.applyCursorPosition(pointer.worldX, pointer.worldY);
-      this.lastInputDevice = 'pointer';
-      this.lastPointerMoveAt = this.getInputTimestamp();
+      this.inputController.onPointerInput(this.getInputTimestamp());
     };
     this.input.on('pointermove', this.pointerMoveHandler);
 
@@ -1089,10 +1069,7 @@ export class GameScene extends Phaser.Scene {
       this.input.off('pointermove', this.pointerMoveHandler);
       this.pointerMoveHandler = null;
     }
-    if (this.movementKeyDownHandler) {
-      this.input.keyboard?.off('keydown', this.movementKeyDownHandler);
-      this.movementKeyDownHandler = null;
-    }
+    this.inputController?.unbindKeyboard();
     if (this.escapeKeyHandler) {
       this.input.keyboard?.off('keydown-ESC', this.escapeKeyHandler);
       this.escapeKeyHandler = null;
@@ -1129,65 +1106,14 @@ export class GameScene extends Phaser.Scene {
   }
 
   private resetMovementInput(): void {
-    this.input.keyboard?.resetKeys?.();
-
-    this.cursorKeys?.left.reset();
-    this.cursorKeys?.right.reset();
-    this.cursorKeys?.up.reset();
-    this.cursorKeys?.down.reset();
-    this.wasdKeys?.W.reset();
-    this.wasdKeys?.A.reset();
-    this.wasdKeys?.S.reset();
-    this.wasdKeys?.D.reset();
-
-    this.lastInputDevice = 'pointer';
-    this.lastPointerMoveAt = this.getInputTimestamp();
+    this.inputController?.resetMovementInput(this.getInputTimestamp());
   }
 
-  private hasMovementKeyDown(): boolean {
-    if (!this.cursorKeys || !this.wasdKeys) {
+  private shouldUseKeyboardMovement(timestamp: number = this.getInputTimestamp()): boolean {
+    if (!this.inputController) {
       return false;
     }
-
-    return (
-      this.cursorKeys.left.isDown ||
-      this.cursorKeys.right.isDown ||
-      this.cursorKeys.up.isDown ||
-      this.cursorKeys.down.isDown ||
-      this.wasdKeys.A.isDown ||
-      this.wasdKeys.D.isDown ||
-      this.wasdKeys.W.isDown ||
-      this.wasdKeys.S.isDown
-    );
-  }
-
-  private shouldUseKeyboardMovement(): boolean {
-    if (!this.hasMovementKeyDown()) {
-      return false;
-    }
-
-    if (this.lastInputDevice !== 'pointer') {
-      return true;
-    }
-
-    const elapsedSincePointerMove = this.getInputTimestamp() - this.lastPointerMoveAt;
-    return elapsedSincePointerMove > this.pointerPriorityMs;
-  }
-
-  private isMovementKeyCode(code: string): boolean {
-    switch (code) {
-      case 'ArrowLeft':
-      case 'ArrowRight':
-      case 'ArrowUp':
-      case 'ArrowDown':
-      case 'KeyW':
-      case 'KeyA':
-      case 'KeyS':
-      case 'KeyD':
-        return true;
-      default:
-        return false;
-    }
+    return this.inputController.shouldUseKeyboardMovement(timestamp);
   }
 
   private onDishDestroyed(data: { dish: Dish; x: number; y: number; byAbility?: boolean }): void {
@@ -1400,27 +1326,17 @@ export class GameScene extends Phaser.Scene {
     if (this.isGameOver || this.isPaused) return;
 
     // 키보드 이동 처리 (포인터 최신 입력 우선)
-    if (this.input.keyboard && this.shouldUseKeyboardMovement()) {
+    if (this.inputController) {
+      const now = this.getInputTimestamp();
+      const shouldUseKeyboard = this.shouldUseKeyboardMovement(now);
+      const axis = this.inputController.getKeyboardAxis(delta, now);
       const speed = Data.gameConfig.player.cursorSpeed;
       const moveDistance = (speed * delta) / 1000;
-      let dx = 0;
-      let dy = 0;
-
-      if (this.cursorKeys.left.isDown || this.wasdKeys.A.isDown) dx -= 1;
-      if (this.cursorKeys.right.isDown || this.wasdKeys.D.isDown) dx += 1;
-      if (this.cursorKeys.up.isDown || this.wasdKeys.W.isDown) dy -= 1;
-      if (this.cursorKeys.down.isDown || this.wasdKeys.S.isDown) dy += 1;
-
-      if (dx !== 0 || dy !== 0) {
-        // 대각선 이동 시 속도 정규화
-        if (dx !== 0 && dy !== 0) {
-          const factor = 1 / Math.sqrt(2);
-          dx *= factor;
-          dy *= factor;
-        }
-
-        this.applyCursorPosition(this.cursorX + dx * moveDistance, this.cursorY + dy * moveDistance);
-        this.lastInputDevice = 'keyboard';
+      if (shouldUseKeyboard && axis.isMoving) {
+        this.applyCursorPosition(
+          this.cursorX + axis.x * moveDistance,
+          this.cursorY + axis.y * moveDistance
+        );
       }
     }
 

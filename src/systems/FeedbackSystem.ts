@@ -97,7 +97,7 @@ export class FeedbackSystem {
 
   onDishMissed(x: number, y: number, color: number, type: string): void {
     // 일반 접시 놓침: 부정 피드백
-    this.damageText.showText(x, y, 'MISS!', 0xff0044);
+    this.damageText.showText(x, y, Data.t('feedback.miss'), 0xff0044);
     // 화면 흔들림
     this.screenShake.shake(6, 150);
     // 작은 파티클 (접시 색상)

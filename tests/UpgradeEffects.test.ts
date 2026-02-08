@@ -112,29 +112,18 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
       upgrade.applyUpgrade(cursorUpgrade);
       expect(upgrade.getUpgradeStack('cursor_size')).toBe(1);
       expect(upgrade.getCursorSizeBonus()).toBeCloseTo(0.25);
-      expect(upgrade.getCursorDamageBonus()).toBe(1);
+      expect(upgrade.getCursorDamageBonus()).toBe(3);
     });
 
-    it('레벨 3 수치 확인', async () => {
+    it('레벨 3 (맥스) 수치 확인', async () => {
       const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const cursorUpgrade = UPGRADES.find((u) => u.id === 'cursor_size')!;
 
       for (let i = 0; i < 3; i++) upgrade.applyUpgrade(cursorUpgrade);
       expect(upgrade.getUpgradeStack('cursor_size')).toBe(3);
-      expect(upgrade.getCursorSizeBonus()).toBeCloseTo(0.75);
-      expect(upgrade.getCursorDamageBonus()).toBe(3);
-    });
-
-    it('레벨 5 (맥스) 수치 확인', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
-      const upgrade = new UpgradeSystem();
-      const cursorUpgrade = UPGRADES.find((u) => u.id === 'cursor_size')!;
-
-      for (let i = 0; i < 5; i++) upgrade.applyUpgrade(cursorUpgrade);
-      expect(upgrade.getUpgradeStack('cursor_size')).toBe(5);
-      expect(upgrade.getCursorSizeBonus()).toBeCloseTo(1.25);
-      expect(upgrade.getCursorDamageBonus()).toBe(6);
+      expect(upgrade.getCursorSizeBonus()).toBeCloseTo(1.0);
+      expect(upgrade.getCursorDamageBonus()).toBe(15);
     });
   });
 
@@ -322,16 +311,16 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
   });
 
   describe('스택 제한', () => {
-    it('7회 적용해도 levels.length(5)에서 캡', async () => {
+    it('7회 적용해도 levels.length(3)에서 캡', async () => {
       const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const cursorUpgrade = UPGRADES.find((u) => u.id === 'cursor_size')!;
 
       for (let i = 0; i < 7; i++) upgrade.applyUpgrade(cursorUpgrade);
 
-      expect(upgrade.getUpgradeStack('cursor_size')).toBe(5);
-      expect(upgrade.getCursorSizeBonus()).toBeCloseTo(1.25);
-      expect(upgrade.getCursorDamageBonus()).toBe(6);
+      expect(upgrade.getUpgradeStack('cursor_size')).toBe(3);
+      expect(upgrade.getCursorSizeBonus()).toBeCloseTo(1.0);
+      expect(upgrade.getCursorDamageBonus()).toBe(15);
     });
 
     it('모든 어빌리티 maxStack이 데이터의 levels.length와 일치', async () => {

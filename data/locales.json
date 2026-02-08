@@ -22,6 +22,7 @@
     "feedback.bomb_removed": "REMOVED!",
     "feedback.bomb_exploded": "BOOM!",
     "feedback.interrupted": "INTERRUPTED!",
+    "feedback.miss": "MISS!",
 
     "damage.combo": "x{0}",
     "damage.critical": "{0}!",
@@ -123,6 +124,7 @@
     "feedback.bomb_removed": "제거됨!",
     "feedback.bomb_exploded": "쾅!",
     "feedback.interrupted": "차단됨!",
+    "feedback.miss": "놓침!",
 
     "damage.combo": "x{0}",
     "damage.critical": "{0}!",

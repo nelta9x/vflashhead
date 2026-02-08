@@ -57,6 +57,20 @@ class DataManager {
 
   private currentLang: 'en' | 'ko' = 'en';
 
+  private getStorage():
+    | Pick<Storage, 'getItem' | 'setItem'>
+    | null {
+    // Node 테스트 환경에서는 window/localStorage가 완전하지 않을 수 있으므로 접근하지 않는다.
+    if (typeof window === 'undefined') return null;
+
+    const storage = window.localStorage as Partial<Storage> | undefined;
+    if (!storage) return null;
+    if (typeof storage.getItem !== 'function') return null;
+    if (typeof storage.setItem !== 'function') return null;
+
+    return storage as Pick<Storage, 'getItem' | 'setItem'>;
+  }
+
   private constructor() {
     this.gameConfig = gameConfigJson as GameConfig;
     this.mainMenu = mainMenuJson as MenuConfig;
@@ -79,11 +93,12 @@ class DataManager {
 
     // 1. 저장된 언어 설정 확인
     let savedLang: string | null = null;
+    const storage = this.getStorage();
     try {
-      if (typeof localStorage !== 'undefined') {
-        savedLang = localStorage.getItem('game_language');
+      if (storage) {
+        savedLang = storage.getItem('game_language');
       }
-    } catch (e) {
+    } catch {
       // localStorage might be unavailable or disabled
     }
 
@@ -118,12 +133,13 @@ class DataManager {
 
   public setLanguage(lang: 'en' | 'ko'): void {
     this.currentLang = lang;
+    const storage = this.getStorage();
     try {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('game_language', lang);
+      if (storage) {
+        storage.setItem('game_language', lang);
       }
-    } catch (e) {
-      console.warn('LocalStorage save failed:', e);
+    } catch {
+      // 저장 실패는 치명적이지 않으므로 무시
     }
   }
 

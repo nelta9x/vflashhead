@@ -463,3 +463,25 @@ private hideWithAnimation(): void {
 - **비동기 UI 패턴**: `visible` 상태와 시각적 표시를 분리. 논리적 상태는 즉시 변경하고, 시각적 애니메이션은 별도로 처리.
 
 ---
+
+## 입력 stuck(한 방향 자동 이동) 재발 방지
+
+### 증상
+- 포인터와 키보드를 번갈아 사용할 때 커서가 한 방향으로 계속 이동하거나, 순간적으로 조작이 먹지 않는 현상이 드물게 발생.
+
+### 원인
+- 키 `keyup` 이벤트가 포커스 이탈/복귀 구간에서 누락되면 `isDown`이 true로 남아 update 루프에서 이동 벡터가 계속 누적될 수 있음.
+- 포인터 좌표는 직접 대입되고 키보드 경로만 clamp되어 입력 경로별 경계 처리 정책이 분리되어 있었음.
+- 포인터 최신 입력과 키보드 폴링 간 우선순위 정책이 없어 stale 키 상태가 포인터 제어를 밀어내는 순간이 생김.
+
+### 해결
+- `GameScene`에 `resetMovementInput()`을 추가해 키 상태를 강제 초기화.
+- `window blur`, `document.visibilitychange(hidden)`, `Phaser input gameout`, pause/resume 시 `resetMovementInput()` 실행.
+- 포인터/키보드 모두 `applyCursorPosition()`(공통 clamp)으로 좌표 반영.
+- `lastInputDevice`, `lastPointerMoveAt`, `player.input.pointerPriorityMs`로 포인터 최신 입력 우선 정책 적용.
+- 추가 리스너는 `SHUTDOWN`에서 명시적으로 해제하여 씬 재진입 누적 방지.
+
+### 교훈
+- 키보드 폴링 기반 이동(`isDown`)은 항상 "상태 리셋 경로"를 함께 설계해야 함.
+- 혼합 입력(포인터+키보드)에서는 입력 장치 우선순위를 데이터 기반으로 명시해야 UX가 안정적임.
+- 입력 경계 처리(clamp)는 경로별 분기가 아니라 단일 함수(SSOT)로 통합해야 함.

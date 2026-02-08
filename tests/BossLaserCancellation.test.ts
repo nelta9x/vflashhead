@@ -694,4 +694,107 @@ describe('Boss Laser Cancellation Logic', () => {
     expect(gameScene.tweens.resumeAll).toHaveBeenCalled();
     expect(gameScene.physics.resume).toHaveBeenCalled();
   });
+
+  it('clamps cursor position for shared pointer/keyboard path', () => {
+    const inputScene = gameScene as unknown as {
+      applyCursorPosition: (x: number, y: number) => void;
+      cursorX: number;
+      cursorY: number;
+    };
+
+    inputScene.applyCursorPosition(-200, 9999);
+
+    expect(inputScene.cursorX).toBe(0);
+    expect(inputScene.cursorY).toBe(720);
+  });
+
+  it('resetMovementInput clears keyboard plugin and movement keys', () => {
+    const resetKeysSpy = vi.fn();
+    const keyResetSpy = vi.fn();
+    const inputScene = gameScene as unknown as {
+      resetMovementInput: () => void;
+      input: {
+        activePointer: { worldX: number; worldY: number };
+        keyboard?: { resetKeys?: () => void };
+      };
+      cursorKeys: {
+        left: { reset: () => void };
+        right: { reset: () => void };
+        up: { reset: () => void };
+        down: { reset: () => void };
+      };
+      wasdKeys: {
+        W: { reset: () => void };
+        A: { reset: () => void };
+        S: { reset: () => void };
+        D: { reset: () => void };
+      };
+    };
+
+    inputScene.input = {
+      activePointer: { worldX: 0, worldY: 0 },
+      keyboard: { resetKeys: resetKeysSpy },
+    };
+    inputScene.cursorKeys = {
+      left: { reset: keyResetSpy },
+      right: { reset: keyResetSpy },
+      up: { reset: keyResetSpy },
+      down: { reset: keyResetSpy },
+    };
+    inputScene.wasdKeys = {
+      W: { reset: keyResetSpy },
+      A: { reset: keyResetSpy },
+      S: { reset: keyResetSpy },
+      D: { reset: keyResetSpy },
+    };
+
+    inputScene.resetMovementInput();
+
+    expect(resetKeysSpy).toHaveBeenCalledTimes(1);
+    expect(keyResetSpy).toHaveBeenCalledTimes(8);
+  });
+
+  it('shouldUseKeyboardMovement defers keyboard while pointer priority is active', () => {
+    const inputScene = gameScene as unknown as {
+      shouldUseKeyboardMovement: () => boolean;
+      pointerPriorityMs: number;
+      lastInputDevice: 'pointer' | 'keyboard';
+      lastPointerMoveAt: number;
+      time: { now: number; timeScale: number };
+      cursorKeys: {
+        left: { isDown: boolean };
+        right: { isDown: boolean };
+        up: { isDown: boolean };
+        down: { isDown: boolean };
+      };
+      wasdKeys: {
+        W: { isDown: boolean };
+        A: { isDown: boolean };
+        S: { isDown: boolean };
+        D: { isDown: boolean };
+      };
+    };
+
+    inputScene.pointerPriorityMs = 120;
+    inputScene.lastInputDevice = 'pointer';
+    inputScene.lastPointerMoveAt = 1000;
+    inputScene.time = { ...inputScene.time, now: 1050 };
+    inputScene.cursorKeys = {
+      left: { isDown: true },
+      right: { isDown: false },
+      up: { isDown: false },
+      down: { isDown: false },
+    };
+    inputScene.wasdKeys = {
+      W: { isDown: false },
+      A: { isDown: false },
+      S: { isDown: false },
+      D: { isDown: false },
+    };
+
+    expect(inputScene.shouldUseKeyboardMovement()).toBe(false);
+
+    inputScene.time.now = 1200;
+    expect(inputScene.shouldUseKeyboardMovement()).toBe(true);
+  });
 });

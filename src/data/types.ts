@@ -13,9 +13,14 @@ export interface CursorHitboxConfig {
   baseRadius: number;
 }
 
+export interface PlayerInputConfig {
+  pointerPriorityMs: number;
+}
+
 export interface PlayerConfig {
   initialHp: number;
   cursorHitbox: CursorHitboxConfig;
+  input: PlayerInputConfig;
   hpRing: {
     radiusOffset: number;
     barThickness: number;

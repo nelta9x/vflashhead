@@ -96,6 +96,9 @@ export class GameScene extends Phaser.Scene {
   // 커서 시스템
   private cursorX: number = 0;
   private cursorY: number = 0;
+  private lastInputDevice: 'pointer' | 'keyboard' = 'pointer';
+  private lastPointerMoveAt: number = Number.NEGATIVE_INFINITY;
+  private pointerPriorityMs: number = 0;
   private cursorKeys!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasdKeys!: {
     W: Phaser.Input.Keyboard.Key;
@@ -103,6 +106,12 @@ export class GameScene extends Phaser.Scene {
     S: Phaser.Input.Keyboard.Key;
     D: Phaser.Input.Keyboard.Key;
   };
+  private pointerMoveHandler: ((pointer: Phaser.Input.Pointer) => void) | null = null;
+  private movementKeyDownHandler: ((event: KeyboardEvent) => void) | null = null;
+  private escapeKeyHandler: (() => void) | null = null;
+  private gameOutHandler: ((time: number, event: Event) => void) | null = null;
+  private windowBlurHandler: (() => void) | null = null;
+  private visibilityChangeHandler: (() => void) | null = null;
 
   // 보스 레이저 공격 관련
   private laserNextTimeByBossId: Map<string, number> = new Map();
@@ -1001,6 +1010,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private setupInput(): void {
+    this.pointerPriorityMs = Math.max(0, Data.gameConfig.player.input.pointerPriorityMs);
+
     // 키보드 초기화
     if (this.input.keyboard) {
       this.cursorKeys = this.input.keyboard.createCursorKeys();
@@ -1010,27 +1021,173 @@ export class GameScene extends Phaser.Scene {
         S: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
         D: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
       };
+
+      this.movementKeyDownHandler = (event: KeyboardEvent) => {
+        if (this.isMovementKeyCode(event.code)) {
+          this.lastInputDevice = 'keyboard';
+        }
+      };
+      this.input.keyboard.on('keydown', this.movementKeyDownHandler);
     }
 
     // 커서 초기 위치 설정
-    this.cursorX = this.input.activePointer.worldX;
-    this.cursorY = this.input.activePointer.worldY;
+    this.applyCursorPosition(this.input.activePointer.worldX, this.input.activePointer.worldY);
+    this.lastInputDevice = 'pointer';
+    this.lastPointerMoveAt = this.getInputTimestamp();
 
     // 마우스 이동 시 커서 위치 동기화
-    this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
-      this.cursorX = pointer.worldX;
-      this.cursorY = pointer.worldY;
-    });
+    this.pointerMoveHandler = (pointer: Phaser.Input.Pointer) => {
+      this.applyCursorPosition(pointer.worldX, pointer.worldY);
+      this.lastInputDevice = 'pointer';
+      this.lastPointerMoveAt = this.getInputTimestamp();
+    };
+    this.input.on('pointermove', this.pointerMoveHandler);
 
     // ESC로 일시정지
-    this.input.keyboard?.on('keydown-ESC', () => {
+    this.escapeKeyHandler = () => {
       if (this.isGameOver) return;
       if (this.isPaused) {
         this.resumeGame();
       } else {
         this.pauseGame();
       }
-    });
+    };
+    this.input.keyboard?.on('keydown-ESC', this.escapeKeyHandler);
+
+    this.setupInputSafetyHandlers();
+  }
+
+  private setupInputSafetyHandlers(): void {
+    this.windowBlurHandler = () => {
+      this.resetMovementInput();
+    };
+    this.visibilityChangeHandler = () => {
+      if (document.hidden) {
+        this.resetMovementInput();
+      }
+    };
+    this.gameOutHandler = () => {
+      this.resetMovementInput();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('blur', this.windowBlurHandler);
+    }
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', this.visibilityChangeHandler);
+    }
+    this.input.on(Phaser.Input.Events.GAME_OUT, this.gameOutHandler);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.handleSceneShutdown, this);
+  }
+
+  private handleSceneShutdown(): void {
+    this.teardownInputHandlers();
+  }
+
+  private teardownInputHandlers(): void {
+    if (this.pointerMoveHandler) {
+      this.input.off('pointermove', this.pointerMoveHandler);
+      this.pointerMoveHandler = null;
+    }
+    if (this.movementKeyDownHandler) {
+      this.input.keyboard?.off('keydown', this.movementKeyDownHandler);
+      this.movementKeyDownHandler = null;
+    }
+    if (this.escapeKeyHandler) {
+      this.input.keyboard?.off('keydown-ESC', this.escapeKeyHandler);
+      this.escapeKeyHandler = null;
+    }
+    if (this.gameOutHandler) {
+      this.input.off(Phaser.Input.Events.GAME_OUT, this.gameOutHandler);
+      this.gameOutHandler = null;
+    }
+    if (this.windowBlurHandler && typeof window !== 'undefined') {
+      window.removeEventListener('blur', this.windowBlurHandler);
+      this.windowBlurHandler = null;
+    }
+    if (this.visibilityChangeHandler && typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.visibilityChangeHandler);
+      this.visibilityChangeHandler = null;
+    }
+    this.events.off(Phaser.Scenes.Events.SHUTDOWN, this.handleSceneShutdown, this);
+  }
+
+  private getInputTimestamp(): number {
+    const sceneNow = this.time?.now;
+    if (typeof sceneNow === 'number' && Number.isFinite(sceneNow)) {
+      return sceneNow;
+    }
+    if (typeof performance !== 'undefined') {
+      return performance.now();
+    }
+    return Date.now();
+  }
+
+  private applyCursorPosition(x: number, y: number): void {
+    this.cursorX = Phaser.Math.Clamp(x, 0, GAME_WIDTH);
+    this.cursorY = Phaser.Math.Clamp(y, 0, GAME_HEIGHT);
+  }
+
+  private resetMovementInput(): void {
+    this.input.keyboard?.resetKeys?.();
+
+    this.cursorKeys?.left.reset();
+    this.cursorKeys?.right.reset();
+    this.cursorKeys?.up.reset();
+    this.cursorKeys?.down.reset();
+    this.wasdKeys?.W.reset();
+    this.wasdKeys?.A.reset();
+    this.wasdKeys?.S.reset();
+    this.wasdKeys?.D.reset();
+
+    this.lastInputDevice = 'pointer';
+    this.lastPointerMoveAt = this.getInputTimestamp();
+  }
+
+  private hasMovementKeyDown(): boolean {
+    if (!this.cursorKeys || !this.wasdKeys) {
+      return false;
+    }
+
+    return (
+      this.cursorKeys.left.isDown ||
+      this.cursorKeys.right.isDown ||
+      this.cursorKeys.up.isDown ||
+      this.cursorKeys.down.isDown ||
+      this.wasdKeys.A.isDown ||
+      this.wasdKeys.D.isDown ||
+      this.wasdKeys.W.isDown ||
+      this.wasdKeys.S.isDown
+    );
+  }
+
+  private shouldUseKeyboardMovement(): boolean {
+    if (!this.hasMovementKeyDown()) {
+      return false;
+    }
+
+    if (this.lastInputDevice !== 'pointer') {
+      return true;
+    }
+
+    const elapsedSincePointerMove = this.getInputTimestamp() - this.lastPointerMoveAt;
+    return elapsedSincePointerMove > this.pointerPriorityMs;
+  }
+
+  private isMovementKeyCode(code: string): boolean {
+    switch (code) {
+      case 'ArrowLeft':
+      case 'ArrowRight':
+      case 'ArrowUp':
+      case 'ArrowDown':
+      case 'KeyW':
+      case 'KeyA':
+      case 'KeyS':
+      case 'KeyD':
+        return true;
+      default:
+        return false;
+    }
   }
 
   private onDishDestroyed(data: { dish: Dish; x: number; y: number; byAbility?: boolean }): void {
@@ -1179,6 +1336,7 @@ export class GameScene extends Phaser.Scene {
 
   private pauseGame(): void {
     if (this.isPaused) return;
+    this.resetMovementInput();
     this.isPaused = true;
     this.syncSimulationPauseState();
     EventBus.getInstance().emit(GameEvents.GAME_PAUSED);
@@ -1186,6 +1344,7 @@ export class GameScene extends Phaser.Scene {
 
   private resumeGame(): void {
     if (!this.isPaused) return;
+    this.resetMovementInput();
     this.isPaused = false;
     this.syncSimulationPauseState();
     EventBus.getInstance().emit(GameEvents.GAME_RESUMED);
@@ -1215,6 +1374,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private cleanup(): void {
+    this.resetMovementInput();
+    this.teardownInputHandlers();
     EventBus.getInstance().clear();
     this.activeLasers = [];
     this.laserNextTimeByBossId.clear();
@@ -1238,8 +1399,8 @@ export class GameScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     if (this.isGameOver || this.isPaused) return;
 
-    // 키보드 이동 처리
-    if (this.input.keyboard) {
+    // 키보드 이동 처리 (포인터 최신 입력 우선)
+    if (this.input.keyboard && this.shouldUseKeyboardMovement()) {
       const speed = Data.gameConfig.player.cursorSpeed;
       const moveDistance = (speed * delta) / 1000;
       let dx = 0;
@@ -1258,12 +1419,8 @@ export class GameScene extends Phaser.Scene {
           dy *= factor;
         }
 
-        this.cursorX += dx * moveDistance;
-        this.cursorY += dy * moveDistance;
-
-        // 화면 경계 제한
-        this.cursorX = Phaser.Math.Clamp(this.cursorX, 0, GAME_WIDTH);
-        this.cursorY = Phaser.Math.Clamp(this.cursorY, 0, GAME_HEIGHT);
+        this.applyCursorPosition(this.cursorX + dx * moveDistance, this.cursorY + dy * moveDistance);
+        this.lastInputDevice = 'keyboard';
       }
     }
 

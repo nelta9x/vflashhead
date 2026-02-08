@@ -42,6 +42,7 @@
 | **폰트 설정** | `game-config.json` | `fonts` |
 | **메인 메뉴 언어 안전영역** | `main-menu.json` | `languageUI.safeAreaPaddingX`, `languageUI.safeAreaPaddingTop`, `languageUI.safeAreaPaddingBottom` |
 | **커서 크기** | `game-config.json` | `player.cursorHitbox.baseRadius` |
+| **커서 입력 전환 유예** | `game-config.json` | `player.input.pointerPriorityMs` |
 | **콤보 이펙트 강도** | `feedback.json` | `comboMilestones` |
 
 ---
@@ -102,6 +103,9 @@ import { COLORS, FONTS } from '../data/constants';
     "cursorHitbox": {
       "baseRadius": 30  // 커서 기본 공격 범위 (px)
     },
+    "input": {
+      "pointerPriorityMs": 120  // 포인터 입력 이후 키보드 이동이 우선권을 얻기 전까지의 유예 시간 (ms)
+    },
     "hpRing": {
       "radiusOffset": -4,      // 커서 반지름 대비 HP 링 위치 오프셋 (음수면 안쪽, 0에 가까울수록 껍데기에 붙음)
       "barThickness": 6,       // HP 바 두께
@@ -146,6 +150,7 @@ import { COLORS, FONTS } from '../data/constants';
 
 플레이어 HP는 별도 HUD 바가 아니라 `CursorRenderer`의 커서 통합형 링으로 렌더링됩니다.
 `player.hpRing`은 해당 링 전용 설정입니다.
+`player.input.pointerPriorityMs`는 포인터 이동 직후 키보드 이동이 입력 우선권을 가져가기 전까지의 안전 유예 시간을 정의합니다.
 
 ---
 

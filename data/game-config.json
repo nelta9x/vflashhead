@@ -25,7 +25,10 @@
     },
     "cursorColor": "#f0f8ff",
     "cursorColorNumeric": 15792383,
-    "cursorSpeed": 1123
+    "cursorSpeed": 1123,
+    "input": {
+      "pointerPriorityMs": 120
+    }
   },
   "upgradeUI": {
     "boxWidth": 300,

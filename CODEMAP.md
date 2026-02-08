@@ -40,6 +40,7 @@
 - **`src/scenes/BootScene.ts`**: 초기 로딩 화면. 에셋 프리로딩(오디오, SVG 아이콘), 프로그레스 바 표시.
 - **`src/scenes/MenuScene.ts`**: 메인 메뉴. 타이틀, 시작 버튼, 별 배경, 보스 애니메이션, 그리드 효과, 언어 선택 UI 처리.
 - **`src/scenes/GameScene.ts`**: **핵심 게임 루프**. 모든 시스템을 초기화하고 조율합니다.
+  - **입력 안정화**: 포인터/키보드 혼합 입력에서 포인터 우선 유예(`player.input.pointerPriorityMs`)를 적용하고, `window blur`/`visibilitychange`/`gameout`/pause-resume 시 키 상태를 리셋해 커서 stuck 이동을 방지합니다.
   - **플레이어 공격**: 게이지 완충 시 기 모으기(Charge) 및 순차 미사일(Sequential Missiles) 발사 로직을 관리하며, 시각 연출은 `PlayerAttackRenderer`에 위임합니다.
   - **보스 공격**: 멀티 보스(`Map<string, Boss>`) 기준으로 보스별 레이저 타이밍/취소/재개를 독립 제어합니다.
   - **블랙홀 어빌리티**: `BlackHoleSystem`의 흡인/피해 로직과 `BlackHoleRenderer`의 시각 연출을 매 프레임 동기화합니다.

@@ -75,15 +75,15 @@
     "upgrade.magnet.desc": "Pulls nearby dishes towards cursor.",
     "upgrade.magnet.desc_template": "Pulls dishes within {radius}px with {force} force.",
     "upgrade.missile.name": "Missile Barrage",
-    "upgrade.missile.desc": "Launch missiles at boss on full charge.",
+    "upgrade.missile.desc": "Enhances missile count and per-missile damage on full charge.",
     "upgrade.missile.desc_template": "Launch {count} missiles ({damage} dmg) at boss on full charge.",
     "upgrade.health_pack.name": "Health Pack+",
     "upgrade.health_pack.desc": "Better health packs and max HP.",
     "upgrade.health_pack.desc_template": "Max HP +{hpBonus}, Drop Chance +{dropChanceBonus}%.",
 
     "upgrade.orbiting_orb.name": "Protective Orbs",
-    "upgrade.orbiting_orb.desc": "Spawns orbs circling the cursor (Size increases with Magnet Level, can remove bomb dishes).",
-    "upgrade.orbiting_orb.desc_template": "{count} orbs orbiting at {speed} deg/s deal {damage} damage and remove bomb dishes.",
+    "upgrade.orbiting_orb.desc": "Spawns orbiting orbs around the cursor. Level-ups increase orb count, damage, speed, radius, and base size; orbs can remove bomb dishes.",
+    "upgrade.orbiting_orb.desc_template": "{count} orbs rotate at {speed} deg/s, deal {damage} damage, and orbit at {radius}px with base size {size} (can remove bomb dishes).",
 
     "upgrade.preview.cursor_size.new": "Cursor Area +{Size}%, Damage +{Dmg}, Missile Thickness +{MissileThickness}%",
     "upgrade.preview.cursor_size.upgrade": "Area {curSize}% -> {nextSize}%, Damage {curDmg} -> {nextDmg}, Thickness {curMissileThickness}% -> {nextMissileThickness}%",
@@ -95,11 +95,11 @@
     "upgrade.preview.magnet.upgrade": "Radius {curRadius} -> {nextRadius}px, Force {curForce} -> {nextForce}",
     "upgrade.preview.missile.new": "{Count} Missiles ({Dmg} Dmg)",
     "upgrade.preview.missile.upgrade": "{curCount} -> {nextCount} Missiles, Dmg {curDmg} -> {nextDmg}",
-    "upgrade.preview.missile.upgrade_count": "Missiles {curCount} -> {nextCount}",
+    "upgrade.preview.missile.upgrade_count": "Missiles {curCount} -> {nextCount}, Dmg {curDmg}",
     "upgrade.preview.health_pack.new": "Max HP +{Hp}, Drop +{Drop}%",
     "upgrade.preview.health_pack.upgrade": "Max HP {curHp} -> {nextHp}, Drop {curDrop}% -> {nextDrop}%",
-    "upgrade.preview.orbiting_orb.new": "{Count} Orbs, {Dmg} Dmg",
-    "upgrade.preview.orbiting_orb.upgrade": "{curCount} -> {nextCount} Orbs, Dmg {curDmg} -> {nextDmg}"
+    "upgrade.preview.orbiting_orb.new": "{Count} Orbs, {Dmg} Dmg, {Speed} deg/s, Radius {Radius}px, Size {OrbSize}",
+    "upgrade.preview.orbiting_orb.upgrade": "Orbs {curCount} -> {nextCount}, Dmg {curDmg} -> {nextDmg}, Speed {curSpeed} -> {nextSpeed}, Radius {curRadius} -> {nextRadius}px, Size {curOrbSize} -> {nextOrbSize}"
   },
   "ko": {
     "fontFamily": "'NeoDunggeunmoPro', 'Black Han Sans', 'Orbitron', sans-serif",
@@ -177,15 +177,15 @@
     "upgrade.magnet.desc": "커서 주변 접시 끌어당김",
     "upgrade.magnet.desc_template": "반경 {radius}px 내 접시가 {force}의 힘으로 끌려옵니다.",
     "upgrade.missile.name": "강화 미사일",
-    "upgrade.missile.desc": "풀 차지 공격 시 보스에게 발사되는 미사일 수 증가",
+    "upgrade.missile.desc": "풀 차지 공격 시 보스에게 발사되는 미사일 수와 발당 피해량 강화",
     "upgrade.missile.desc_template": "풀 차지 공격 시 보스에게 {count}발의 미사일({damage} 데미지)을 연속 발사합니다.",
     "upgrade.health_pack.name": "강화 헬스팩",
     "upgrade.health_pack.desc": "헬스팩 성능 강화 및 최대 체력 증가",
     "upgrade.health_pack.desc_template": "최대 체력이 {hpBonus} 증가하고, 헬스팩 드롭 확률이 {dropChanceBonus}% 증가합니다.",
 
     "upgrade.orbiting_orb.name": "수호의 구체",
-    "upgrade.orbiting_orb.desc": "커서 주변을 회전하는 구체 생성 (자기장 레벨에 비례해 크기 증가, 폭탄 접시 제거 가능)",
-    "upgrade.orbiting_orb.desc_template": "구체 {count}개가 초당 {speed}도 회전하며 {damage} 피해를 주고 폭탄 접시를 제거합니다.",
+    "upgrade.orbiting_orb.desc": "커서 주위를 도는 구체를 생성합니다. 레벨이 오를수록 구체 수/데미지/회전 속도/반경/기본 크기가 증가하며 폭탄 접시를 제거할 수 있습니다.",
+    "upgrade.orbiting_orb.desc_template": "구체 {count}개가 초당 {speed}도 회전하며 {damage} 피해를 주고, 반경 {radius}px에서 기본 크기 {size}로 폭탄 접시를 제거합니다.",
 
     "upgrade.preview.cursor_size.new": "커서 범위 +{Size}%, 데미지 +{Dmg}, 미사일 굵기 +{MissileThickness}%",
     "upgrade.preview.cursor_size.upgrade": "범위 {curSize}%→{nextSize}%, 데미지 {curDmg}→{nextDmg}, 굵기 {curMissileThickness}%→{nextMissileThickness}%",
@@ -197,10 +197,10 @@
     "upgrade.preview.magnet.upgrade": "반경 {curRadius}→{nextRadius}px, 힘 {curForce}→{nextForce}",
     "upgrade.preview.missile.new": "미사일 {Count}발 ({Dmg} 데미지)",
     "upgrade.preview.missile.upgrade": "미사일 {curCount}→{nextCount}발, 데미지 {curDmg}→{nextDmg}",
-    "upgrade.preview.missile.upgrade_count": "미사일 수 {curCount} → {nextCount}발",
+    "upgrade.preview.missile.upgrade_count": "미사일 수 {curCount} → {nextCount}발, 발당 데미지 {curDmg}",
     "upgrade.preview.health_pack.new": "최대 체력 +{Hp}, 드롭 확률 +{Drop}%",
     "upgrade.preview.health_pack.upgrade": "최대 체력 {curHp}→{nextHp}, 드롭 확률 {curDrop}%→{nextDrop}%",
-    "upgrade.preview.orbiting_orb.new": "구체 {Count}개, {Dmg} 데미지",
-    "upgrade.preview.orbiting_orb.upgrade": "구체 {curCount}→{nextCount}개, 데미지 {curDmg}→{nextDmg}"
+    "upgrade.preview.orbiting_orb.new": "구체 {Count}개, 데미지 {Dmg}, 속도 {Speed}도/초, 반경 {Radius}px, 크기 {OrbSize}",
+    "upgrade.preview.orbiting_orb.upgrade": "구체 {curCount}→{nextCount}개, 데미지 {curDmg}→{nextDmg}, 속도 {curSpeed}→{nextSpeed}도/초, 반경 {curRadius}→{nextRadius}px, 크기 {curOrbSize}→{nextOrbSize}"
   }
 }

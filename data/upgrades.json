@@ -97,16 +97,16 @@
     {
       "id": "missile",
       "name": "강화 미사일",
-      "description": "풀 차지 공격 시 보스에게 발사되는 미사일 수 증가",
+      "description": "풀 차지 공격 시 보스에게 발사되는 미사일 수와 발당 피해량 강화",
       "descriptionTemplate": "풀 차지 공격 시 보스에게 {count}발의 미사일({damage} 데미지)을 연속 발사합니다.",
       "rarity": "legendary",
       "effectType": "missileLevel",
       "levels": [
-        { "damage": 120, "count": 1 },
-        { "damage": 145, "count": 1 },
-        { "damage": 130, "count": 2 },
-        { "damage": 165, "count": 2 },
-        { "damage": 145, "count": 3 }
+        { "damage": 80, "count": 2 },
+        { "damage": 140, "count": 2 },
+        { "damage": 140, "count": 3 },
+        { "damage": 140, "count": 4 },
+        { "damage": 150, "count": 5 }
       ]
     },
     {
@@ -125,17 +125,17 @@
     {
       "id": "orbiting_orb",
       "name": "수호의 구체",
-      "description": "커서 주변을 회전하는 구체 생성 (자기장 레벨에 비례해 크기 증가, 폭탄 접시 제거 가능)",
-      "descriptionTemplate": "구체 {count}개가 초당 {speed}회전하며 {damage} 피해를 주고 폭탄 접시를 제거합니다.",
+      "description": "커서 주위를 도는 구체 생성 (레벨에 따라 구체 수/피해/회전 속도/반경/크기 증가, 폭탄 접시 제거 가능)",
+      "descriptionTemplate": "구체 {count}개가 초당 {speed}도 회전하며 {damage} 피해를 주고, 반경 {radius}px에서 크기 {size}로 폭탄 접시를 제거합니다.",
       "rarity": "rare",
       "effectType": "orbitingOrbLevel",
       "hitInterval": 900,
       "levels": [
-        { "count": 1, "damage": 3, "speed": 150, "radius": 120, "size": 9 },
-        { "count": 2, "damage": 5, "speed": 190, "radius": 130, "size": 11 },
-        { "count": 3, "damage": 7, "speed": 230, "radius": 140, "size": 13 },
-        { "count": 4, "damage": 9, "speed": 270, "radius": 150, "size": 15 },
-        { "count": 5, "damage": 11, "speed": 310, "radius": 160, "size": 17 }
+        { "count": 2, "damage": 3, "speed": 150, "radius": 120, "size": 9 },
+        { "count": 2, "damage": 5, "speed": 150, "radius": 120, "size": 11 },
+        { "count": 3, "damage": 5, "speed": 150, "radius": 120, "size": 11 },
+        { "count": 4, "damage": 7, "speed": 150, "radius": 120, "size": 11 },
+        { "count": 5, "damage": 7, "speed": 150, "radius": 160, "size": 15 }
       ]
     }
   ]

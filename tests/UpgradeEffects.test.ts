@@ -216,8 +216,8 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
       upgrade.applyUpgrade(missileUpgrade);
       expect(upgrade.getMissileLevel()).toBe(1);
-      expect(upgrade.getMissileDamage()).toBe(120);
-      expect(upgrade.getMissileCount()).toBe(1);
+      expect(upgrade.getMissileDamage()).toBe(80);
+      expect(upgrade.getMissileCount()).toBe(2);
     });
 
     it('레벨 3 수치 확인', async () => {
@@ -226,37 +226,37 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
       const missileUpgrade = UPGRADES.find((u) => u.id === 'missile')!;
 
       for (let i = 0; i < 3; i++) upgrade.applyUpgrade(missileUpgrade);
-      expect(upgrade.getMissileDamage()).toBe(130);
-      expect(upgrade.getMissileCount()).toBe(2);
+      expect(upgrade.getMissileDamage()).toBe(140);
+      expect(upgrade.getMissileCount()).toBe(3);
     });
 
-    it('미사일 수 증가 레벨에서는 발당 피해가 감소해야 함', async () => {
+    it('레벨 2~5 수치 진행 확인', async () => {
       const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const missileUpgrade = UPGRADES.find((u) => u.id === 'missile')!;
 
-      // 레벨 2: count 1
+      // 레벨 2: 발당 피해 증가
       for (let i = 0; i < 2; i++) upgrade.applyUpgrade(missileUpgrade);
-      expect(upgrade.getMissileDamage()).toBe(145);
-      expect(upgrade.getMissileCount()).toBe(1);
-
-      // 레벨 3: 첫 count 증가, 발당 damage 감소
-      upgrade.applyUpgrade(missileUpgrade);
-      expect(upgrade.getMissileDamage()).toBe(130);
+      expect(upgrade.getMissileDamage()).toBe(140);
       expect(upgrade.getMissileCount()).toBe(2);
 
-      // 레벨 4: count 유지, damage 증가
+      // 레벨 3: 미사일 수 증가
       upgrade.applyUpgrade(missileUpgrade);
-      expect(upgrade.getMissileDamage()).toBe(165);
-      expect(upgrade.getMissileCount()).toBe(2);
-
-      // 레벨 5: 두 번째 count 증가, 발당 damage 감소
-      upgrade.applyUpgrade(missileUpgrade);
-      expect(upgrade.getMissileDamage()).toBe(145);
       expect(upgrade.getMissileCount()).toBe(3);
+      expect(upgrade.getMissileDamage()).toBe(140);
+
+      // 레벨 4: 미사일 수 증가
+      upgrade.applyUpgrade(missileUpgrade);
+      expect(upgrade.getMissileCount()).toBe(4);
+      expect(upgrade.getMissileDamage()).toBe(140);
+
+      // 레벨 5: 미사일 수/발당 피해 증가
+      upgrade.applyUpgrade(missileUpgrade);
+      expect(upgrade.getMissileCount()).toBe(5);
+      expect(upgrade.getMissileDamage()).toBe(150);
     });
 
-    it('강한 강화 구간이 2번 존재해야 함 (L3, L5)', async () => {
+    it('강한 강화 구간이 L2->L3, L4->L5에 존재해야 함', async () => {
       const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const missileUpgrade = UPGRADES.find((u) => u.id === 'missile')!;
@@ -267,10 +267,10 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
         totalDamageByLevel.push(upgrade.getMissileDamage() * upgrade.getMissileCount());
       }
 
-      // L2 -> L3: 첫 번째 강한 성장 구간
+      // L2 -> L3: count 증가로 강한 성장 구간
       expect(totalDamageByLevel[2]).toBeGreaterThanOrEqual(Math.floor(totalDamageByLevel[1] * 1.5));
-      // L4 -> L5: 두 번째 강한 성장 구간
-      expect(totalDamageByLevel[4]).toBeGreaterThanOrEqual(Math.floor(totalDamageByLevel[3] * 1.25));
+      // L4 -> L5: count + damage 증가로 강한 성장 구간
+      expect(totalDamageByLevel[4]).toBeGreaterThanOrEqual(Math.floor(totalDamageByLevel[3] * 1.3));
     });
 
     it('최대 레벨이 5에서 캡되어야 함', async () => {
@@ -280,8 +280,8 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
       for (let i = 0; i < 8; i++) upgrade.applyUpgrade(missileUpgrade);
       expect(upgrade.getMissileLevel()).toBe(5);
-      expect(upgrade.getMissileDamage()).toBe(145);
-      expect(upgrade.getMissileCount()).toBe(3);
+      expect(upgrade.getMissileDamage()).toBe(150);
+      expect(upgrade.getMissileCount()).toBe(5);
     });
   });
 

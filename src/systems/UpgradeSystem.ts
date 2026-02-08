@@ -333,8 +333,10 @@ export class UpgradeSystem {
           if (key === 'range') params[`${prefix}Range`] = val;
           if (key === 'force') params[`${prefix}Force`] = val;
           if (key === 'count') params[`${prefix}Count`] = val;
+          if (key === 'speed') params[`${prefix}Speed`] = val;
           if (key === 'hpBonus') params[`${prefix}Hp`] = val;
           if (key === 'dropChanceBonus') params[`${prefix}Drop`] = val;
+          if (key === 'size') params[`${prefix}OrbSize`] = val;
           if (key === 'criticalChance') params[`${prefix}CriticalChance`] = val;
           if (key === 'missileThicknessBonus') params[`${prefix}MissileThickness`] = val;
         } else {

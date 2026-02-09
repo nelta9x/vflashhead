@@ -38,7 +38,7 @@
 
 - **`src/main.ts`**: 게임 인스턴스 생성 및 씬 등록 (`Boot`, `Menu`, `Game`, `GameOver`).
 - **`src/scenes/BootScene.ts`**: 초기 로딩 화면. 에셋 프리로딩(오디오, SVG 아이콘), 프로그레스 바 표시.
-- **`src/scenes/MenuScene.ts`**: 메인 메뉴. 타이틀, 시작 버튼, 별 배경, 보스 애니메이션, 그리드 효과, 언어 선택 UI 처리.
+- **`src/scenes/MenuScene.ts`**: 메인 메뉴 오케스트레이터. 타이틀/시작 UI와 배경 렌더러를 구성하고, 언어 위젯/입력/앰비언트 시뮬레이션은 보조 모듈에 위임합니다.
 - **`src/scenes/GameScene.ts`**: **핵심 게임 루프 오케스트레이터**. 시스템/렌더러를 초기화하고 `update()`에서 모듈 호출 순서를 조율합니다.
   - **상위 흐름 유지**: `create/update/cleanup`, pause 상태 전환(`syncSimulationPauseState`), HUD 프레임 컨텍스트 조합.
   - **입력 안정화**: 키보드 축 이동 적용은 Scene에서 수행하되, 리스너 바인딩/해제는 `SceneInputAdapter`로 위임합니다.
@@ -49,20 +49,33 @@
 ### 1.5 GameScene 보조 모듈 (`src/scenes/game/`)
 
 - **`BossCombatCoordinator.ts`**: 멀티 보스 동기화, 보스 스폰 배치, 레이저 스케줄/취소/충돌, 보스 접촉 데미지, 보스 스냅샷 제공.
+  - 내부 분해: `boss/BossRosterSync.ts`, `boss/BossLaserController.ts`, `boss/BossContactDamageController.ts`
 - **`PlayerAttackController.ts`**: 게이지 공격(차지/순차 미사일/재타겟), 미사일 경로 접시 제거, 치명타 시 레이저 취소 처리.
 - **`DishLifecycleController.ts`**: `DISH_DESTROYED/DISH_DAMAGED/DISH_MISSED` 처리, 접시 스폰(폭탄 경고 포함), 전기 충격/자기장/커서 범위 판정.
+  - 내부 분해: `dish/DishSpawnService.ts`, `dish/DishResolutionService.ts`, `dish/DishFieldEffectService.ts`
 - **`GameSceneEventBinder.ts`**: `EventBus` 구독/해제 일원화 및 payload 라우팅.
 - **`SceneInputAdapter.ts`**: pointer/ESC/blur/visibility/gameout 입력 리스너 등록·해제 전담.
 - **`GameSceneContracts.ts`**: 모듈 간 공유 타입 및 최소 게이트웨이 인터페이스(`BossInteractionGateway`) 정의.
+- **`CursorPositionProvider.ts`**: Scene/포인터/명시 provider 우선순위로 커서 좌표를 해석하는 공용 유틸.
+- **`src/scenes/menu/`**:
+  - `LanguageSelectorWidget.ts`: 언어 토글 UI + safe area 판정
+  - `MenuInputController.ts`: Phaser/native 입력 브릿지 및 리스너 정리
+  - `MenuAmbientController.ts`: 메뉴 커서 추적/배경 접시 시뮬레이션
 
 ### 2. 핵심 게임 로직 (Systems)
 
 `src/systems/` 디렉토리에는 특정 기능을 담당하는 독립적인 클래스들이 위치합니다.
 
-- **`WaveSystem.ts`**: 웨이브 구성, 적 스폰 타이밍, 카운트다운 관리. `waves.json` 설정(`bosses`, `bossSpawnMinDistance` 포함)을 기반으로 하며, 접시 스폰 시 활성 보스 전체와의 거리 검증을 수행합니다.
+- **`WaveSystem.ts`**: 웨이브 오케스트레이터. 내부 계산은 `systems/wave/*` 모듈에 위임합니다.
+  - `wave/WaveConfigResolver.ts`: 웨이브/무한/피버 구성 계산
+  - `wave/WavePhaseController.ts`: waiting/countdown/spawning 상태와 카운트다운 이벤트 틱
+  - `wave/WaveSpawnPlanner.ts`: 접시 타입 롤 + 스폰 위치 제약 검증(보스/접시 거리)
 - **`waveBossConfig.ts`**: 웨이브별 보스 구성 해석 유틸리티. `bossTotalHp`/`hpWeight` 분배, 무한 웨이브 보스 수/총 HP 스케일링(`bossTotalHpIncrease`, `infiniteBossCount`)을 공용 계산합니다.
 - **`ComboSystem.ts`**: 콤보 증가, 타임아웃 처리, 마일스톤 관리. 콤보 수치에 따라 `COMBO_MILESTONE` 이벤트를 발생시켜 연출을 트리거합니다.
-- **`UpgradeSystem.ts`**: 플레이어 어빌리티 관리 및 업그레이드 효과 적용. `upgrades.json`의 확률 기반으로 선택지를 생성합니다. 다국어 템플릿 치환 로직 포함.
+- **`UpgradeSystem.ts`**: 업그레이드 파사드. 내부 상태/선택/문구 포매팅은 분리 모듈로 위임합니다.
+  - `upgrades/UpgradeStateStore.ts`: 스택 상태 저장
+  - `upgrades/UpgradeRarityRoller.ts`: 희귀도 가중치 기반 선택
+  - `upgrades/UpgradeDescriptionFormatter.ts`: 로케일 템플릿 기반 설명/프리뷰 문자열 생성
 - **`HealthSystem.ts`**: 플레이어 HP 관리. 데미지 수신 시 `HP_CHANGED` 이벤트를 발행하며, 현재 HP는 `GameScene -> CursorRenderer` 경로로 커서 통합형 링에 반영됩니다. HP가 0이 되면 `GAME_OVER` 발생.
 - **`MonsterSystem.ts`**: 보스 몬스터 HP/사망 상태를 `bossId`별 `Map`으로 관리합니다. 웨이브 시작 시 `bossTotalHp`를 가중치(`hpWeight`) 기반으로 분배하고, `MONSTER_HP_CHANGED`/`MONSTER_DIED`를 `bossId` 스냅샷 payload로 발행합니다.
 - **`OrbSystem.ts`**: 플레이어 주변을 회전하는 보호 오브(Orb)의 로직 처리. 업그레이드 레벨에 따른 개수/속도/데미지 계산 및 자석(Magnet) 업그레이드와의 시너지(크기 증가)를 관리합니다.
@@ -82,6 +95,7 @@
   - `spawn()`: 초기화 및 애니메이션 시작.
   - `applyDamage()`: HP 감소 및 파괴 로직.
   - `update()`: 생존 시간 체크 및 이동 로직.
+  - 내부 분해: `entities/dish/DishDamageResolver.ts`, `entities/dish/DishEventPayloadFactory.ts`
   - 외형 렌더링: `DishRenderer`에 위임 (인게임/메뉴 공용 스타일).
 - **`Boss.ts`**: 보스 몬스터의 로직 엔티티. 각 인스턴스는 자신의 `bossId` 이벤트(`MONSTER_HP_CHANGED`/`MONSTER_DIED`)만 처리하며, 시각화는 `BossRenderer`에 위임합니다.
 - **`HealthPack.ts`**: 낙하하는 힐 아이템 오브젝트. 커서와 충돌 시 `HEALTH_PACK_COLLECTED` 이벤트를 발생시키며, 외형 렌더링은 `HealthPackRenderer`에 위임합니다.
@@ -103,15 +117,20 @@
   - **`HealthPackRenderer.ts`**: 힐팩 외형 렌더링 전담 클래스.
   - **`PlayerAttackRenderer.ts`**: 플레이어 필살기(충전 글로우/커서 외곽 백색 에너지 수렴/발사 직전 커서 글로우/전기 스파크/미사일 트레일/폭탄 경고) 연출 렌더러.
   - **`CursorRenderer.ts`**: 메뉴/인게임 커서 외형, 공격 게이지, 자기장/전기 충격 범위, 그리고 플레이어 HP 세그먼트 링을 통합 렌더링.
+  - **`ParticleManager.ts`**: 커서 좌표 조회를 `CursorPositionProvider` 기반으로 통합해 Scene duck-typing 중복을 제거.
 - **`src/ui/`**:
   - `HUD`: HUD 오케스트레이터. 매 프레임 컨텍스트(커서 위치, 업그레이드 선택 상태)를 받아 표시 정책을 적용하며, 도크바 hover 진행도(기본 1.2초 누적 정지)를 씬에 제공합니다.
   - `hud/AbilitySummaryWidget`: 보유 어빌리티 슬롯 렌더링, 도크 영역(맥OS 스타일 오버레이/게이지/재개 힌트) 렌더링, hover 영역 계산(기본 폭 또는 어빌리티 수에 따라 확장), 슬롯 hover 툴팁 카드(아이콘/이름/레벨/설명) 렌더링을 담당합니다. 도크가 열린 동안에만 슬롯과 슬롯 툴팁을 표시합니다.
+  - `hud/AbilityDockRenderer.ts`: 도크 오버레이/정지 게이지 드로잉 전용 렌더 유틸.
+  - `hud/AbilityTooltipLayout.ts`: 툴팁 화면 내 배치(clamp) 계산 유틸.
   - `hud/DockPauseController`: 도크바 hover 누적 시간(기본 1200ms) 기반으로 게임 일시정지 조건을 계산하는 상태 컨트롤러.
   - `hud/WaveTimerWidget`: 웨이브/생존 시간 텍스트와 피버 상태 렌더링.
   - `hud/WaveTimerVisibilityPolicy`: 웨이브/생존 시간 노출 규칙(업그레이드 페이즈 우선, hover 기반 표시) 판단.
   - `InGameUpgradeUI`: 웨이브 사이 업그레이드 선택 화면 (3개 선택지, 호버 프로그레스 바, 레어리티 색상).
+  - `upgrade/UpgradeSelectionRenderer.ts`: 업그레이드 카드 배경/진행바 렌더 및 안전 Y 위치 계산 유틸.
   - `DamageText`: 타격 시 데미지 수치 팝업 (오브젝트 풀링, 크리티컬 색상 처리).
   - `WaveCountdownUI`: 다음 웨이브 시작 전 카운트다운 표시.
+  - `upgrade/UpgradeIconCatalog.ts`: 업그레이드 fallback 아이콘/심볼 SSOT.
 
 ---
 
@@ -121,6 +140,7 @@
 
 - **`src/data/DataManager.ts`**: 모든 JSON 데이터를 로드하여 타입 안전하게 제공하는 싱글톤 (`Data` 상수로 내보냄). 다국어 번역(`t()`) 및 템플릿 치환(`formatTemplate()`) 기능 포함.
 - **`src/data/types.ts`**: 모든 JSON 데이터 구조에 대한 TypeScript 인터페이스 정의.
+- **`src/data/types/`**: 도메인별 타입 진입점 (`gameConfig.ts`, `feedback.ts`, `waves.ts`, `upgrades.ts`, `index.ts`).
 - **`src/data/constants.ts`**: JSON 기반 데이터 중 코드에서 자주 쓰이는 물리/기하학적 상수.
 - **`src/data/game.config.ts`**: Phaser 엔진 기술 설정 (물리, 렌더링, 스케일, 오디오 등).
 - **데이터 파일 목록 (`data/*.json`)**:

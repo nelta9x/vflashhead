@@ -4,6 +4,8 @@ import { Data } from '../data/DataManager';
 import { Poolable } from '../utils/ObjectPool';
 import { EventBus, GameEvents } from '../utils/EventBus';
 import { DishRenderer } from '../effects/DishRenderer';
+import { DishDamageResolver } from './dish/DishDamageResolver';
+import { DishEventPayloadFactory } from './dish/DishEventPayloadFactory';
 
 interface DishConfig {
   lifetime: number;
@@ -247,13 +249,14 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
     this.disableInteractive();
     this.removeAllListeners();
 
-    EventBus.getInstance().emit(GameEvents.DISH_DESTROYED, {
-      dish: this,
-      x: this.x,
-      y: this.y,
-      type: this.dishType,
-      chainReaction: false,
-    });
+    EventBus.getInstance().emit(
+      GameEvents.DISH_DESTROYED,
+      DishEventPayloadFactory.createDishDestroyedPayload({
+        dish: this,
+        type: this.dishType,
+        chainReaction: false,
+      })
+    );
 
     this.deactivate();
   }
@@ -290,26 +293,11 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
   private takeDamage(isFirstHit: boolean): void {
     if (!this.active || this.invulnerable) return;
 
-    // 업그레이드 적용: 기본 데미지 + 보너스 + 치명타
     const damageConfig = Data.dishes.damage;
-    const baseDamage = damageConfig.playerDamage;
-    const damageBonus = this.upgradeOptions.damageBonus || 0;
-    
-    // 기본 치명타 확률 + 업그레이드 확률
-    const critChance = Math.min(
-      1,
-      (damageConfig.criticalChance || 0) + (this.upgradeOptions.criticalChance || 0)
+    const { damage, isCritical } = DishDamageResolver.resolveCursorDamage(
+      damageConfig,
+      this.upgradeOptions
     );
-    const critMultiplier = damageConfig.criticalMultiplier || 2;
-
-    let damage = baseDamage + damageBonus;
-    let isCritical = false;
-
-    // 치명타 판정
-    if (Math.random() < critChance) {
-      damage *= critMultiplier;
-      isCritical = true;
-    }
 
     this.currentHp -= damage;
 
@@ -317,19 +305,19 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
     this.hitFlashPhase = 1;
 
     // 데미지 이벤트 발생
-    EventBus.getInstance().emit(GameEvents.DISH_DAMAGED, {
-      dish: this,
-      x: this.x,
-      y: this.y,
-      type: this.dishType,
-      damage,
-      currentHp: this.currentHp,
-      maxHp: this.maxHp,
-      hpRatio: this.currentHp / this.maxHp,
-      isFirstHit,
-      isCritical,
-      byAbility: false,
-    });
+    EventBus.getInstance().emit(
+      GameEvents.DISH_DAMAGED,
+      DishEventPayloadFactory.createDishDamagedPayload({
+        dish: this,
+        type: this.dishType,
+        damage,
+        currentHp: this.currentHp,
+        maxHp: this.maxHp,
+        isFirstHit,
+        isCritical,
+        byAbility: false,
+      })
+    );
 
     // HP가 0 이하면 파괴
     if (this.currentHp <= 0) {
@@ -419,13 +407,11 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
     this.clearDamageTimer();
 
     // 현재 위치/타입 저장 (이벤트용)
-    const eventData = {
+    const eventData = DishEventPayloadFactory.createDishMissedPayload({
       dish: this,
-      x: this.x,
-      y: this.y,
       type: this.dishType,
       isDangerous: this.dangerous,
-    };
+    });
 
     // 즉시 비활성화 (재사용 방지)
     this.deactivate();
@@ -452,14 +438,15 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
     this.disableInteractive();
     this.removeAllListeners();
 
-    EventBus.getInstance().emit(GameEvents.DISH_DESTROYED, {
-      dish: this,
-      x: this.x,
-      y: this.y,
-      type: this.dishType,
-      chainReaction: this.chainReaction,
-      byAbility: this.destroyedByAbility,
-    });
+    EventBus.getInstance().emit(
+      GameEvents.DISH_DESTROYED,
+      DishEventPayloadFactory.createDishDestroyedPayload({
+        dish: this,
+        type: this.dishType,
+        chainReaction: this.chainReaction,
+        byAbility: this.destroyedByAbility,
+      })
+    );
 
     this.deactivate();
   }
@@ -517,18 +504,18 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
     this.currentHp -= damage;
     this.hitFlashPhase = 1;
 
-    EventBus.getInstance().emit(GameEvents.DISH_DAMAGED, {
-      dish: this,
-      x: this.x,
-      y: this.y,
-      type: this.dishType,
-      damage,
-      currentHp: this.currentHp,
-      maxHp: this.maxHp,
-      hpRatio: this.currentHp / this.maxHp,
-      isFirstHit: false,
-      byAbility: true,
-    });
+    EventBus.getInstance().emit(
+      GameEvents.DISH_DAMAGED,
+      DishEventPayloadFactory.createDishDamagedPayload({
+        dish: this,
+        type: this.dishType,
+        damage,
+        currentHp: this.currentHp,
+        maxHp: this.maxHp,
+        isFirstHit: false,
+        byAbility: true,
+      })
+    );
 
     if (this.currentHp <= 0) {
       this.destroy_dish();
@@ -560,35 +547,30 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
     if (!this.active || this.invulnerable) return;
 
     const damageConfig = Data.dishes.damage;
-    const totalCritChance = Math.min(1, (damageConfig.criticalChance || 0) + criticalChance);
-    const critMultiplier = damageConfig.criticalMultiplier || 2;
-
-    let totalDamage = baseDamage + damageBonus;
-    let isCritical = false;
-
-    // 치명타 적용
-    if (totalCritChance > 0 && Math.random() < totalCritChance) {
-      totalDamage *= critMultiplier;
-      isCritical = true;
-    }
+    const { damage: totalDamage, isCritical } = DishDamageResolver.resolveUpgradeDamage(
+      damageConfig,
+      baseDamage,
+      damageBonus,
+      criticalChance
+    );
 
     this.currentHp -= totalDamage;
     this.hitFlashPhase = 1;
     this.destroyedByAbility = true;
 
-    EventBus.getInstance().emit(GameEvents.DISH_DAMAGED, {
-      dish: this,
-      x: this.x,
-      y: this.y,
-      type: this.dishType,
-      damage: totalDamage,
-      currentHp: this.currentHp,
-      maxHp: this.maxHp,
-      hpRatio: this.currentHp / this.maxHp,
-      isFirstHit: false,
-      isCritical,
-      byAbility: true,
-    });
+    EventBus.getInstance().emit(
+      GameEvents.DISH_DAMAGED,
+      DishEventPayloadFactory.createDishDamagedPayload({
+        dish: this,
+        type: this.dishType,
+        damage: totalDamage,
+        currentHp: this.currentHp,
+        maxHp: this.maxHp,
+        isFirstHit: false,
+        isCritical,
+        byAbility: true,
+      })
+    );
 
     if (this.currentHp <= 0) {
       this.destroy_dish();

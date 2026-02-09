@@ -5,6 +5,16 @@ import { UpgradeSystem, Upgrade } from '../systems/UpgradeSystem';
 import { EventBus, GameEvents } from '../utils/EventBus';
 
 import { ParticleManager } from '../effects/ParticleManager';
+import {
+  CursorPositionProvider,
+  resolveCursorPosition,
+} from '../scenes/game/CursorPositionProvider';
+import { getUpgradeFallbackSymbol } from './upgrade/UpgradeIconCatalog';
+import {
+  drawUpgradeBoxBackground,
+  drawUpgradeProgressBar,
+  resolveUpgradeSafeBoxCenterY,
+} from './upgrade/UpgradeSelectionRenderer';
 
 interface UpgradeBox {
   container: Phaser.GameObjects.Container;
@@ -24,11 +34,18 @@ export class InGameUpgradeUI {
   private visible: boolean = false;
   private mainContainer!: Phaser.GameObjects.Container;
   private currentBoxCenterY: number = GAME_HEIGHT - UPGRADE_UI.BOX_Y_OFFSET;
+  private readonly cursorProvider?: CursorPositionProvider;
 
-  constructor(scene: Phaser.Scene, upgradeSystem: UpgradeSystem, particleManager: ParticleManager) {
+  constructor(
+    scene: Phaser.Scene,
+    upgradeSystem: UpgradeSystem,
+    particleManager: ParticleManager,
+    cursorProvider?: CursorPositionProvider
+  ) {
     this.scene = scene;
     this.upgradeSystem = upgradeSystem;
     this.particleManager = particleManager;
+    this.cursorProvider = cursorProvider;
     this.createContainer();
   }
 
@@ -90,7 +107,7 @@ export class InGameUpgradeUI {
     const totalWidth = upgrades.length * BOX_WIDTH + (upgrades.length - 1) * BOX_SPACING;
     const startX = (GAME_WIDTH - totalWidth) / 2 + BOX_WIDTH / 2;
     const baseY = GAME_HEIGHT - BOX_Y_OFFSET;
-    const y = this.getSafeBoxCenterY(baseY);
+    const y = resolveUpgradeSafeBoxCenterY(baseY);
     this.currentBoxCenterY = y;
 
     upgrades.forEach((upgrade, index) => {
@@ -98,27 +115,6 @@ export class InGameUpgradeUI {
       const box = this.createUpgradeBox(upgrade, x, y);
       this.boxes.push(box);
     });
-  }
-
-  private getSafeBoxCenterY(baseY: number): number {
-    const { BOX_HEIGHT } = UPGRADE_UI;
-    const upgradeUiConfig = Data.gameConfig.upgradeUI;
-    const abilityConfig = Data.gameConfig.hud.abilityDisplay;
-    const gaugeCfg = Data.gameConfig.hud.waveTimerDisplay.dockPauseGauge;
-    const dockBottomReserve = gaugeCfg.height + gaugeCfg.bottomInset;
-
-    const abilityPanelHeight = abilityConfig.levelInsideIcon
-      ? abilityConfig.iconSize + abilityConfig.panelPaddingY * 2
-      : abilityConfig.iconSize +
-        abilityConfig.levelOffsetY +
-        abilityConfig.levelFontSize +
-        abilityConfig.panelPaddingY * 2;
-    const abilityTopY =
-      GAME_HEIGHT - abilityConfig.bottomMargin - dockBottomReserve - abilityPanelHeight;
-    const maxYWithoutOverlap = abilityTopY - upgradeUiConfig.avoidAbilityUiGap - BOX_HEIGHT / 2;
-    const minVisibleY = BOX_HEIGHT / 2 + 20;
-
-    return Math.max(minVisibleY, Math.min(baseY, maxYWithoutOverlap));
   }
 
   private createUpgradeBox(upgrade: Upgrade, x: number, y: number): UpgradeBox {
@@ -136,7 +132,7 @@ export class InGameUpgradeUI {
 
     // 배경
     const bg = this.scene.add.graphics();
-    this.drawBoxBackground(bg, BOX_WIDTH, BOX_HEIGHT, borderColor, false);
+    drawUpgradeBoxBackground(bg, BOX_WIDTH, BOX_HEIGHT, borderColor, false);
     container.add(bg);
 
     // 아이콘 표시 (SVG 스프라이트 또는 텍스트 폴백)
@@ -151,7 +147,7 @@ export class InGameUpgradeUI {
       container.add(iconSprite);
     } else {
       // 텍스처가 없으면 텍스트 심볼 폴백
-      const iconSymbol = this.getUpgradeSymbol(upgrade.id);
+      const iconSymbol = getUpgradeFallbackSymbol(upgrade.id);
       const icon = this.scene.add
         .text(0, iconY, iconSymbol, {
           fontFamily: FONTS.MAIN,
@@ -216,62 +212,8 @@ export class InGameUpgradeUI {
     };
   }
 
-  private drawBoxBackground(
-    graphics: Phaser.GameObjects.Graphics,
-    width: number,
-    height: number,
-    borderColor: number,
-    hovered: boolean
-  ): void {
-    graphics.clear();
-    graphics.fillStyle(hovered ? 0x2a1a4e : 0x1a0a2e, 0.95);
-    graphics.fillRoundedRect(-width / 2, -height / 2, width, height, 20);
-    graphics.lineStyle(hovered ? 6 : 4, borderColor, hovered ? 1 : 0.7);
-    graphics.strokeRoundedRect(-width / 2, -height / 2, width, height, 20);
-  }
-
   private updateProgressBar(box: UpgradeBox): void {
-    const { BOX_WIDTH, BOX_HEIGHT, HOVER_DURATION } = UPGRADE_UI;
-    const barWidth = BOX_WIDTH - 60;
-    const barHeight = 10;
-    const barY = BOX_HEIGHT / 2 - 40;
-
-    box.progressBar.clear();
-
-    if (box.hoverProgress > 0) {
-      const fillWidth = barWidth * (box.hoverProgress / HOVER_DURATION);
-      box.progressBar.fillStyle(box.borderColor, 1);
-      box.progressBar.fillRoundedRect(-barWidth / 2, barY - barHeight / 2, fillWidth, barHeight, 5);
-    }
-  }
-
-  private getUpgradeSymbol(upgradeId: string): string {
-    const symbols: Record<string, string> = {
-      damage_up: '⚔',
-      attack_speed: '⚡',
-      dish_slow: '⏱',
-      hp_up: '♥',
-      heal_on_wave: '✚',
-      aoe_destroy: '◎',
-      bomb_shield: '🛡',
-      lifesteal: '♡',
-      combo_heal: '❤',
-      health_pack: '✚',
-      cursor_size: '◯',
-      critical_chance: '✦',
-      aoe_destroy_enhanced: '◉',
-      freeze_aura: '❄',
-      electric_shock: '⚡',
-      bomb_convert: '↻',
-      second_chance: '↺',
-      magnet_pull: '⊕',
-      chain_reaction: '⁂',
-      black_hole: '●',
-      immortal: '∞',
-      time_stop: '⏸',
-      auto_destroy: '⟳',
-    };
-    return symbols[upgradeId] || '★';
+    drawUpgradeProgressBar(box.progressBar, box.hoverProgress, box.borderColor);
   }
 
   update(delta: number): void {
@@ -293,7 +235,7 @@ export class InGameUpgradeUI {
 
       // 호버 상태 변경 시 배경 업데이트
       if (wasHovered !== box.isHovered) {
-        this.drawBoxBackground(box.bg, BOX_WIDTH, BOX_HEIGHT, box.borderColor, box.isHovered);
+        drawUpgradeBoxBackground(box.bg, BOX_WIDTH, BOX_HEIGHT, box.borderColor, box.isHovered);
         if (box.isHovered) {
           box.container.setScale(1.05);
         } else {
@@ -370,15 +312,6 @@ export class InGameUpgradeUI {
   }
 
   private getCursorPosition(): { x: number; y: number } {
-    const cursorAwareScene = this.scene as Phaser.Scene & {
-      getCursorPosition?: () => { x: number; y: number };
-    };
-
-    if (cursorAwareScene.getCursorPosition) {
-      return cursorAwareScene.getCursorPosition();
-    }
-
-    const pointer = cursorAwareScene.input.activePointer;
-    return { x: pointer.worldX, y: pointer.worldY };
+    return resolveCursorPosition(this.scene, this.cursorProvider);
   }
 }

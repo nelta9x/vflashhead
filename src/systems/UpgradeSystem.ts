@@ -1,17 +1,19 @@
 import { Data } from '../data/DataManager';
 import type {
-  SystemUpgradeData,
-  SystemUpgradeLevelData,
-  CursorSizeLevelData,
+  BlackHoleLevelData,
   CriticalChanceLevelData,
+  CursorSizeLevelData,
   ElectricShockLevelData,
+  HealthPackLevelData,
   MagnetLevelData,
   MissileLevelData,
-  HealthPackLevelData,
   OrbitingOrbLevelData,
-  BlackHoleLevelData,
-} from '../data/types';
+  SystemUpgradeData,
+} from '../data/types/upgrades';
 import { EventBus, GameEvents } from '../utils/EventBus';
+import { UpgradeDescriptionFormatter } from './upgrades/UpgradeDescriptionFormatter';
+import { UpgradeRarityRoller } from './upgrades/UpgradeRarityRoller';
+import { UpgradeStateStore } from './upgrades/UpgradeStateStore';
 
 export interface Upgrade {
   id: string;
@@ -48,14 +50,19 @@ function createSystemUpgrades(): Upgrade[] {
 export const UPGRADES: Upgrade[] = createSystemUpgrades();
 
 export class UpgradeSystem {
-  private upgradeStacks: Map<string, number> = new Map();
+  private readonly stateStore = new UpgradeStateStore();
+  private readonly rarityRoller = new UpgradeRarityRoller();
+  private readonly descriptionFormatter: UpgradeDescriptionFormatter;
 
   constructor() {
+    this.descriptionFormatter = new UpgradeDescriptionFormatter((upgradeId) =>
+      this.getUpgradeStack(upgradeId)
+    );
     this.reset();
   }
 
   reset(): void {
-    this.upgradeStacks.clear();
+    this.stateStore.reset();
   }
 
   update(_delta: number, _gameTime: number): void {
@@ -64,55 +71,14 @@ export class UpgradeSystem {
   }
 
   getRandomUpgrades(count: number): Upgrade[] {
-    // 동적 희귀도 가중치 (업그레이드 횟수에 따라 변화)
     const rarityWeights = this.getRarityWeights();
 
-    // 사용 가능한 업그레이드 필터링 (최대 스택 미달성)
-    const availableUpgrades = UPGRADES.filter((upgrade) => {
-      const currentStack = this.upgradeStacks.get(upgrade.id) || 0;
-      return currentStack < upgrade.maxStack;
-    });
-
-    if (availableUpgrades.length === 0) {
-      return UPGRADES.slice(0, count);
-    }
-
-    // 요청 개수가 가용 개수 이상이면 전체 반환 (셔플)
-    if (count >= availableUpgrades.length) {
-      return this.shuffleArray([...availableUpgrades]);
-    }
-
-    // 가중치 기반 선택
-    const selected: Upgrade[] = [];
-    const pool = [...availableUpgrades];
-
-    while (selected.length < count && pool.length > 0) {
-      const totalWeight = pool.reduce((sum, u) => sum + rarityWeights[u.rarity], 0);
-      let random = Math.random() * totalWeight;
-
-      let selectedIndex = pool.length - 1;
-
-      for (let i = 0; i < pool.length; i++) {
-        random -= rarityWeights[pool[i].rarity];
-        if (random <= 0) {
-          selectedIndex = i;
-          break;
-        }
-      }
-
-      selected.push(pool[selectedIndex]);
-      pool.splice(selectedIndex, 1);
-    }
-
-    return selected;
-  }
-
-  private shuffleArray<T>(array: T[]): T[] {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
+    return this.rarityRoller.selectRandomUpgrades(
+      UPGRADES,
+      (upgradeId) => this.getUpgradeStack(upgradeId),
+      count,
+      rarityWeights
+    );
   }
 
   private getRarityWeights(): Record<string, number> {
@@ -122,18 +88,12 @@ export class UpgradeSystem {
   }
 
   private getTotalUpgradeCount(): number {
-    let total = 0;
-    this.upgradeStacks.forEach((stack, id) => {
-      // 헬스팩은 스택 카운트에서 제외 (영구 강화가 아니므로)
-      if (id !== 'health_pack') {
-        total += stack;
-      }
-    });
-    return total;
+    // 헬스팩은 스택 카운트에서 제외 (영구 강화가 아니므로)
+    return this.stateStore.getTotalStackCount(['health_pack']);
   }
 
   applyUpgrade(upgrade: Upgrade): void {
-    const currentStack = this.upgradeStacks.get(upgrade.id) || 0;
+    const currentStack = this.getUpgradeStack(upgrade.id);
 
     // 영구 업그레이드인 경우만 스택 체크
     if (upgrade.id !== 'health_pack' && currentStack >= upgrade.maxStack) {
@@ -141,10 +101,10 @@ export class UpgradeSystem {
     }
 
     // 스택 증가 (헬스팩은 로직상 무시되지만 기록은 남음)
-    this.upgradeStacks.set(upgrade.id, currentStack + 1);
+    const nextStack = this.stateStore.incrementStack(upgrade.id);
 
     // 효과 적용
-    upgrade.effect(this, currentStack + 1);
+    upgrade.effect(this, nextStack);
   }
 
   // ========== 레벨 데이터 헬퍼 ==========
@@ -247,11 +207,11 @@ export class UpgradeSystem {
 
   // ========== 유틸리티 ==========
   getUpgradeStack(upgradeId: string): number {
-    return this.upgradeStacks.get(upgradeId) || 0;
+    return this.stateStore.getStack(upgradeId);
   }
 
   getAllUpgradeStacks(): Map<string, number> {
-    return new Map(this.upgradeStacks);
+    return this.stateStore.getAllStacks();
   }
 
   getSystemUpgrade(upgradeId: string): SystemUpgradeData | undefined {
@@ -262,190 +222,11 @@ export class UpgradeSystem {
 
   // 현재 레벨의 실제 효과를 설명하는 문자열 반환
   getFormattedDescription(upgradeId: string): string {
-    const upgradeData = Data.upgrades.system.find((u) => u.id === upgradeId);
-    // 시스템 업그레이드가 아니면 일반 설명 반환 (번역 적용)
-    if (!upgradeData) {
-      return Data.t(`upgrade.${upgradeId}.desc`);
-    }
-
-    const stack = this.getUpgradeStack(upgradeId);
-    if (stack <= 0) {
-      return Data.t(`upgrade.${upgradeId}.desc`);
-    }
-
-    // 템플릿이 없는 경우
-    if (!upgradeData.descriptionTemplate) {
-      return Data.t(`upgrade.${upgradeId}.desc`);
-    }
-
-    if (!upgradeData.levels) return Data.t(`upgrade.${upgradeId}.desc`);
-
-    const index = Math.min(stack, upgradeData.levels.length) - 1;
-    const levelData = upgradeData.levels[index];
-    const params = this.extractTemplateParams(levelData);
-
-    // 로케일 파일의 템플릿 사용
-    return Data.formatTemplate(`upgrade.${upgradeId}.desc_template`, params);
+    return this.descriptionFormatter.getFormattedDescription(upgradeId);
   }
 
   // 선택 화면용 미리보기 설명 (현재 → 다음 레벨)
   getPreviewDescription(upgradeId: string): string {
-    const upgradeData = Data.upgrades.system.find((u) => u.id === upgradeId);
-
-    // 시스템 업그레이드가 아니면 (무기 등) 일반 설명의 번역본 반환
-    if (!upgradeData) {
-      return Data.t(`upgrade.${upgradeId}.desc`);
-    }
-
-    // fullHeal 등 levels가 없는 업그레이드
-    if (!upgradeData.levels) {
-      return Data.t(`upgrade.${upgradeId}.desc`);
-    }
-
-    const currentStack = this.getUpgradeStack(upgradeId);
-    const nextStack = currentStack + 1;
-
-    if (nextStack > upgradeData.levels.length) {
-      return Data.t(`upgrade.${upgradeId}.desc`);
-    }
-
-    const nextData = upgradeData.levels[nextStack - 1];
-
-    if (currentStack === 0) {
-      // 처음 획득: 다음 레벨 수치만 표시
-      return this.formatLevelPreview(upgradeData.effectType, null, nextData);
-    }
-
-    const currentData = upgradeData.levels[currentStack - 1];
-    return this.formatLevelPreview(upgradeData.effectType, currentData, nextData);
-  }
-
-  private formatLevelPreview(
-    effectType: string,
-    current: SystemUpgradeLevelData | null,
-    next: SystemUpgradeLevelData
-  ): string {
-    const params: Record<string, number | string> = {};
-
-    // Helper to process params
-    const process = (prefix: string, data: SystemUpgradeLevelData) => {
-      const entries = Object.entries(data as unknown as Record<string, unknown>);
-      for (const [key, value] of entries) {
-        if (typeof value === 'number') {
-          const val = this.normalizeTemplateNumericValue(key, value);
-          params[`${prefix}${key}`] = val;
-
-          // 매핑을 위한 별칭 (템플릿 키와 일치시키기 위해)
-          if (key === 'sizeBonus') params[`${prefix}Size`] = val;
-          if (key === 'damage') params[`${prefix}Dmg`] = val;
-          if (key === 'radius') params[`${prefix}Radius`] = val;
-          if (key === 'chance') params[`${prefix}Chance`] = val;
-          if (key === 'range') params[`${prefix}Range`] = val;
-          if (key === 'force') params[`${prefix}Force`] = val;
-          if (key === 'count') params[`${prefix}Count`] = val;
-          if (key === 'speed') params[`${prefix}Speed`] = val;
-          if (key === 'hpBonus') params[`${prefix}Hp`] = val;
-          if (key === 'dropChanceBonus') params[`${prefix}Drop`] = val;
-          if (key === 'size') params[`${prefix}OrbSize`] = val;
-          if (key === 'criticalChance') params[`${prefix}CriticalChance`] = val;
-          if (key === 'missileThicknessBonus') params[`${prefix}MissileThickness`] = val;
-          if (key === 'damageInterval') params[`${prefix}DamageInterval`] = val;
-          if (key === 'spawnInterval') params[`${prefix}SpawnInterval`] = val;
-          if (key === 'spawnCount') params[`${prefix}SpawnCount`] = val;
-        } else {
-          params[`${prefix}${key}`] = String(value);
-        }
-      }
-    };
-
-    if (current) process('cur', current);
-    process(current ? 'next' : '', next);
-
-    if (!current) {
-      const entries = Object.entries(next as unknown as Record<string, unknown>);
-      for (const [key, value] of entries) {
-        if (typeof value === 'number') {
-          params[key] = this.normalizeTemplateNumericValue(key, value);
-        }
-      }
-    }
-
-    switch (effectType) {
-      case 'cursorSizeBonus':
-        return current
-          ? Data.formatTemplate('upgrade.preview.cursor_size.upgrade', params)
-          : Data.formatTemplate('upgrade.preview.cursor_size.new', params);
-
-      case 'criticalChanceBonus':
-        return current
-          ? Data.formatTemplate('upgrade.preview.critical_chance.upgrade', params)
-          : Data.formatTemplate('upgrade.preview.critical_chance.new', params);
-
-      case 'electricShockLevel':
-        return current
-          ? Data.formatTemplate('upgrade.preview.electric_shock.upgrade', params)
-          : Data.formatTemplate('upgrade.preview.electric_shock.new', params);
-
-      case 'magnetLevel':
-        return current
-          ? Data.formatTemplate('upgrade.preview.magnet.upgrade', params)
-          : Data.formatTemplate('upgrade.preview.magnet.new', params);
-
-      case 'missileLevel':
-        if (!current) return Data.formatTemplate('upgrade.preview.missile.new', params);
-        if (this.getNumericField(current, 'damage') !== this.getNumericField(next, 'damage')) {
-          return Data.formatTemplate('upgrade.preview.missile.upgrade', params);
-        }
-        return Data.formatTemplate('upgrade.preview.missile.upgrade_count', params);
-
-      case 'healthPackLevel':
-        return current
-          ? Data.formatTemplate('upgrade.preview.health_pack.upgrade', params)
-          : Data.formatTemplate('upgrade.preview.health_pack.new', params);
-
-      case 'orbitingOrbLevel':
-        return current
-          ? Data.formatTemplate('upgrade.preview.orbiting_orb.upgrade', params)
-          : Data.formatTemplate('upgrade.preview.orbiting_orb.new', params);
-
-      case 'blackHoleLevel':
-        return current
-          ? Data.formatTemplate('upgrade.preview.black_hole.upgrade', params)
-          : Data.formatTemplate('upgrade.preview.black_hole.new', params);
-
-      default:
-        return '';
-    }
-  }
-
-  private normalizeTemplateNumericValue(key: string, value: number): number {
-    if (
-      key === 'chance' ||
-      key === 'sizeBonus' ||
-      key === 'missileThicknessBonus' ||
-      key === 'dropChanceBonus' ||
-      key === 'criticalChance'
-    ) {
-      return Math.round(value * 100);
-    }
-    return value;
-  }
-
-  private extractTemplateParams(levelData: SystemUpgradeLevelData): Record<string, number | string> {
-    const params: Record<string, number | string> = {};
-    const entries = Object.entries(levelData as unknown as Record<string, unknown>);
-    for (const [key, value] of entries) {
-      if (typeof value === 'number') {
-        params[key] = this.normalizeTemplateNumericValue(key, value);
-      } else if (typeof value === 'string') {
-        params[key] = value;
-      }
-    }
-    return params;
-  }
-
-  private getNumericField(data: SystemUpgradeLevelData, key: string): number | null {
-    const value = (data as unknown as Record<string, unknown>)[key];
-    return typeof value === 'number' ? value : null;
+    return this.descriptionFormatter.getPreviewDescription(upgradeId);
   }
 }

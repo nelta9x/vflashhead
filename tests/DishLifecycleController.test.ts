@@ -79,6 +79,7 @@ describe('DishLifecycleController', () => {
     onDishMissed: vi.fn(),
     onElectricShock: vi.fn(),
   };
+  const showBombWarning = vi.fn();
 
   function createController(overrides?: {
     upgradeSystem?: Partial<{
@@ -123,7 +124,7 @@ describe('DishLifecycleController', () => {
       } as never,
       getPlayerAttackRenderer: () =>
         ({
-          showBombWarning: vi.fn(),
+          showBombWarning,
         }) as never,
       bossGateway: bossGateway as never,
       isAnyLaserFiring: () => false,
@@ -251,5 +252,27 @@ describe('DishLifecycleController', () => {
     });
 
     expect(bossGateway.cancelChargingLasers).toHaveBeenCalledWith('boss_left');
+  });
+
+  it('skips bomb spawn when warning callback resolves after game over', () => {
+    const controller = createController();
+    const warningCallbackRef: { current: (() => void) | null } = { current: null };
+    showBombWarning.mockImplementation(
+      (
+        _x: number,
+        _y: number,
+        _config: { duration: number; radius: number; blinkInterval: number },
+        onComplete: () => void
+      ) => {
+        warningCallbackRef.current = onComplete;
+      }
+    );
+
+    controller.spawnDish('bomb', 120, 140, 1);
+    isGameOver = true;
+    warningCallbackRef.current?.();
+
+    expect(dishPool.acquire).not.toHaveBeenCalled();
+    expect(dishes.add).not.toHaveBeenCalled();
   });
 });

@@ -3,6 +3,9 @@ import { GAME_WIDTH, GAME_HEIGHT, FONTS } from '../../data/constants';
 import { Data } from '../../data/DataManager';
 import { UpgradeSystem } from '../../systems/UpgradeSystem';
 import { HoverArea } from './WaveTimerVisibilityPolicy';
+import { getUpgradeFallbackSymbol } from '../upgrade/UpgradeIconCatalog';
+import { renderAbilityDockOverlay, renderAbilityDockPauseGauge } from './AbilityDockRenderer';
+import { resolveAbilityTooltipPosition } from './AbilityTooltipLayout';
 
 interface ActiveAbility {
   id: string;
@@ -194,8 +197,8 @@ export class AbilitySummaryWidget {
       return;
     }
 
-    this.drawDockOverlay(this.hoverBounds);
-    this.drawDockPauseGauge(this.hoverBounds, progress);
+    renderAbilityDockOverlay(this.dockOverlay, this.hoverBounds);
+    renderAbilityDockPauseGauge(this.dockPauseGauge, this.hoverBounds, progress);
 
     if (isPaused) {
       const dockOverlayCfg = Data.gameConfig.hud.waveTimerDisplay.dockOverlay;
@@ -221,7 +224,8 @@ export class AbilitySummaryWidget {
     }
 
     this.updateTooltipContent(hoveredSlot.ability);
-    this.positionTooltip(hoveredSlot.bounds);
+    const tooltipPosition = resolveAbilityTooltipPosition(hoveredSlot.bounds, this.tooltipHeight);
+    this.tooltipContainer.setPosition(tooltipPosition.x, tooltipPosition.y);
     this.tooltipContainer.setVisible(true);
   }
 
@@ -340,7 +344,7 @@ export class AbilitySummaryWidget {
       this.tooltipIconContent = iconImage;
     } else {
       const iconText = this.scene.add
-        .text(iconX, iconContentY, this.getAbilitySymbol(ability.id), {
+        .text(iconX, iconContentY, getUpgradeFallbackSymbol(ability.id), {
           fontFamily: FONTS.MAIN,
           fontSize: `${tooltipCfg.fallbackIconFontSize}px`,
           color: Data.getColorHex(tooltipCfg.descColor),
@@ -349,85 +353,6 @@ export class AbilitySummaryWidget {
       this.tooltipContainer.add(iconText);
       this.tooltipIconContent = iconText;
     }
-  }
-
-  private positionTooltip(slotBounds: Phaser.Geom.Rectangle): void {
-    const tooltipCfg = Data.gameConfig.hud.abilityDisplay.tooltip;
-    const width = tooltipCfg.width;
-    const height = Math.max(tooltipCfg.minHeight, this.tooltipHeight);
-
-    const halfWidth = width / 2;
-    const clampedX = Phaser.Math.Clamp(
-      slotBounds.centerX,
-      halfWidth + tooltipCfg.screenMargin,
-      GAME_WIDTH - halfWidth - tooltipCfg.screenMargin
-    );
-
-    const targetBottomY = slotBounds.y - tooltipCfg.offsetY;
-    const minBottomY = height + tooltipCfg.screenMargin;
-    const maxBottomY = GAME_HEIGHT - tooltipCfg.screenMargin;
-    const clampedBottomY = Phaser.Math.Clamp(targetBottomY, minBottomY, maxBottomY);
-
-    this.tooltipContainer.setPosition(clampedX, clampedBottomY);
-  }
-
-  private drawDockOverlay(bounds: Phaser.Geom.Rectangle): void {
-    const dockOverlayCfg = Data.gameConfig.hud.waveTimerDisplay.dockOverlay;
-    const cornerRadius = Math.min(dockOverlayCfg.cornerRadius, bounds.height / 2);
-
-    this.dockOverlay.fillStyle(Data.getColor(dockOverlayCfg.bgColor), dockOverlayCfg.bgAlpha);
-    this.dockOverlay.fillRoundedRect(bounds.x, bounds.y, bounds.width, bounds.height, cornerRadius);
-
-    const highlightHeight = Math.max(1, Math.min(bounds.height, dockOverlayCfg.highlightHeight));
-    this.dockOverlay.fillStyle(
-      Data.getColor(dockOverlayCfg.highlightColor),
-      dockOverlayCfg.highlightAlpha
-    );
-    this.dockOverlay.fillRoundedRect(
-      bounds.x,
-      bounds.y,
-      bounds.width,
-      highlightHeight,
-      cornerRadius
-    );
-
-    this.dockOverlay.lineStyle(
-      dockOverlayCfg.borderWidth,
-      Data.getColor(dockOverlayCfg.borderColor),
-      dockOverlayCfg.borderAlpha
-    );
-    this.dockOverlay.strokeRoundedRect(
-      bounds.x,
-      bounds.y,
-      bounds.width,
-      bounds.height,
-      cornerRadius
-    );
-  }
-
-  private drawDockPauseGauge(bounds: Phaser.Geom.Rectangle, progress: number): void {
-    const gaugeCfg = Data.gameConfig.hud.waveTimerDisplay.dockPauseGauge;
-    const width = Math.max(1, bounds.width - gaugeCfg.insetX * 2);
-    const height = gaugeCfg.height;
-    const x = bounds.x + gaugeCfg.insetX;
-    const y = bounds.y + bounds.height + gaugeCfg.bottomInset;
-    const cornerRadius = Math.min(gaugeCfg.cornerRadius, height / 2);
-    const clampedProgress = Math.max(0, Math.min(1, progress));
-
-    this.dockPauseGauge.fillStyle(Data.getColor(gaugeCfg.bgColor), gaugeCfg.bgAlpha);
-    this.dockPauseGauge.fillRoundedRect(x, y, width, height, cornerRadius);
-
-    if (clampedProgress > 0) {
-      this.dockPauseGauge.fillStyle(Data.getColor(gaugeCfg.fillColor), gaugeCfg.fillAlpha);
-      this.dockPauseGauge.fillRoundedRect(x, y, width * clampedProgress, height, cornerRadius);
-    }
-
-    this.dockPauseGauge.lineStyle(
-      gaugeCfg.borderWidth,
-      Data.getColor(gaugeCfg.borderColor),
-      gaugeCfg.borderAlpha
-    );
-    this.dockPauseGauge.strokeRoundedRect(x, y, width, height, cornerRadius);
   }
 
   private clearEntries(): void {
@@ -517,7 +442,7 @@ export class AbilitySummaryWidget {
       return;
     }
 
-    const symbol = this.getAbilitySymbol(abilityId);
+    const symbol = getUpgradeFallbackSymbol(abilityId);
     const iconText = this.scene.add
       .text(0, iconY, symbol, {
         fontFamily: FONTS.MAIN,
@@ -528,18 +453,4 @@ export class AbilitySummaryWidget {
     entryContainer.add(iconText);
   }
 
-  private getAbilitySymbol(abilityId: string): string {
-    const symbols: Record<string, string> = {
-      cursor_size: '◯',
-      critical_chance: '✦',
-      electric_shock: '⚡',
-      magnet: '⊕',
-      missile: '✹',
-      health_pack: '✚',
-      orbiting_orb: '◎',
-      black_hole: '●',
-    };
-
-    return symbols[abilityId] || '★';
-  }
 }

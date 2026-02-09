@@ -194,6 +194,24 @@ describe('WaveSystem', () => {
       expect(mockEmit).toHaveBeenCalledWith(GameEvents.WAVE_READY);
       expect(mockEmit).toHaveBeenCalledWith(GameEvents.WAVE_STARTED, 1);
     });
+
+    it('emits each countdown boundary tick exactly once even with large deltas', () => {
+      waveSystem.startCountdown(1);
+
+      // Jump over two boundaries at once: should emit 2 and 1 in order.
+      waveSystem.update(2500);
+      expect(mockEmit).toHaveBeenCalledWith(GameEvents.WAVE_COUNTDOWN_TICK, 2);
+      expect(mockEmit).toHaveBeenCalledWith(GameEvents.WAVE_COUNTDOWN_TICK, 1);
+
+      // Final boundary should emit 0 once and then ready/start.
+      waveSystem.update(500);
+      const zeroTickCalls = mockEmit.mock.calls.filter(
+        ([event, value]) => event === GameEvents.WAVE_COUNTDOWN_TICK && value === 0
+      );
+      expect(zeroTickCalls).toHaveLength(1);
+      expect(mockEmit).toHaveBeenCalledWith(GameEvents.WAVE_READY);
+      expect(mockEmit).toHaveBeenCalledWith(GameEvents.WAVE_STARTED, 1);
+    });
   });
 
   describe('Wave Start & Config', () => {
@@ -312,6 +330,24 @@ describe('WaveSystem', () => {
       waveSystem.update(2000);
 
       expect(mockScene.spawnDish).not.toHaveBeenCalled();
+
+      Phaser.Math.Distance.Between = originalDistance;
+    });
+
+    it('validates both boss and dish distance constraints before spawning', () => {
+      waveSystem.startWave(1);
+      mockGetBoss.mockReturnValue([{ id: 'boss_center', x: 100, y: 100, visible: true }]);
+      mockDishPool.getActiveObjects.mockReturnValue([{ x: 200, y: 200 }]);
+
+      const originalDistance = Phaser.Math.Distance.Between;
+      const distanceSpy = vi.fn(() => 1000);
+      Phaser.Math.Distance.Between = distanceSpy;
+
+      waveSystem.update(2000);
+
+      expect(distanceSpy).toHaveBeenCalledWith(0, 0, 100, 100);
+      expect(distanceSpy).toHaveBeenCalledWith(0, 0, 200, 200);
+      expect(mockScene.spawnDish).toHaveBeenCalled();
 
       Phaser.Math.Distance.Between = originalDistance;
     });

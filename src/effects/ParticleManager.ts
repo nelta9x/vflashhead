@@ -2,6 +2,10 @@ import Phaser from 'phaser';
 import { COLORS } from '../data/constants';
 import { Data } from '../data/DataManager';
 import { SoundSystem } from '../systems/SoundSystem';
+import {
+  CursorPositionProvider,
+  resolveCursorPosition,
+} from '../scenes/game/CursorPositionProvider';
 
 // 무지개 색상 배열
 const RAINBOW_COLORS = [
@@ -17,9 +21,11 @@ const RAINBOW_COLORS = [
 export class ParticleManager {
   private scene: Phaser.Scene;
   private emitters: Map<string, Phaser.GameObjects.Particles.ParticleEmitter> = new Map();
+  private readonly cursorProvider?: CursorPositionProvider;
 
-  constructor(scene: Phaser.Scene) {
+  constructor(scene: Phaser.Scene, cursorProvider?: CursorPositionProvider) {
     this.scene = scene;
+    this.cursorProvider = cursorProvider;
     this.createEmitters();
   }
 
@@ -340,16 +346,7 @@ export class ParticleManager {
   }
 
   private getCursorPosition(): { x: number; y: number } {
-    const cursorAwareScene = this.scene as Phaser.Scene & {
-      getCursorPosition?: () => { x: number; y: number };
-    };
-
-    if (cursorAwareScene.getCursorPosition) {
-      return cursorAwareScene.getCursorPosition();
-    }
-
-    const pointer = cursorAwareScene.input.activePointer;
-    return { x: pointer.worldX, y: pointer.worldY };
+    return resolveCursorPosition(this.scene, this.cursorProvider);
   }
 
   private completeEnergyEffect(

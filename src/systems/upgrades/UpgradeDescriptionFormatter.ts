@@ -16,6 +16,9 @@ export class UpgradeDescriptionFormatter {
 
     const stack = this.getUpgradeStack(upgradeId);
     if (stack <= 0) {
+      if (upgradeId === 'health_pack') {
+        return Data.formatTemplate(`upgrade.${upgradeId}.desc`, this.getHealthPackBaseParams());
+      }
       return Data.t(`upgrade.${upgradeId}.desc`);
     }
 
@@ -30,6 +33,7 @@ export class UpgradeDescriptionFormatter {
     const index = Math.min(stack, upgradeData.levels.length) - 1;
     const levelData = upgradeData.levels[index];
     const params = this.extractTemplateParams(levelData);
+    this.appendSharedTemplateParams(upgradeId, params);
 
     return Data.formatTemplate(`upgrade.${upgradeId}.desc_template`, params);
   }
@@ -58,6 +62,28 @@ export class UpgradeDescriptionFormatter {
       }
     }
     return params;
+  }
+
+  private appendSharedTemplateParams(
+    upgradeId: string,
+    params: Record<string, number | string>
+  ): void {
+    if (upgradeId !== 'health_pack') {
+      return;
+    }
+
+    Object.assign(params, this.getHealthPackBaseParams());
+  }
+
+  private toSecondsLabel(milliseconds: number): number {
+    return Number((milliseconds / 1000).toFixed(1).replace(/\.0$/, ''));
+  }
+
+  private getHealthPackBaseParams(): Record<string, number> {
+    return {
+      baseSpawnChance: Math.round(Data.healthPack.baseSpawnChance * 100),
+      baseSpawnIntervalSec: this.toSecondsLabel(Data.healthPack.checkInterval),
+    };
   }
 
 }

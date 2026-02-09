@@ -39,14 +39,21 @@
 - **`src/main.ts`**: 게임 인스턴스 생성 및 씬 등록 (`Boot`, `Menu`, `Game`, `GameOver`).
 - **`src/scenes/BootScene.ts`**: 초기 로딩 화면. 에셋 프리로딩(오디오, SVG 아이콘), 프로그레스 바 표시.
 - **`src/scenes/MenuScene.ts`**: 메인 메뉴. 타이틀, 시작 버튼, 별 배경, 보스 애니메이션, 그리드 효과, 언어 선택 UI 처리.
-- **`src/scenes/GameScene.ts`**: **핵심 게임 루프**. 모든 시스템을 초기화하고 조율합니다.
-  - **입력 안정화**: `PlayerCursorInputController`를 통해 포인터/키보드 혼합 입력을 관리하고, 포인터 우선 유예(`player.input.pointerPriorityMs`)와 키보드 축 가속(`player.input.keyboardAxisRampUpMs`)을 데이터 기반으로 적용합니다. 또한 `window blur`/`visibilitychange`/`gameout`/pause-resume 시 입력 상태를 리셋해 커서 stuck 이동을 방지합니다.
-  - **플레이어 공격**: 게이지 완충 시 기 모으기(Charge) 및 순차 미사일(Sequential Missiles) 발사 로직을 관리하며, 시각 연출은 `PlayerAttackRenderer`에 위임합니다.
-  - **보스 공격**: 멀티 보스(`Map<string, Boss>`) 기준으로 보스별 레이저 타이밍/취소/재개를 독립 제어합니다.
-  - **블랙홀 어빌리티**: `BlackHoleSystem`의 흡인/피해 로직과 `BlackHoleRenderer`의 시각 연출을 매 프레임 동기화합니다.
-  - **보스 타겟팅**: 미사일은 발사 시점의 nearest alive boss를 선택하고, 비행 중 타겟 사망 시 nearest alive boss로 재타겟합니다.
-  - **충돌 감지**: 커서 범위 공격, 레이저 피격, 힐팩 수집, 보스 겹침(보스 주기 피해/플레이어 무피해) 등의 실시간 충돌을 판정합니다.
+- **`src/scenes/GameScene.ts`**: **핵심 게임 루프 오케스트레이터**. 시스템/렌더러를 초기화하고 `update()`에서 모듈 호출 순서를 조율합니다.
+  - **상위 흐름 유지**: `create/update/cleanup`, pause 상태 전환(`syncSimulationPauseState`), HUD 프레임 컨텍스트 조합.
+  - **입력 안정화**: 키보드 축 이동 적용은 Scene에서 수행하되, 리스너 바인딩/해제는 `SceneInputAdapter`로 위임합니다.
+  - **전투/접시 규칙 위임**: 보스 전투, 플레이어 특수공격, 접시 라이프사이클은 전용 모듈로 분리되어 Scene은 호출만 담당합니다.
+  - **블랙홀/오브 동기화**: `BlackHoleSystem`/`OrbSystem`과 각 렌더러의 프레임 동기화.
 - **`src/scenes/GameOverScene.ts`**: 게임 오버 화면. 최종 스탯(최대 콤보, 웨이브, 생존 시간) 표시, 재시작 안내, 페이드 전환.
+
+### 1.5 GameScene 보조 모듈 (`src/scenes/game/`)
+
+- **`BossCombatCoordinator.ts`**: 멀티 보스 동기화, 보스 스폰 배치, 레이저 스케줄/취소/충돌, 보스 접촉 데미지, 보스 스냅샷 제공.
+- **`PlayerAttackController.ts`**: 게이지 공격(차지/순차 미사일/재타겟), 미사일 경로 접시 제거, 치명타 시 레이저 취소 처리.
+- **`DishLifecycleController.ts`**: `DISH_DESTROYED/DISH_DAMAGED/DISH_MISSED` 처리, 접시 스폰(폭탄 경고 포함), 전기 충격/자기장/커서 범위 판정.
+- **`GameSceneEventBinder.ts`**: `EventBus` 구독/해제 일원화 및 payload 라우팅.
+- **`SceneInputAdapter.ts`**: pointer/ESC/blur/visibility/gameout 입력 리스너 등록·해제 전담.
+- **`GameSceneContracts.ts`**: 모듈 간 공유 타입 및 최소 게이트웨이 인터페이스(`BossInteractionGateway`) 정의.
 
 ### 2. 핵심 게임 로직 (Systems)
 

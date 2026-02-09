@@ -361,49 +361,49 @@
       "effectType": "blackHoleLevel",
       "levels": [
         {
-          "damageInterval": 1200,
+          "damageInterval": 300,
           "damage": 1,
           "force": 260,
           "spawnInterval": 7600,
           "spawnCount": 1,
-          "radius": 230,
-          "bombConsumeRadiusRatio": 0.3
+          "radius": 210,
+          "bombConsumeRadiusRatio": 0.35
         },
         {
-          "damageInterval": 1100,
-          "damage": 1,
+          "damageInterval": 250,
+          "damage": 2,
+          "force": 280,
+          "spawnInterval": 7300,
+          "spawnCount": 1,
+          "radius": 240,
+          "bombConsumeRadiusRatio": 0.45
+        },
+        {
+          "damageInterval": 200,
+          "damage": 3,
           "force": 300,
           "spawnInterval": 7000,
           "spawnCount": 1,
-          "radius": 250,
-          "bombConsumeRadiusRatio": 0.3
+          "radius": 270,
+          "bombConsumeRadiusRatio": 0.55
         },
         {
-          "damageInterval": 1000,
-          "damage": 2,
+          "damageInterval": 200,
+          "damage": 4,
+          "force": 320,
+          "spawnInterval": 6700,
+          "spawnCount": 1,
+          "radius": 300,
+          "bombConsumeRadiusRatio": 0.65
+        },
+        {
+          "damageInterval": 200,
+          "damage": 5,
           "force": 340,
           "spawnInterval": 6400,
-          "spawnCount": 2,
-          "radius": 270,
-          "bombConsumeRadiusRatio": 0.3
-        },
-        {
-          "damageInterval": 900,
-          "damage": 2,
-          "force": 390,
-          "spawnInterval": 5900,
-          "spawnCount": 2,
-          "radius": 290,
-          "bombConsumeRadiusRatio": 0.3
-        },
-        {
-          "damageInterval": 850,
-          "damage": 3,
-          "force": 440,
-          "spawnInterval": 5400,
-          "spawnCount": 2,
-          "radius": 310,
-          "bombConsumeRadiusRatio": 0.3
+          "spawnCount": 1,
+          "radius": 330,
+          "bombConsumeRadiusRatio": 0.75
         }
       ],
       "previewDisplay": {

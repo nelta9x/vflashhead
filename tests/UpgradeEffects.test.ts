@@ -296,13 +296,13 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
       upgrade.applyUpgrade(blackHoleUpgrade);
       expect(upgrade.getBlackHoleLevel()).toBe(1);
       expect(upgrade.getBlackHoleData()).toEqual({
-        damageInterval: 1200,
+        damageInterval: 300,
         damage: 1,
         force: 260,
         spawnInterval: 7600,
         spawnCount: 1,
-        radius: 230,
-        bombConsumeRadiusRatio: 0.3,
+        radius: 210,
+        bombConsumeRadiusRatio: 0.35,
       });
     });
 
@@ -315,13 +315,13 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
       expect(upgrade.getBlackHoleLevel()).toBe(5);
       expect(upgrade.getBlackHoleData()).toEqual({
-        damageInterval: 850,
-        damage: 3,
-        force: 440,
-        spawnInterval: 5400,
-        spawnCount: 2,
-        radius: 310,
-        bombConsumeRadiusRatio: 0.3,
+        damageInterval: 200,
+        damage: 5,
+        force: 340,
+        spawnInterval: 6400,
+        spawnCount: 1,
+        radius: 330,
+        bombConsumeRadiusRatio: 0.75,
       });
     });
   });

@@ -7,7 +7,7 @@
       "size": 30,
       "dangerous": false,
       "invulnerable": false,
-      "lifetime": 5000,
+      "lifetime": 7000,
       "playerDamage": 1,
       "spawnAnimation": {
         "duration": 150,
@@ -21,7 +21,7 @@
       "size": 35,
       "dangerous": false,
       "invulnerable": false,
-      "lifetime": 5000,
+      "lifetime": 7000,
       "playerDamage": 1,
       "spawnAnimation": {
         "duration": 150,
@@ -35,7 +35,7 @@
       "size": 25,
       "dangerous": false,
       "invulnerable": false,
-      "lifetime": 5500,
+      "lifetime": 7500,
       "playerDamage": 1,
       "spawnAnimation": {
         "duration": 150,
@@ -64,7 +64,7 @@
       "size": 20,
       "dangerous": false,
       "invulnerable": false,
-      "lifetime": 5000,
+      "lifetime": 7000,
       "playerDamage": 1,
       "spawnAnimation": {
         "duration": 150,
@@ -78,7 +78,7 @@
       "size": 60,
       "dangerous": false,
       "invulnerable": false,
-      "lifetime": 7500,
+      "lifetime": 9500,
       "playerDamage": 1,
       "spawnAnimation": {
         "duration": 200,

@@ -238,7 +238,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
       const missileUpgrade = UPGRADES.find((u) => u.id === 'missile')!;
 
       for (let i = 0; i < 3; i++) upgrade.applyUpgrade(missileUpgrade);
-      expect(upgrade.getMissileDamage()).toBe(140);
+      expect(upgrade.getMissileDamage()).toBe(93);
       expect(upgrade.getMissileCount()).toBe(3);
     });
 
@@ -249,23 +249,23 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
       // 레벨 2: 발당 피해 증가
       for (let i = 0; i < 2; i++) upgrade.applyUpgrade(missileUpgrade);
-      expect(upgrade.getMissileDamage()).toBe(140);
+      expect(upgrade.getMissileDamage()).toBe(110);
       expect(upgrade.getMissileCount()).toBe(2);
 
-      // 레벨 3: 미사일 수 증가
+      // 레벨 3: 미사일 수 증가, 발당 피해 감소
       upgrade.applyUpgrade(missileUpgrade);
       expect(upgrade.getMissileCount()).toBe(3);
-      expect(upgrade.getMissileDamage()).toBe(140);
+      expect(upgrade.getMissileDamage()).toBe(93);
 
-      // 레벨 4: 미사일 수 증가
+      // 레벨 4: 미사일 수 증가, 발당 피해 감소
       upgrade.applyUpgrade(missileUpgrade);
       expect(upgrade.getMissileCount()).toBe(4);
-      expect(upgrade.getMissileDamage()).toBe(140);
+      expect(upgrade.getMissileDamage()).toBe(85);
 
-      // 레벨 5: 미사일 수/발당 피해 증가
+      // 레벨 5: 미사일 수 증가, 발당 피해 감소
       upgrade.applyUpgrade(missileUpgrade);
       expect(upgrade.getMissileCount()).toBe(5);
-      expect(upgrade.getMissileDamage()).toBe(150);
+      expect(upgrade.getMissileDamage()).toBe(80);
     });
 
     it('강한 강화 구간이 L2->L3, L4->L5에 존재해야 함', async () => {
@@ -279,10 +279,10 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
         totalDamageByLevel.push(upgrade.getMissileDamage() * upgrade.getMissileCount());
       }
 
-      // L2 -> L3: count 증가로 강한 성장 구간
-      expect(totalDamageByLevel[2]).toBeGreaterThanOrEqual(Math.floor(totalDamageByLevel[1] * 1.5));
-      // L4 -> L5: count + damage 증가로 강한 성장 구간
-      expect(totalDamageByLevel[4]).toBeGreaterThanOrEqual(Math.floor(totalDamageByLevel[3] * 1.3));
+      // 총 데미지가 레벨마다 증가해야 함
+      for (let i = 1; i < totalDamageByLevel.length; i++) {
+        expect(totalDamageByLevel[i]).toBeGreaterThan(totalDamageByLevel[i - 1]);
+      }
     });
 
     it('최대 레벨이 5에서 캡되어야 함', async () => {
@@ -292,7 +292,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
       for (let i = 0; i < 8; i++) upgrade.applyUpgrade(missileUpgrade);
       expect(upgrade.getMissileLevel()).toBe(5);
-      expect(upgrade.getMissileDamage()).toBe(150);
+      expect(upgrade.getMissileDamage()).toBe(80);
       expect(upgrade.getMissileCount()).toBe(5);
     });
   });

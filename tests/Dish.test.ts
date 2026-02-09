@@ -28,7 +28,6 @@ vi.mock('../data/dishes.json', () => ({
       basic: {
         hp: 30,
         color: '#00ffff',
-        chainReaction: false,
         dangerous: false,
         lifetime: 2000,
         size: 30,
@@ -36,7 +35,6 @@ vi.mock('../data/dishes.json', () => ({
       golden: {
         hp: 20,
         color: '#ffff00',
-        chainReaction: false,
         dangerous: false,
         lifetime: 1500,
         size: 35,
@@ -44,7 +42,6 @@ vi.mock('../data/dishes.json', () => ({
       crystal: {
         hp: 40,
         color: '#ff00ff',
-        chainReaction: true,
         dangerous: false,
         lifetime: 1800,
         size: 25,
@@ -52,7 +49,6 @@ vi.mock('../data/dishes.json', () => ({
       bomb: {
         hp: 1,
         color: '#ff0044',
-        chainReaction: false,
         dangerous: true,
         lifetime: 1200,
         size: 40,
@@ -60,7 +56,6 @@ vi.mock('../data/dishes.json', () => ({
       mini: {
         hp: 15,
         color: '#00ff88',
-        chainReaction: false,
         dangerous: false,
         lifetime: 1500,
         size: 20,
@@ -529,19 +524,18 @@ describe('Dish Upgrade Effects', () => {
       );
     });
 
-    it('should preserve chainReaction semantics when applyDamageWithUpgrades is called with chain flag', async () => {
+    it('should emit DISH_DESTROYED with byAbility: true on lethal upgraded damage', async () => {
       const { Dish } = await import('../src/entities/Dish');
       const { EventBus } = await import('../src/utils/EventBus');
 
       const dish = new Dish(mockScene as unknown as Phaser.Scene, 0, 0, 'basic');
       dish.spawn(100, 100, 'basic', 1);
 
-      dish.applyDamageWithUpgrades(100, 0, 0, true);
+      dish.applyDamageWithUpgrades(100, 0, 0);
 
       expect(EventBus.getInstance().emit).toHaveBeenCalledWith(
         'dish_destroyed',
         expect.objectContaining({
-          chainReaction: true,
           byAbility: true,
         })
       );

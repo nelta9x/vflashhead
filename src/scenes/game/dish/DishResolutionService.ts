@@ -101,18 +101,19 @@ export class DishResolutionService {
       cursorRadius
     );
 
-    const electricLevel = this.upgradeSystem.getElectricShockLevel();
-    if (electricLevel > 0) {
-      const electricRadius = this.upgradeSystem.getElectricShockRadius();
-      this.applyElectricShock(x, y, dish, electricRadius);
-    }
-
     this.removeDishFromPool(dish);
   }
 
   public onDishDamaged(data: DishDamagedEventPayload): void {
     const { x, y, damage, hpRatio, byAbility, isCritical } = data;
-    const combo = byAbility ? 0 : this.comboSystem.getCombo();
+    const isAbilityDamage = byAbility === true;
+    const combo = isAbilityDamage ? 0 : this.comboSystem.getCombo();
+
+    const electricLevel = this.upgradeSystem.getElectricShockLevel();
+    if (!isAbilityDamage && electricLevel > 0) {
+      const electricRadius = this.upgradeSystem.getElectricShockRadius();
+      this.applyElectricShock(x, y, data.dish, electricRadius);
+    }
 
     if (isCritical) {
       this.feedbackSystem.onCriticalHit(x, y, damage, combo);
@@ -155,7 +156,7 @@ export class DishResolutionService {
         const distance = Phaser.Math.Distance.Between(x, y, dish.x, dish.y);
         if (distance < radius) {
           targets.push({ x: dish.x, y: dish.y });
-          dish.applyDamageWithUpgrades(damage, 0, criticalChanceBonus, true);
+          dish.applyDamageWithUpgrades(damage, 0, criticalChanceBonus);
         }
       }
     });

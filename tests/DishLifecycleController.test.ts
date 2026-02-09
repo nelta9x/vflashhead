@@ -159,7 +159,7 @@ describe('DishLifecycleController', () => {
     expect(dishPool.release).toHaveBeenCalledWith(bombDish);
   });
 
-  it('applies electric shock only to normal dishes within radius', () => {
+  it('applies electric shock only to normal dishes within radius on cursor hit', () => {
     const controller = createController({
       upgradeSystem: {
         getElectricShockLevel: () => 1,
@@ -202,6 +202,137 @@ describe('DishLifecycleController', () => {
       callback(farNormal);
     });
 
+    controller.onDishDamaged({
+      dish: sourceDish as never,
+      x: 100,
+      y: 100,
+      type: 'basic',
+      damage: 10,
+      currentHp: 5,
+      maxHp: 10,
+      hpRatio: 0.5,
+      isFirstHit: false,
+      byAbility: false,
+    });
+
+    expect(nearNormal.applyDamageWithUpgrades).toHaveBeenCalledWith(5, 0, 0);
+    expect(nearDangerous.applyDamageWithUpgrades).not.toHaveBeenCalled();
+    expect(farNormal.applyDamageWithUpgrades).not.toHaveBeenCalled();
+    expect(feedbackSystem.onElectricShock).toHaveBeenCalledWith(100, 100, [{ x: 110, y: 120 }]);
+  });
+
+  it('does not trigger electric shock for ability-sourced damage', () => {
+    const controller = createController({
+      upgradeSystem: {
+        getElectricShockLevel: () => 1,
+        getElectricShockRadius: () => 60,
+        getElectricShockDamage: () => 5,
+      },
+    });
+    const sourceDish = {
+      getDishType: () => 'basic',
+      isDangerous: () => false,
+      getColor: () => 0xffffff,
+    };
+    const nearNormal = {
+      active: true,
+      x: 110,
+      y: 120,
+      isDangerous: () => false,
+      applyDamageWithUpgrades: vi.fn(),
+    };
+
+    dishPool.forEach.mockImplementation((callback: (dish: unknown) => void) => {
+      callback(sourceDish);
+      callback(nearNormal);
+    });
+
+    controller.onDishDamaged({
+      dish: sourceDish as never,
+      x: 100,
+      y: 100,
+      type: 'basic',
+      damage: 4,
+      currentHp: 6,
+      maxHp: 10,
+      hpRatio: 0.6,
+      isFirstHit: false,
+      byAbility: true,
+    });
+
+    expect(nearNormal.applyDamageWithUpgrades).not.toHaveBeenCalled();
+    expect(feedbackSystem.onElectricShock).not.toHaveBeenCalled();
+  });
+
+  it('triggers electric shock on every direct hit tick', () => {
+    const controller = createController({
+      upgradeSystem: {
+        getElectricShockLevel: () => 1,
+        getElectricShockRadius: () => 60,
+        getElectricShockDamage: () => 5,
+      },
+    });
+    const sourceDish = {
+      getDishType: () => 'basic',
+      isDangerous: () => false,
+      getColor: () => 0xffffff,
+    };
+    const nearNormal = {
+      active: true,
+      x: 110,
+      y: 120,
+      isDangerous: () => false,
+      applyDamageWithUpgrades: vi.fn(),
+    };
+
+    dishPool.forEach.mockImplementation((callback: (dish: unknown) => void) => {
+      callback(sourceDish);
+      callback(nearNormal);
+    });
+
+    controller.onDishDamaged({
+      dish: sourceDish as never,
+      x: 100,
+      y: 100,
+      type: 'basic',
+      damage: 3,
+      currentHp: 7,
+      maxHp: 10,
+      hpRatio: 0.7,
+      isFirstHit: false,
+      byAbility: false,
+    });
+    controller.onDishDamaged({
+      dish: sourceDish as never,
+      x: 100,
+      y: 100,
+      type: 'basic',
+      damage: 3,
+      currentHp: 4,
+      maxHp: 10,
+      hpRatio: 0.4,
+      isFirstHit: false,
+      byAbility: false,
+    });
+
+    expect(nearNormal.applyDamageWithUpgrades).toHaveBeenCalledTimes(2);
+    expect(feedbackSystem.onElectricShock).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not trigger electric shock on dish destroyed events', () => {
+    const controller = createController({
+      upgradeSystem: {
+        getElectricShockLevel: () => 1,
+        getElectricShockRadius: () => 60,
+        getElectricShockDamage: () => 5,
+      },
+    });
+    const sourceDish = {
+      getDishType: () => 'basic',
+      isDangerous: () => false,
+      getColor: () => 0xffffff,
+    };
+
     controller.onDishDestroyed({
       dish: sourceDish as never,
       x: 100,
@@ -209,10 +340,7 @@ describe('DishLifecycleController', () => {
       byAbility: false,
     });
 
-    expect(nearNormal.applyDamageWithUpgrades).toHaveBeenCalledWith(5, 0, 0, true);
-    expect(nearDangerous.applyDamageWithUpgrades).not.toHaveBeenCalled();
-    expect(farNormal.applyDamageWithUpgrades).not.toHaveBeenCalled();
-    expect(feedbackSystem.onElectricShock).toHaveBeenCalledWith(100, 100, [{ x: 110, y: 120 }]);
+    expect(feedbackSystem.onElectricShock).not.toHaveBeenCalled();
   });
 
   it('resets pulled state when magnet level is zero', () => {

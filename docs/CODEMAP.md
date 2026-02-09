@@ -51,7 +51,7 @@
 - **`BossCombatCoordinator.ts`**: 멀티 보스 동기화, 보스 스폰 배치, 레이저 스케줄/취소/충돌, 보스 접촉 데미지, 보스 스냅샷 제공.
   - 내부 분해: `boss/BossRosterSync.ts`, `boss/BossLaserController.ts`, `boss/BossContactDamageController.ts`
 - **`PlayerAttackController.ts`**: 게이지 공격(차지/순차 미사일/재타겟), 미사일 경로 접시 제거, 치명타 시 레이저 취소 처리.
-- **`DishLifecycleController.ts`**: `DISH_DESTROYED/DISH_DAMAGED/DISH_MISSED` 처리, 접시 스폰(폭탄 경고 포함), 전기 충격/자기장/커서 범위 판정.
+- **`DishLifecycleController.ts`**: `DISH_DESTROYED/DISH_DAMAGED/DISH_MISSED` 처리, 접시 스폰(폭탄 경고 포함), 전기 충격(직접 커서 히트 기반)/자기장/커서 범위 판정.
   - 내부 분해: `dish/DishSpawnService.ts`, `dish/DishResolutionService.ts`, `dish/DishFieldEffectService.ts`
 - **`GameSceneEventBinder.ts`**: `EventBus` 구독/해제 일원화 및 payload 라우팅.
 - **`SceneInputAdapter.ts`**: pointer/ESC/blur/visibility/gameout 입력 리스너 등록·해제 전담.

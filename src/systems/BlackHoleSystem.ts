@@ -201,7 +201,7 @@ export class BlackHoleSystem {
         const distance = Phaser.Math.Distance.Between(hole.x, hole.y, dish.x, dish.y);
         if (distance > hole.radius) continue;
 
-        dish.applyDamageWithUpgrades(data.damage, 0, criticalChanceBonus, true);
+        dish.applyDamageWithUpgrades(data.damage, 0, criticalChanceBonus);
         break;
       }
     }

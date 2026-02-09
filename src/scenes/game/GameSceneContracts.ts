@@ -26,7 +26,6 @@ export interface DishDestroyedEventPayload {
   dish: Dish;
   x: number;
   y: number;
-  chainReaction?: boolean;
   byAbility?: boolean;
 }
 

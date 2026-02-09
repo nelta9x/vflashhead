@@ -10,7 +10,6 @@ import { DishEventPayloadFactory } from './dish/DishEventPayloadFactory';
 interface DishConfig {
   lifetime: number;
   color: number;
-  chainReaction?: boolean;
   dangerous?: boolean;
   hp: number;
   invulnerable?: boolean;
@@ -35,7 +34,6 @@ function getDishConfig(type: string): DishConfig {
     return {
       lifetime: basicData.lifetime,
       color: parseInt(basicData.color.replace('#', ''), 16),
-      chainReaction: basicData.chainReaction,
       dangerous: basicData.dangerous,
       hp: basicData.hp,
       invulnerable: basicData.invulnerable,
@@ -46,7 +44,6 @@ function getDishConfig(type: string): DishConfig {
   return {
     lifetime: dishData.lifetime,
     color: parseInt(dishData.color.replace('#', ''), 16),
-    chainReaction: dishData.chainReaction,
     dangerous: dishData.dangerous,
     hp: dishData.hp,
     invulnerable: dishData.invulnerable,
@@ -61,7 +58,6 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
   private lifetime: number = 2000;
   private elapsedTime: number = 0;
   private color: number = COLORS.CYAN;
-  private chainReaction: boolean = false;
   private dangerous: boolean = false;
   private wobblePhase: number = 0;
   private size: number = 30;
@@ -149,7 +145,6 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
     this.blinkPhase = 0;
     this.hitFlashPhase = 0;
     this.color = config.color;
-    this.chainReaction = config.chainReaction || false;
     this.destroyedByAbility = false;
     this.dangerous = config.dangerous || false;
     this.invulnerable = config.invulnerable || false;
@@ -254,7 +249,6 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
       DishEventPayloadFactory.createDishDestroyedPayload({
         dish: this,
         type: this.dishType,
-        chainReaction: false,
       })
     );
 
@@ -443,7 +437,6 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
       DishEventPayloadFactory.createDishDestroyedPayload({
         dish: this,
         type: this.dishType,
-        chainReaction: this.chainReaction,
         byAbility: this.destroyedByAbility,
       })
     );
@@ -472,10 +465,6 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
     return this.dishType;
   }
 
-  isChainReaction(): boolean {
-    return this.chainReaction;
-  }
-
   getSize(): number {
     return this.size;
   }
@@ -493,12 +482,8 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
   }
 
   // 외부에서 데미지 적용 (전기 충격, 관통 등)
-  applyDamage(damage: number, isChainReaction: boolean = false): void {
+  applyDamage(damage: number): void {
     if (!this.active || this.invulnerable) return;
-
-    if (isChainReaction) {
-      this.chainReaction = true;
-    }
 
     this.destroyedByAbility = true;
     this.currentHp -= damage;
@@ -546,14 +531,9 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
   applyDamageWithUpgrades(
     baseDamage: number,
     damageBonus: number,
-    criticalChanceBonus: number,
-    isChainReaction: boolean = false
+    criticalChanceBonus: number
   ): void {
     if (!this.active || this.invulnerable) return;
-
-    if (isChainReaction) {
-      this.chainReaction = true;
-    }
 
     const damageConfig = Data.dishes.damage;
     const { damage: totalDamage, isCritical } = DishDamageResolver.resolveUpgradeDamage(

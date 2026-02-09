@@ -272,7 +272,6 @@ import { COLORS, FONTS } from '../data/constants';
     "hp": 10,               // 체력 (플레이어 데미지로 깎임)
     "color": "#00ffff",     // 색상 (hex)
     "size": 30,             // 접시 크기 (px)
-    "chainReaction": false, // 파괴 시 연쇄 반응 여부
     "dangerous": false,     // 접촉 시 플레이어 데미지 여부
     "invulnerable": false,  // 무적 여부
     "lifetime": 2000,       // 생존 시간 (ms). 시간 내 파괴 못하면 사라짐
@@ -290,7 +289,7 @@ import { COLORS, FONTS } from '../data/constants';
 |------|------|
 | `basic` | 기본 접시. 밸런스 기준점 |
 | `golden` | 높은 HP의 중후반 탱커 타입 |
-| `crystal` | `chainReaction: true` - 파괴 시 주변 접시에 영향 |
+| `crystal` | 높은 HP의 고위협 접시 |
 | `bomb` | `dangerous: true`, `invulnerable: true` - 접촉 시 플레이어 피해, 파괴 불가 |
 | `mini` | 낮은 HP, 빠른 소멸 |
 | `amber` | 주황색 상위 접시. 무한 웨이브(13+)에서 점진 도입 |
@@ -452,6 +451,9 @@ import { COLORS, FONTS } from '../data/constants';
 | | `spawnCount` | 주기당 생성 개수 |
 | | `radius` | 블랙홀 반경 (px) |
 | | `bombConsumeRadiusRatio` | 폭탄 제거 중심 반경 비율 (`radius * ratio`, 0~1) |
+
+`electric_shock`는 접시 처치가 아니라 **커서 직격으로 발생한 `DISH_DAMAGED` 틱마다** 발동합니다.
+어빌리티 소스(`byAbility=true`)로 발생한 피해에서는 전기 충격이 다시 발동하지 않습니다.
 
 `black_hole`는 중심 좌표와 반경이 모두 화면 안에 들어오도록 생성됩니다.
 또한 폭탄 접시는 `bombConsumeRadiusRatio`로 계산된 중심 영역에 진입하면 `byAbility=true` 경로로 즉시 제거됩니다.

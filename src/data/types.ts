@@ -860,7 +860,6 @@ export interface DishData {
   hp: number;
   color: string;
   size: number;
-  chainReaction: boolean;
   dangerous: boolean;
   invulnerable: boolean;
   lifetime: number;

@@ -50,8 +50,7 @@ interface MockDish {
   applyDamageWithUpgrades: (
     baseDamage: number,
     damageBonus: number,
-    criticalChanceBonus: number,
-    isChainReaction?: boolean
+    criticalChanceBonus: number
   ) => void;
   setBeingPulled: (pulled: boolean) => void;
   forceDestroy: (byAbility?: boolean) => void;
@@ -382,7 +381,7 @@ describe('BlackHoleSystem', () => {
 
     system.update(120, 536);
     expect(normalDish.applyDamageWithUpgrades).toHaveBeenCalledTimes(1);
-    expect(normalDish.applyDamageWithUpgrades).toHaveBeenCalledWith(2, 0, 0, true);
+    expect(normalDish.applyDamageWithUpgrades).toHaveBeenCalledWith(2, 0, 0);
 
     system.update(300, 836);
     expect(normalDish.applyDamageWithUpgrades).toHaveBeenCalledTimes(1);

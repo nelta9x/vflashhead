@@ -17,7 +17,6 @@ interface DishDamagedPayloadParams {
 interface DishDestroyedPayloadParams {
   dish: DishLike;
   type: string;
-  chainReaction: boolean;
   byAbility?: boolean;
 }
 
@@ -50,7 +49,6 @@ export class DishEventPayloadFactory {
       x: params.dish.x,
       y: params.dish.y,
       type: params.type,
-      chainReaction: params.chainReaction,
       byAbility: params.byAbility,
     };
   }

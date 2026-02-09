@@ -117,8 +117,8 @@
     {
       "id": "electric_shock",
       "name": "전류 폭주",
-      "description": "주변 접시에 번개 데미지",
-      "descriptionTemplate": "반경 {radius}px 내 접시에 {damage} 데미지를 줍니다.",
+      "description": "커서 히트마다 주변 접시에 번개 데미지",
+      "descriptionTemplate": "커서 히트 시 반경 {radius}px 내 접시에 {damage} 데미지를 줍니다.",
       "rarity": "common",
       "effectType": "electricShockLevel",
       "levels": [

@@ -65,8 +65,20 @@ FLASHHEAD - Phaser 3 기반 웹 슈팅 게임
 - `CODEMAP.md` - 구조/연결/책임
 - `LESSONS.md` - 교훈/재발 방지
 - `AGENTS.md` - 작업 규칙
+- `REFACTORING_GUIDELINES.md` - 리팩토링 기준/절차(상세)
 - `GAME_DESIGN_PHILOSOPHY.md` - 게임/UI 철학 변경 시
 - `VISUAL_STYLE_GUIDELINES.md` - 비주얼 스타일 변경 시
+
+### 12) 주기적 리팩토링 (요약 규칙)
+- 신규 기능 2~3개 구현마다 구조 점검을 수행한다. (출시 직전 핫픽스 구간은 예외)
+- 아래 중 하나라도 만족하면 분리를 우선 검토한다.
+  - 단일 파일에 독립 책임 3개 이상이 공존
+  - 파일 길이 800~1000 라인 이상
+  - 단일 메서드 길이 80 라인 이상
+  - 테스트가 private 구현에 과도하게 결합
+- 분리 단위는 \"상태 + 타이밍 + 이벤트\"가 함께 움직이는 기능 덩어리를 기준으로 한다.
+- Scene는 오케스트레이션(`create/update/cleanup`, 상위 상태 전환) 중심으로 유지한다.
+- 상세 기준/예시/반례는 `REFACTORING_GUIDELINES.md`를 따른다.
 
 ## 작업 프로토콜 (권장)
 1. 문서 확인: `CODEMAP.md` → `LESSONS.md` → 관련 JSON → (UI 작업 시) `GAME_DESIGN_PHILOSOPHY.md` → (비주얼 작업 시) `VISUAL_STYLE_GUIDELINES.md`
@@ -78,6 +90,7 @@ FLASHHEAD - Phaser 3 기반 웹 슈팅 게임
 ## PR/완료 체크리스트
 - [ ] 데이터가 JSON(SSOT)에 먼저 반영되었는가
 - [ ] 로직/외형 분리가 지켜졌는가
+- [ ] 주기적 리팩토링 트리거를 점검했는가 (해당 시 분리 수행/기록)
 - [ ] 공용 Renderer 우선 원칙을 검토했는가
 - [ ] EventBus payload가 값 스냅샷인가
 - [ ] ObjectPool/비동기 콜백 안전 가드가 있는가

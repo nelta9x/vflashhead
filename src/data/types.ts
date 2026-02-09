@@ -552,6 +552,8 @@ export interface HealthPackConfig {
   maxActive: number;
   baseSpawnChance: number;
   checkInterval: number;
+  preMissWarningDistance: number;
+  preMissWarningTextOffsetY: number;
   spawnChanceByHp?: Record<string, number>;
 }
 

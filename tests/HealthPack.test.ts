@@ -14,6 +14,7 @@ vi.mock('../src/utils/EventBus', () => ({
   },
   GameEvents: {
     HEALTH_PACK_SPAWNED: 'healthPack:spawned',
+    HEALTH_PACK_PASSING: 'healthPack:passing',
     HEALTH_PACK_COLLECTED: 'healthPack:collected',
     HEALTH_PACK_MISSED: 'healthPack:missed',
   },
@@ -25,6 +26,7 @@ vi.mock('../src/data/DataManager', () => ({
       moveSpeed: 200,
       hitboxSize: 35,
       visualSize: 28,
+      preMissWarningDistance: 120,
     },
     gameConfig: {
       screen: {
@@ -197,6 +199,26 @@ describe('HealthPack', () => {
     pack.update(1000);
 
     expect(pack.y).toBe(initialY - 200);
+  });
+
+  it('emits passing warning once before moving out of the top boundary', () => {
+    const pack = new HealthPack(createScene(), 0, 0);
+    pack.spawn(120);
+    mockEmit.mockClear();
+    pack.y = 80;
+
+    pack.update(16);
+    pack.update(16);
+
+    const warningCalls = mockEmit.mock.calls.filter(
+      (call) => call[0] === GameEvents.HEALTH_PACK_PASSING
+    );
+    expect(warningCalls).toHaveLength(1);
+    expect(warningCalls[0][1]).toEqual(
+      expect.objectContaining({
+        x: 120,
+      })
+    );
   });
 
   it('emits missed and deactivates when moving beyond top boundary', () => {

@@ -483,7 +483,9 @@ import { COLORS, FONTS } from '../data/constants';
   "cooldown": 15000,      // 스폰 쿨다운 (ms)
   "maxActive": 1,         // 동시에 존재 가능한 최대 개수
   "baseSpawnChance": 0.04, // 스폰 체크 1회당 기본 확률
-  "checkInterval": 5000   // 스폰 확률 체크 간격 (ms)
+  "checkInterval": 5000,  // 스폰 확률 체크 간격 (ms)
+  "preMissWarningDistance": 120, // 화면 상단 이탈 전 경고 이벤트 트리거 거리(px, 소멸선 기준)
+  "preMissWarningTextOffsetY": -26 // 경고 텍스트 Y 오프셋(px, 힐팩 기준)
 }
 ```
 

@@ -138,6 +138,15 @@ export class FeedbackSystem {
     this.soundSystem.playHealSound();
   }
 
+  onHealthPackPassing(x: number, y: number): void {
+    this.damageText.showShakingText(
+      x,
+      y + Data.healthPack.preMissWarningTextOffsetY,
+      Data.t('feedback.health_pack_passing'),
+      COLORS.GREEN
+    );
+  }
+
   // 전기 충격 효과 (업그레이드용)
   onElectricShock(x: number, y: number, targets: { x: number; y: number }[]): void {
     this.particleManager.createElectricEffect(x, y, targets);

@@ -299,6 +299,7 @@ export class GameScene extends Phaser.Scene {
       onDishMissed: (payload) => this.dishLifecycleController.onDishMissed(payload),
       onHealthPackUpgraded: (payload) => this.onHealthPackUpgraded(payload.hpBonus),
       onHpChanged: (payload) => this.onHpChanged(payload),
+      onHealthPackPassing: (payload) => this.onHealthPackPassing(payload.x, payload.y),
       onHealthPackCollected: (payload) => this.onHealthPackCollected(payload.x, payload.y),
       onMonsterHpChanged: () => {
         // 보스 엔티티가 내부적으로 MONSTER_HP_CHANGED 이벤트를 직접 구독한다.
@@ -371,6 +372,10 @@ export class GameScene extends Phaser.Scene {
   private onHealthPackCollected(x: number, y: number): void {
     this.healthSystem.heal(1);
     this.feedbackSystem.onHealthPackCollected(x, y);
+  }
+
+  private onHealthPackPassing(x: number, y: number): void {
+    this.feedbackSystem.onHealthPackPassing(x, y);
   }
 
   private getPlayerAttackRenderer(): PlayerAttackRenderer {

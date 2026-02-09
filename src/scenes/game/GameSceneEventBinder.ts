@@ -22,6 +22,11 @@ interface HealthPackCollectedPayload {
   y: number;
 }
 
+interface HealthPackPassingPayload {
+  x: number;
+  y: number;
+}
+
 interface GaugeUpdatedPayload {
   current: number;
   max: number;
@@ -41,6 +46,7 @@ export interface GameSceneEventBinderHandlers {
   onDishMissed: (payload: DishMissedEventPayload) => void;
   onHealthPackUpgraded: (payload: HealthPackUpgradedPayload) => void;
   onHpChanged: (payload: HpChangedPayload) => void;
+  onHealthPackPassing: (payload: HealthPackPassingPayload) => void;
   onHealthPackCollected: (payload: HealthPackCollectedPayload) => void;
   onMonsterHpChanged: () => void;
   onGaugeUpdated: (payload: GaugeUpdatedPayload) => void;
@@ -111,6 +117,10 @@ export class GameSceneEventBinder {
     this.addSubscription(GameEvents.HP_CHANGED, (...args: unknown[]) => {
       const payload = args[0] as HpChangedPayload;
       this.handlers.onHpChanged(payload);
+    });
+    this.addSubscription(GameEvents.HEALTH_PACK_PASSING, (...args: unknown[]) => {
+      const payload = args[0] as HealthPackPassingPayload;
+      this.handlers.onHealthPackPassing(payload);
     });
     this.addSubscription(GameEvents.HEALTH_PACK_COLLECTED, (...args: unknown[]) => {
       const payload = args[0] as HealthPackCollectedPayload;

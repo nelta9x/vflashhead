@@ -99,7 +99,7 @@
   - 내부 분해: `entities/dish/DishDamageResolver.ts`, `entities/dish/DishEventPayloadFactory.ts`
   - 외형 렌더링: `DishRenderer`에 위임 (인게임/메뉴 공용 스타일).
 - **`Boss.ts`**: 보스 몬스터의 로직 엔티티. 각 인스턴스는 자신의 `bossId` 이벤트(`MONSTER_HP_CHANGED`/`MONSTER_DIED`)만 처리하며, 시각화는 `BossRenderer`에 위임합니다.
-- **`HealthPack.ts`**: 화면 하단에서 스폰되어 상단으로 이동하는 힐 아이템 오브젝트. 커서와 충돌 시 `HEALTH_PACK_COLLECTED` 이벤트를 발생시키며, 외형 렌더링은 `HealthPackRenderer`에 위임합니다.
+- **`HealthPack.ts`**: 화면 하단에서 스폰되어 상단으로 이동하는 힐 아이템 오브젝트. 커서와 충돌 시 `HEALTH_PACK_COLLECTED`, 상단 이탈 직전 `HEALTH_PACK_PASSING` 이벤트를 발생시키며, 외형 렌더링은 `HealthPackRenderer`에 위임합니다.
 
 ### 4. 시각 효과 및 UI (Effects & UI)
 
@@ -189,6 +189,7 @@
 |                   | `GAME_RESUMED`          | 게임 재개 시                   | `GameScene`       | —                                      |
 |                   | `HEALTH_PACK_UPGRADED`  | 힐팩 업그레이드 적용 시        | `UpgradeSystem`   | `GameScene` (최대 HP 증가 로직)        |
 | **힐팩**          | `HEALTH_PACK_SPAWNED`   | 힐팩 스폰 시                   | `HealthPack`      | —                                      |
+|                   | `HEALTH_PACK_PASSING`   | 힐팩 상단 이탈 직전            | `HealthPack`      | `GameScene` (피드백 텍스트)            |
 |                   | `HEALTH_PACK_COLLECTED` | 힐팩 획득 시                   | `HealthPack`      | `HealthPackSystem`, `GameScene`        |
 |                   | `HEALTH_PACK_MISSED`    | 힐팩 놓쳤을 때                 | `HealthPack`      | `HealthPackSystem`                     |
 | **보스 & 게이지** | `MONSTER_HP_CHANGED`    | `bossId`별 보스 HP 변화 시     | `MonsterSystem`   | `Boss`, `GameScene`                    |

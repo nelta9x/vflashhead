@@ -6,5 +6,7 @@
   "cooldown": 15000,
   "maxActive": 1,
   "baseSpawnChance": 0.04,
-  "checkInterval": 5000
+  "checkInterval": 5000,
+  "preMissWarningDistance": 120,
+  "preMissWarningTextOffsetY": -26
 }

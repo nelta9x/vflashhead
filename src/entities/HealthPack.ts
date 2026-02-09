@@ -11,6 +11,7 @@ export class HealthPack extends Phaser.GameObjects.Container implements Poolable
   private graphics: Phaser.GameObjects.Graphics;
   private moveSpeed: number = Data.healthPack.moveSpeed;
   private pulsePhase: number = 0;
+  private hasPreMissWarningEmitted: boolean = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y);
@@ -25,6 +26,7 @@ export class HealthPack extends Phaser.GameObjects.Container implements Poolable
 
   reset(): void {
     this.pulsePhase = 0;
+    this.hasPreMissWarningEmitted = false;
     this.setVisible(true);
     this.setActive(true);
     this.setAlpha(1);
@@ -36,6 +38,7 @@ export class HealthPack extends Phaser.GameObjects.Container implements Poolable
     this.setPosition(x, gameHeight + OFFSCREEN_MARGIN);
     this.active = true;
     this.pulsePhase = 0;
+    this.hasPreMissWarningEmitted = false;
 
     // 클릭 가능하게 설정 (관대한 히트박스)
     this.setInteractive(
@@ -117,6 +120,8 @@ export class HealthPack extends Phaser.GameObjects.Container implements Poolable
     // 펄스 애니메이션
     this.pulsePhase += delta * 0.005;
 
+    this.emitPreMissWarningIfNeeded();
+
     // 화면 위로 벗어남 체크
     if (this.y < -OFFSCREEN_MARGIN) {
       this.onMissed();
@@ -130,6 +135,7 @@ export class HealthPack extends Phaser.GameObjects.Container implements Poolable
     if (!this.active) return;
 
     this.active = false;
+    this.hasPreMissWarningEmitted = false;
     this.disableInteractive();
     this.removeAllListeners();
 
@@ -141,8 +147,31 @@ export class HealthPack extends Phaser.GameObjects.Container implements Poolable
     this.deactivate();
   }
 
+  private emitPreMissWarningIfNeeded(): void {
+    if (this.hasPreMissWarningEmitted) {
+      return;
+    }
+
+    const warningDistance = Data.healthPack.preMissWarningDistance;
+    if (warningDistance <= 0) {
+      return;
+    }
+
+    const warningThresholdY = -OFFSCREEN_MARGIN + warningDistance;
+    if (this.y > warningThresholdY) {
+      return;
+    }
+
+    this.hasPreMissWarningEmitted = true;
+    EventBus.getInstance().emit(GameEvents.HEALTH_PACK_PASSING, {
+      x: this.x,
+      y: this.y,
+    });
+  }
+
   deactivate(): void {
     this.active = false;
+    this.hasPreMissWarningEmitted = false;
     this.setVisible(false);
     this.setActive(false);
     this.disableInteractive();

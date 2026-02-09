@@ -246,7 +246,7 @@
     },
     {
       "id": "health_pack",
-      "name": "구급 상자",
+      "name": "겁쟁이들의 과자",
       "description": "헬스팩 성능 강화 및 최대 체력 증가",
       "descriptionTemplate": "최대 체력이 {hpBonus} 증가하고, 헬스팩 드롭 확률이 {dropChanceBonus}% 증가합니다.",
       "rarity": "common",

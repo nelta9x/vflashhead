@@ -128,6 +128,7 @@ export const GameEvents = {
 
   // 힐팩 관련
   HEALTH_PACK_SPAWNED: 'healthPack:spawned',
+  HEALTH_PACK_PASSING: 'healthPack:passing',
   HEALTH_PACK_COLLECTED: 'healthPack:collected',
   HEALTH_PACK_MISSED: 'healthPack:missed',
   HEALTH_PACK_UPGRADED: 'healthPack:upgraded',

@@ -310,6 +310,82 @@ export class DamageText {
     });
   }
 
+  showShakingText(x: number, y: number, text: string, color: number): void {
+    const hexColor = '#' + color.toString(16).padStart(6, '0');
+    const config = Data.feedback.damageText;
+    const animation = config.animation;
+    const style = config.style;
+
+    let textObj = this.pool.find((t) => !this.activeTexts.has(t));
+    if (!textObj) {
+      textObj = this.scene.add.text(0, 0, '', {
+        fontFamily: FONTS.MAIN,
+        fontSize: `${config.normal.fontSize}px`,
+        color: hexColor,
+        stroke: '#000000',
+        strokeThickness: style?.strokeThickness || 3,
+        fontStyle: style?.fontStyle || 'normal',
+      });
+      textObj.setOrigin(0.5);
+      textObj.setDepth(2500);
+      this.pool.push(textObj);
+    }
+
+    const baseX = x;
+    const baseY = y;
+    const shakeCycles = Math.max(1, animation.shake.repeat + 2);
+    const shakeDuration = Math.max(1, animation.shake.duration * shakeCycles);
+    const fadeDelay = animation.scalePop.duration + shakeDuration + animation.hold.duration;
+    const totalDuration = fadeDelay + animation.shrinkFade.duration;
+    const riseDistance = Math.max(44, Math.round(config.normal.fontSize * 2.4));
+
+    textObj.setText(text);
+    textObj.setPosition(baseX, baseY);
+    textObj.setColor(hexColor);
+    textObj.setFontSize(config.normal.fontSize);
+    textObj.setVisible(true);
+    textObj.setAlpha(1);
+    textObj.setScale(0.7);
+    textObj.setRotation(0);
+    this.activeTexts.add(textObj);
+
+    this.scene.tweens.add({
+      targets: textObj,
+      scaleX: 1.28,
+      scaleY: 1.28,
+      duration: animation.scalePop.duration,
+      ease: animation.scalePop.ease,
+    });
+
+    this.scene.tweens.add({
+      targets: textObj,
+      y: baseY - riseDistance,
+      duration: totalDuration,
+      ease: 'Sine.easeOut',
+    });
+
+    this.scene.tweens.add({
+      targets: textObj,
+      x: { from: baseX - animation.shake.distance, to: baseX + animation.shake.distance },
+      angle: { from: -8, to: 8 },
+      duration: animation.shake.duration,
+      ease: animation.shake.ease,
+      yoyo: true,
+      repeat: shakeCycles,
+    });
+
+    this.scene.tweens.add({
+      targets: textObj,
+      alpha: 0,
+      scaleX: animation.shrinkFade.targetScale,
+      scaleY: animation.shrinkFade.targetScale,
+      duration: animation.shrinkFade.duration,
+      delay: fadeDelay,
+      ease: animation.shrinkFade.ease,
+      onComplete: () => this.releaseText(textObj),
+    });
+  }
+
   private createDamageText(config: DamageTextConfig): void {
     // 풀에서 사용 가능한 텍스트 찾기
     let text = this.pool.find((t) => !this.activeTexts.has(t));
@@ -369,8 +445,10 @@ export class DamageText {
   }
 
   private releaseText(text: Phaser.GameObjects.Text): void {
+    this.scene.tweens.killTweensOf(text);
     text.setVisible(false);
     text.setRotation(0);
+    text.setAngle(0);
     this.activeTexts.delete(text);
   }
 }

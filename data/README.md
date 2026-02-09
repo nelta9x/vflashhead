@@ -338,15 +338,15 @@ import { COLORS, FONTS } from '../data/constants';
 ```json
 {
   "rarityWeights": {
-    "early": { "common": 60, "rare": 30, "epic": 10, "legendary": 0 },
-    "mid": { "common": 45, "rare": 35, "epic": 17, "legendary": 3 },
-    "late": { "common": 30, "rare": 35, "epic": 25, "legendary": 10 },
-    "endgame": { "common": 20, "rare": 30, "epic": 30, "legendary": 20 }
+    "early": { "common": 25, "rare": 15, "epic": 8, "legendary": 4 },
+    "mid": { "common": 25, "rare": 15, "epic": 8, "legendary": 5 },
+    "late": { "common": 24, "rare": 14, "epic": 8, "legendary": 7 },
+    "endgame": { "common": 22, "rare": 14, "epic": 10, "legendary": 8 }
   },
   "rarityThresholds": {
     "early": 2,   // 0~2회: early
-    "mid": 4,     // 3~4회: mid
-    "late": 6     // 5~6회: late, 7회+: endgame
+    "mid": 5,     // 3~5회: mid
+    "late": 8     // 6~8회: late, 9회+: endgame
   }
 }
 ```

@@ -26,8 +26,8 @@
     "endgame": {
       "common": 22,
       "rare": 14,
-      "epic": 8,
-      "legendary": 9
+      "epic": 10,
+      "legendary": 8
     }
   },
   "rarityThresholds": {
@@ -207,7 +207,7 @@
       "name": "강화 미사일",
       "description": "풀 차지 공격 시 보스에게 발사되는 미사일 수와 발당 피해량 강화",
       "descriptionTemplate": "풀 차지 공격 시 보스에게 {count}발의 미사일({damage} 데미지)을 연속 발사합니다.",
-      "rarity": "legendary",
+      "rarity": "epic",
       "effectType": "missileLevel",
       "levels": [
         {

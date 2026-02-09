@@ -67,7 +67,7 @@
 `src/systems/` 디렉토리에는 특정 기능을 담당하는 독립적인 클래스들이 위치합니다.
 
 - **`WaveSystem.ts`**: 웨이브 오케스트레이터. 내부 계산은 `systems/wave/*` 모듈에 위임합니다.
-  - `wave/WaveConfigResolver.ts`: 웨이브/무한/피버 구성 계산
+  - `wave/WaveConfigResolver.ts`: 웨이브/무한/피버 구성 계산 (`infiniteScaling`의 amber 도입 램프와 dish weight 정규화 포함)
   - `wave/WavePhaseController.ts`: waiting/countdown/spawning 상태와 카운트다운 이벤트 틱
   - `wave/WaveSpawnPlanner.ts`: 접시 타입 롤 + 스폰 위치 제약 검증(보스/접시 거리)
 - **`waveBossConfig.ts`**: 웨이브별 보스 구성 해석 유틸리티. `bossTotalHp`/`hpWeight` 분배, 무한 웨이브 보스 수/총 HP 스케일링(`bossTotalHpIncrease`, `infiniteBossCount`)을 공용 계산합니다.
@@ -151,7 +151,7 @@
   - `main-menu.json`: 메인 메뉴 씬 설정 (별 배경, 보스 애니메이션, 메뉴 접시 스폰, 언어 UI 설정).
   - `colors.json`: 게임 내 모든 색상 팔레트 및 테마 (숫자값/hex).
   - `dishes.json`: 적 종류별 체력, 크기, 수명, 특수 속성 설정.
-  - `waves.json`: 웨이브별 구성, 난이도 곡선, 멀티 보스 구성(`bossTotalHp`, `bosses[]`, `bossSpawnMinDistance`), 무한 웨이브 스케일링 설정.
+  - `waves.json`: 웨이브별 구성, 난이도 곡선, 멀티 보스 구성(`bossTotalHp`, `bosses[]`, `bossSpawnMinDistance`), 무한 웨이브 스케일링 설정(`infiniteBossCount`, `amberStart*`, `maxAmberWeight` 포함).
   - `boss.json`: 보스 비주얼 및 공격 설정 (코어 반지름, 아머 조각, 아머 HP 세그먼트 스케일링, 레이저 공격).
   - `upgrades.json`: 업그레이드 어빌리티 정의, 확률(Rarity), 효과 수치, 카드 프리뷰 표시 스키마(`previewDisplay`).
   - `feedback.json`: 연출용 수치 (흔들림 강도, 파티클 개수, 슬로우모션 강도, 커서 트레일 설정).

@@ -190,97 +190,88 @@
       "number": 10,
       "name": "폭풍",
       "dishCount": 5,
-      "spawnInterval": 780,
+      "spawnInterval": 820,
       "dishTypes": [
-        { "type": "basic", "weight": 0.36 },
-        { "type": "golden", "weight": 0.24 },
-        { "type": "crystal", "weight": 0.14 },
-        { "type": "bomb", "weight": 0.14 },
-        { "type": "amber", "weight": 0.12 }
+        { "type": "basic", "weight": 0.48 },
+        { "type": "golden", "weight": 0.3 },
+        { "type": "crystal", "weight": 0.1 },
+        { "type": "bomb", "weight": 0.12 }
       ],
-      "bossTotalHp": 2500,
+      "bossTotalHp": 1900,
       "bosses": [
         {
           "id": "boss_left",
           "hpWeight": 1,
           "spawnRange": { "minX": 320, "maxX": 440, "minY": 90, "maxY": 120 },
-          "laser": { "maxCount": 1, "minInterval": 3200, "maxInterval": 6200 }
+          "laser": { "maxCount": 1, "minInterval": 3400, "maxInterval": 6200 }
         },
         {
           "id": "boss_right",
           "hpWeight": 1,
           "spawnRange": { "minX": 840, "maxX": 960, "minY": 90, "maxY": 120 },
-          "laser": { "maxCount": 1, "minInterval": 3200, "maxInterval": 6200 }
+          "laser": { "maxCount": 1, "minInterval": 3400, "maxInterval": 6200 }
         }
       ],
       "bossSpawnMinDistance": 280,
-      "laser": { "maxCount": 3, "minInterval": 3000, "maxInterval": 5800 }
+      "laser": { "maxCount": 2, "minInterval": 3400, "maxInterval": 6200 }
     },
     {
       "number": 11,
       "name": "최대",
-      "dishCount": 6,
-      "spawnInterval": 740,
+      "dishCount": 5,
+      "spawnInterval": 800,
       "dishTypes": [
-        { "type": "basic", "weight": 0.3 },
-        { "type": "golden", "weight": 0.22 },
-        { "type": "crystal", "weight": 0.17 },
-        { "type": "bomb", "weight": 0.16 },
-        { "type": "amber", "weight": 0.15 }
+        { "type": "basic", "weight": 0.46 },
+        { "type": "golden", "weight": 0.28 },
+        { "type": "crystal", "weight": 0.12 },
+        { "type": "bomb", "weight": 0.14 }
       ],
-      "bossTotalHp": 3100,
+      "bossTotalHp": 2100,
       "bosses": [
         {
           "id": "boss_left",
           "hpWeight": 1,
           "spawnRange": { "minX": 320, "maxX": 460, "minY": 88, "maxY": 122 },
-          "laser": { "maxCount": 1, "minInterval": 3000, "maxInterval": 5600 }
+          "laser": { "maxCount": 1, "minInterval": 3400, "maxInterval": 6200 }
         },
         {
           "id": "boss_right",
           "hpWeight": 1,
           "spawnRange": { "minX": 820, "maxX": 960, "minY": 88, "maxY": 122 },
-          "laser": { "maxCount": 1, "minInterval": 3000, "maxInterval": 5600 }
+          "laser": { "maxCount": 1, "minInterval": 3400, "maxInterval": 6200 }
         }
       ],
       "bossSpawnMinDistance": 280,
-      "laser": { "maxCount": 3, "minInterval": 2800, "maxInterval": 5400 }
+      "laser": { "maxCount": 2, "minInterval": 3400, "maxInterval": 6200 }
     },
     {
       "number": 12,
       "name": "극한",
-      "dishCount": 7,
-      "spawnInterval": 700,
+      "dishCount": 5,
+      "spawnInterval": 780,
       "dishTypes": [
-        { "type": "basic", "weight": 0.24 },
-        { "type": "golden", "weight": 0.2 },
-        { "type": "crystal", "weight": 0.2 },
-        { "type": "bomb", "weight": 0.18 },
-        { "type": "amber", "weight": 0.18 }
+        { "type": "basic", "weight": 0.44 },
+        { "type": "golden", "weight": 0.26 },
+        { "type": "crystal", "weight": 0.14 },
+        { "type": "bomb", "weight": 0.16 }
       ],
-      "bossTotalHp": 3900,
+      "bossTotalHp": 2400,
       "bosses": [
         {
           "id": "boss_left",
           "hpWeight": 1,
           "spawnRange": { "minX": 260, "maxX": 400, "minY": 86, "maxY": 124 },
-          "laser": { "maxCount": 1, "minInterval": 2700, "maxInterval": 5200 }
-        },
-        {
-          "id": "boss_center",
-          "hpWeight": 1,
-          "spawnRange": { "minX": 570, "maxX": 710, "minY": 84, "maxY": 126 },
-          "laser": { "maxCount": 1, "minInterval": 2600, "maxInterval": 5000 }
+          "laser": { "maxCount": 1, "minInterval": 3400, "maxInterval": 6200 }
         },
         {
           "id": "boss_right",
           "hpWeight": 1,
           "spawnRange": { "minX": 880, "maxX": 1020, "minY": 86, "maxY": 124 },
-          "laser": { "maxCount": 1, "minInterval": 2700, "maxInterval": 5200 }
+          "laser": { "maxCount": 1, "minInterval": 3400, "maxInterval": 6200 }
         }
       ],
-      "bossSpawnMinDistance": 230,
-      "laser": { "maxCount": 4, "minInterval": 2500, "maxInterval": 5000 }
+      "bossSpawnMinDistance": 280,
+      "laser": { "maxCount": 2, "minInterval": 3400, "maxInterval": 6200 }
     }
   ],
   "fever": {
@@ -295,16 +286,20 @@
     ]
   },
   "infiniteScaling": {
-    "spawnIntervalReduction": 6,
-    "minSpawnInterval": 320,
-    "bombWeightIncrease": 0.008,
-    "maxBombWeight": 0.24,
+    "spawnIntervalReduction": 5,
+    "minSpawnInterval": 640,
+    "bombWeightIncrease": 0.002,
+    "maxBombWeight": 0.18,
     "goldenWeightDecrease": 0.002,
-    "minGoldenWeight": 0.18,
-    "bossHpIncrease": 2200,
-    "bossTotalHpIncrease": 2200,
-    "infiniteBossCount": 3,
-    "minDishCountIncrease": 1,
-    "maxMinDishCount": 11
+    "minGoldenWeight": 0.16,
+    "bossHpIncrease": 150,
+    "bossTotalHpIncrease": 150,
+    "infiniteBossCount": 2,
+    "minDishCountIncrease": 0,
+    "maxMinDishCount": 7,
+    "amberStartWaveOffset": 1,
+    "amberStartWeight": 0.02,
+    "amberWeightIncrease": 0.02,
+    "maxAmberWeight": 0.16
   }
 }

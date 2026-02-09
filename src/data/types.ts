@@ -830,6 +830,10 @@ export interface InfiniteScalingConfig {
   infiniteBossCount?: number;
   minDishCountIncrease: number;
   maxMinDishCount: number;
+  amberStartWaveOffset: number;
+  amberStartWeight: number;
+  amberWeightIncrease: number;
+  maxAmberWeight: number;
 }
 
 export interface FeverConfig {

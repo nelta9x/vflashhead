@@ -198,30 +198,34 @@ import { COLORS, FONTS } from '../data/constants';
   "number": 10,             // 웨이브 번호
   "name": "폭풍",           // 표시 이름
   "dishCount": 5,           // 최소 활성 접시 수 (이 수 이하면 즉시 스폰)
-  "spawnInterval": 720,     // 접시 스폰 간격 (ms). 낮을수록 빠름
+  "spawnInterval": 820,     // 접시 스폰 간격 (ms). 낮을수록 빠름
   "dishTypes": [            // 접시 종류별 출현 가중치
-    { "type": "basic", "weight": 0.8 },
-    { "type": "golden", "weight": 0.1 },
-    { "type": "bomb", "weight": 0.1 }
+    { "type": "basic", "weight": 0.48 },
+    { "type": "golden", "weight": 0.3 },
+    { "type": "crystal", "weight": 0.1 },
+    { "type": "bomb", "weight": 0.12 }
   ],
-  "bossTotalHp": 2420,      // 웨이브 전체 보스 HP 총량
+  "bossTotalHp": 1900,      // 웨이브 전체 보스 HP 총량
   "bossSpawnMinDistance": 280, // 보스 간 최소 스폰 거리
   "bosses": [
     {
       "id": "boss_left",
       "hpWeight": 1,        // bossTotalHp 분배 가중치
       "spawnRange": { "minX": 320, "maxX": 440, "minY": 90, "maxY": 120 },
-      "laser": { "maxCount": 1, "minInterval": 3000, "maxInterval": 5600 }
+      "laser": { "maxCount": 1, "minInterval": 4200, "maxInterval": 7600 }
     },
     {
       "id": "boss_right",
       "hpWeight": 1,
       "spawnRange": { "minX": 840, "maxX": 960, "minY": 90, "maxY": 120 },
-      "laser": { "maxCount": 1, "minInterval": 3000, "maxInterval": 5600 }
+      "laser": { "maxCount": 1, "minInterval": 4200, "maxInterval": 7600 }
     }
   ]
 }
 ```
+
+웨이브 설계 원칙: **새 접시/새 기믹/보스 수 증가 같은 \"큰 변화\"는 한 웨이브에 1개만 적용**합니다.
+예시로 10웨이브는 `2보스 전환`만 적용하고, `amber` 도입은 무한 구간(13+)으로 분리합니다.
 
 **dishTypes 가중치 계산**: 모든 weight의 합 대비 각 weight의 비율이 출현 확률
 - 예: basic=0.8, golden=0.1, bomb=0.1 → basic 80%, golden 10%, bomb 10%
@@ -235,17 +239,21 @@ import { COLORS, FONTS } from '../data/constants';
 
 ```json
 {
-  "spawnIntervalReduction": 20,  // 웨이브당 스폰 간격 감소 (ms)
-  "minSpawnInterval": 150,       // 최소 스폰 간격
-  "bombWeightIncrease": 0.02,    // 웨이브당 폭탄 가중치 증가
-  "maxBombWeight": 0.35,         // 폭탄 최대 가중치
-  "goldenWeightDecrease": 0.01,  // 웨이브당 골든 가중치 감소
-  "minGoldenWeight": 0.2,        // 골든 최소 가중치
-  "bossTotalHpIncrease": 3000,   // 웨이브당 bossTotalHp 증가량 (우선 사용)
-  "bossHpIncrease": 3000,        // 레거시 호환용 보스 HP 증가량
-  "infiniteBossCount": 3,        // 무한 웨이브 보스 수
-  "minDishCountIncrease": 1,     // 웨이브당 최소 접시 수 증가
-  "maxMinDishCount": 20          // 최소 접시 수 상한
+  "spawnIntervalReduction": 5,   // 웨이브당 스폰 간격 감소 (ms)
+  "minSpawnInterval": 640,       // 최소 스폰 간격
+  "bombWeightIncrease": 0.002,   // 웨이브당 폭탄 가중치 증가
+  "maxBombWeight": 0.18,         // 폭탄 최대 가중치
+  "goldenWeightDecrease": 0.002, // 웨이브당 골든 가중치 감소
+  "minGoldenWeight": 0.16,       // 골든 최소 가중치
+  "bossTotalHpIncrease": 150,    // 웨이브당 bossTotalHp 증가량 (우선 사용)
+  "bossHpIncrease": 150,         // 레거시 호환용 보스 HP 증가량
+  "infiniteBossCount": 2,        // 무한 웨이브 보스 수(2보스 고정)
+  "minDishCountIncrease": 0,     // 웨이브당 최소 접시 수 증가
+  "maxMinDishCount": 7,          // 최소 접시 수 상한
+  "amberStartWaveOffset": 1,     // 고정 웨이브 종료 후 몇 웨이브 뒤에 amber 시작할지
+  "amberStartWeight": 0.02,      // amber 시작 가중치
+  "amberWeightIncrease": 0.02,   // 웨이브당 amber 가중치 증가량
+  "maxAmberWeight": 0.16         // amber 최대 가중치
 }
 ```
 
@@ -285,7 +293,7 @@ import { COLORS, FONTS } from '../data/constants';
 | `crystal` | `chainReaction: true` - 파괴 시 주변 접시에 영향 |
 | `bomb` | `dangerous: true`, `invulnerable: true` - 접촉 시 플레이어 피해, 파괴 불가 |
 | `mini` | 낮은 HP, 빠른 소멸 |
-| `amber` | 주황색 상위 접시. `crystal` 다음 단계(웨이브 10부터 등장) |
+| `amber` | 주황색 상위 접시. 무한 웨이브(13+)에서 점진 도입 |
 
 #### 데미지 설정
 

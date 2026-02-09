@@ -91,13 +91,51 @@ export class WaveConfigResolver {
       scaling.minGoldenWeight,
       baseGoldenWeight - wavesBeyond * scaling.goldenWeightDecrease
     );
-    const basicWeight = Math.max(0.05, 1 - bombWeight - crystalWeight - goldenWeight);
 
-    return [
-      { type: 'basic', weight: basicWeight },
+    const amberStartWaveOffset = Math.max(1, Math.floor(scaling.amberStartWaveOffset));
+    const amberWaveProgress = wavesBeyond - amberStartWaveOffset;
+    const amberWeight =
+      amberWaveProgress < 0
+        ? 0
+        : Math.min(
+            scaling.maxAmberWeight,
+            Math.max(0, scaling.amberStartWeight + amberWaveProgress * scaling.amberWeightIncrease)
+          );
+
+    const minBasicWeight = 0.05;
+    const nonBasicTypes = [
       { type: 'golden', weight: goldenWeight },
       { type: 'crystal', weight: crystalWeight },
       { type: 'bomb', weight: bombWeight },
+      { type: 'amber', weight: amberWeight },
     ];
+
+    let nonBasicSum = nonBasicTypes.reduce((sum, dishType) => sum + dishType.weight, 0);
+    const maxNonBasicSum = 1 - minBasicWeight;
+    if (nonBasicSum > maxNonBasicSum && nonBasicSum > 0) {
+      const scale = maxNonBasicSum / nonBasicSum;
+      nonBasicTypes.forEach((dishType) => {
+        dishType.weight *= scale;
+      });
+      nonBasicSum = nonBasicTypes.reduce((sum, dishType) => sum + dishType.weight, 0);
+    }
+
+    const dishTypes = [{ type: 'basic', weight: Math.max(minBasicWeight, 1 - nonBasicSum) }, ...nonBasicTypes];
+    const totalWeight = dishTypes.reduce((sum, dishType) => sum + dishType.weight, 0);
+
+    if (totalWeight <= 0) {
+      return [
+        { type: 'basic', weight: 1 },
+        { type: 'golden', weight: 0 },
+        { type: 'crystal', weight: 0 },
+        { type: 'bomb', weight: 0 },
+        { type: 'amber', weight: 0 },
+      ];
+    }
+
+    return dishTypes.map((dishType) => ({
+      type: dishType.type,
+      weight: dishType.weight / totalWeight,
+    }));
   }
 }

@@ -98,6 +98,10 @@ vi.mock('../src/data/DataManager', () => ({
         infiniteBossCount: 2,
         minDishCountIncrease: 1,
         maxMinDishCount: 20,
+        amberStartWaveOffset: 1,
+        amberStartWeight: 0.02,
+        amberWeightIncrease: 0.02,
+        maxAmberWeight: 0.2,
       },
       fever: {
         dishCount: 999,

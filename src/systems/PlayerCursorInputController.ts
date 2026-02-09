@@ -56,7 +56,7 @@ export class PlayerCursorInputController {
     };
 
     this.movementKeyDownHandler = (event: KeyboardEvent) => {
-      if (this.isMovementKeyCode(event.code)) {
+      if (!event.repeat && this.isMovementKeyCode(event.code)) {
         this.lastInputDevice = 'keyboard';
       }
     };

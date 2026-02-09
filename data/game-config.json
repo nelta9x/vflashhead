@@ -81,7 +81,7 @@
       "bottomMargin": 20,
       "spacing": 26,
       "virtualBarWidthRatio": 0.5,
-      "dockPauseHoldDurationMs": 1200,
+      "dockPauseHoldDurationMs": 1000,
       "dockPauseGauge": {
         "height": 6,
         "insetX": 18,

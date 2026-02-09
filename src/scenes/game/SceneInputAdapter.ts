@@ -21,6 +21,7 @@ export class SceneInputAdapter {
   private readonly togglePause: () => void;
 
   private pointerMoveHandler: ((pointer: Phaser.Input.Pointer) => void) | null = null;
+  private pointerDownHandler: ((pointer: Phaser.Input.Pointer) => void) | null = null;
   private escapeKeyHandler: (() => void) | null = null;
   private gameOutHandler: ((..._args: unknown[]) => void) | null = null;
   private windowBlurHandler: (() => void) | null = null;
@@ -55,6 +56,12 @@ export class SceneInputAdapter {
     };
     this.scene.input.on('pointermove', this.pointerMoveHandler);
 
+    this.pointerDownHandler = (pointer: Phaser.Input.Pointer) => {
+      this.applyCursorPosition(pointer.worldX, pointer.worldY);
+      this.inputController.onPointerInput(this.getInputTimestamp());
+    };
+    this.scene.input.on('pointerdown', this.pointerDownHandler);
+
     this.escapeKeyHandler = () => {
       if (this.isGameOver()) return;
       this.togglePause();
@@ -68,6 +75,11 @@ export class SceneInputAdapter {
     if (this.pointerMoveHandler) {
       this.scene.input.off('pointermove', this.pointerMoveHandler);
       this.pointerMoveHandler = null;
+    }
+
+    if (this.pointerDownHandler) {
+      this.scene.input.off('pointerdown', this.pointerDownHandler);
+      this.pointerDownHandler = null;
     }
 
     this.inputController.unbindKeyboard();

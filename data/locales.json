@@ -113,7 +113,8 @@
     "upgrade.stat.black_hole_spawn_interval_ms": "Spawn Interval",
     "upgrade.stat.black_hole_duration_ms": "Duration",
     "upgrade.card.level_transition": "Lv.{0} -> Lv.{1}",
-    "upgrade.card.delta_format": "{0} -> {1} ({2})"
+    "upgrade.card.delta_format": "{0} -> {1} ({2})",
+    "pause.resume_hint": "ESC TO RESUME"
   },
   "ko": {
     "fontFamily": "'NeoDunggeunmoPro', 'Black Han Sans', 'Orbitron', sans-serif",
@@ -229,6 +230,7 @@
     "upgrade.stat.black_hole_spawn_interval_ms": "생성 간격",
     "upgrade.stat.black_hole_duration_ms": "유지 시간",
     "upgrade.card.level_transition": "Lv.{0} → Lv.{1}",
-    "upgrade.card.delta_format": "{0}→{1} ({2})"
+    "upgrade.card.delta_format": "{0}→{1} ({2})",
+    "pause.resume_hint": "ESC를 눌러 재개"
   }
 }

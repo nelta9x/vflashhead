@@ -257,7 +257,7 @@ describe('HUD', () => {
 
   it('should update safely when maxHp increases', () => {
     healthSystem.setMaxHp(7);
-    hud.update(0, { cursorX: 0, cursorY: 0, isUpgradeSelectionVisible: false }, 0);
+    hud.update(0, { cursorX: 0, cursorY: 0, isUpgradeSelectionVisible: false, isEscPaused: false }, 0);
 
     // HP is rendered by cursor ring now, so no top-heart graphics are created.
     expect(sceneStub.add.graphics).toHaveBeenCalledTimes(0);
@@ -265,7 +265,7 @@ describe('HUD', () => {
 
   it('should update safely when maxHp decreases', () => {
     healthSystem.setMaxHp(3);
-    hud.update(0, { cursorX: 0, cursorY: 0, isUpgradeSelectionVisible: false }, 0);
+    hud.update(0, { cursorX: 0, cursorY: 0, isUpgradeSelectionVisible: false, isEscPaused: false }, 0);
 
     expect(sceneStub.add.graphics).toHaveBeenCalledTimes(0);
   });

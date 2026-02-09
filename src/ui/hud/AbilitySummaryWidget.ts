@@ -187,7 +187,9 @@ export class AbilitySummaryWidget {
     return this.hoverBounds;
   }
 
-  public renderDockInteraction(progress: number, visible: boolean, isPaused: boolean): void {
+  public renderDockInteraction(
+    progress: number, visible: boolean, isPaused: boolean, isEscPaused: boolean
+  ): void {
     this.dockOverlay.clear();
     this.dockPauseGauge.clear();
     this.dockResumeHint.setVisible(false);
@@ -202,7 +204,10 @@ export class AbilitySummaryWidget {
 
     if (isPaused) {
       const dockOverlayCfg = Data.gameConfig.hud.waveTimerDisplay.dockOverlay;
-      this.dockResumeHint.setText(Data.t('hud.dock_leave_to_resume'));
+      const hint = isEscPaused
+        ? Data.t('pause.resume_hint')
+        : Data.t('hud.dock_leave_to_resume');
+      this.dockResumeHint.setText(hint);
       this.dockResumeHint.setPosition(
         this.hoverBounds.centerX,
         this.hoverBounds.y - dockOverlayCfg.resumeHintOffsetY

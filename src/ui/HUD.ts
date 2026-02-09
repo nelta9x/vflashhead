@@ -66,12 +66,14 @@ export class HUD {
     });
 
     const isDockOverlayVisible =
-      context.isUpgradeSelectionVisible || this.dockBarHovered || dockPauseState.progress > 0;
+      context.isUpgradeSelectionVisible || this.dockBarHovered
+      || dockPauseState.progress > 0 || context.isEscPaused;
+
+    const effectiveProgress = context.isEscPaused ? 1 : dockPauseState.progress;
+    const effectivePaused = dockPauseState.shouldPauseGame || context.isEscPaused;
 
     this.abilitySummaryWidget?.renderDockInteraction(
-      dockPauseState.progress,
-      isDockOverlayVisible,
-      dockPauseState.shouldPauseGame
+      effectiveProgress, isDockOverlayVisible, effectivePaused, context.isEscPaused
     );
     this.abilitySummaryWidget?.renderAbilityTooltip(
       context.cursorX,

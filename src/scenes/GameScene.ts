@@ -9,7 +9,7 @@ import {
 } from '../data/constants';
 import { Data } from '../data/DataManager';
 import { Dish } from '../entities/Dish';
-import { EventBus, GameEvents } from '../utils/EventBus';
+import { EventBus } from '../utils/EventBus';
 import { ObjectPool } from '../utils/ObjectPool';
 import { ComboSystem } from '../systems/ComboSystem';
 import { WaveSystem } from '../systems/WaveSystem';
@@ -75,7 +75,7 @@ export class GameScene extends Phaser.Scene {
   // 게임 상태
   private gameTime = 0;
   private isGameOver = false;
-  private isPaused = false;
+  private isEscPaused = false;
   private isDockPaused = false;
   private isSimulationPaused = false;
   private isUpgrading = false;
@@ -114,7 +114,7 @@ export class GameScene extends Phaser.Scene {
 
   create(): void {
     this.isGameOver = false;
-    this.isPaused = false;
+    this.isEscPaused = false;
     this.isDockPaused = false;
     this.isSimulationPaused = false;
     this.isUpgrading = false;
@@ -251,7 +251,7 @@ export class GameScene extends Phaser.Scene {
       healthSystem: this.healthSystem,
       upgradeSystem: this.upgradeSystem,
       isGameOver: () => this.isGameOver,
-      isPaused: () => this.isPaused,
+      isPaused: () => this.isDockPaused,
     });
 
     this.dishLifecycleController = new DishLifecycleController({
@@ -416,33 +416,16 @@ export class GameScene extends Phaser.Scene {
   }
 
   private togglePause(): void {
-    if (this.isPaused) {
-      this.resumeGame();
-      return;
+    if (this.isUpgrading) return;
+    this.isEscPaused = !this.isEscPaused;
+    if (this.isEscPaused) {
+      this.resetMovementInput();
     }
-
-    this.pauseGame();
-  }
-
-  private pauseGame(): void {
-    if (this.isPaused) return;
-    this.resetMovementInput();
-    this.isPaused = true;
-    this.syncSimulationPauseState();
-    EventBus.getInstance().emit(GameEvents.GAME_PAUSED);
-  }
-
-  private resumeGame(): void {
-    if (!this.isPaused) return;
-    this.resetMovementInput();
-    this.isPaused = false;
-    this.syncSimulationPauseState();
-    EventBus.getInstance().emit(GameEvents.GAME_RESUMED);
   }
 
   private gameOver(): void {
     this.isGameOver = true;
-    this.isPaused = false;
+    this.isEscPaused = false;
     this.isDockPaused = false;
     this.syncSimulationPauseState();
     this.physics.pause();
@@ -487,7 +470,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number): void {
-    if (this.isGameOver || this.isPaused) return;
+    if (this.isGameOver) return;
 
     if (this.inputController) {
       const now = this.getInputTimestamp();
@@ -519,7 +502,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     const hudInteraction = this.hud.updateInteractionState(hudContext, delta);
-    this.setDockPaused(hudInteraction.shouldPauseGame);
+    this.setDockPaused(hudInteraction.shouldPauseGame || this.isEscPaused);
     if (this.isDockPaused) {
       this.hud.render(this.gameTime);
       this.cursorTrail.update(delta, cursorRadius, this.cursorX, this.cursorY);
@@ -627,6 +610,7 @@ export class GameScene extends Phaser.Scene {
       cursorX: this.cursorX,
       cursorY: this.cursorY,
       isUpgradeSelectionVisible: this.isUpgradeSelectionVisible(),
+      isEscPaused: this.isEscPaused,
     };
   }
 
@@ -674,7 +658,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private syncSimulationPauseState(): void {
-    const shouldPauseSimulation = this.isPaused || this.isDockPaused;
+    const shouldPauseSimulation = this.isDockPaused;
     if (this.isSimulationPaused === shouldPauseSimulation) {
       return;
     }

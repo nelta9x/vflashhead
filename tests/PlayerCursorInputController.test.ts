@@ -52,9 +52,9 @@ function createKeyboardHarness() {
     cursorKeys,
     wasdKeys,
     resetKeysSpy,
-    emitKeyDown: (code: string) => {
+    emitKeyDown: (code: string, repeat: boolean = false) => {
       for (const handler of keydownHandlers) {
-        handler({ code } as KeyboardEvent);
+        handler({ code, repeat } as KeyboardEvent);
       }
     },
   };
@@ -165,5 +165,44 @@ describe('PlayerCursorInputController', () => {
     expect(reversed.x).toBeCloseTo(-0.5, 5);
     expect(reversed.y).toBe(0);
     expect(reversed.isMoving).toBe(true);
+  });
+
+  it('key repeat events do not bypass pointer priority window', () => {
+    const harness = createKeyboardHarness();
+    const controller = new PlayerCursorInputController({
+      pointerPriorityMs: 120,
+      keyboardAxisRampUpMs: 90,
+    });
+    controller.bindKeyboard(harness.plugin as never);
+
+    harness.cursorKeys.up.isDown = true;
+    harness.emitKeyDown('ArrowUp');
+
+    // Pointer input sets lastInputDevice to 'pointer' and starts priority window
+    controller.onPointerInput(1000);
+
+    // Repeat keydown should NOT flip lastInputDevice back to 'keyboard'
+    harness.emitKeyDown('ArrowUp', true);
+
+    // Still within pointer priority window → keyboard movement should be blocked
+    expect(controller.shouldUseKeyboardMovement(1050)).toBe(false);
+  });
+
+  it('initial keypress still switches to keyboard immediately', () => {
+    const harness = createKeyboardHarness();
+    const controller = new PlayerCursorInputController({
+      pointerPriorityMs: 120,
+      keyboardAxisRampUpMs: 90,
+    });
+    controller.bindKeyboard(harness.plugin as never);
+
+    controller.onPointerInput(1000);
+
+    // Fresh (non-repeat) keydown switches device to keyboard
+    harness.cursorKeys.right.isDown = true;
+    harness.emitKeyDown('ArrowRight', false);
+
+    // lastInputDevice is now 'keyboard', so it bypasses pointer priority
+    expect(controller.shouldUseKeyboardMovement(1050)).toBe(true);
   });
 });

@@ -1,7 +1,7 @@
 # FLASHHEAD Game Design Philosophy
 
 이 문서는 게임 디자인 관점의 핵심 철학을 정의합니다.
-구현 세부는 `CODEMAP.md`를, AI 작업 규칙은 `AGENTS.md`를,
+구현 세부는 `CODEMAP.md`를, AI 작업 규칙은 루트의 `../AGENTS.md`를,
 비주얼 규칙은 `VISUAL_STYLE_GUIDELINES.md`를 참고하세요.
 
 ## 1. 인게임 통합 UI 철학
@@ -42,4 +42,4 @@ UI/게임 디자인 변경 작업 시 아래 순서를 따릅니다.
 2. 통합 표현이 가능하면 Renderer를 통해 구현
 3. 별도 HUD가 필요하다면 근거(가독성/판정 속도)를 문서에 남기고 최소 노출로 설계
 4. 비주얼 규칙(실루엣/형태/스타일)은 `VISUAL_STYLE_GUIDELINES.md`를 준수
-5. 구조적 변화가 있다면 `CODEMAP.md`와 `AGENTS.md`를 함께 업데이트
+5. 구조적 변화가 있다면 `CODEMAP.md`와 루트의 `../AGENTS.md`를 함께 업데이트

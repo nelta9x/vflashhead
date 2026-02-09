@@ -16,11 +16,11 @@ FLASHHEAD - Phaser 3 기반 웹 슈팅 게임
 - `npm run build` - 타입체크 + 프로덕션 빌드
 
 ## 우선 참고 문서
-1. `CODEMAP.md` - 구조/이벤트 흐름/책임 경계
-2. `LESSONS.md` - 재발 방지 교훈
+1. `docs/CODEMAP.md` - 구조/이벤트 흐름/책임 경계
+2. `docs/LESSONS.md` - 재발 방지 교훈
 3. `data/README.md` - 데이터 필드/밸런스 가이드
-4. `GAME_DESIGN_PHILOSOPHY.md` - 게임/UI 철학 (통합 UI, 최소 UI 노출)
-5. `VISUAL_STYLE_GUIDELINES.md` - 비주얼 원칙 (보스 HP 실루엣, 형태/스타일 제약)
+4. `docs/GAME_DESIGN_PHILOSOPHY.md` - 게임/UI 철학 (통합 UI, 최소 UI 노출)
+5. `docs/VISUAL_STYLE_GUIDELINES.md` - 비주얼 원칙 (보스 HP 실루엣, 형태/스타일 제약)
 
 ## AI 에이전트 핵심 원칙 (필수)
 
@@ -62,12 +62,12 @@ FLASHHEAD - Phaser 3 기반 웹 슈팅 게임
 
 ### 11) 문서 동기화
 구조/책임/규칙 변경 시 코드와 같은 변경 단위에서 문서를 함께 갱신.
-- `CODEMAP.md` - 구조/연결/책임
-- `LESSONS.md` - 교훈/재발 방지
+- `docs/CODEMAP.md` - 구조/연결/책임
+- `docs/LESSONS.md` - 교훈/재발 방지
 - `AGENTS.md` - 작업 규칙
-- `REFACTORING_GUIDELINES.md` - 리팩토링 기준/절차(상세)
-- `GAME_DESIGN_PHILOSOPHY.md` - 게임/UI 철학 변경 시
-- `VISUAL_STYLE_GUIDELINES.md` - 비주얼 스타일 변경 시
+- `docs/REFACTORING_GUIDELINES.md` - 리팩토링 기준/절차(상세)
+- `docs/GAME_DESIGN_PHILOSOPHY.md` - 게임/UI 철학 변경 시
+- `docs/VISUAL_STYLE_GUIDELINES.md` - 비주얼 스타일 변경 시
 
 ### 12) 주기적 리팩토링 (요약 규칙)
 - 신규 기능 2~3개 구현마다 구조 점검을 수행한다. (출시 직전 핫픽스 구간은 예외)
@@ -78,10 +78,10 @@ FLASHHEAD - Phaser 3 기반 웹 슈팅 게임
   - 테스트가 private 구현에 과도하게 결합
 - 분리 단위는 \"상태 + 타이밍 + 이벤트\"가 함께 움직이는 기능 덩어리를 기준으로 한다.
 - Scene는 오케스트레이션(`create/update/cleanup`, 상위 상태 전환) 중심으로 유지한다.
-- 상세 기준/예시/반례는 `REFACTORING_GUIDELINES.md`를 따른다.
+- 상세 기준/예시/반례는 `docs/REFACTORING_GUIDELINES.md`를 따른다.
 
 ## 작업 프로토콜 (권장)
-1. 문서 확인: `CODEMAP.md` → `LESSONS.md` → 관련 JSON → (UI 작업 시) `GAME_DESIGN_PHILOSOPHY.md` → (비주얼 작업 시) `VISUAL_STYLE_GUIDELINES.md`
+1. 문서 확인: `docs/CODEMAP.md` → `docs/LESSONS.md` → 관련 JSON → (UI 작업 시) `docs/GAME_DESIGN_PHILOSOPHY.md` → (비주얼 작업 시) `docs/VISUAL_STYLE_GUIDELINES.md`
 2. 변경 설계: 데이터 변경 여부, Event 영향 범위, SoC 경계 확정
 3. 구현: 데이터 정의 → 타입 정의 → 로직 구현 → 렌더러 구현/연결
 4. 검증: `lint` → `test:run` → `build`

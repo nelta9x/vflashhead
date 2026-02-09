@@ -11,83 +11,58 @@ function getWeight(waveNumber: number, type: string): number {
 }
 
 describe('Wave balance config', () => {
-  it('locks wave 7~8 to basic/golden/bomb without crystal', () => {
-    expect(getWave(7).dishTypes).toEqual([
-      { type: 'basic', weight: 0.72 },
-      { type: 'golden', weight: 0.18 },
-      { type: 'bomb', weight: 0.1 },
-    ]);
-    expect(getWave(8).dishTypes).toEqual([
-      { type: 'basic', weight: 0.62 },
-      { type: 'golden', weight: 0.23 },
-      { type: 'bomb', weight: 0.15 },
-    ]);
-    expect(getWeight(7, 'crystal')).toBe(0);
-    expect(getWeight(8, 'crystal')).toBe(0);
+  it('has 15 predefined waves with tempo pattern', () => {
+    expect(Data.waves.waves).toHaveLength(15);
   });
 
-  it('reintroduces crystal at wave 9 and reduces bomb vs wave 8', () => {
-    expect(getWeight(9, 'crystal')).toBeGreaterThan(0);
-    expect(getWeight(9, 'bomb')).toBeLessThan(getWeight(8, 'bomb'));
-    expect(getWave(9).dishTypes).toEqual([
-      { type: 'basic', weight: 0.48 },
-      { type: 'golden', weight: 0.3 },
-      { type: 'crystal', weight: 0.1 },
-      { type: 'bomb', weight: 0.12 },
-    ]);
+  it('introduces bomb at wave 9 and crystal at wave 12', () => {
+    for (let w = 1; w <= 8; w++) {
+      expect(getWeight(w, 'bomb')).toBe(0);
+    }
+    expect(getWeight(9, 'bomb')).toBeGreaterThan(0);
+
+    for (let w = 1; w <= 11; w++) {
+      expect(getWeight(w, 'crystal')).toBe(0);
+    }
+    expect(getWeight(12, 'crystal')).toBeGreaterThan(0);
   });
 
-  it('matches wave 10~12 pacing, dish mix, boss hp, and laser specs', () => {
-    expect(getWave(9).bosses).toHaveLength(1);
+  it('uses mini dishes in recovery waves for combo learning', () => {
+    expect(getWeight(2, 'mini')).toBe(0.2);
+    expect(getWeight(5, 'mini')).toBe(0.15);
+    expect(getWeight(8, 'mini')).toBe(0.35);
+    expect(getWeight(11, 'mini')).toBe(0.3);
+    expect(getWeight(14, 'mini')).toBe(0.3);
+  });
 
-    expect(getWave(10).spawnInterval).toBe(820);
-    expect(getWave(10).bossTotalHp).toBe(1900);
-    expect(getWave(10).dishTypes).toEqual([
-      { type: 'basic', weight: 0.48 },
-      { type: 'golden', weight: 0.3 },
-      { type: 'crystal', weight: 0.1 },
-      { type: 'bomb', weight: 0.12 },
-    ]);
-    expect(getWeight(10, 'amber')).toBe(0);
-    expect(getWave(10).bosses).toHaveLength(2);
-    expect(getWave(10).laser).toEqual({ maxCount: 2, minInterval: 3400, maxInterval: 6200 });
-    expect(getWave(10).bosses?.map((boss) => boss.laser)).toEqual([
-      { maxCount: 1, minInterval: 3400, maxInterval: 6200 },
-      { maxCount: 1, minInterval: 3400, maxInterval: 6200 },
-    ]);
+  it('recovery waves have lower dish count and higher golden ratio than adjacent pressure waves', () => {
+    expect(getWave(5).dishCount).toBeLessThan(getWave(4).dishCount);
+    expect(getWeight(5, 'golden')).toBeGreaterThan(getWeight(4, 'golden'));
 
-    expect(getWave(11).spawnInterval).toBe(800);
-    expect(getWave(11).bossTotalHp).toBe(2100);
-    expect(getWave(11).dishTypes).toEqual([
-      { type: 'basic', weight: 0.46 },
-      { type: 'golden', weight: 0.28 },
-      { type: 'crystal', weight: 0.12 },
-      { type: 'bomb', weight: 0.14 },
-    ]);
-    expect(getWeight(11, 'amber')).toBe(0);
-    expect(getWave(11).bosses).toHaveLength(2);
-    expect(getWave(11).laser).toEqual({ maxCount: 2, minInterval: 3400, maxInterval: 6200 });
-    expect(getWave(11).bosses?.map((boss) => boss.laser)).toEqual([
-      { maxCount: 1, minInterval: 3400, maxInterval: 6200 },
-      { maxCount: 1, minInterval: 3400, maxInterval: 6200 },
-    ]);
+    expect(getWave(8).dishCount).toBeLessThan(getWave(7).dishCount);
+    expect(getWeight(8, 'golden')).toBeGreaterThan(getWeight(7, 'golden'));
 
-    expect(getWave(12).spawnInterval).toBe(780);
-    expect(getWave(12).bossTotalHp).toBe(2400);
-    expect(getWave(12).dishTypes).toEqual([
-      { type: 'basic', weight: 0.44 },
-      { type: 'golden', weight: 0.26 },
-      { type: 'crystal', weight: 0.14 },
-      { type: 'bomb', weight: 0.16 },
-    ]);
-    expect(getWeight(12, 'amber')).toBe(0);
-    expect(getWave(12).bosses).toHaveLength(2);
-    expect(getWave(12).bosses?.some((boss) => boss.id === 'boss_center')).toBe(false);
-    expect(getWave(12).laser).toEqual({ maxCount: 2, minInterval: 3400, maxInterval: 6200 });
-    expect(getWave(12).bosses?.map((boss) => boss.laser)).toEqual([
-      { maxCount: 1, minInterval: 3400, maxInterval: 6200 },
-      { maxCount: 1, minInterval: 3400, maxInterval: 6200 },
-    ]);
+    expect(getWave(11).dishCount).toBeLessThan(getWave(10).dishCount);
+    expect(getWeight(11, 'golden')).toBeGreaterThan(getWeight(10, 'golden'));
+
+    expect(getWave(14).dishCount).toBeLessThan(getWave(13).dishCount);
+    expect(getWeight(14, 'golden')).toBeGreaterThan(getWeight(13, 'golden'));
+  });
+
+  it('only wave 15 has two bosses among predefined waves', () => {
+    for (let w = 1; w <= 14; w++) {
+      expect(getWave(w).bosses).toHaveLength(1);
+    }
+    expect(getWave(15).bosses).toHaveLength(2);
+    expect(getWave(15).bosses?.some((boss) => boss.id === 'boss_left')).toBe(true);
+    expect(getWave(15).bosses?.some((boss) => boss.id === 'boss_right')).toBe(true);
+  });
+
+  it('wave 13 introduces dual laser (maxCount 2)', () => {
+    for (let w = 1; w <= 12; w++) {
+      expect(getWave(w).laser?.maxCount ?? 0).toBeLessThanOrEqual(1);
+    }
+    expect(getWave(13).laser?.maxCount).toBe(2);
   });
 
   it('matches infinite scaling rebalance values', () => {
@@ -110,16 +85,16 @@ describe('Wave balance config', () => {
     });
   });
 
-  it('introduces amber from wave 13 while keeping infinite waves normalized with two bosses', () => {
+  it('introduces amber from wave 16 while keeping infinite waves normalized with two bosses', () => {
     const resolver = new WaveConfigResolver();
-    const wave13Config = resolver.resolveWaveConfig(13);
-    const wave13AmberWeight =
-      wave13Config.dishTypes.find((dishType) => dishType.type === 'amber')?.weight ?? 0;
+    const wave16Config = resolver.resolveWaveConfig(16);
+    const wave16AmberWeight =
+      wave16Config.dishTypes.find((dishType) => dishType.type === 'amber')?.weight ?? 0;
 
-    expect(wave13AmberWeight).toBeGreaterThan(0);
-    expect(wave13Config.bosses).toHaveLength(2);
+    expect(wave16AmberWeight).toBeGreaterThan(0);
+    expect(wave16Config.bosses).toHaveLength(2);
 
-    for (let waveNumber = 13; waveNumber <= 30; waveNumber++) {
+    for (let waveNumber = 16; waveNumber <= 30; waveNumber++) {
       const waveConfig = resolver.resolveWaveConfig(waveNumber);
       const totalWeight = waveConfig.dishTypes.reduce((sum, dishType) => sum + dishType.weight, 0);
       const basicWeight =

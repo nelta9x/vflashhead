@@ -64,7 +64,7 @@
       "size": 20,
       "dangerous": false,
       "invulnerable": false,
-      "lifetime": 3500,
+      "lifetime": 5000,
       "playerDamage": 1,
       "spawnAnimation": {
         "duration": 150,

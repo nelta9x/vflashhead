@@ -79,7 +79,7 @@
     "yOffset": -110,
     "fontSize": "18px",
     "alpha": 0.6,
-    "localStorageKey": "flashhead_bestWave"
+    "localStorageKey": "flashead_bestWave"
   },
   "title": {
     "yOffset": 100,

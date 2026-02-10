@@ -49,7 +49,7 @@ describe('DataManager', () => {
 
     it('should translate keys correctly', () => {
       Data.setLanguage('ko');
-      expect(Data.t('menu.title')).toBe('FLASHHEAD');
+      expect(Data.t('menu.title')).toBe('FLASHEAD');
       
       // 인자 치환 테스트
       const waveText = Data.t('hud.wave', 5);

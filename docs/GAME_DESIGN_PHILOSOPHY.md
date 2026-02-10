@@ -1,4 +1,4 @@
-# FLASHHEAD Game Design Philosophy
+# FLASHEAD Game Design Philosophy
 
 이 문서는 게임 디자인 관점의 핵심 철학을 정의합니다.
 구현 세부는 `CODEMAP.md`를, AI 작업 규칙은 루트의 `../AGENTS.md`를,
@@ -6,7 +6,7 @@
 
 ## 1. 인게임 통합 UI 철학
 
-FLASHHEAD는 "UI를 화면 위에 붙이는 게임"이 아니라,
+FLASHEAD는 "UI를 화면 위에 붙이는 게임"이 아니라,
 "게임 오브젝트 자체가 정보를 말해주는 게임"을 지향합니다.
 
 - 핵심 상태(생존/위협/목표)는 가능한 한 오브젝트에 통합해 표현합니다.

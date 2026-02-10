@@ -1,7 +1,7 @@
 {
   "en": {
     "fontFamily": "'NeoDunggeunmoPro', 'Orbitron', 'Black Han Sans', sans-serif",
-    "menu.title": "FLASHHEAD",
+    "menu.title": "FLASHEAD",
     "menu.start": "CLICK TO START",
     "menu.best_wave": "BEST WAVE {0}",
     "hud.wave": "WAVE {0}",
@@ -119,7 +119,7 @@
   },
   "ko": {
     "fontFamily": "'NeoDunggeunmoPro', 'Black Han Sans', 'Orbitron', sans-serif",
-    "menu.title": "FLASHHEAD",
+    "menu.title": "FLASHEAD",
     "menu.start": "클릭하여 시작",
     "menu.best_wave": "최고 기록: 웨이브 {0}",
     "hud.wave": "웨이브 {0}",

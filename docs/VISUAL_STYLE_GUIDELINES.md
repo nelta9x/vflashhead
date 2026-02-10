@@ -1,4 +1,4 @@
-# FLASHHEAD Visual Style Guidelines
+# FLASHEAD Visual Style Guidelines
 
 이 문서는 게임의 시각적 규칙과 형태적 제약을 정의합니다.
 게임 UX 철학은 `GAME_DESIGN_PHILOSOPHY.md`를 참고하세요.

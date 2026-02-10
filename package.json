@@ -1,7 +1,7 @@
 {
-  "name": "flashhead",
+  "name": "flashead",
   "version": "1.0.0",
-  "description": "FLASHHEAD",
+  "description": "FLASHEAD",
   "type": "module",
   "scripts": {
     "dev": "vite",

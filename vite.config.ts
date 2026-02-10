@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-  base: process.env.CUSTOM_DOMAIN ? '/' : '/vflashhead/',
+  base: process.env.CUSTOM_DOMAIN ? '/' : '/vflashead/',
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
@@ -22,8 +22,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'favicon.ico', 'apple-touch-icon-180x180.png'],
       manifest: {
-        name: 'FLASHHEAD',
-        short_name: 'FLASHHEAD',
+        name: 'FLASHEAD',
+        short_name: 'FLASHEAD',
         description: 'Neon-styled web shooting game',
         theme_color: '#0a0a0f',
         background_color: '#0a0a0f',

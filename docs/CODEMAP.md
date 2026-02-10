@@ -1,4 +1,4 @@
-# 🗺️ CODEMAP: FLASHHEAD Project Structure
+# 🗺️ CODEMAP: FLASHEAD Project Structure
 
 이 문서는 개발자와 AI 에이전트가 프로젝트의 구조를 빠르게 파악하고 필요한 기능을 찾을 수 있도록 돕기 위해 작성되었습니다.
 

@@ -1,7 +1,7 @@
 # Claude Code 지침
 
 ## 프로젝트 개요
-FLASHHEAD - Phaser 3 기반 웹 슈팅 게임
+FLASHEAD - Phaser 3 기반 웹 슈팅 게임
 
 ## 기술 스택
 - TypeScript

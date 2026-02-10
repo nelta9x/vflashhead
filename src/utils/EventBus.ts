@@ -143,4 +143,7 @@ export const GameEvents = {
   MONSTER_DIED: 'monster:died',
   GAUGE_UPDATED: 'gauge:updated',
   PLAYER_ATTACK: 'player:attack',
+
+  // 블랙홀 관련
+  BLACK_HOLE_CONSUMED: 'blackHole:consumed',
 } as const;

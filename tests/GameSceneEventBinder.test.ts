@@ -49,6 +49,7 @@ vi.mock('../src/utils/EventBus', () => ({
     PLAYER_ATTACK: 'player:attack',
     MONSTER_DIED: 'monster:died',
     FALLING_BOMB_DESTROYED: 'fallingBomb:destroyed',
+    BLACK_HOLE_CONSUMED: 'blackHole:consumed',
   },
 }));
 
@@ -80,6 +81,7 @@ describe('GameSceneEventBinder', () => {
       onPlayerAttack: vi.fn(),
       onMonsterDied: vi.fn(),
       onFallingBombDestroyed: vi.fn(),
+      onBlackHoleConsumed: vi.fn(),
     });
 
     binder.bind();
@@ -117,6 +119,7 @@ describe('GameSceneEventBinder', () => {
       onPlayerAttack: vi.fn(),
       onMonsterDied: vi.fn(),
       onFallingBombDestroyed: vi.fn(),
+      onBlackHoleConsumed: vi.fn(),
     });
 
     binder.bind();

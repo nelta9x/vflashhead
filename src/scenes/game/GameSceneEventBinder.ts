@@ -41,6 +41,11 @@ interface FallingBombDestroyedPayload {
   byAbility: boolean;
 }
 
+interface BlackHoleConsumedPayload {
+  x: number;
+  y: number;
+}
+
 export interface GameSceneEventBinderHandlers {
   onDishDestroyed: (payload: DishDestroyedEventPayload) => void;
   onDishDamaged: (payload: DishDamagedEventPayload) => void;
@@ -61,6 +66,7 @@ export interface GameSceneEventBinderHandlers {
   onPlayerAttack: () => void;
   onMonsterDied: () => void;
   onFallingBombDestroyed: (payload: FallingBombDestroyedPayload) => void;
+  onBlackHoleConsumed: (payload: BlackHoleConsumedPayload) => void;
 }
 
 interface EventSubscription {
@@ -151,6 +157,10 @@ export class GameSceneEventBinder {
     this.addSubscription(GameEvents.FALLING_BOMB_DESTROYED, (...args: unknown[]) => {
       const payload = args[0] as FallingBombDestroyedPayload;
       this.handlers.onFallingBombDestroyed(payload);
+    });
+    this.addSubscription(GameEvents.BLACK_HOLE_CONSUMED, (...args: unknown[]) => {
+      const payload = args[0] as BlackHoleConsumedPayload;
+      this.handlers.onBlackHoleConsumed(payload);
     });
 
     this.isBound = true;

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../data/constants';
 import { Data } from '../data/DataManager';
 import type { BlackHoleLevelData } from '../data/types';
+import { EventBus, GameEvents } from '../utils/EventBus';
 import type { Dish } from '../entities/Dish';
 import type { FallingBomb } from '../entities/FallingBomb';
 import type { ObjectPool } from '../utils/ObjectPool';
@@ -320,6 +321,8 @@ export class BlackHoleSystem {
     hole.radius = this.getSafeRadius(nextRadius);
     hole.damage = Math.max(0, hole.damage + data.consumeDamageGrowth);
     hole.remainingDuration += data.consumeDurationGrowth;
+
+    EventBus.getInstance().emit(GameEvents.BLACK_HOLE_CONSUMED, { x: hole.x, y: hole.y });
   }
 
   private resolveCriticalDamage(

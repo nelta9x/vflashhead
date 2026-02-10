@@ -335,6 +335,9 @@ export class GameScene extends Phaser.Scene {
         }
         this.feedbackSystem.onBombExploded(payload.x, payload.y, !!payload.byAbility);
       },
+      onBlackHoleConsumed: (payload) => {
+        this.damageText.showText(payload.x, payload.y, Data.t('feedback.black_hole_consumed'), COLORS.CYAN);
+      },
     });
 
     this.inputAdapter = new SceneInputAdapter({

@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-  base: process.env.CUSTOM_DOMAIN ? '/' : '/vflashead/',
+  base: process.env.CUSTOM_DOMAIN ? '/' : '/flashead/',
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),

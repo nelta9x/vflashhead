@@ -5,6 +5,7 @@ describe('WaveTimerVisibilityPolicy', () => {
   it('shows wave/timer during upgrade selection', () => {
     const visible = WaveTimerVisibilityPolicy.shouldShow({
       isUpgradeSelectionVisible: true,
+      isEscPaused: false,
       hoverArea: null,
       cursorX: 0,
       cursorY: 0,
@@ -16,6 +17,7 @@ describe('WaveTimerVisibilityPolicy', () => {
   it('shows wave/timer when cursor is inside hover area', () => {
     const visible = WaveTimerVisibilityPolicy.shouldShow({
       isUpgradeSelectionVisible: false,
+      isEscPaused: false,
       hoverArea: {
         contains: (x: number, y: number) => x >= 10 && x <= 20 && y >= 5 && y <= 15,
       },
@@ -29,11 +31,24 @@ describe('WaveTimerVisibilityPolicy', () => {
   it('hides wave/timer when there is no hover area and not upgrading', () => {
     const visible = WaveTimerVisibilityPolicy.shouldShow({
       isUpgradeSelectionVisible: false,
+      isEscPaused: false,
       hoverArea: null,
       cursorX: 15,
       cursorY: 10,
     });
 
     expect(visible).toBe(false);
+  });
+
+  it('shows wave/timer when ESC paused', () => {
+    const visible = WaveTimerVisibilityPolicy.shouldShow({
+      isUpgradeSelectionVisible: false,
+      isEscPaused: true,
+      hoverArea: null,
+      cursorX: 0,
+      cursorY: 0,
+    });
+
+    expect(visible).toBe(true);
   });
 });

@@ -4,6 +4,7 @@ export interface HoverArea {
 
 export interface WaveTimerVisibilityInput {
   isUpgradeSelectionVisible: boolean;
+  isEscPaused: boolean;
   hoverArea: HoverArea | null;
   cursorX: number;
   cursorY: number;
@@ -11,7 +12,7 @@ export interface WaveTimerVisibilityInput {
 
 export class WaveTimerVisibilityPolicy {
   static shouldShow(input: WaveTimerVisibilityInput): boolean {
-    if (input.isUpgradeSelectionVisible) {
+    if (input.isUpgradeSelectionVisible || input.isEscPaused) {
       return true;
     }
 

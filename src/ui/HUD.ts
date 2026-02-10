@@ -83,6 +83,7 @@ export class HUD {
 
     const shouldShowWaveTimer = WaveTimerVisibilityPolicy.shouldShow({
       isUpgradeSelectionVisible: context.isUpgradeSelectionVisible,
+      isEscPaused: context.isEscPaused,
       hoverArea,
       cursorX: context.cursorX,
       cursorY: context.cursorY,

@@ -108,7 +108,7 @@ export class FeedbackSystem {
 
   onBombExploded(x: number, y: number, isRemoved: boolean = false): void {
     // 지뢰 폭발: 강한 부정 피드백
-    // 어빌리티로 제거된 경우 BOOM! 텍스트와 강한 흔들림/폭발음 생략 (이미 REMOVED!가 표시됨)
+    // 어빌리티로 제거된 경우 BOOM! 텍스트와 강한 흔들림/폭발음 생략, REMOVED! 텍스트와 약한 흔들림만 적용
     if (!isRemoved) {
       this.damageText.showText(x, y, Data.t('feedback.bomb_exploded'), 0xff0044);
       // 강한 화면 흔들림
@@ -116,7 +116,7 @@ export class FeedbackSystem {
       // 폭발 사운드
       this.soundSystem.playDestroySound('bomb');
     } else {
-      // 제거 시에는 약한 흔들림만 적용
+      this.damageText.showText(x, y, Data.t('feedback.bomb_removed'), 0xff0044);
       this.screenShake.shake(5, 100);
     }
     

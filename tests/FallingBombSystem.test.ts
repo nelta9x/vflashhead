@@ -27,7 +27,7 @@ vi.mock('../src/data/constants', () => ({
     MAX_ACTIVE: 2,
     BASE_SPAWN_CHANCE: 0.06,
     CHECK_INTERVAL: 4000,
-    MIN_WAVE: 3,
+    MIN_WAVE: 5,
   },
 }));
 
@@ -118,10 +118,10 @@ describe('FallingBombSystem', () => {
       Math.random = vi.fn(() => 0.01);
 
       mockAcquire.mockClear();
-      system.update(3900, 20000, 3);
+      system.update(3900, 20000, 5);
       expect(mockAcquire).not.toHaveBeenCalled();
 
-      system.update(100, 20100, 3);
+      system.update(100, 20100, 5);
       expect(mockAcquire).toHaveBeenCalledTimes(1);
 
       Math.random = originalRandom;
@@ -132,11 +132,11 @@ describe('FallingBombSystem', () => {
       Math.random = vi.fn(() => 0.01);
 
       mockAcquire.mockClear();
-      system.update(4100, 20000, 3);
+      system.update(4100, 20000, 5);
       expect(mockAcquire).toHaveBeenCalledTimes(1);
 
       mockAcquire.mockClear();
-      system.update(4100, 24000, 3);
+      system.update(4100, 24000, 5);
       expect(mockAcquire).not.toHaveBeenCalled();
 
       Math.random = originalRandom;
@@ -148,7 +148,7 @@ describe('FallingBombSystem', () => {
       mockGetActiveCount.mockReturnValue(2);
 
       mockAcquire.mockClear();
-      system.update(4100, 20000, 3);
+      system.update(4100, 20000, 5);
       expect(mockAcquire).not.toHaveBeenCalled();
 
       Math.random = originalRandom;

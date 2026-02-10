@@ -8,5 +8,5 @@
   "checkInterval": 4000,
   "playerDamage": 1,
   "resetCombo": true,
-  "minWave": 3
+  "minWave": 5
 }

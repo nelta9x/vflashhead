@@ -190,9 +190,9 @@ import { COLORS, FONTS } from '../data/constants';
 
 | 필드 | 설명 |
 |------|------|
-| `waves` | 웨이브 1~12 설정 배열 |
+| `waves` | 웨이브 1~14 설정 배열 |
 | `fever` | 피버 타임 설정 |
-| `infiniteScaling` | 웨이브 12 이후 무한 스케일링 공식 |
+| `infiniteScaling` | 웨이브 14 이후 무한 스케일링 공식 |
 
 #### 개별 웨이브 설정
 
@@ -228,7 +228,7 @@ import { COLORS, FONTS } from '../data/constants';
 ```
 
 웨이브 설계 원칙: **새 접시/새 기믹/보스 수 증가 같은 \"큰 변화\"는 한 웨이브에 1개만 적용**합니다.
-예시로 10웨이브는 `2보스 전환`만 적용하고, `amber` 도입은 무한 구간(13+)으로 분리합니다.
+예시로 12웨이브는 `2보스 전환`만 적용하고, `amber` 도입은 무한 구간(15+)으로 분리합니다.
 
 **dishTypes 가중치 계산**: 모든 weight의 합 대비 각 weight의 비율이 출현 확률
 - 예: basic=0.8, golden=0.1, bomb=0.1 → basic 80%, golden 10%, bomb 10%
@@ -238,7 +238,7 @@ import { COLORS, FONTS } from '../data/constants';
 - 분배 과정의 반올림 잔여 HP는 마지막 보스가 흡수
 - 예: `bossTotalHp=300`, 가중치 `1:2` -> `100`, `200`
 
-#### 무한 스케일링 (웨이브 12 이후)
+#### 무한 스케일링 (웨이브 14 이후)
 
 ```json
 {
@@ -295,7 +295,7 @@ import { COLORS, FONTS } from '../data/constants';
 | `crystal` | 높은 HP의 고위협 접시 |
 | `bomb` | `dangerous: true`, `invulnerable: true` - 접촉 시 플레이어 피해, 파괴 불가 |
 | `mini` | 낮은 HP, 빠른 소멸 |
-| `amber` | 주황색 상위 접시. 무한 웨이브(13+)에서 점진 도입 |
+| `amber` | 주황색 상위 접시. 무한 웨이브(15+)에서 점진 도입 |
 
 #### 데미지 설정
 
@@ -547,7 +547,7 @@ import { COLORS, FONTS } from '../data/constants';
   "checkInterval": 4000,     // 스폰 확률 체크 간격 (ms)
   "playerDamage": 1,         // 커서 접촉 시 플레이어 데미지
   "resetCombo": true,        // 커서 접촉 시 콤보 리셋 여부
-  "minWave": 3               // 최소 등장 웨이브 (이 웨이브 이전에는 스폰 안 됨)
+  "minWave": 4               // 최소 등장 웨이브 (이 웨이브 이전에는 스폰 안 됨)
 }
 ```
 

@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-  base: process.env.CUSTOM_DOMAIN ? '/' : '/vibeshooter/',
+  base: process.env.CUSTOM_DOMAIN ? '/' : '/vflashhead/',
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),

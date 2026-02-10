@@ -146,7 +146,22 @@
 
 ---
 
-## 9. 웨이브 상태 관리
+## 9. 렌더 레이어 깊이 중앙화
+
+### 원칙
+- 모든 `setDepth()` 값은 `data/game-config.json`의 `depths` 섹션에 정의하고, 소스에서는 `DEPTHS.xxx`로 참조
+- 소스 코드에 숫자 리터럴 depth를 직접 작성하지 않음 — 레이어 순서 변경 시 JSON 한 곳만 수정
+- 테스트 mock에 `DEPTHS`를 추가하는 것을 잊지 않도록 주의
+
+### 사례 요약
+- 8개 소스 파일에 흩어진 하드코딩 depth 값(−10 ~ 2510)을 `DEPTHS` SSOT로 일괄 마이그레이션
+- DamageText 테스트가 `DEPTHS` mock 누락으로 17건 실패 → mock에 필요한 키 추가로 해결
+
+> 상세: [LESSONS_ARCHIVE.md](LESSONS_ARCHIVE.md)
+
+---
+
+## 10. 웨이브 상태 관리
 
 ### 원칙
 - 게임 상태를 변경하는 **모든 경로**(성공/실패/타임아웃)에서 카운트 업데이트 필수

@@ -479,6 +479,44 @@ export interface ShakePreset {
   duration: number;
 }
 
+export interface DepthsConfig {
+  background: number;
+  starBackground: number;
+  grid: number;
+  blackHole: number;
+  dishTrail: number;
+  dishGlow: number;
+  dishParticle: number;
+  missileWarning: number;
+  waveCountdown: number;
+  cursorTrail: number;
+  upgradeUI: number;
+  abilityDockOverlay: number;
+  abilityDock: number;
+  abilityDockPauseGauge: number;
+  abilityDockResumeHint: number;
+  abilityTooltip: number;
+  cursor: number;
+  orb: number;
+  laser: number;
+  boss: number;
+  missileTrail: number;
+  chargeParticle: number;
+  projectileGlow: number;
+  bossShatterShard: number;
+  projectile: number;
+  explosionParticle: number;
+  explosionSpark: number;
+  lightning: number;
+  explosionRing: number;
+  convergeEnergy: number;
+  explosionGlow: number;
+  bossGlow: number;
+  damageText: number;
+  comboText: number;
+  bossDamageText: number;
+}
+
 export interface GameConfig {
   screen: ScreenConfig;
   defaultLanguage: string;
@@ -520,6 +558,7 @@ export interface GameConfig {
   stars: StarsConfig;
   blackHoleVisual: BlackHoleVisualConfig;
   audio: AudioConfig;
+  depths: DepthsConfig;
 }
 
 // ========== 스폰 시스템 ==========

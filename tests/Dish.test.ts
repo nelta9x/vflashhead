@@ -506,15 +506,16 @@ describe('Dish Upgrade Effects', () => {
       );
     });
 
-    it('should emit DISH_DAMAGED with byAbility: false when takeDamage is called', async () => {
+    it('should emit DISH_DAMAGED with byAbility: false when cursor damages dish', async () => {
       const { Dish } = await import('../src/entities/Dish');
       const { EventBus } = await import('../src/utils/EventBus');
 
       const dish = new Dish(mockScene as unknown as Phaser.Scene, 0, 0, 'basic');
       dish.spawn(100, 100, 'basic', 1);
 
-      // takeDamage is private, so use a narrowed test-only cast to invoke it.
-      (dish as unknown as { takeDamage: (isCritical: boolean) => void }).takeDamage(true);
+      // Trigger cursor-based damage via public API (non-dangerous dish)
+      vi.spyOn(Math, 'random').mockReturnValue(0.5);
+      dish.setInCursorRange(true);
 
       expect(EventBus.getInstance().emit).toHaveBeenCalledWith(
         'dish_damaged',

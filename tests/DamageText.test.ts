@@ -97,6 +97,11 @@ vi.mock('../src/data/constants', () => ({
     MAIN: 'monospace',
     KOREAN: 'monospace',
   },
+  DEPTHS: {
+    damageText: 2500,
+    comboText: 2501,
+    bossDamageText: 2510,
+  },
 }));
 
 // Mock Phaser

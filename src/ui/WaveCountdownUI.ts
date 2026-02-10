@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, FONTS } from '../data/constants';
+import { GAME_WIDTH, GAME_HEIGHT, FONTS, DEPTHS } from '../data/constants';
 import { Data } from '../data/DataManager';
 
 export class WaveCountdownUI {
@@ -17,7 +17,7 @@ export class WaveCountdownUI {
   private createUI(): void {
     const config = Data.gameConfig.waveCountdownUI;
     this.container = this.scene.add.container(GAME_WIDTH / 2, GAME_HEIGHT / 2);
-    this.container.setDepth(850);
+    this.container.setDepth(DEPTHS.waveCountdown);
     this.container.setVisible(false);
     this.container.setAlpha(0);
 

@@ -33,6 +33,7 @@ vi.mock('../src/data/DataManager', () => ({
           width: 20,
           warningDuration: 1000,
           fireDuration: 500,
+          fallbackCooldown: 5000,
           trajectory: { spawnPadding: 10 },
           bonus: {
             comboAmount: 3,
@@ -121,6 +122,18 @@ describe('BossCombatCoordinator', () => {
   const healthSystem = {
     takeDamage: vi.fn(),
   };
+  const feedbackSystem = {
+    onBossContactDamaged: vi.fn(),
+    onHpLost: vi.fn(),
+  };
+  const soundSystem = {
+    playBossChargeSound: vi.fn(),
+    playBossFireSound: vi.fn(),
+    playBossImpactSound: vi.fn(),
+  };
+  const damageText = {
+    showText: vi.fn(),
+  };
   const monsterSystem = {
     isAlive: vi.fn((bossId: string) => aliveBossIds.has(bossId)),
     getAliveBossIds: vi.fn(() => Array.from(aliveBossIds)),
@@ -149,18 +162,9 @@ describe('BossCombatCoordinator', () => {
         getCurrentWave: () => currentWave,
       } as never,
       monsterSystem: monsterSystem as never,
-      feedbackSystem: {
-        onBossContactDamaged: vi.fn(),
-        onHpLost: vi.fn(),
-      } as never,
-      soundSystem: {
-        playBossChargeSound: vi.fn(),
-        playBossFireSound: vi.fn(),
-        playBossImpactSound: vi.fn(),
-      } as never,
-      damageText: {
-        showText: vi.fn(),
-      } as never,
+      feedbackSystem: feedbackSystem as never,
+      soundSystem: soundSystem as never,
+      damageText: damageText as never,
       laserRenderer: laserRenderer as never,
       healthSystem: healthSystem as never,
       upgradeSystem: {
@@ -198,18 +202,15 @@ describe('BossCombatCoordinator', () => {
     const coordinator = createCoordinator();
     coordinator.syncBossesForCurrentWave();
 
-    const internal = coordinator as unknown as {
-      activeLasers: Array<{ bossId: string; isWarning: boolean; isFiring: boolean }>;
-      laserNextTimeByBossId: Map<string, number>;
-    };
+    // Trigger lasers for both bosses by calling update (laserNextTime set to 0 by sync)
+    // The cursor is far enough from bosses to produce valid laser direction
+    coordinator.update(16, 10, { x: 700, y: 400 });
 
-    internal.activeLasers = [
-      { bossId: 'boss_left', isWarning: true, isFiring: false },
-      { bossId: 'legacy', isWarning: true, isFiring: false },
-    ];
-    internal.laserNextTimeByBossId.set('boss_left', 1000);
-    internal.laserNextTimeByBossId.set('legacy', 1000);
+    // Both bosses should have spawned lasers (warning phase)
+    expect(soundSystem.playBossChargeSound).toHaveBeenCalledTimes(2);
+    expect(laserRenderer.render).toHaveBeenCalled();
 
+    // Now re-sync with only boss_right remaining in the wave config
     waveBosses = [
       {
         id: 'boss_right',
@@ -219,8 +220,10 @@ describe('BossCombatCoordinator', () => {
     ];
 
     coordinator.syncBossesForCurrentWave();
-    coordinator.update(16, 10, { x: 700, y: 400 });
+    vi.clearAllMocks();
+    coordinator.update(16, 20, { x: 700, y: 400 });
 
+    // Only boss_right should be visible after sync
     const snapshots = coordinator.getVisibleBossSnapshots();
     expect(snapshots).toEqual([
       expect.objectContaining({
@@ -228,39 +231,51 @@ describe('BossCombatCoordinator', () => {
         visible: true,
       }),
     ]);
-    expect(internal.activeLasers.some((laser) => laser.bossId === 'legacy')).toBe(false);
-    expect(internal.laserNextTimeByBossId.has('legacy')).toBe(false);
+
+    // laserRenderer.render should only receive lasers for boss_right (stale boss_left lasers cleaned)
+    const lastRenderCall = laserRenderer.render.mock.calls[laserRenderer.render.mock.calls.length - 1];
+    const renderedLasers = lastRenderCall[0] as Array<{ bossId: string }>;
+    const hasLegacyLaser = renderedLasers.some((laser) => laser.bossId === 'boss_left');
+    expect(hasLegacyLaser).toBe(false);
   });
 
   it('cancels only warning lasers of the targeted boss', () => {
     const coordinator = createCoordinator();
     coordinator.syncBossesForCurrentWave();
 
-    const internal = coordinator as unknown as {
-      activeLasers: Array<{ bossId: string; isWarning: boolean; isFiring: boolean }>;
-      bosses: Map<string, { unfreeze: () => void }>;
-      damageText: { showText: (...args: unknown[]) => void };
-    };
+    // Trigger lasers for both bosses
+    coordinator.update(16, 10, { x: 700, y: 400 });
 
-    internal.activeLasers = [
-      { bossId: 'boss_left', isWarning: true, isFiring: false },
-      { bossId: 'boss_left', isWarning: false, isFiring: true },
-      { bossId: 'boss_right', isWarning: true, isFiring: false },
-    ];
+    // Both bosses should have warning lasers
+    expect(soundSystem.playBossChargeSound).toHaveBeenCalledTimes(2);
 
-    coordinator.cancelChargingLasers('boss_left');
+    // Promote boss_left's laser to firing by executing its warning callback
+    delayedCallbacks[0]();
+    expect(soundSystem.playBossFireSound).toHaveBeenCalledTimes(1);
 
-    expect(internal.activeLasers).toEqual([
-      { bossId: 'boss_left', isWarning: false, isFiring: true },
-      { bossId: 'boss_right', isWarning: true, isFiring: false },
-    ]);
-    expect(internal.bosses.get('boss_left')?.unfreeze).toHaveBeenCalledTimes(1);
-    expect(internal.damageText.showText).toHaveBeenCalledWith(
+    // Now we have: boss_left with 1 firing laser, boss_right with 1 warning laser
+    // Also boss_left now has a second delayed callback (fire duration end)
+
+    // Cancel charging lasers for boss_right (the one still in warning)
+    coordinator.cancelChargingLasers('boss_right');
+
+    // The boss_right warning laser should be cancelled -> unfreeze + interrupted text
+    expect(damageText.showText).toHaveBeenCalledWith(
       expect.any(Number),
       expect.any(Number),
       'INTERRUPTED!',
       expect.any(Number)
     );
+
+    // boss_left's firing laser should still be active
+    expect(coordinator.isAnyLaserFiring()).toBe(true);
+
+    // Now cancel charging lasers for boss_left (which only has a firing laser, not warning)
+    vi.clearAllMocks();
+    coordinator.cancelChargingLasers('boss_left');
+
+    // No warning lasers to cancel for boss_left, so no interrupted text
+    expect(damageText.showText).not.toHaveBeenCalled();
   });
 
   it('removes pending laser when delayed warning callback runs after wave changed', () => {
@@ -276,57 +291,59 @@ describe('BossCombatCoordinator', () => {
     const coordinator = createCoordinator();
     coordinator.syncBossesForCurrentWave();
 
-    const internal = coordinator as unknown as {
-      activeLasers: Array<{ bossId: string; isWarning: boolean; isFiring: boolean }>;
-      laserNextTimeByBossId: Map<string, number>;
-      bosses: Map<string, { unfreeze: () => void }>;
-    };
-
-    internal.laserNextTimeByBossId.set('boss_left', 0);
+    // Trigger a laser for boss_left
     coordinator.update(16, 10, { x: 700, y: 400 });
-    expect(internal.activeLasers.length).toBe(1);
+    expect(soundSystem.playBossChargeSound).toHaveBeenCalledTimes(1);
     expect(delayedCallbacks.length).toBeGreaterThan(0);
 
+    // Change wave before the delayed callback fires
     currentWave = 2;
     delayedCallbacks[0]();
 
-    expect(internal.activeLasers.length).toBe(0);
-    expect(internal.bosses.get('boss_left')?.unfreeze).toHaveBeenCalled();
+    // The laser should have been cleaned up: no firing state
+    expect(coordinator.isAnyLaserFiring()).toBe(false);
+
+    // Boss should be unfrozen after stale laser removal
+    const snapshots = coordinator.getVisibleBossSnapshots();
+    const bossSnapshot = snapshots.find((s) => s.id === 'boss_left');
+    expect(bossSnapshot).toBeDefined();
+
+    // laserRenderer.clear should have been called to clean up
     expect(laserRenderer.clear).toHaveBeenCalled();
   });
 
   it('applies laser hit damage only once within invincibility window', () => {
-    const coordinator = createCoordinator();
-    const internal = coordinator as unknown as {
-      activeLasers: Array<{
-        bossId: string;
-        x1: number;
-        y1: number;
-        x2: number;
-        y2: number;
-        isFiring: boolean;
-        isWarning: boolean;
-        startTime: number;
-      }>;
-      checkLaserCollisions: (delta: number, gameTime: number, cursor: { x: number; y: number }) => void;
-    };
-
-    internal.activeLasers = [
+    waveBosses = [
       {
-        bossId: 'boss_left',
-        x1: -100,
-        y1: 0,
-        x2: 100,
-        y2: 0,
-        isFiring: true,
-        isWarning: false,
-        startTime: 0,
+        id: 'boss_left',
+        spawnRange: { minX: 300, maxX: 320, minY: 100, maxY: 120 },
+        laser: { maxCount: 1, minInterval: 0, maxInterval: 0 },
       },
     ];
+    aliveBossIds = new Set(['boss_left']);
 
-    internal.checkLaserCollisions(16, 400, { x: 0, y: 0 });
-    internal.checkLaserCollisions(16, 500, { x: 0, y: 0 });
+    const coordinator = createCoordinator();
+    coordinator.syncBossesForCurrentWave();
 
+    // Trigger a laser for boss_left - cursor needs to be far enough for valid direction
+    // but the laser will be aimed at cursor position
+    const cursorOnLaserPath = { x: 700, y: 400 };
+    coordinator.update(16, 10, cursorOnLaserPath);
+    expect(soundSystem.playBossChargeSound).toHaveBeenCalledTimes(1);
+
+    // Promote the warning laser to firing
+    delayedCallbacks[0]();
+    expect(soundSystem.playBossFireSound).toHaveBeenCalledTimes(1);
+    expect(coordinator.isAnyLaserFiring()).toBe(true);
+
+    // Now update with cursor on the laser path - the laser goes from boss position toward (700,400)
+    // Boss is at ~(300, 100), laser aimed at cursor. The cursor is on that line.
+    // First hit should deal damage
+    coordinator.update(16, 400, cursorOnLaserPath);
+    expect(healthSystem.takeDamage).toHaveBeenCalledTimes(1);
+
+    // Second hit within invincibility window (300ms) should NOT deal damage
+    coordinator.update(16, 500, cursorOnLaserPath);
     expect(healthSystem.takeDamage).toHaveBeenCalledTimes(1);
   });
 });

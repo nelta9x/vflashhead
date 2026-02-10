@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, COLORS, COLORS_HEX, UPGRADE_UI, FONTS } from '../data/constants';
+import { GAME_WIDTH, GAME_HEIGHT, COLORS, COLORS_HEX, UPGRADE_UI, FONTS, DEPTHS } from '../data/constants';
 import { Data } from '../data/DataManager';
 import { UpgradeSystem, Upgrade } from '../systems/UpgradeSystem';
 import { EventBus, GameEvents } from '../utils/EventBus';
@@ -53,7 +53,7 @@ export class InGameUpgradeUI {
 
   private createContainer(): void {
     this.mainContainer = this.scene.add.container(0, 0);
-    this.mainContainer.setDepth(900);
+    this.mainContainer.setDepth(DEPTHS.upgradeUI);
     this.mainContainer.setVisible(false);
   }
 
@@ -193,7 +193,7 @@ export class InGameUpgradeUI {
     const barWidth = BOX_WIDTH - 60;
     const barHeight = 10;
     const barY = BOX_HEIGHT / 2 - 40;
-    progressBarBg.fillStyle(0x333333, 0.8);
+    progressBarBg.fillStyle(COLORS.PROGRESS_BAR_BG, 0.8);
     progressBarBg.fillRoundedRect(-barWidth / 2, barY - barHeight / 2, barWidth, barHeight, 5);
     container.add(progressBarBg);
 

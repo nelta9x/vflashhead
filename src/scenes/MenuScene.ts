@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, COLORS_HEX, GAME_WIDTH, GAME_HEIGHT, FONTS } from '../data/constants';
+import { COLORS, COLORS_HEX, GAME_WIDTH, GAME_HEIGHT, FONTS, DEPTHS } from '../data/constants';
 import { Data } from '../data/DataManager';
 import { SoundSystem } from '../systems/SoundSystem';
 import { CursorTrail } from '../effects/CursorTrail';
@@ -35,7 +35,7 @@ export class MenuScene extends Phaser.Scene {
 
   create(): void {
     this.isTransitioning = false;
-    this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, COLORS.DARK_BG).setOrigin(0, 0).setDepth(-10);
+    this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, COLORS.DARK_BG).setOrigin(0, 0).setDepth(DEPTHS.background);
 
     this.starBackground = new StarBackground(this, Data.mainMenu.stars);
     this.bossRenderer = new MenuBossRenderer(this);

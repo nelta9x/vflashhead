@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_HEIGHT, UPGRADE_UI } from '../../data/constants';
+import { COLORS, GAME_HEIGHT, UPGRADE_UI } from '../../data/constants';
 import { Data } from '../../data/DataManager';
 
 export function resolveUpgradeSafeBoxCenterY(baseY: number): number {
@@ -30,7 +30,7 @@ export function drawUpgradeBoxBackground(
   hovered: boolean
 ): void {
   graphics.clear();
-  graphics.fillStyle(hovered ? 0x2a1a4e : 0x1a0a2e, 0.95);
+  graphics.fillStyle(hovered ? COLORS.UPGRADE_CARD_BG_HOVER : COLORS.UPGRADE_CARD_BG, 0.95);
   graphics.fillRoundedRect(-width / 2, -height / 2, width, height, 20);
   graphics.lineStyle(hovered ? 6 : 4, borderColor, hovered ? 1 : 0.7);
   graphics.strokeRoundedRect(-width / 2, -height / 2, width, height, 20);

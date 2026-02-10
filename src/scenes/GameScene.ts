@@ -6,6 +6,7 @@ import {
   CURSOR_HITBOX,
   SPAWN_AREA,
   INITIAL_HP,
+  DEPTHS,
 } from '../data/constants';
 import { Data } from '../data/DataManager';
 import { Dish } from '../entities/Dish';
@@ -132,7 +133,7 @@ export class GameScene extends Phaser.Scene {
     this.add
       .rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, COLORS.DARK_BG)
       .setOrigin(0, 0)
-      .setDepth(-10);
+      .setDepth(DEPTHS.background);
 
     this.gridRenderer = new GridRenderer(this);
     this.dishes = this.add.group();
@@ -228,10 +229,10 @@ export class GameScene extends Phaser.Scene {
 
   private initializeRenderers(): void {
     this.cursorRenderer = new CursorRenderer(this);
-    this.cursorRenderer.setDepth(1000);
+    this.cursorRenderer.setDepth(DEPTHS.cursor);
 
     this.orbRenderer = new OrbRenderer(this);
-    this.orbRenderer.setDepth(1001);
+    this.orbRenderer.setDepth(DEPTHS.orb);
 
     this.blackHoleRenderer = new BlackHoleRenderer(this);
     this.blackHoleRenderer.setDepth(Data.gameConfig.blackHoleVisual.depth);
@@ -239,9 +240,8 @@ export class GameScene extends Phaser.Scene {
     this.laserRenderer = new LaserRenderer(this);
     this.playerAttackRenderer = new PlayerAttackRenderer(this);
 
-    const gridConfig = Data.gameConfig.gameGrid;
     this.starBackground = new StarBackground(this, Data.gameConfig.stars);
-    this.starBackground.setDepth(gridConfig.depth - 1);
+    this.starBackground.setDepth(DEPTHS.starBackground);
   }
 
   private initializeGameModules(): void {

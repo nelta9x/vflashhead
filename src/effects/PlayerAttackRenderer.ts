@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS } from '../data/constants';
+import { COLORS, DEPTHS } from '../data/constants';
 
 export interface ChargeVisualConfig {
   initialRadius: number;
@@ -94,15 +94,15 @@ export class PlayerAttackRenderer {
     config: ChargeVisualConfig
   ): ChargeVisualHandle {
     const projectile = this.scene.add.circle(0, 0, config.initialRadius, mainColor);
-    projectile.setDepth(2000);
+    projectile.setDepth(DEPTHS.projectile);
     this.activeProjectiles.add(projectile);
 
     const glow = this.scene.add.graphics();
-    glow.setDepth(1999);
+    glow.setDepth(DEPTHS.projectileGlow);
     this.activeGraphics.add(glow);
 
     const convergeEnergy = this.scene.add.graphics();
-    convergeEnergy.setDepth(2002);
+    convergeEnergy.setDepth(DEPTHS.convergeEnergy);
     this.activeGraphics.add(convergeEnergy);
 
     const chargeParticles = this.scene.add.particles(0, 0, 'particle', {
@@ -114,11 +114,11 @@ export class PlayerAttackRenderer {
       emitting: true,
       frequency: config.particleFrequency,
     });
-    chargeParticles.setDepth(1998);
+    chargeParticles.setDepth(DEPTHS.chargeParticle);
     this.activeEmitters.add(chargeParticles);
 
     const lightning = this.scene.add.graphics();
-    lightning.setDepth(2001);
+    lightning.setDepth(DEPTHS.lightning);
     this.activeGraphics.add(lightning);
 
     const convergeConfig = config.energyConverge;
@@ -256,7 +256,7 @@ export class PlayerAttackRenderer {
     y: number,
     radius: number,
     color: number,
-    depth: number = 2000
+    depth: number = DEPTHS.projectile
   ): Phaser.GameObjects.Arc {
     const missile = this.scene.add.circle(x, y, radius, color);
     missile.setDepth(depth);
@@ -271,7 +271,7 @@ export class PlayerAttackRenderer {
 
   public spawnMissileTrail(config: MissileTrailConfig): void {
     const trail = this.scene.add.graphics();
-    trail.setDepth(1997);
+    trail.setDepth(DEPTHS.missileTrail);
     this.activeGraphics.add(trail);
 
     trail.lineStyle(config.trailWidth, config.mainColor, config.trailAlpha);
@@ -299,7 +299,7 @@ export class PlayerAttackRenderer {
     config: PreFireCursorGlowConfig
   ): void {
     const glow = this.scene.add.graphics();
-    glow.setDepth(2003);
+    glow.setDepth(DEPTHS.explosionGlow);
     this.activeGraphics.add(glow);
 
     const pulse = { progress: 0 };
@@ -341,7 +341,7 @@ export class PlayerAttackRenderer {
     onComplete: () => void
   ): void {
     const warningGraphics = this.scene.add.graphics();
-    warningGraphics.setDepth(500);
+    warningGraphics.setDepth(DEPTHS.missileWarning);
     this.activeGraphics.add(warningGraphics);
 
     let elapsed = 0;

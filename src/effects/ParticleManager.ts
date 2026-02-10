@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS } from '../data/constants';
+import { COLORS, DEPTHS } from '../data/constants';
 import { Data } from '../data/DataManager';
 import { SoundSystem } from '../systems/SoundSystem';
 import {
@@ -175,7 +175,7 @@ export class ParticleManager {
     for (let i = 0; i < particleCount; i++) {
       const size = Phaser.Math.Between(particleSizeMin, particleSizeMax);
       const particle = this.scene.add.circle(startX, startY, size, color, 1);
-      particle.setDepth(2000);
+      particle.setDepth(DEPTHS.explosionParticle);
 
       // 시작 위치 랜덤 오프셋 (스프레드)
       const spreadAngle = Math.random() * Math.PI * 2;
@@ -236,7 +236,7 @@ export class ParticleManager {
     ring.lineStyle(5, color, 1);
     ring.strokeCircle(0, 0, config.impactRingSize);
     ring.setPosition(x, y);
-    ring.setDepth(2002);
+    ring.setDepth(DEPTHS.explosionRing);
 
     this.scene.tweens.add({
       targets: ring,
@@ -251,7 +251,7 @@ export class ParticleManager {
     this.createStarburst(x, y, color);
 
     const glow = this.scene.add.circle(x, y, config.impactGlowSize, color, 0.8);
-    glow.setDepth(2003);
+    glow.setDepth(DEPTHS.explosionGlow);
     glow.setBlendMode(Phaser.BlendModes.ADD);
 
     this.scene.tweens.add({
@@ -280,7 +280,7 @@ export class ParticleManager {
     const size = config.baseSize + Math.min(config.maxSizeBonus, combo / config.comboDivision);
 
     const particle = this.scene.add.circle(x, y, size, color, config.alpha);
-    particle.setDepth(100);
+    particle.setDepth(DEPTHS.dishParticle);
 
     const trail = this.scene.add.particles(0, 0, 'particle', {
       follow: particle,
@@ -290,10 +290,10 @@ export class ParticleManager {
       tint: color,
       frequency: 20,
     });
-    trail.setDepth(99);
+    trail.setDepth(DEPTHS.dishTrail);
 
     const glow = this.scene.add.graphics();
-    glow.setDepth(99);
+    glow.setDepth(DEPTHS.dishGlow);
 
     const angle = Math.random() * Math.PI * 2;
     const cpX = x + Math.cos(angle) * config.knockbackDistance;
@@ -680,7 +680,18 @@ export class ParticleManager {
     bodyColor: number
   ): void {
     const config = Data.boss.visual.shatter;
+    this.createShatterShards(x, y, innerRadius, outerRadius, bodyColor, config);
+    this.createShatterSparks(x, y, outerRadius, config);
+  }
 
+  private createShatterShards(
+    x: number,
+    y: number,
+    innerRadius: number,
+    outerRadius: number,
+    bodyColor: number,
+    config: typeof Data.boss.visual.shatter
+  ): void {
     for (let i = 0; i < config.shardCount; i++) {
       const angle = Math.random() * Math.PI * 2;
       const radius = Phaser.Math.Between(innerRadius, outerRadius);
@@ -688,7 +699,7 @@ export class ParticleManager {
       const startY = y + Math.sin(angle) * radius;
 
       const shard = this.scene.add.graphics();
-      shard.setDepth(1999);
+      shard.setDepth(DEPTHS.bossShatterShard);
 
       const size = Phaser.Math.Between(config.minSize, config.maxSize);
       const isEnergy = Math.random() < config.energyShardRatio;
@@ -741,7 +752,14 @@ export class ParticleManager {
         onComplete: () => shard.destroy(),
       });
     }
+  }
 
+  private createShatterSparks(
+    x: number,
+    y: number,
+    outerRadius: number,
+    config: typeof Data.boss.visual.shatter
+  ): void {
     for (let i = 0; i < config.sparkCount; i++) {
       const angle = Math.random() * Math.PI * 2;
       const spark = this.scene.add.circle(
@@ -751,7 +769,7 @@ export class ParticleManager {
         0xffffff,
         0.8
       );
-      spark.setDepth(2001);
+      spark.setDepth(DEPTHS.explosionSpark);
 
       this.scene.tweens.add({
         targets: spark,

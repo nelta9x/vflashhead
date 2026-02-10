@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { DEPTHS } from '../data/constants';
 import { Data } from '../data/DataManager';
 
 interface TrailPoint {
@@ -32,7 +33,7 @@ export class CursorTrail {
     this.scene = scene;
     this.config = Data.feedback.cursorTrail;
     this.graphics = this.scene.add.graphics();
-    this.graphics.setDepth(900); // HUD(1000)보다 아래, 일반 오브젝트보다 위
+    this.graphics.setDepth(DEPTHS.cursorTrail);
   }
 
   update(delta: number, currentRadius: number, forcedX?: number, forcedY?: number): void {

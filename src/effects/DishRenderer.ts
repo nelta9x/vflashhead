@@ -42,7 +42,7 @@ export class DishRenderer {
     const baseRadius = state.size * 0.7;
 
     graphics.clear();
-    graphics.fillStyle(0x1a1a1a, 1);
+    graphics.fillStyle(COLORS.DANGER_DISH_BG, 1);
     graphics.fillCircle(0, 0, baseRadius);
 
     graphics.lineStyle(4, COLORS.RED, pulse);
@@ -96,7 +96,7 @@ export class DishRenderer {
     let displayColor = this.lerpColor(COLORS.RED, state.baseColor, hpRatio);
 
     if (state.isFrozen) {
-      displayColor = 0x88ccff;
+      displayColor = COLORS.FROZEN;
     }
 
     if (state.isBeingPulled) {

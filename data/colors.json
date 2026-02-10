@@ -12,7 +12,12 @@
     "orbGlow": "#88ccff",
     "darkBg": "#0a0a0f",
     "darkPurple": "#1a0a2e",
-    "darkCyan": "#003333"
+    "darkCyan": "#003333",
+    "dangerDishBg": "#1a1a1a",
+    "frozen": "#88ccff",
+    "upgradeCardBg": "#1a0a2e",
+    "upgradeCardBgHover": "#2a1a4e",
+    "progressBarBg": "#333333"
   },
   "numeric": {
     "cyan": 65535,
@@ -26,6 +31,11 @@
     "orbGlow": 8965375,
     "darkBg": 657423,
     "darkPurple": 1706542,
-    "darkCyan": 13107
+    "darkCyan": 13107,
+    "dangerDishBg": 1710618,
+    "frozen": 8965375,
+    "upgradeCardBg": 1706542,
+    "upgradeCardBgHover": 2759246,
+    "progressBarBg": 3355443
   }
 }

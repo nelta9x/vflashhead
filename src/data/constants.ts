@@ -24,6 +24,11 @@ export const COLORS = {
   DARK_BG: Data.colors.numeric.darkBg,
   DARK_PURPLE: Data.colors.numeric.darkPurple,
   DARK_CYAN: Data.colors.numeric.darkCyan,
+  DANGER_DISH_BG: Data.colors.numeric.dangerDishBg,
+  FROZEN: Data.colors.numeric.frozen,
+  UPGRADE_CARD_BG: Data.colors.numeric.upgradeCardBg,
+  UPGRADE_CARD_BG_HOVER: Data.colors.numeric.upgradeCardBgHover,
+  PROGRESS_BAR_BG: Data.colors.numeric.progressBarBg,
 } as const;
 
 // 색상 (헥스)
@@ -41,6 +46,11 @@ export const COLORS_HEX = {
   DARK_BG: Data.colors.hex.darkBg,
   DARK_PURPLE: Data.colors.hex.darkPurple,
   DARK_CYAN: Data.colors.hex.darkCyan,
+  DANGER_DISH_BG: Data.colors.hex.dangerDishBg,
+  FROZEN: Data.colors.hex.frozen,
+  UPGRADE_CARD_BG: Data.colors.hex.upgradeCardBg,
+  UPGRADE_CARD_BG_HOVER: Data.colors.hex.upgradeCardBgHover,
+  PROGRESS_BAR_BG: Data.colors.hex.progressBarBg,
 } as const;
 
 // 업그레이드 간격 (가속 후 감속 시스템)
@@ -150,3 +160,6 @@ export const FALLING_BOMB = {
   RESET_COMBO: Data.fallingBomb.resetCombo,
   MIN_WAVE: Data.fallingBomb.minWave,
 } as const;
+
+// 깊이(depth) 설정
+export const DEPTHS = Data.gameConfig.depths;

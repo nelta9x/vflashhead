@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS_HEX, FONTS } from '../data/constants';
+import { COLORS_HEX, FONTS, DEPTHS } from '../data/constants';
 import { Data } from '../data/DataManager';
 
 type DamageType = 'normal' | 'critical';
@@ -42,7 +42,7 @@ export class DamageText {
       });
       text.setVisible(false);
       text.setOrigin(0.5);
-      text.setDepth(2500); // 보스보다 위에 표시
+      text.setDepth(DEPTHS.damageText);
       this.pool.push(text);
     }
 
@@ -57,7 +57,7 @@ export class DamageText {
       });
       comboText.setVisible(false);
       comboText.setOrigin(0, 0.5);
-      comboText.setDepth(2501); // 대미지 텍스트보다 살짝 위
+      comboText.setDepth(DEPTHS.comboText);
       this.comboPool.push(comboText);
     }
   }
@@ -110,7 +110,7 @@ export class DamageText {
         fontStyle: style?.fontStyle || 'normal',
       });
       text.setOrigin(0.5);
-      text.setDepth(2500);
+      text.setDepth(DEPTHS.damageText);
       this.pool.push(text);
     }
 
@@ -160,7 +160,7 @@ export class DamageText {
           strokeThickness: 2,
         });
         comboText.setOrigin(0, 0.5);
-        comboText.setDepth(2501);
+        comboText.setDepth(DEPTHS.comboText);
         this.comboPool.push(comboText);
       }
 
@@ -255,7 +255,7 @@ export class DamageText {
         fontStyle: 'bold',
       });
       text.setOrigin(0.5);
-      text.setDepth(2510); // 보스 데미지는 가장 위로
+      text.setDepth(DEPTHS.bossDamageText);
       this.pool.push(text);
     }
 
@@ -326,7 +326,7 @@ export class DamageText {
         fontStyle: style?.fontStyle || 'normal',
       });
       textObj.setOrigin(0.5);
-      textObj.setDepth(2500);
+      textObj.setDepth(DEPTHS.damageText);
       this.pool.push(textObj);
     }
 
@@ -383,7 +383,7 @@ export class DamageText {
         strokeThickness: 3,
       });
       text.setOrigin(0.5);
-      text.setDepth(2500);
+      text.setDepth(DEPTHS.damageText);
       this.pool.push(text);
     }
 

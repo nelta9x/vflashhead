@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, FONTS } from '../../data/constants';
+import { GAME_WIDTH, GAME_HEIGHT, FONTS, DEPTHS } from '../../data/constants';
 import { Data } from '../../data/DataManager';
 import { UpgradeSystem } from '../../systems/UpgradeSystem';
 import { HoverArea } from './WaveTimerVisibilityPolicy';
@@ -45,14 +45,14 @@ export class AbilitySummaryWidget {
 
     const config = Data.gameConfig.hud.abilityDisplay;
     this.container = this.scene.add.container(GAME_WIDTH / 2, GAME_HEIGHT - config.bottomMargin);
-    this.container.setDepth(950);
+    this.container.setDepth(DEPTHS.abilityDock);
     this.container.setVisible(false);
 
     this.dockOverlay = this.scene.add.graphics();
-    this.dockOverlay.setDepth(949);
+    this.dockOverlay.setDepth(DEPTHS.abilityDockOverlay);
 
     this.dockPauseGauge = this.scene.add.graphics();
-    this.dockPauseGauge.setDepth(952);
+    this.dockPauseGauge.setDepth(DEPTHS.abilityDockPauseGauge);
 
     const dockOverlayCfg = Data.gameConfig.hud.waveTimerDisplay.dockOverlay;
     this.dockResumeHint = this.scene.add
@@ -65,12 +65,12 @@ export class AbilitySummaryWidget {
       })
       .setOrigin(0.5);
     this.dockResumeHint.setAlpha(dockOverlayCfg.resumeHintAlpha);
-    this.dockResumeHint.setDepth(953);
+    this.dockResumeHint.setDepth(DEPTHS.abilityDockResumeHint);
     this.dockResumeHint.setVisible(false);
 
     const tooltipCfg = Data.gameConfig.hud.abilityDisplay.tooltip;
     this.tooltipContainer = this.scene.add.container(0, 0);
-    this.tooltipContainer.setDepth(956);
+    this.tooltipContainer.setDepth(DEPTHS.abilityTooltip);
     this.tooltipContainer.setVisible(false);
 
     this.tooltipBg = this.scene.add.graphics();

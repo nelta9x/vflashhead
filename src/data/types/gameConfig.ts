@@ -4,6 +4,7 @@ export type {
   BlackHoleVisualConfig,
   BootConfig,
   CursorHitboxConfig,
+  DepthsConfig,
   GameConfig,
   GameOverConfig,
   GridConfig,

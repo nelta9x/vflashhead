@@ -152,7 +152,11 @@ describe('FallingBomb', () => {
 
     expect(bomb.x).toBe(120);
     expect(bomb.y).toBe(-40);
-    expect(mockEmit).toHaveBeenCalledWith(GameEvents.FALLING_BOMB_SPAWNED, bomb);
+    expect(mockEmit).toHaveBeenCalledWith(GameEvents.FALLING_BOMB_SPAWNED, {
+      x: 120,
+      y: -40,
+      moveSpeed: 80,
+    });
   });
 
   it('moves downward over time using moveSpeed', () => {

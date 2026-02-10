@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { DEPTHS } from '../data/constants';
 import { Data } from '../data/DataManager';
 
 export class LaserRenderer {
@@ -6,7 +7,7 @@ export class LaserRenderer {
 
   constructor(scene: Phaser.Scene) {
     this.graphics = scene.add.graphics();
-    this.graphics.setDepth(1500);
+    this.graphics.setDepth(DEPTHS.laser);
   }
 
   public render(

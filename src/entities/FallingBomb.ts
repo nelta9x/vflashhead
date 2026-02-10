@@ -55,7 +55,11 @@ export class FallingBomb extends Phaser.GameObjects.Container implements Poolabl
     });
 
     this.drawBomb();
-    EventBus.getInstance().emit(GameEvents.FALLING_BOMB_SPAWNED, this);
+    EventBus.getInstance().emit(GameEvents.FALLING_BOMB_SPAWNED, {
+      x: this.x,
+      y: this.y,
+      moveSpeed: this.moveSpeed,
+    });
   }
 
   update(delta: number): void {

@@ -187,7 +187,7 @@ export class BlackHoleSystem {
         if (dangerous && distance <= hole.radius * consumeRatio) {
           dish.forceDestroy(true);
           if (!dish.active) {
-            this.applyConsumeGrowth(hole, data);
+            this.consumeTarget(hole, data);
           }
           bombConsumed = true;
           break;
@@ -218,7 +218,7 @@ export class BlackHoleSystem {
         if (movedDistance <= hole.radius * consumeRatio) {
           dish.forceDestroy(true);
           if (!dish.active) {
-            this.applyConsumeGrowth(hole, data);
+            this.consumeTarget(hole, data);
           }
           break;
         }
@@ -244,7 +244,7 @@ export class BlackHoleSystem {
         if (distance <= hole.radius * consumeRatio) {
           bomb.forceDestroy(true);
           if (!bomb.active) {
-            this.applyConsumeGrowth(hole, data);
+            this.consumeTarget(hole, data);
           }
           bombConsumed = true;
           break;
@@ -274,7 +274,7 @@ export class BlackHoleSystem {
         if (movedDistance <= hole.radius * consumeRatio) {
           bomb.forceDestroy(true);
           if (!bomb.active) {
-            this.applyConsumeGrowth(hole, data);
+            this.consumeTarget(hole, data);
           }
           break;
         }
@@ -315,14 +315,17 @@ export class BlackHoleSystem {
     }
   }
 
+  private consumeTarget(hole: ActiveBlackHole, data: BlackHoleLevelData): void {
+    this.applyConsumeGrowth(hole, data);
+    EventBus.getInstance().emit(GameEvents.BLACK_HOLE_CONSUMED, { x: hole.x, y: hole.y });
+  }
+
   private applyConsumeGrowth(hole: ActiveBlackHole, data: BlackHoleLevelData): void {
     const nextRadius =
       hole.radius * (1 + data.consumeRadiusGrowthRatio) + data.consumeRadiusGrowthFlat;
     hole.radius = this.getSafeRadius(nextRadius);
     hole.damage = Math.max(0, hole.damage + data.consumeDamageGrowth);
     hole.remainingDuration += data.consumeDurationGrowth;
-
-    EventBus.getInstance().emit(GameEvents.BLACK_HOLE_CONSUMED, { x: hole.x, y: hole.y });
   }
 
   private resolveCriticalDamage(

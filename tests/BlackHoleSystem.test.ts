@@ -40,6 +40,18 @@ vi.mock('../src/data/DataManager', () => ({
   },
 }));
 
+const mockEmit = vi.fn();
+vi.mock('../src/utils/EventBus', () => ({
+  EventBus: {
+    getInstance: () => ({
+      emit: mockEmit,
+    }),
+  },
+  GameEvents: {
+    BLACK_HOLE_CONSUMED: 'blackHole:consumed',
+  },
+}));
+
 import { BlackHoleSystem } from '../src/systems/BlackHoleSystem';
 
 interface MockDish {
@@ -95,6 +107,7 @@ describe('BlackHoleSystem', () => {
     damageBoss = vi.fn();
     mockFloatBetween.mockReset();
     mockFloatBetween.mockImplementation((min: number, max: number) => (min + max) / 2);
+    mockEmit.mockReset();
     setupSystem();
   });
 
@@ -487,6 +500,7 @@ describe('BlackHoleSystem', () => {
     expect(holes).toHaveLength(1);
     expect(holes[0].radius).toBeCloseTo(115);
     expect(bombDish.forceDestroy).toHaveBeenCalledWith(true);
+    expect(mockEmit).toHaveBeenCalledWith('blackHole:consumed', { x: 640, y: 360 });
   });
 
   it('increases boss tick damage after bomb consume growth in the same frame', () => {
@@ -564,6 +578,7 @@ describe('BlackHoleSystem', () => {
     expect(normalDish.applyDamageWithUpgrades).toHaveBeenCalledWith(2, 0, 0);
     expect(system.getBlackHoles()[0].radius).toBe(105);
     expect(damageBoss).toHaveBeenCalledWith('boss_1', 5, 640, 360, false);
+    expect(mockEmit).not.toHaveBeenCalled();
   });
 
   it('new spawns have fresh stats while old holes keep grown values', () => {

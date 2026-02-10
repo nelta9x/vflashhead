@@ -308,7 +308,7 @@ import { COLORS, FONTS } from '../data/constants';
 }
 ```
 
-`dishes.damage`는 접시 커서 공격뿐 아니라, 인게임에서 커서가 보스와 겹칠 때의 보스 주기 피해(기본 피해/치명타/틱 간격), 그리고 전기 충격/수호 구슬/블랙홀의 치명타 판정(접시 및 블랙홀 보스 틱 피해)에도 동일하게 사용됩니다.
+`dishes.damage`는 접시 커서 공격뿐 아니라, 인게임에서 커서가 보스와 겹칠 때의 보스 주기 피해(기본 피해/치명타/틱 간격), 그리고 전기 충격/금구슬/블랙홀의 치명타 판정(접시 및 블랙홀 보스 틱 피해)에도 동일하게 사용됩니다.
 
 ---
 
@@ -552,7 +552,7 @@ import { COLORS, FONTS } from '../data/constants';
 ```
 
 **특성**:
-- 수호 구슬(`OrbSystem`)과 블랙홀(`BlackHoleSystem`)에 의해 `byAbility=true`로 제거 가능
+- 금구슬(`OrbSystem`)과 블랙홀(`BlackHoleSystem`)에 의해 `byAbility=true`로 제거 가능
 - 기존 폭탄 접시와 동일한 제거 규칙(오버클럭 발동, 블랙홀 성장) 적용
 - 화면 하단 이탈 시 데미지 없이 사라짐
 - 외형은 `DishRenderer.renderDangerDish()` 재사용

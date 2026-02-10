@@ -201,7 +201,7 @@ export class UpgradeSystem {
     return this.getLevelData<HealthPackLevelData>('health_pack')?.dropChanceBonus ?? 0;
   }
 
-  // ========== 수호의 구체 ==========
+  // ========== 금구슬 ==========
   getOrbitingOrbLevel(): number {
     return this.getUpgradeStack('orbiting_orb');
   }

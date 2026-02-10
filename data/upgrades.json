@@ -280,7 +280,7 @@
     },
     {
       "id": "orbiting_orb",
-      "name": "수호 구슬",
+      "name": "금구슬",
       "description": "커서 주위를 도는 구체 생성 (레벨에 따라 구체 수/피해/회전 속도/반경/크기 증가, 폭탄 접시 제거 가능, 폭탄 제거 시 잠깐 흥분)",
       "descriptionTemplate": "구체 {count}개가 초당 {speed}도 회전하며 {damage} 피해를 주고, 반경 {radius}px에서 크기 {size}로 폭탄 접시를 제거합니다. 폭탄을 제거하면 흥분합니다.",
       "rarity": "rare",

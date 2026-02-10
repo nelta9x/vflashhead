@@ -2,7 +2,7 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>FLASHHEAD</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="48x48" />
@@ -28,6 +28,7 @@
         align-items: center;
         min-height: 100vh;
         overflow: hidden;
+        overscroll-behavior: none;
         gap: 0;
         
         /* NeoDunggeunmo Pro Optimization */
@@ -40,6 +41,7 @@
       #game-container {
         border: 2px solid #00ffff;
         box-shadow: 0 0 20px #00ffff40, inset 0 0 20px #00ffff20;
+        touch-action: none;
         cursor: none;
       }
 

@@ -59,7 +59,7 @@
 - **`CursorPositionProvider.ts`**: Scene/포인터/명시 provider 우선순위로 커서 좌표를 해석하는 공용 유틸.
 - **`src/scenes/menu/`**:
   - `LanguageSelectorWidget.ts`: 언어 토글 UI + safe area 판정
-  - `MenuInputController.ts`: Phaser/native 입력 브릿지 및 리스너 정리
+  - `MenuInputController.ts`: native `pointerdown`(마우스+터치+펜 통합) 입력 브릿지 및 리스너 정리
   - `MenuAmbientController.ts`: 메뉴 커서 추적/배경 접시 시뮬레이션
 
 ### 2. 핵심 게임 로직 (Systems)

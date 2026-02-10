@@ -11,7 +11,7 @@ export class MenuInputController {
   private readonly isInsideSafeArea: (x: number, y: number) => boolean;
   private readonly onStartGame: () => void;
 
-  private nativeMouseDownHandler: ((event: MouseEvent) => void) | null = null;
+  private nativePointerDownHandler: ((event: PointerEvent) => void) | null = null;
   private nativeKeyDownHandler: ((event: KeyboardEvent) => void) | null = null;
 
   constructor(deps: MenuInputControllerDeps) {
@@ -23,7 +23,7 @@ export class MenuInputController {
   public setup(): void {
     this.cleanupNativeInputListeners();
 
-    this.nativeMouseDownHandler = (event: MouseEvent) => {
+    this.nativePointerDownHandler = (event: PointerEvent) => {
       const gamePoint = this.getGamePointFromClientPosition(event.clientX, event.clientY);
       if (!gamePoint) return;
       if (this.isInsideSafeArea(gamePoint.x, gamePoint.y)) return;
@@ -34,7 +34,7 @@ export class MenuInputController {
       this.onStartGame();
     };
 
-    window.addEventListener('mousedown', this.nativeMouseDownHandler);
+    window.addEventListener('pointerdown', this.nativePointerDownHandler);
     window.addEventListener('keydown', this.nativeKeyDownHandler);
 
     this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -43,9 +43,9 @@ export class MenuInputController {
   }
 
   public cleanupNativeInputListeners(): void {
-    if (this.nativeMouseDownHandler) {
-      window.removeEventListener('mousedown', this.nativeMouseDownHandler);
-      this.nativeMouseDownHandler = null;
+    if (this.nativePointerDownHandler) {
+      window.removeEventListener('pointerdown', this.nativePointerDownHandler);
+      this.nativePointerDownHandler = null;
     }
 
     if (this.nativeKeyDownHandler) {

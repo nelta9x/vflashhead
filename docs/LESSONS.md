@@ -123,6 +123,8 @@
 - `hide()` tween 중 `selectUpgrade` 다중 호출 → stack 폭주, `visible` 즉시 변경으로 해결
 - `keyup` 누락으로 한 방향 자동 이동 → `resetMovementInput()` + 다중 리셋 경로 추가
 - 축 가속 도입 시 포인터 우선 유예 중 축 누적 금지를 명시적으로 처리
+- 메뉴 `mousedown`이 모바일 터치 무시 → `pointerdown`(`PointerEvent`)으로 교체해 마우스+터치+펜 통합
+- 게임 컨테이너에 `touch-action: none` CSS 누락 → 브라우저가 터치를 스크롤/줌으로 가로챔, CSS + Phaser `input.touch.capture: true` 이중 방어로 해결
 
 > 상세: [LESSONS_ARCHIVE.md](LESSONS_ARCHIVE.md)
 

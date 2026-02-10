@@ -57,7 +57,7 @@ export class ObjectPool<T extends Poolable> {
     this.activeObjects.clear();
   }
 
-  getActiveObjects(): T[] {
+  getActiveObjects(): readonly T[] {
     return Array.from(this.activeObjects);
   }
 

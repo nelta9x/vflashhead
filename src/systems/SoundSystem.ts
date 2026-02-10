@@ -41,9 +41,8 @@ export class SoundSystem {
     if (this.audioContext && this.audioContext.state === 'suspended') {
       try {
         await this.audioContext.resume();
-        console.log('AudioContext resumed successfully');
-      } catch (e) {
-        console.error('Failed to resume AudioContext:', e);
+      } catch {
+        // AudioContext resume failed - user interaction may be required
       }
     }
   }
@@ -88,8 +87,8 @@ export class SoundSystem {
         try {
           this.scene.sound.play(audioConfig.key, { volume: audioConfig.volume });
           return;
-        } catch (e) {
-          console.warn(`Failed to play sound file ${configKey}:`, e);
+        } catch {
+          // Sound file playback failed
         }
       }
     }
@@ -223,8 +222,8 @@ export class SoundSystem {
         try {
           this.scene.sound.play(config.key, { volume: config.volume });
           return;
-        } catch (e) {
-          console.warn('Failed to play upgrade sound file, falling back to synth:', e);
+        } catch {
+          // Upgrade sound file playback failed, falling back to synth
         }
       }
     }

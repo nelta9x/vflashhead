@@ -9,13 +9,18 @@ interface BossState {
 
 export class MonsterSystem {
   private bossStates: Map<string, BossState> = new Map();
+  private readonly onWaveStarted: (...args: unknown[]) => void;
 
   constructor() {
-    // Listen for wave start to reset/spawn monsters
-    EventBus.getInstance().on(GameEvents.WAVE_STARTED, (...args: unknown[]) => {
+    this.onWaveStarted = (...args: unknown[]) => {
       const waveNumber = args[0] as number;
       this.reset(waveNumber);
-    });
+    };
+    EventBus.getInstance().on(GameEvents.WAVE_STARTED, this.onWaveStarted);
+  }
+
+  destroy(): void {
+    EventBus.getInstance().off(GameEvents.WAVE_STARTED, this.onWaveStarted);
   }
 
   reset(waveNumber: number): void {

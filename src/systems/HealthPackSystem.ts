@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, HEAL_PACK } from '../data/constants';
+import { Data } from '../data/DataManager';
 import { HealthPack } from '../entities/HealthPack';
 import { ObjectPool } from '../utils/ObjectPool';
 import { EventBus, GameEvents } from '../utils/EventBus';
@@ -10,6 +11,8 @@ export class HealthPackSystem {
   private lastSpawnTime: number = -HEAL_PACK.COOLDOWN; // 게임 시작 시 바로 스폰 가능
   private timeSinceLastCheck: number = 0;
   private upgradeSystem: UpgradeSystem;
+  private readonly onCollected: (...args: unknown[]) => void;
+  private readonly onMissed: (...args: unknown[]) => void;
 
   constructor(scene: Phaser.Scene, upgradeSystem: UpgradeSystem) {
     this.upgradeSystem = upgradeSystem;
@@ -19,17 +22,24 @@ export class HealthPackSystem {
       5 // 최대 크기
     );
 
-    // 힐팩 수집 이벤트 구독
-    EventBus.getInstance().on(GameEvents.HEALTH_PACK_COLLECTED, (...args: unknown[]) => {
+    this.onCollected = (...args: unknown[]) => {
       const data = args[0] as { pack: HealthPack };
       this.releaseHealthPack(data.pack);
-    });
+    };
 
-    // 힐팩 놓침 이벤트 구독
-    EventBus.getInstance().on(GameEvents.HEALTH_PACK_MISSED, (...args: unknown[]) => {
+    this.onMissed = (...args: unknown[]) => {
       const data = args[0] as { pack: HealthPack };
       this.releaseHealthPack(data.pack);
-    });
+    };
+
+    EventBus.getInstance().on(GameEvents.HEALTH_PACK_COLLECTED, this.onCollected);
+    EventBus.getInstance().on(GameEvents.HEALTH_PACK_MISSED, this.onMissed);
+  }
+
+  destroy(): void {
+    const bus = EventBus.getInstance();
+    bus.off(GameEvents.HEALTH_PACK_COLLECTED, this.onCollected);
+    bus.off(GameEvents.HEALTH_PACK_MISSED, this.onMissed);
   }
 
   update(delta: number, gameTime: number): void {
@@ -96,8 +106,7 @@ export class HealthPackSystem {
     const pack = this.pool.acquire();
     if (!pack) return;
 
-    // 화면 좌우 마진을 두고 랜덤 X 위치
-    const margin = 80;
+    const margin = Data.healthPack.spawnMargin;
     const x = Phaser.Math.Between(margin, GAME_WIDTH - margin);
 
     pack.spawn(x);

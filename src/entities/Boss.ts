@@ -53,6 +53,10 @@ export class Boss extends Phaser.GameObjects.Container {
   private deathTween: Phaser.Tweens.Tween | null = null;
   private reactionTweens: Phaser.Tweens.Tween[] = [];
 
+  // EventBus 리스너 (destroy 시 해제용)
+  private readonly onMonsterHpChanged: (...args: unknown[]) => void;
+  private readonly onMonsterDied: (...args: unknown[]) => void;
+
   constructor(
     scene: Phaser.Scene,
     x: number,
@@ -65,6 +69,41 @@ export class Boss extends Phaser.GameObjects.Container {
     this.feedbackSystem = feedbackSystem || null;
     this.movementPhaseX = Boss.resolveMovementPhase(`${bossId}:x`);
     this.movementPhaseY = Boss.resolveMovementPhase(`${bossId}:y`);
+
+    this.onMonsterHpChanged = (...args: unknown[]) => {
+      const data = args[0] as MonsterHpChangedEventData;
+      if (data.bossId !== this.bossId) return;
+      const oldFilledSlotCount = this.filledHpSlotCount;
+
+      if (typeof data.max === 'number' && data.max > 0) {
+        this.maxHp = Math.floor(data.max);
+      }
+
+      if (typeof data.current === 'number') {
+        this.currentHp = Math.max(0, Math.floor(data.current));
+      } else if (this.maxHp > 0) {
+        this.currentHp = Math.round(this.maxHp * data.ratio);
+      }
+
+      if (this.maxHp > 0) {
+        this.currentHp = Phaser.Math.Clamp(this.currentHp, 0, this.maxHp);
+      }
+
+      this.hpRatio = Phaser.Math.Clamp(data.ratio, 0, 1);
+      this.refreshArmorSegments();
+
+      if (this.filledHpSlotCount < oldFilledSlotCount) {
+        this.onArmorBreak();
+      }
+
+      this.onDamage(data.sourceX, data.sourceY);
+    };
+
+    this.onMonsterDied = (...args: unknown[]) => {
+      const data = args[0] as MonsterDiedEventData | undefined;
+      if (!data || data.bossId !== this.bossId) return;
+      this.die();
+    };
 
     const config = Data.boss.visual;
     this.defaultArmorPieces = Math.max(1, Math.floor(config.armor.maxPieces));
@@ -87,41 +126,8 @@ export class Boss extends Phaser.GameObjects.Container {
   }
 
   private setupEventListeners(): void {
-    EventBus.getInstance().on(GameEvents.MONSTER_HP_CHANGED, (...args: unknown[]) => {
-      const data = args[0] as MonsterHpChangedEventData;
-      if (data.bossId !== this.bossId) return;
-      const oldFilledSlotCount = this.filledHpSlotCount;
-
-      if (typeof data.max === 'number' && data.max > 0) {
-        this.maxHp = Math.floor(data.max);
-      }
-
-      if (typeof data.current === 'number') {
-        this.currentHp = Math.max(0, Math.floor(data.current));
-      } else if (this.maxHp > 0) {
-        this.currentHp = Math.round(this.maxHp * data.ratio);
-      }
-
-      if (this.maxHp > 0) {
-        this.currentHp = Phaser.Math.Clamp(this.currentHp, 0, this.maxHp);
-      }
-
-      this.hpRatio = Phaser.Math.Clamp(data.ratio, 0, 1);
-      this.refreshArmorSegments();
-
-      // HP 슬롯이 줄어들 때 아머 파편 연출 트리거
-      if (this.filledHpSlotCount < oldFilledSlotCount) {
-        this.onArmorBreak();
-      }
-
-      this.onDamage(data.sourceX, data.sourceY);
-    });
-
-    EventBus.getInstance().on(GameEvents.MONSTER_DIED, (...args: unknown[]) => {
-      const data = args[0] as MonsterDiedEventData | undefined;
-      if (!data || data.bossId !== this.bossId) return;
-      this.die();
-    });
+    EventBus.getInstance().on(GameEvents.MONSTER_HP_CHANGED, this.onMonsterHpChanged);
+    EventBus.getInstance().on(GameEvents.MONSTER_DIED, this.onMonsterDied);
   }
 
   public spawnAt(x: number, y: number): void {
@@ -162,6 +168,7 @@ export class Boss extends Phaser.GameObjects.Container {
       duration: config.duration,
       ease: 'Back.easeOut',
       onComplete: () => {
+        if (!this.scene) return;
         this.spawnTween = null;
       },
     });
@@ -266,13 +273,15 @@ export class Boss extends Phaser.GameObjects.Container {
   private die(): void {
     this.stopAllManagedTweens();
     this.isDead = true;
+    const deathAnim = Data.boss.feedback.deathAnimation;
     this.deathTween = this.scene.tweens.add({
       targets: this,
-      scale: 1.5,
+      scale: deathAnim.scale,
       alpha: 0,
-      duration: 800,
-      ease: 'Power2.In',
+      duration: deathAnim.duration,
+      ease: deathAnim.ease,
       onComplete: () => {
+        if (!this.scene) return;
         this.setVisible(false);
         this.deathTween = null;
       },
@@ -341,6 +350,9 @@ export class Boss extends Phaser.GameObjects.Container {
 
   public override destroy(fromScene?: boolean): void {
     this.stopAllManagedTweens();
+    const bus = EventBus.getInstance();
+    bus.off(GameEvents.MONSTER_HP_CHANGED, this.onMonsterHpChanged);
+    bus.off(GameEvents.MONSTER_DIED, this.onMonsterDied);
     super.destroy(fromScene);
   }
 

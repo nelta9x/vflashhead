@@ -198,6 +198,20 @@
       "rainbowParticleMultiplier": 2
     }
   },
+  "shakePresets": {
+    "dishDestroyed": { "intensity": 4, "duration": 100 },
+    "goldenDestroyed": { "intensity": 6, "duration": 100 },
+    "bombDestroyed": { "intensity": 10, "duration": 100 },
+    "dishDamaged": { "intensity": 2, "duration": 50 },
+    "criticalHit": { "intensity": 4, "duration": 80 },
+    "dishMissed": { "intensity": 6, "duration": 150 },
+    "bombExploded": { "intensity": 15, "duration": 250 },
+    "bombRemoved": { "intensity": 5, "duration": 100 },
+    "hpLost": { "intensity": 12, "duration": 200 },
+    "electricShock": { "intensity": 5, "duration": 100 },
+    "bossDamaged": { "intensity": 8, "duration": 200 },
+    "bossCritical": { "intensity": 12, "duration": 200 }
+  },
   "upgradeAbsorption": {
     "particleCount": 40,
     "duration": 500,

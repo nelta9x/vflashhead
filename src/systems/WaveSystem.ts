@@ -8,9 +8,10 @@ import { Dish } from '../entities/Dish';
 import { WaveConfigResolver, WaveRuntimeConfig } from './wave/WaveConfigResolver';
 import { WavePhase, WavePhaseController } from './wave/WavePhaseController';
 import { WaveSpawnPlanner } from './wave/WaveSpawnPlanner';
+import type { DishSpawnDelegate } from '../scenes/game/GameSceneContracts';
 
 export class WaveSystem {
-  private readonly scene: Phaser.Scene;
+  private readonly dishSpawnDelegate: DishSpawnDelegate;
   private currentWave = 0;
   private timeSinceLastSpawn = 0;
   private timeSinceLastFillSpawn = 0;
@@ -29,9 +30,10 @@ export class WaveSystem {
     scene: Phaser.Scene,
     getDishPool: () => ObjectPool<Dish>,
     getMaxSpawnY?: () => number,
-    getBosses?: () => Array<{ id: string; x: number; y: number; visible: boolean }>
+    getBosses?: () => Array<{ id: string; x: number; y: number; visible: boolean }>,
+    dishSpawnDelegate?: DishSpawnDelegate
   ) {
-    this.scene = scene;
+    this.dishSpawnDelegate = dishSpawnDelegate ?? (scene as unknown as DishSpawnDelegate);
     this.getDishPool = getDishPool;
     this.getMaxSpawnY = getMaxSpawnY || (() => SPAWN_AREA.maxY);
     this.getBosses = getBosses || (() => []);
@@ -113,10 +115,7 @@ export class WaveSystem {
     );
     if (!plannedSpawn) return;
 
-    const gameScene = this.scene as unknown as {
-      spawnDish: (type: string, x: number, y: number, speedMultiplier: number) => void;
-    };
-    gameScene.spawnDish(
+    this.dishSpawnDelegate.spawnDish(
       plannedSpawn.type,
       plannedSpawn.x,
       plannedSpawn.y,

@@ -21,15 +21,6 @@ export class MenuInputController {
   }
 
   public setup(): void {
-    this.scene.input.keyboard?.on('keydown', () => {
-      this.onStartGame();
-    });
-
-    this.scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      if (this.isInsideSafeArea(pointer.x, pointer.y)) return;
-      this.onStartGame();
-    });
-
     this.cleanupNativeInputListeners();
 
     this.nativeMouseDownHandler = (event: MouseEvent) => {

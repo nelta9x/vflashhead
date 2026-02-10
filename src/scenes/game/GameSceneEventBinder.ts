@@ -1,3 +1,4 @@
+import Phaser from 'phaser';
 import { EventBus, GameEvents } from '../../utils/EventBus';
 import type {
   DishDamagedEventPayload,
@@ -17,7 +18,7 @@ interface HpChangedPayload {
 }
 
 interface HealthPackCollectedPayload {
-  pack: unknown;
+  pack: Phaser.GameObjects.Container;
   x: number;
   y: number;
 }
@@ -34,7 +35,7 @@ interface GaugeUpdatedPayload {
 }
 
 interface FallingBombDestroyedPayload {
-  bomb: unknown;
+  bomb: Phaser.GameObjects.Container;
   x: number;
   y: number;
   byAbility: boolean;

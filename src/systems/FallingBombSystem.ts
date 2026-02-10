@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, FALLING_BOMB } from '../data/constants';
+import { Data } from '../data/DataManager';
 import { FallingBomb } from '../entities/FallingBomb';
 import { ObjectPool } from '../utils/ObjectPool';
 import { EventBus, GameEvents } from '../utils/EventBus';
@@ -8,6 +9,8 @@ export class FallingBombSystem {
   private pool: ObjectPool<FallingBomb>;
   private lastSpawnTime: number = -FALLING_BOMB.COOLDOWN;
   private timeSinceLastCheck: number = 0;
+  private readonly onDestroyed: (...args: unknown[]) => void;
+  private readonly onMissed: (...args: unknown[]) => void;
 
   constructor(scene: Phaser.Scene) {
     this.pool = new ObjectPool<FallingBomb>(
@@ -16,15 +19,24 @@ export class FallingBombSystem {
       5
     );
 
-    EventBus.getInstance().on(GameEvents.FALLING_BOMB_DESTROYED, (...args: unknown[]) => {
+    this.onDestroyed = (...args: unknown[]) => {
       const data = args[0] as { bomb: FallingBomb };
       this.releaseBomb(data.bomb);
-    });
+    };
 
-    EventBus.getInstance().on(GameEvents.FALLING_BOMB_MISSED, (...args: unknown[]) => {
+    this.onMissed = (...args: unknown[]) => {
       const data = args[0] as { bomb: FallingBomb };
       this.releaseBomb(data.bomb);
-    });
+    };
+
+    EventBus.getInstance().on(GameEvents.FALLING_BOMB_DESTROYED, this.onDestroyed);
+    EventBus.getInstance().on(GameEvents.FALLING_BOMB_MISSED, this.onMissed);
+  }
+
+  destroy(): void {
+    const bus = EventBus.getInstance();
+    bus.off(GameEvents.FALLING_BOMB_DESTROYED, this.onDestroyed);
+    bus.off(GameEvents.FALLING_BOMB_MISSED, this.onMissed);
   }
 
   update(delta: number, gameTime: number, currentWave: number): void {
@@ -88,7 +100,7 @@ export class FallingBombSystem {
     const bomb = this.pool.acquire();
     if (!bomb) return;
 
-    const margin = 80;
+    const margin = Data.fallingBomb.spawnMargin;
     const x = Phaser.Math.Between(margin, GAME_WIDTH - margin);
 
     bomb.spawn(x);

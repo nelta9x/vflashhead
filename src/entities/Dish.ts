@@ -66,6 +66,7 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
 
   // 스폰 정보
   private spawnDuration: number = 150;
+  private spawnTween: Phaser.Tweens.Tween | null = null;
 
   // HP 시스템
   private currentHp: number = 3;
@@ -192,13 +193,16 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
     this.spawnDuration = spawnAnim.duration;
     this.setScale(0);
     this.setAlpha(0);
-    this.scene.tweens.add({
+    this.spawnTween = this.scene.tweens.add({
       targets: this,
       scaleX: 1,
       scaleY: 1,
       alpha: 1,
       duration: spawnAnim.duration,
       ease: spawnAnim.ease,
+      onComplete: () => {
+        this.spawnTween = null;
+      },
     });
 
     this.drawDish();
@@ -266,7 +270,7 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
 
     // 반복 데미지 타이머 시작
     this.damageTimer = this.scene.time.addEvent({
-      delay: Data.dishes.damage.damageInterval,
+      delay: this.damageInterval,
       callback: () => this.takeDamage(false),
       loop: true,
     });
@@ -447,6 +451,10 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
   deactivate(): void {
     this.active = false;
     this.clearDamageTimer();
+    if (this.spawnTween) {
+      this.spawnTween.stop();
+      this.spawnTween = null;
+    }
     this.setVisible(false);
     this.setActive(false);
     this.disableInteractive();

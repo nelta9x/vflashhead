@@ -173,10 +173,19 @@ export class MenuScene extends Phaser.Scene {
       duration: 400,
       ease: 'Power2',
       onComplete: () => {
+        this.cleanupMenuResources();
         this.scene.start('GameScene');
       },
     });
 
     this.cameras.main.fadeOut(400, 0, 0, 0);
+  }
+
+  private cleanupMenuResources(): void {
+    this.starBackground?.destroy();
+    this.bossRenderer?.destroy();
+    this.gridRenderer?.destroy();
+    this.cursorTrail?.destroy();
+    this.cursorRenderer?.destroy();
   }
 }

@@ -20,6 +20,7 @@ import type {
   BossConfig,
   MenuConfig,
   LocalesConfig,
+  RarityWeights,
 } from './types';
 
 // JSON 파일 직접 import
@@ -118,7 +119,7 @@ class DataManager {
             detectedLang = browserLang;
           }
         }
-      } catch (e) {
+      } catch {
         // navigator might be unavailable
       }
 
@@ -162,7 +163,7 @@ class DataManager {
 
     // {0}, {1} 등 플레이스홀더 치환
     args.forEach((arg, index) => {
-      str = str.replace(`{${index}}`, String(arg));
+      str = str.split(`{${index}}`).join(String(arg));
     });
 
     return str;
@@ -248,7 +249,7 @@ class DataManager {
   }
 
   // 편의 메서드: 업그레이드 횟수에 따른 희귀도 가중치
-  public getRarityWeights(totalUpgrades: number) {
+  public getRarityWeights(totalUpgrades: number): RarityWeights {
     const thresholds = this.upgrades.rarityThresholds;
     if (totalUpgrades <= thresholds.early) {
       return this.upgrades.rarityWeights.early;

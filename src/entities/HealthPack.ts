@@ -95,6 +95,7 @@ export class HealthPack extends Phaser.GameObjects.Container implements Poolable
       duration: 150,
       ease: 'Power2',
       onComplete: () => {
+        if (!this.active && !this.visible) return;
         this.deactivate();
       },
     });

@@ -109,6 +109,7 @@ export interface LaserAttackConfig {
     sparkSegments: number;
     sparkCount: number;
   };
+  fallbackCooldown: number;
 }
 
 export interface MonsterAttackConfig {
@@ -460,6 +461,16 @@ export interface HudConfig {
   };
 }
 
+export interface GaugeConfig {
+  maxGauge: number;
+  gainPerDish: number;
+}
+
+export interface ShakePreset {
+  intensity: number;
+  duration: number;
+}
+
 export interface GameConfig {
   screen: ScreenConfig;
   defaultLanguage: string;
@@ -472,6 +483,7 @@ export interface GameConfig {
   hud: HudConfig;
   monsterAttack: MonsterAttackConfig;
   playerAttack: PlayerAttackConfig;
+  gauge: GaugeConfig;
   fonts: {
     main: string;
     korean: string;
@@ -555,6 +567,7 @@ export interface HealthPackConfig {
   preMissWarningDistance: number;
   preMissWarningTextOffsetY: number;
   spawnChanceByHp?: Record<string, number>;
+  spawnMargin: number;
 }
 
 // ========== 낙하 폭탄 시스템 ==========
@@ -569,6 +582,7 @@ export interface FallingBombConfig {
   playerDamage: number;
   resetCombo: boolean;
   minWave: number;
+  spawnMargin: number;
 }
 
 // ========== 피드백 효과 ==========
@@ -785,6 +799,7 @@ export interface FeedbackConfig {
   cursorTrail: CursorTrailConfig;
   bossAttack: BossAttackConfig;
   upgradeAbsorption: UpgradeAbsorptionConfig;
+  shakePresets: Record<string, ShakePreset>;
 }
 
 // ========== 색상 설정 ==========
@@ -1168,6 +1183,11 @@ export interface BossConfig {
       returnDuration: number;
       returnEase: string;
       flashDuration: number;
+    };
+    deathAnimation: {
+      scale: number;
+      duration: number;
+      ease: string;
     };
   };
   spawn: {

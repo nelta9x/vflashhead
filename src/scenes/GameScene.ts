@@ -468,11 +468,18 @@ export class GameScene extends Phaser.Scene {
     this.playerAttackController?.destroy();
 
     this.dishPool.clear();
-    this.healthPackSystem.clear();
-    this.fallingBombSystem.clear();
+    this.healthPackSystem?.destroy();
+    this.healthPackSystem?.clear();
+    this.fallingBombSystem?.destroy();
+    this.fallingBombSystem?.clear();
+    this.monsterSystem?.destroy();
     this.inGameUpgradeUI.destroy();
     this.waveCountdownUI.destroy();
 
+    this.starBackground?.destroy();
+    this.gridRenderer?.destroy();
+    this.cursorRenderer?.destroy();
+    this.laserRenderer?.destroy();
     this.cursorTrail?.destroy();
     this.gaugeSystem?.destroy();
     this.orbRenderer?.destroy();

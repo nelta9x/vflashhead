@@ -55,7 +55,7 @@
   - 내부 분해: `dish/DishSpawnService.ts`, `dish/DishResolutionService.ts`, `dish/DishFieldEffectService.ts`
 - **`GameSceneEventBinder.ts`**: `EventBus` 구독/해제 일원화 및 payload 라우팅.
 - **`SceneInputAdapter.ts`**: pointer/ESC/blur/visibility/gameout 입력 리스너 등록·해제 전담.
-- **`GameSceneContracts.ts`**: 모듈 간 공유 타입 및 최소 게이트웨이 인터페이스(`BossInteractionGateway`) 정의.
+- **`GameSceneContracts.ts`**: 모듈 간 공유 타입 및 최소 게이트웨이 인터페이스(`BossInteractionGateway`, `DishSpawnDelegate`) 정의.
 - **`CursorPositionProvider.ts`**: Scene/포인터/명시 provider 우선순위로 커서 좌표를 해석하는 공용 유틸.
 - **`src/scenes/menu/`**:
   - `LanguageSelectorWidget.ts`: 언어 토글 UI + safe area 판정
@@ -78,7 +78,7 @@
   - `upgrades/UpgradeDescriptionFormatter.ts`: 로케일 템플릿 기반 설명 문자열 생성
   - `upgrades/UpgradePreviewModelBuilder.ts`: `previewDisplay` 스키마 기반 카드 프리뷰 모델(`현재 -> 다음`, 델타/직접+간접 수치) 생성
 - **`HealthSystem.ts`**: 플레이어 HP 관리. 데미지 수신 시 `HP_CHANGED` 이벤트를 발행하며, 현재 HP는 `GameScene -> CursorRenderer` 경로로 커서 통합형 링에 반영됩니다. HP가 0이 되면 `GAME_OVER` 발생.
-- **`MonsterSystem.ts`**: 보스 몬스터 HP/사망 상태를 `bossId`별 `Map`으로 관리합니다. 웨이브 시작 시 `bossTotalHp`를 가중치(`hpWeight`) 기반으로 분배하고, `MONSTER_HP_CHANGED`/`MONSTER_DIED`를 `bossId` 스냅샷 payload로 발행합니다.
+- **`MonsterSystem.ts`**: 보스 몬스터 HP/사망 상태를 `bossId`별 `Map`으로 관리합니다. 웨이브 시작 시 `bossTotalHp`를 가중치(`hpWeight`) 기반으로 분배하고, `MONSTER_HP_CHANGED`/`MONSTER_DIED`를 `bossId` 스냅샷 payload로 발행합니다. `destroy()` 메서드로 EventBus 리스너 해제.
 - **`OrbSystem.ts`**: 플레이어 주변을 회전하는 보호 오브(Orb)의 로직 처리. 업그레이드 레벨에 따른 개수/속도/데미지 계산 및 자석(Magnet) 업그레이드와의 시너지(크기 증가)를 관리합니다. 또한 오브가 폭탄을 제거하면 짧은 오버클럭 버프를 발동해 회전 속도를 일시적으로 가속하며, 버프는 스택/지속시간 데이터(`overclockDurationMs`, `overclockSpeedMultiplier`, `overclockMaxStacks`)로 제어됩니다.
 - **`BlackHoleSystem.ts`**: 블랙홀 어빌리티 로직 처리. 레벨 데이터(`spawnInterval`, `spawnCount`, `radius`, `force`, `damageInterval`, `damage`, `bombConsumeRadiusRatio`, `consumeRadiusGrowthRatio`, `consumeRadiusGrowthFlat`, `consumeDamageGrowth`) 기반으로 주기적 랜덤 블랙홀을 생성/교체하고, 접시·폭탄 흡인, 중심 반경 진입 폭탄의 `byAbility` 제거, 접시/보스 피해 틱을 적용합니다. 각 블랙홀은 폭탄을 흡수하거나 블랙홀 틱 피해로 접시를 처치하면 개별적으로 반경/틱 피해가 증가하며, 다음 스폰 교체 시 기본 수치로 초기화됩니다.
 - **`PlayerCursorInputController.ts`**: `GameScene` 전용 입력 컨트롤러. 디지털 키 입력을 축(axis)으로 변환하고, 키다운 시 축 가속(0→1), 포인터 최신 입력 우선 유예, 입력 리셋/리스너 해제를 단일 책임으로 관리합니다.
@@ -86,7 +86,7 @@
 - **`ScoreSystem.ts`**: 접시 파괴 시 점수 계산 및 콤보 배율 적용.
 - **`SoundSystem.ts`**: Phaser Sound API 및 Web Audio API 기반 사운드 시스템. 오디오 파일 재생을 우선하며, 부재 시 코드로 사운드를 합성(Fallback)합니다. 마스터 볼륨 제어, 일시정지 상태 복구 지원.
 - **`FeedbackSystem.ts`**: 시각적/청각적 피드백을 조율. `ParticleManager`, `ScreenShake`, `DamageText`를 통합 제어하여 타격감을 생성합니다. 보스 아머 파괴 및 플레이어 필살기 연출을 총괄합니다.
-- **`HealthPackSystem.ts`**: 기본 확률과 업그레이드 보너스를 기반으로 힐팩을 스폰합니다.
+- **`HealthPackSystem.ts`**: 기본 확률과 업그레이드 보너스를 기반으로 힐팩을 스폰합니다. `destroy()` 메서드로 EventBus 리스너 해제.
 - **`FallingBombSystem.ts`**: 특정 웨이브(`minWave`) 이후부터 화면 위에서 아래로 떨어지는 낙하 폭탄을 확률 기반으로 스폰합니다. 커서 접촉 시 데미지를 주며, 수호 오브(`OrbSystem`)와 블랙홀(`BlackHoleSystem`)에 의해 제거될 수 있습니다.
 
 ### 3. 엔티티 및 오브젝트 (Entities)

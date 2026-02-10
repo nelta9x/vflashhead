@@ -11,8 +11,6 @@ import { Data } from '../data/DataManager';
 
 export class HUD {
   private readonly scene: Phaser.Scene;
-  private healthSystem: HealthSystem | null = null;
-  private readonly hpContainer: Phaser.GameObjects.Container;
   private readonly waveTimerWidget: WaveTimerWidget;
   private readonly dockPauseController: DockPauseController;
   private abilitySummaryWidget: AbilitySummaryWidget | null = null;
@@ -21,14 +19,10 @@ export class HUD {
   constructor(
     scene: Phaser.Scene,
     waveSystem: WaveSystem,
-    healthSystem?: HealthSystem,
+    _healthSystem?: HealthSystem,
     upgradeSystem?: UpgradeSystem
   ) {
     this.scene = scene;
-    this.healthSystem = healthSystem || null;
-
-    this.hpContainer = this.scene.add.container(0, 0);
-    this.hpContainer.setVisible(false);
 
     this.waveTimerWidget = new WaveTimerWidget(this.scene, waveSystem);
     this.dockPauseController = new DockPauseController(
@@ -38,11 +32,6 @@ export class HUD {
     if (upgradeSystem) {
       this.abilitySummaryWidget = new AbilitySummaryWidget(this.scene, upgradeSystem);
     }
-  }
-
-  public setHealthSystem(healthSystem: HealthSystem): void {
-    this.healthSystem = healthSystem;
-    this.updateHpDisplay();
   }
 
   public setUpgradeSystem(upgradeSystem: UpgradeSystem): void {
@@ -98,7 +87,6 @@ export class HUD {
   }
 
   public render(gameTime: number): void {
-    this.updateHpDisplay();
     this.waveTimerWidget.update(gameTime);
   }
 
@@ -113,26 +101,10 @@ export class HUD {
   }
 
   public showHpLoss(): void {
-    if (!this.hpContainer.visible) {
-      return;
-    }
-
-    this.scene.tweens.add({
-      targets: this.hpContainer,
-      x: this.hpContainer.x + 5,
-      duration: 50,
-      yoyo: true,
-      repeat: 3,
-    });
+    // HP loss visual feedback is handled by cursor HP ring
   }
 
   public showWaveComplete(waveNumber: number): void {
     this.waveTimerWidget.showWaveComplete(waveNumber);
-  }
-
-  private updateHpDisplay(): void {
-    if (!this.healthSystem || !this.hpContainer.visible) {
-      return;
-    }
   }
 }

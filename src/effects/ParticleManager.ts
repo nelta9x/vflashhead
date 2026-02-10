@@ -170,6 +170,8 @@ export class ParticleManager {
     } = config;
 
     // 1. 입자 생성 및 확산 연출 (Slow Spread)
+    let completedCount = 0;
+
     for (let i = 0; i < particleCount; i++) {
       const size = Phaser.Math.Between(particleSizeMin, particleSizeMax);
       const particle = this.scene.add.circle(startX, startY, size, color, 1);
@@ -203,8 +205,6 @@ export class ParticleManager {
             ease: suctionEase,
             onUpdate: (_tween, target) => {
               const p = target.progress;
-              // 확산된 위치에서 실시간 커서 위치로 보간 (Interpolation)
-              // GameScene에서 커서 위치 가져오기
               const cursorPos = this.getCursorPosition();
               particle.x = currentSpreadX + (cursorPos.x - currentSpreadX) * p;
               particle.y = currentSpreadY + (cursorPos.y - currentSpreadY) * p;
@@ -213,8 +213,8 @@ export class ParticleManager {
             },
             onComplete: () => {
               particle.destroy();
-              // 마지막 입자가 도착할 때 현재 커서 위치에 임팩트 실행 및 사운드 재생
-              if (i === particleCount - 1) {
+              completedCount++;
+              if (completedCount === particleCount) {
                 const finalPos = this.getCursorPosition();
                 this.createUpgradeImpact(finalPos.x, finalPos.y, color);
                 if (onComplete) onComplete();

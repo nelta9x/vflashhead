@@ -92,7 +92,7 @@ export class DishRenderer {
     }
 
     const flashWhite = state.hitFlashPhase > 0 ? state.hitFlashPhase : 0;
-    const hpRatio = state.currentHp / state.maxHp;
+    const hpRatio = state.maxHp > 0 ? state.currentHp / state.maxHp : 1;
     let displayColor = this.lerpColor(COLORS.RED, state.baseColor, hpRatio);
 
     if (state.isFrozen) {

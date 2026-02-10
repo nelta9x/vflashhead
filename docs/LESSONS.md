@@ -26,10 +26,13 @@
 
 ### 원칙
 - `delayedCall`/tween 콜백은 실행 시점 기준으로 상태 가드(`isGameOver`, `waveNumber`) 필수
+- tween `onComplete`에는 `if (!this.scene) return` 또는 `if (!this.active) return` 가드 포함
 - 풀 순회는 **스냅샷 수집 → 별도 단계 처리** (2단계 패턴)
 - 상태 변경은 애니메이션 시작 전에 즉시 수행
 - 주기형 어빌리티는 `delayedCall`보다 `update` 기반 누적 타이머가 안전
 - 조건부 `return`으로 빠져나갈 때도 리소스(게임 오브젝트) 정리는 수행해야 함
+- EventBus 리스너는 **클래스 필드로 저장** → `destroy()`에서 `EventBus.off()` 호출 (메모리 누수 방지)
+- 익명 화살표 함수를 EventBus에 등록하면 해제 불가 → 반드시 필드 참조 사용
 
 ### 사례 요약
 - W3 `delayedCall`이 웨이브 전환 후 실행 → `waveNumber` 클로저 캡처 + 정리 경로 분리로 해결

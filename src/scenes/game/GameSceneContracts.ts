@@ -56,3 +56,7 @@ export interface BossInteractionGateway {
   getAliveBossTarget(bossId: string): BossTargetSnapshot | null;
   cancelChargingLasers(bossId: string): void;
 }
+
+export interface DishSpawnDelegate {
+  spawnDish(type: string, x: number, y: number, speedMultiplier: number): void;
+}

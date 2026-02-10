@@ -8,5 +8,6 @@
   "baseSpawnChance": 0.04,
   "checkInterval": 5000,
   "preMissWarningDistance": 120,
-  "preMissWarningTextOffsetY": 14
+  "preMissWarningTextOffsetY": 14,
+  "spawnMargin": 80
 }

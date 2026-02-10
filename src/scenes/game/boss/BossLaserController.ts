@@ -72,7 +72,7 @@ export class BossLaserController {
   public setNextLaserTime(bossId: string, gameTime: number): void {
     const laserConfig = this.getBossLaserConfig(bossId);
     if (!laserConfig || laserConfig.maxCount === 0) {
-      this.laserNextTimeByBossId.set(bossId, gameTime + 5000);
+      this.laserNextTimeByBossId.set(bossId, gameTime + Data.gameConfig.monsterAttack.laser.fallbackCooldown);
       return;
     }
 
@@ -243,6 +243,8 @@ export class BossLaserController {
       this.scene.cameras.main.shake(200, 0.005);
 
       this.scene.time.delayedCall(config.fireDuration, () => {
+        if (this.isGameOver()) return;
+
         const activeLasers = this.getActiveLasers();
         const index = activeLasers.indexOf(laser);
         if (index > -1) {

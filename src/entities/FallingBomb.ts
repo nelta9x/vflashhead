@@ -49,6 +49,7 @@ export class FallingBomb extends Phaser.GameObjects.Container implements Poolabl
       duration: 200,
       ease: 'Back.easeOut',
       onComplete: () => {
+        if (!this.active) return;
         this.fullySpawned = true;
       },
     });

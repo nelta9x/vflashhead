@@ -1,17 +1,17 @@
+import type { RarityWeights } from '../../data/types/upgrades';
+
 export interface RollableUpgrade {
   id: string;
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
   maxStack: number;
 }
 
-type RarityWeightMap = Record<string, number>;
-
 export class UpgradeRarityRoller {
   public selectRandomUpgrades<T extends RollableUpgrade>(
     upgrades: T[],
     getCurrentStack: (upgradeId: string) => number,
     count: number,
-    rarityWeights: RarityWeightMap
+    rarityWeights: RarityWeights
   ): T[] {
     const availableUpgrades = upgrades.filter((upgrade) => {
       const currentStack = getCurrentStack(upgrade.id);

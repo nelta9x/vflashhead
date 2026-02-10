@@ -42,9 +42,9 @@ export class FeedbackSystem {
       this.particleManager.createEnergyEffect(x, y, combo, cursorRadius);
     }
 
-    // 화면 흔들림 (접시 타입에 따라 강도 조절)
-    const baseShake = dishType === 'bomb' ? 10 : dishType === 'golden' ? 6 : 4;
-    this.screenShake.shake(baseShake, 100);
+    const shakeKey = dishType === 'bomb' ? 'bombDestroyed' : dishType === 'golden' ? 'goldenDestroyed' : 'dishDestroyed';
+    const shake = Data.feedback.shakePresets[shakeKey];
+    if (shake) this.screenShake.shake(shake.intensity, shake.duration);
 
     // 파괴 사운드 재생
     this.soundSystem.playDestroySound(dishType);
@@ -76,8 +76,8 @@ export class FeedbackSystem {
     // 히트 파티클
     this.particleManager.createHitEffect(x, y, color);
 
-    // 미세 화면 흔들림
-    this.screenShake.shake(2, 50);
+    const damageShake = Data.feedback.shakePresets['dishDamaged'];
+    if (damageShake) this.screenShake.shake(damageShake.intensity, damageShake.duration);
 
     // 낮은 HP 시 추가 스파크 (30% 미만)
     if (hpRatio < 0.3) {
@@ -91,15 +91,16 @@ export class FeedbackSystem {
   onCriticalHit(x: number, y: number, damage: number, combo: number = 0): void {
     // 크리티컬 히트 피드백
     this.damageText.showDamage(x, y, damage, 'critical', combo);
-    this.screenShake.shake(4, 80);
+    const critShake = Data.feedback.shakePresets['criticalHit'];
+    if (critShake) this.screenShake.shake(critShake.intensity, critShake.duration);
     this.particleManager.createCriticalEffect(x, y);
   }
 
   onDishMissed(x: number, y: number, color: number, type: string): void {
     // 일반 접시 놓침: 부정 피드백
     this.damageText.showText(x, y, Data.t('feedback.miss'), 0xff0044);
-    // 화면 흔들림
-    this.screenShake.shake(6, 150);
+    const missShake = Data.feedback.shakePresets['dishMissed'];
+    if (missShake) this.screenShake.shake(missShake.intensity, missShake.duration);
     // 작은 파티클 (접시 색상)
     this.particleManager.createExplosion(x, y, color, type);
     // 놓침 사운드
@@ -111,13 +112,13 @@ export class FeedbackSystem {
     // 어빌리티로 제거된 경우 BOOM! 텍스트와 강한 흔들림/폭발음 생략, REMOVED! 텍스트와 약한 흔들림만 적용
     if (!isRemoved) {
       this.damageText.showText(x, y, Data.t('feedback.bomb_exploded'), 0xff0044);
-      // 강한 화면 흔들림
-      this.screenShake.shake(15, 250);
-      // 폭발 사운드
+      const bombShake = Data.feedback.shakePresets['bombExploded'];
+      if (bombShake) this.screenShake.shake(bombShake.intensity, bombShake.duration);
       this.soundSystem.playDestroySound('bomb');
     } else {
       this.damageText.showText(x, y, Data.t('feedback.bomb_removed'), 0xff0044);
-      this.screenShake.shake(5, 100);
+      const removedShake = Data.feedback.shakePresets['bombRemoved'];
+      if (removedShake) this.screenShake.shake(removedShake.intensity, removedShake.duration);
     }
     
     // 폭발 파티클 (제거 시에도 시각적 효과는 유지하되 양 조절 고려 가능하나 일단 유지)
@@ -125,8 +126,8 @@ export class FeedbackSystem {
   }
 
   onHpLost(): void {
-    // 강한 화면 흔들림
-    this.screenShake.shake(12, 200);
+    const hpShake = Data.feedback.shakePresets['hpLost'];
+    if (hpShake) this.screenShake.shake(hpShake.intensity, hpShake.duration);
   }
 
   onHealthPackCollected(x: number, y: number): void {
@@ -150,7 +151,8 @@ export class FeedbackSystem {
   // 전기 충격 효과 (업그레이드용)
   onElectricShock(x: number, y: number, targets: { x: number; y: number }[]): void {
     this.particleManager.createElectricEffect(x, y, targets);
-    this.screenShake.shake(5, 100);
+    const electricShake = Data.feedback.shakePresets['electricShock'];
+    if (electricShake) this.screenShake.shake(electricShake.intensity, electricShake.duration);
   }
 
   // 보스 데미지 피드백
@@ -162,8 +164,8 @@ export class FeedbackSystem {
       this.damageText.showBossDamage(x, y, damage);
     }
 
-    // 2. 강한 화면 흔들림
-    this.screenShake.shake(isCritical ? 12 : 8, 200);
+    const bossShake = Data.feedback.shakePresets[isCritical ? 'bossCritical' : 'bossDamaged'];
+    if (bossShake) this.screenShake.shake(bossShake.intensity, bossShake.duration);
 
     // 3. 화려한 폭발 파티클
     this.particleManager.createExplosion(x, y, isCritical ? COLORS.YELLOW : COLORS.RED, 'bomb', isCritical ? 2.0 : 1.5);

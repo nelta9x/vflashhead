@@ -8,6 +8,7 @@ import type {
   MagnetLevelData,
   MissileLevelData,
   OrbitingOrbLevelData,
+  RarityWeights,
   UpgradePreviewCardModel,
   SystemUpgradeData,
 } from '../data/types/upgrades';
@@ -94,10 +95,10 @@ export class UpgradeSystem {
     );
   }
 
-  private getRarityWeights(): Record<string, number> {
+  private getRarityWeights(): RarityWeights {
     const totalUpgrades = this.getTotalUpgradeCount();
     const weights = Data.getRarityWeights(totalUpgrades);
-    return weights as unknown as Record<string, number>;
+    return weights;
   }
 
   private getTotalUpgradeCount(): number {

@@ -244,7 +244,8 @@
       "visual": {
         "sparkSegments": 8,
         "sparkCount": 2
-      }
+      },
+      "fallbackCooldown": 5000
     }
   },
   "fonts": {
@@ -269,6 +270,10 @@
       "strokeThickness": 1.5,
       "timerStrokeThickness": 2
     }
+  },
+  "gauge": {
+    "maxGauge": 100,
+    "gainPerDish": 10
   },
   "playerAttack": {
     "baseMissileCount": 1,

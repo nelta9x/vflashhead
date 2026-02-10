@@ -86,6 +86,11 @@
       "returnDuration": 600,
       "returnEase": "Cubic.Out",
       "flashDuration": 50
+    },
+    "deathAnimation": {
+      "scale": 1.5,
+      "duration": 800,
+      "ease": "Power2.In"
     }
   },
   "spawn": {

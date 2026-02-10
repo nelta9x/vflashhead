@@ -4,8 +4,8 @@ import { ComboSystem } from './ComboSystem';
 
 export class GaugeSystem {
   private currentGauge: number = 0;
-  private readonly maxGauge: number = 100; // Fixed max gauge for now
-  private readonly gainPerDish: number = 10; // 10 dishes to fill
+  private readonly maxGauge: number = Data.gameConfig.gauge.maxGauge;
+  private readonly gainPerDish: number = Data.gameConfig.gauge.gainPerDish;
   private comboSystem: ComboSystem;
 
   private onDishDestroyed = () => this.increaseGauge(this.calculateGain());

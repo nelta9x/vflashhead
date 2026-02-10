@@ -70,7 +70,7 @@ const mockRelease = vi.fn();
 const mockForEach = vi.fn();
 const mockGetActiveCount = vi.fn(() => 0);
 const mockClear = vi.fn();
-const mockGetActiveObjects = vi.fn(() => []);
+const mockGetActiveObjects = vi.fn<[], { active: boolean }[]>(() => []);
 
 vi.mock('../src/utils/ObjectPool', () => {
   return {
@@ -198,25 +198,31 @@ describe('FallingBombSystem', () => {
   });
 
   describe('Event Handling', () => {
-    it('should release bomb on destroyed', () => {
+    it('should release inactive bombs on destroyed', () => {
+      const inactiveBomb = { active: false };
+      const activeBomb = { active: true };
+      mockGetActiveObjects.mockReturnValue([inactiveBomb, activeBomb]);
+
       const callback = mockOn.mock.calls.find(
         (call: unknown[]) => call[0] === GameEvents.FALLING_BOMB_DESTROYED
       )?.[1] as ((...args: unknown[]) => void) | undefined;
       if (callback) {
-        const bomb = {};
-        callback({ bomb });
-        expect(mockRelease).toHaveBeenCalledWith(bomb);
+        callback();
+        expect(mockRelease).toHaveBeenCalledWith(inactiveBomb);
+        expect(mockRelease).not.toHaveBeenCalledWith(activeBomb);
       }
     });
 
-    it('should release bomb on missed', () => {
+    it('should release inactive bombs on missed', () => {
+      const inactiveBomb = { active: false };
+      mockGetActiveObjects.mockReturnValue([inactiveBomb]);
+
       const callback = mockOn.mock.calls.find(
         (call: unknown[]) => call[0] === GameEvents.FALLING_BOMB_MISSED
       )?.[1] as ((...args: unknown[]) => void) | undefined;
       if (callback) {
-        const bomb = {};
-        callback({ bomb });
-        expect(mockRelease).toHaveBeenCalledWith(bomb);
+        callback();
+        expect(mockRelease).toHaveBeenCalledWith(inactiveBomb);
       }
     });
   });

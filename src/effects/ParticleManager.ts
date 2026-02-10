@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, DEPTHS } from '../data/constants';
+import { COLORS, DEPTHS, RAINBOW_COLORS } from '../data/constants';
 import { Data } from '../data/DataManager';
 import { SoundSystem } from '../systems/SoundSystem';
 import {
@@ -7,16 +7,6 @@ import {
   resolveCursorPosition,
 } from '../scenes/game/CursorPositionProvider';
 
-// 무지개 색상 배열
-const RAINBOW_COLORS = [
-  0xff0000, // 빨강
-  0xff7f00, // 주황
-  0xffff00, // 노랑
-  0x00ff00, // 초록
-  0x0000ff, // 파랑
-  0x4b0082, // 남색
-  0x9400d3, // 보라
-];
 
 export class ParticleManager {
   private scene: Phaser.Scene;

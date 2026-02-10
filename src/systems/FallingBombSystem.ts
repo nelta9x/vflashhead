@@ -19,14 +19,12 @@ export class FallingBombSystem {
       5
     );
 
-    this.onDestroyed = (...args: unknown[]) => {
-      const data = args[0] as { bomb: FallingBomb };
-      this.releaseBomb(data.bomb);
+    this.onDestroyed = () => {
+      this.releaseInactiveBombs();
     };
 
-    this.onMissed = (...args: unknown[]) => {
-      const data = args[0] as { bomb: FallingBomb };
-      this.releaseBomb(data.bomb);
+    this.onMissed = () => {
+      this.releaseInactiveBombs();
     };
 
     EventBus.getInstance().on(GameEvents.FALLING_BOMB_DESTROYED, this.onDestroyed);
@@ -107,7 +105,11 @@ export class FallingBombSystem {
     this.lastSpawnTime = gameTime;
   }
 
-  private releaseBomb(bomb: FallingBomb): void {
-    this.pool.release(bomb);
+  private releaseInactiveBombs(): void {
+    for (const bomb of this.pool.getActiveObjects()) {
+      if (!bomb.active) {
+        this.pool.release(bomb);
+      }
+    }
   }
 }

@@ -69,6 +69,7 @@ const mockAcquire = vi.fn(() => mockPack);
 const mockRelease = vi.fn();
 const mockForEach = vi.fn();
 const mockGetActiveCount = vi.fn(() => 0);
+const mockGetActiveObjects = vi.fn<[], { active: boolean }[]>(() => []);
 const mockClear = vi.fn();
 
 vi.mock('../src/utils/ObjectPool', () => {
@@ -78,6 +79,7 @@ vi.mock('../src/utils/ObjectPool', () => {
       release: mockRelease,
       forEach: mockForEach,
       getActiveCount: mockGetActiveCount,
+      getActiveObjects: mockGetActiveObjects,
       clear: mockClear,
     })),
   };
@@ -164,31 +166,37 @@ describe('HealthPackSystem', () => {
         (call) => call[0] === GameEvents.HEALTH_PACK_COLLECTED
       )?.[1];
       if (collectCallback) {
-        collectCallback({ pack: {} });
+        collectCallback();
       }
 
       expect(system.getSpawnChance()).toBe(0.04);
     });
 
-    it('should release pack on collected', () => {
+    it('should release inactive packs on collected', () => {
+      const inactivePack = { active: false };
+      const activePack = { active: true };
+      mockGetActiveObjects.mockReturnValue([inactivePack, activePack]);
+
       const callback = mockOn.mock.calls.find(
         (call) => call[0] === GameEvents.HEALTH_PACK_COLLECTED
       )?.[1];
       if (callback) {
-        const pack = {};
-        callback({ pack });
-        expect(mockRelease).toHaveBeenCalledWith(pack);
+        callback();
+        expect(mockRelease).toHaveBeenCalledWith(inactivePack);
+        expect(mockRelease).not.toHaveBeenCalledWith(activePack);
       }
     });
 
-    it('should release pack on missed', () => {
+    it('should release inactive packs on missed', () => {
+      const inactivePack = { active: false };
+      mockGetActiveObjects.mockReturnValue([inactivePack]);
+
       const callback = mockOn.mock.calls.find(
         (call) => call[0] === GameEvents.HEALTH_PACK_MISSED
       )?.[1];
       if (callback) {
-        const pack = {};
-        callback({ pack });
-        expect(mockRelease).toHaveBeenCalledWith(pack);
+        callback();
+        expect(mockRelease).toHaveBeenCalledWith(inactivePack);
       }
     });
   });

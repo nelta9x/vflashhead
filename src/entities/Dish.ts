@@ -206,7 +206,7 @@ export class Dish extends Phaser.GameObjects.Container implements Poolable {
     });
 
     this.drawDish();
-    EventBus.getInstance().emit(GameEvents.DISH_SPAWNED, this);
+    EventBus.getInstance().emit(GameEvents.DISH_SPAWNED, { x: this.x, y: this.y });
   }
 
   private setupClickHandlers(): void {

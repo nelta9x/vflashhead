@@ -53,7 +53,7 @@ export class MenuBossRenderer {
       const p4y = bossY + Math.sin(startAngle) * config.armor.outerRadius;
 
       // 아머 본체 (어두운 색)
-      this.graphics.fillStyle(0x1a0505, 0.9);
+      this.graphics.fillStyle(COLORS.MENU_BOSS_ARMOR, 0.9);
       this.graphics.fillPoints(
         [
           { x: p1x, y: p1y },

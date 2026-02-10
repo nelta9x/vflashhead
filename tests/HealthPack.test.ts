@@ -188,7 +188,7 @@ describe('HealthPack', () => {
 
     expect(pack.x).toBe(120);
     expect(pack.y).toBe(760);
-    expect(mockEmit).toHaveBeenCalledWith(GameEvents.HEALTH_PACK_SPAWNED, pack);
+    expect(mockEmit).toHaveBeenCalledWith(GameEvents.HEALTH_PACK_SPAWNED, { x: 120, y: 760 });
   });
 
   it('moves upward over time using moveSpeed', () => {
@@ -229,7 +229,7 @@ describe('HealthPack', () => {
 
     pack.update(16);
 
-    expect(mockEmit).toHaveBeenCalledWith(GameEvents.HEALTH_PACK_MISSED, { pack });
+    expect(mockEmit).toHaveBeenCalledWith(GameEvents.HEALTH_PACK_MISSED);
     expect(pack.active).toBe(false);
     expect(pack.visible).toBe(false);
   });

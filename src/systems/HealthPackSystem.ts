@@ -22,14 +22,12 @@ export class HealthPackSystem {
       5 // 최대 크기
     );
 
-    this.onCollected = (...args: unknown[]) => {
-      const data = args[0] as { pack: HealthPack };
-      this.releaseHealthPack(data.pack);
+    this.onCollected = () => {
+      this.releaseInactiveHealthPacks();
     };
 
-    this.onMissed = (...args: unknown[]) => {
-      const data = args[0] as { pack: HealthPack };
-      this.releaseHealthPack(data.pack);
+    this.onMissed = () => {
+      this.releaseInactiveHealthPacks();
     };
 
     EventBus.getInstance().on(GameEvents.HEALTH_PACK_COLLECTED, this.onCollected);
@@ -113,8 +111,12 @@ export class HealthPackSystem {
     this.lastSpawnTime = gameTime;
   }
 
-  private releaseHealthPack(pack: HealthPack): void {
-    this.pool.release(pack);
+  private releaseInactiveHealthPacks(): void {
+    for (const pack of this.pool.getActiveObjects()) {
+      if (!pack.active) {
+        this.pool.release(pack);
+      }
+    }
   }
 
   getActiveCount(): number {

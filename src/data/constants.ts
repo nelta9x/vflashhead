@@ -29,7 +29,12 @@ export const COLORS = {
   UPGRADE_CARD_BG: Data.colors.numeric.upgradeCardBg,
   UPGRADE_CARD_BG_HOVER: Data.colors.numeric.upgradeCardBgHover,
   PROGRESS_BAR_BG: Data.colors.numeric.progressBarBg,
+  BOOT_PROGRESS_BG: Data.colors.numeric.bootProgressBg,
+  MENU_BOSS_ARMOR: Data.colors.numeric.menuBossArmor,
 } as const;
+
+// 무지개 색상 배열
+export const RAINBOW_COLORS = Data.colors.rainbow;
 
 // 색상 (헥스)
 export const COLORS_HEX = {

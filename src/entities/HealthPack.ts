@@ -60,7 +60,7 @@ export class HealthPack extends Phaser.GameObjects.Container implements Poolable
     });
 
     this.drawHealthPack();
-    EventBus.getInstance().emit(GameEvents.HEALTH_PACK_SPAWNED, this);
+    EventBus.getInstance().emit(GameEvents.HEALTH_PACK_SPAWNED, { x: this.x, y: this.y });
   }
 
   private setupClickHandlers(): void {
@@ -81,7 +81,6 @@ export class HealthPack extends Phaser.GameObjects.Container implements Poolable
 
     // 수집 이벤트 발생
     EventBus.getInstance().emit(GameEvents.HEALTH_PACK_COLLECTED, {
-      pack: this,
       x: this.x,
       y: this.y,
     });
@@ -141,9 +140,7 @@ export class HealthPack extends Phaser.GameObjects.Container implements Poolable
     this.removeAllListeners();
 
     // 놓침 이벤트 발생 (피드백 없이 조용히 사라짐)
-    EventBus.getInstance().emit(GameEvents.HEALTH_PACK_MISSED, {
-      pack: this,
-    });
+    EventBus.getInstance().emit(GameEvents.HEALTH_PACK_MISSED);
 
     this.deactivate();
   }

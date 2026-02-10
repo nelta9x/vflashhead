@@ -177,7 +177,7 @@ describe('FallingBomb', () => {
 
     bomb.update(16);
 
-    expect(mockEmit).toHaveBeenCalledWith(GameEvents.FALLING_BOMB_MISSED, { bomb });
+    expect(mockEmit).toHaveBeenCalledWith(GameEvents.FALLING_BOMB_MISSED);
     expect(bomb.active).toBe(false);
     expect(bomb.visible).toBe(false);
   });
@@ -203,7 +203,6 @@ describe('FallingBomb', () => {
     bomb.forceDestroy(true);
 
     expect(mockEmit).toHaveBeenCalledWith(GameEvents.FALLING_BOMB_DESTROYED, {
-      bomb,
       x: 100,
       y: -40,
       byAbility: true,
@@ -219,7 +218,6 @@ describe('FallingBomb', () => {
     bomb.forceDestroy(false);
 
     expect(mockEmit).toHaveBeenCalledWith(GameEvents.FALLING_BOMB_DESTROYED, {
-      bomb,
       x: 200,
       y: -40,
       byAbility: false,

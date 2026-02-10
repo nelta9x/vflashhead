@@ -854,6 +854,7 @@ export interface FeedbackConfig {
 export interface ColorsConfig {
   hex: Record<string, string>;
   numeric: Record<string, number>;
+  rainbow: number[];
 }
 
 // ========== 웨이브 시스템 ==========

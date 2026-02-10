@@ -18,7 +18,7 @@ export class BootScene extends Phaser.Scene {
     const boxHeight = config.progressBar.height;
     const padding = config.progressBar.innerPadding;
 
-    progressBox.fillStyle(0x222222, 0.8);
+    progressBox.fillStyle(COLORS.BOOT_PROGRESS_BG, 0.8);
     progressBox.fillRect(GAME_WIDTH / 2 - boxWidth / 2, GAME_HEIGHT / 2 - boxHeight / 2, boxWidth, boxHeight);
 
     const loadingText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - config.loadingText.yOffset, 'LOADING...', {

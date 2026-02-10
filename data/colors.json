@@ -17,7 +17,9 @@
     "frozen": "#88ccff",
     "upgradeCardBg": "#1a0a2e",
     "upgradeCardBgHover": "#2a1a4e",
-    "progressBarBg": "#333333"
+    "progressBarBg": "#333333",
+    "bootProgressBg": "#222222",
+    "menuBossArmor": "#1a0505"
   },
   "numeric": {
     "cyan": 65535,
@@ -36,6 +38,9 @@
     "frozen": 8965375,
     "upgradeCardBg": 1706542,
     "upgradeCardBgHover": 2759246,
-    "progressBarBg": 3355443
-  }
+    "progressBarBg": 3355443,
+    "bootProgressBg": 2236962,
+    "menuBossArmor": 1705221
+  },
+  "rainbow": [16711680, 16744192, 16776960, 65280, 255, 4915330, 9699539]
 }

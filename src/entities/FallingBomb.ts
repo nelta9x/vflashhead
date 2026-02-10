@@ -83,9 +83,7 @@ export class FallingBomb extends Phaser.GameObjects.Container implements Poolabl
 
     this.active = false;
 
-    EventBus.getInstance().emit(GameEvents.FALLING_BOMB_MISSED, {
-      bomb: this,
-    });
+    EventBus.getInstance().emit(GameEvents.FALLING_BOMB_MISSED);
 
     this.deactivate();
   }
@@ -96,7 +94,6 @@ export class FallingBomb extends Phaser.GameObjects.Container implements Poolabl
     this.active = false;
 
     EventBus.getInstance().emit(GameEvents.FALLING_BOMB_DESTROYED, {
-      bomb: this,
       x: this.x,
       y: this.y,
       byAbility,

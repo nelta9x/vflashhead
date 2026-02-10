@@ -151,25 +151,27 @@ describe('PlayerAttackController', () => {
   it('retargets missile to nearest alive boss when initial target is dead', () => {
     const controller = createController();
 
-    bossGateway.getAliveBossTarget.mockImplementation((bossId: string) => {
-      if (bossId === 'boss_right') {
-        return { id: 'boss_right', x: 500, y: 100 };
+    // findNearestAliveBoss returns boss_left initially (during performPlayerAttack charge),
+    // but getAliveBossTarget('boss_left') returns null during missile tween,
+    // so retargeting via findNearestAliveBoss returns boss_right
+    let findCallCount = 0;
+    bossGateway.findNearestAliveBoss.mockImplementation(() => {
+      findCallCount++;
+      // First call: during performPlayerAttack to pick initial target
+      if (findCallCount === 1) {
+        return { id: 'boss_left', x: 300, y: 100 };
       }
+      // Subsequent calls: retarget to boss_right
+      return { id: 'boss_right', x: 500, y: 100 };
+    });
+    bossGateway.getAliveBossTarget.mockImplementation((bossId: string) => {
+      // boss_left is dead during missile flight
+      if (bossId === 'boss_left') return null;
+      if (bossId === 'boss_right') return { id: 'boss_right', x: 500, y: 100 };
       return null;
     });
-    bossGateway.findNearestAliveBoss.mockReturnValue({ id: 'boss_right', x: 500, y: 100 });
 
-    (
-      controller as unknown as {
-        fireSequentialMissile: (
-          startX: number,
-          startY: number,
-          index: number,
-          total: number,
-          initialTargetBossId: string
-        ) => void;
-      }
-    ).fireSequentialMissile(100, 100, 0, 1, 'boss_left');
+    controller.performPlayerAttack();
 
     expect(monsterSystem.takeDamage).toHaveBeenCalledWith(
       'boss_right',
@@ -185,47 +187,43 @@ describe('PlayerAttackController', () => {
     bossGateway.getAliveBossTarget.mockReturnValue({ id: 'boss_left', x: 300, y: 120 });
     bossGateway.findNearestAliveBoss.mockReturnValue({ id: 'boss_left', x: 300, y: 120 });
 
-    (
-      controller as unknown as {
-        fireSequentialMissile: (
-          startX: number,
-          startY: number,
-          index: number,
-          total: number,
-          initialTargetBossId: string
-        ) => void;
-      }
-    ).fireSequentialMissile(100, 100, 0, 1, 'boss_left');
+    controller.performPlayerAttack();
 
     expect(bossGateway.cancelChargingLasers).toHaveBeenCalledWith('boss_left');
   });
 
-  it('destroys dishes along missile segment except not-fully-spawned dangerous dishes', () => {
+  it('destroys dishes along missile path except not-fully-spawned dangerous dishes', () => {
     const controller = createController();
+
+    // Boss at (200, 200) — missile starts near cursor (100,100) with offsets applied by Between(min)
+    // Between returns min, so offsets are negative. Place dishes on the missile path
+    // with generous getSize() to ensure they are within collision radius.
+    bossGateway.getAliveBossTarget.mockReturnValue({ id: 'boss_a', x: 200, y: 200 });
+    bossGateway.findNearestAliveBoss.mockReturnValue({ id: 'boss_a', x: 200, y: 200 });
 
     const dangerousNotSpawned = {
       active: true,
-      x: 50,
-      y: 0,
-      getSize: () => 8,
+      x: 100,
+      y: 100,
+      getSize: () => 80,
       isDangerous: () => true,
       isFullySpawned: () => false,
       forceDestroy: vi.fn(),
     };
     const dangerousSpawned = {
       active: true,
-      x: 50,
-      y: 0,
-      getSize: () => 8,
+      x: 100,
+      y: 100,
+      getSize: () => 80,
       isDangerous: () => true,
       isFullySpawned: () => true,
       forceDestroy: vi.fn(),
     };
     const normalDish = {
       active: true,
-      x: 60,
-      y: 0,
-      getSize: () => 8,
+      x: 100,
+      y: 100,
+      getSize: () => 80,
       isDangerous: () => false,
       isFullySpawned: () => true,
       forceDestroy: vi.fn(),
@@ -237,17 +235,7 @@ describe('PlayerAttackController', () => {
       callback(normalDish);
     });
 
-    (
-      controller as unknown as {
-        destroyDishesAlongMissileSegment: (
-          fromX: number,
-          fromY: number,
-          toX: number,
-          toY: number,
-          pathRadius: number
-        ) => void;
-      }
-    ).destroyDishesAlongMissileSegment(0, 0, 100, 0, 12);
+    controller.performPlayerAttack();
 
     expect(dangerousNotSpawned.forceDestroy).not.toHaveBeenCalled();
     expect(dangerousSpawned.forceDestroy).toHaveBeenCalledWith(true);

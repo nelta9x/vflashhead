@@ -28,7 +28,13 @@
     "cursorSpeed": 1123,
     "input": {
       "pointerPriorityMs": 120,
-      "keyboardAxisRampUpMs": 90
+      "keyboardAxisRampUpMs": 90,
+      "smoothing": {
+        "baseLerp": 0.4,
+        "snapThreshold": 175,
+        "convergenceThreshold": 0.5,
+        "deadZone": 2.5
+      }
     }
   },
   "upgradeUI": {

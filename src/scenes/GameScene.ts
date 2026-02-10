@@ -45,6 +45,7 @@ import { DishLifecycleController } from './game/DishLifecycleController';
 import { GameSceneEventBinder } from './game/GameSceneEventBinder';
 import { SceneInputAdapter } from './game/SceneInputAdapter';
 import type { CursorSnapshot } from './game/GameSceneContracts';
+import { computeCursorSmoothing } from '../utils/cursorSmoothing';
 
 export class GameScene extends Phaser.Scene {
   private dishPool!: ObjectPool<Dish>;
@@ -101,6 +102,8 @@ export class GameScene extends Phaser.Scene {
   // 커서 시스템
   private cursorX = 0;
   private cursorY = 0;
+  private targetCursorX = 0;
+  private targetCursorY = 0;
   private inputController!: PlayerCursorInputController;
 
   // 기능 모듈
@@ -141,6 +144,10 @@ export class GameScene extends Phaser.Scene {
 
     this.eventBinder.bind();
     this.inputAdapter.setup();
+
+    // 초기 커서 위치 동기화 (스무딩 없이 즉시 반영)
+    this.cursorX = this.targetCursorX;
+    this.cursorY = this.targetCursorY;
 
     this.cameras.main.fadeIn(500);
     this.input.setDefaultCursor('none');
@@ -502,12 +509,14 @@ export class GameScene extends Phaser.Scene {
       const speed = Data.gameConfig.player.cursorSpeed;
       const moveDistance = (speed * delta) / 1000;
       if (shouldUseKeyboard && axis.isMoving) {
-        this.applyCursorPosition(
+        this.applyKeyboardMovement(
           this.cursorX + axis.x * moveDistance,
           this.cursorY + axis.y * moveDistance
         );
       }
     }
+
+    this.updateCursorSmoothing(delta);
 
     const cursorSizeBonus = this.upgradeSystem.getCursorSizeBonus();
     const cursorRadius = CURSOR_HITBOX.BASE_RADIUS * (1 + cursorSizeBonus);
@@ -652,8 +661,38 @@ export class GameScene extends Phaser.Scene {
   }
 
   private applyCursorPosition(x: number, y: number): void {
-    this.cursorX = Phaser.Math.Clamp(x, 0, GAME_WIDTH);
-    this.cursorY = Phaser.Math.Clamp(y, 0, GAME_HEIGHT);
+    this.targetCursorX = Phaser.Math.Clamp(x, 0, GAME_WIDTH);
+    this.targetCursorY = Phaser.Math.Clamp(y, 0, GAME_HEIGHT);
+  }
+
+  private applyKeyboardMovement(x: number, y: number): void {
+    const clampedX = Phaser.Math.Clamp(x, 0, GAME_WIDTH);
+    const clampedY = Phaser.Math.Clamp(y, 0, GAME_HEIGHT);
+    this.cursorX = clampedX;
+    this.cursorY = clampedY;
+    this.targetCursorX = clampedX;
+    this.targetCursorY = clampedY;
+  }
+
+  private updateCursorSmoothing(delta: number): void {
+    // 일시정지/업그레이드/ESC 상태 → 즉시 추적
+    if (this.isEscPaused || this.isDockPaused || this.isUpgrading) {
+      this.cursorX = this.targetCursorX;
+      this.cursorY = this.targetCursorY;
+      return;
+    }
+
+    const result = computeCursorSmoothing(
+      this.cursorX, this.cursorY,
+      this.targetCursorX, this.targetCursorY,
+      delta,
+      Data.gameConfig.player.input.smoothing
+    );
+
+    if (!result.skipped) {
+      this.cursorX = result.x;
+      this.cursorY = result.y;
+    }
   }
 
   private resetMovementInput(): void {

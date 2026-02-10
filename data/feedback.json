@@ -123,7 +123,10 @@
     "maxWidth": 40,
     "minWidth": 4,
     "maxLength": 25,
-    "minDistance": 4
+    "minDistance": 4,
+    "speedAlphaMin": 0.15,
+    "speedAlphaMax": 0.6,
+    "speedNormalize": 800
   },
   "bossAttack": {
     "mainColor": "#ffffff",

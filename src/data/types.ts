@@ -13,9 +13,17 @@ export interface CursorHitboxConfig {
   baseRadius: number;
 }
 
+export interface CursorSmoothingConfig {
+  baseLerp: number;
+  snapThreshold: number;
+  convergenceThreshold: number;
+  deadZone: number;
+}
+
 export interface PlayerInputConfig {
   pointerPriorityMs: number;
   keyboardAxisRampUpMs: number;
+  smoothing: CursorSmoothingConfig;
 }
 
 export interface PlayerConfig {
@@ -690,6 +698,9 @@ export interface CursorTrailConfig {
   minWidth: number;
   maxLength: number;
   minDistance: number;
+  speedAlphaMin: number;
+  speedAlphaMax: number;
+  speedNormalize: number;
 }
 
 export interface BossAttackConfig {

@@ -16,6 +16,9 @@ interface TrailConfig {
   minDistance: number;
   alpha: number;
   minWidth: number;
+  speedAlphaMin: number;
+  speedAlphaMax: number;
+  speedNormalize: number;
 }
 
 export class CursorTrail {
@@ -24,6 +27,7 @@ export class CursorTrail {
   private points: TrailPoint[] = [];
   private config: TrailConfig;
   private lastCenter: { x: number; y: number } | null = null;
+  private lastFrameSpeed = 0;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -32,7 +36,7 @@ export class CursorTrail {
     this.graphics.setDepth(900); // HUD(1000)보다 아래, 일반 오브젝트보다 위
   }
 
-  update(_delta: number, currentRadius: number, forcedX?: number, forcedY?: number): void {
+  update(delta: number, currentRadius: number, forcedX?: number, forcedY?: number): void {
     if (!this.config.enabled) {
       this.graphics.clear();
       return;
@@ -64,6 +68,9 @@ export class CursorTrail {
       currentX,
       currentY
     );
+
+    // 프레임 간 속도 계산 (pixels/sec)
+    this.lastFrameSpeed = delta > 0 ? (dist / delta) * 1000 : 0;
 
     if (dist >= this.config.minDistance) {
       // 이동 각도 계산
@@ -109,6 +116,11 @@ export class CursorTrail {
     const currentTime = this.scene.time.now;
     const totalPoints = this.points.length;
 
+    // 속도 기반 동적 알파
+    const speedRatio = Phaser.Math.Clamp(this.lastFrameSpeed / this.config.speedNormalize, 0, 1);
+    const dynamicAlpha = this.config.speedAlphaMin +
+      (this.config.speedAlphaMax - this.config.speedAlphaMin) * speedRatio;
+
     for (let i = 0; i < totalPoints - 1; i++) {
       const p1 = this.points[i];
       const p2 = this.points[i + 1];
@@ -127,7 +139,7 @@ export class CursorTrail {
       // 포인트가 생성될 때의 지름을 기준으로 트레일 두께 결정
       const pointMaxWidth = p1.radius * 2;
       const width = this.config.minWidth + (pointMaxWidth - this.config.minWidth) * sizeRatio;
-      const alpha = this.config.alpha * sizeRatio;
+      const alpha = dynamicAlpha * sizeRatio;
 
       this.graphics.lineStyle(width, color, alpha);
       this.graphics.lineBetween(p1.x, p1.y, p2.x, p2.y);

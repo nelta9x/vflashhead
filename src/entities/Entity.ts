@@ -8,6 +8,7 @@ import { DishDamageResolver } from './dish/DishDamageResolver';
 import { DishEventPayloadFactory } from './dish/DishEventPayloadFactory';
 import { BossEntityBehavior } from './BossEntityBehavior';
 import type { StatusEffectManager } from '../systems/StatusEffectManager';
+import type { World } from '../world';
 import type { DishUpgradeOptions } from './EntityTypes';
 import type { FeedbackSystem } from '../systems/FeedbackSystem';
 import type {
@@ -29,9 +30,15 @@ export interface EntitySpawnConfig {
 export class Entity extends Phaser.GameObjects.Container implements Poolable, EntityRef {
   /** StatusEffectManager 연결 (GameScene.create에서 설정) */
   private static statusEffectManager: StatusEffectManager | null = null;
+  /** ECS World 연결 (GameScene.create에서 설정) */
+  private static world: World | null = null;
 
   static setStatusEffectManager(manager: StatusEffectManager | null): void {
     Entity.statusEffectManager = manager;
+  }
+
+  static setWorld(world: World | null): void {
+    Entity.world = world;
   }
 
   active: boolean = false;
@@ -243,6 +250,66 @@ export class Entity extends Phaser.GameObjects.Container implements Poolable, En
     this.drawEntity();
     plugin.onSpawn?.(this);
     EventBus.getInstance().emit(GameEvents.DISH_SPAWNED, { x: this.x, y: this.y });
+
+    this.syncToWorld();
+  }
+
+  /** Dual-write: Entity 필드를 World store에 동기 기록 */
+  private syncToWorld(): void {
+    const w = Entity.world;
+    if (!w) return;
+
+    const id = this._entityId;
+    w.createEntity(id);
+
+    w.identity.set(id, {
+      entityId: id,
+      entityType: this._entityType,
+      isGatekeeper: this._isGatekeeper,
+    });
+    w.transform.set(id, {
+      x: this.x, y: this.y,
+      baseX: this.baseX, baseY: this.baseY,
+      alpha: this.alpha, scaleX: this.scaleX, scaleY: this.scaleY,
+    });
+    w.health.set(id, { currentHp: this._currentHp, maxHp: this._maxHp });
+    w.statusCache.set(id, {
+      isFrozen: this._isFrozen, slowFactor: this.slowFactor, isShielded: false,
+    });
+    w.lifetime.set(id, {
+      elapsedTime: this._elapsedTime, movementTime: this.movementTime,
+      lifetime: this.lifetime, spawnDuration: this.spawnDuration,
+      globalSlowPercent: this.upgradeOptions.globalSlowPercent ?? 0,
+    });
+    w.dishProps.set(id, {
+      dangerous: this.dangerous, invulnerable: this.invulnerable,
+      color: this.color, size: this._size,
+      interactiveRadius: this.interactiveRadius,
+      upgradeOptions: this.upgradeOptions,
+      destroyedByAbility: this.destroyedByAbility,
+    });
+    w.cursorInteraction.set(id, {
+      isHovered: this._isHovered, isBeingDamaged: this.isBeingDamaged,
+      damageInterval: this.damageInterval,
+      damageTimerHandle: this.damageTimer,
+      cursorInteractionType: this.typePlugin?.config.cursorInteraction ?? 'dps',
+    });
+    w.visualState.set(id, {
+      hitFlashPhase: this.hitFlashPhase, wobblePhase: this.wobblePhase,
+      blinkPhase: this.blinkPhase, isBeingPulled: this._isBeingPulled,
+      pullPhase: this.pullPhase,
+    });
+    w.movement.set(id, { strategy: this.movementStrategy });
+
+    w.phaserNode.set(id, {
+      container: this, graphics: this.graphics,
+      body: this.body as Phaser.Physics.Arcade.Body | null,
+      spawnTween: this.spawnTween,
+    });
+
+    if (this.bossBehavior) {
+      w.bossBehavior.set(id, { behavior: this.bossBehavior });
+    }
   }
 
   // === Tick Phase Methods (called by external systems) ===
@@ -634,6 +701,7 @@ export class Entity extends Phaser.GameObjects.Container implements Poolable, En
 
   deactivate(): void {
     this.active = false;
+    Entity.world?.destroyEntity(this._entityId);
     Entity.statusEffectManager?.clearEntity(this._entityId);
     this.clearDamageTimer();
     if (this.spawnTween) { this.spawnTween.stop(); this.spawnTween = null; }

@@ -46,7 +46,7 @@ import { DishLifecycleController } from './game/DishLifecycleController';
 import { GameSceneEventBinder } from './game/GameSceneEventBinder';
 import { SceneInputAdapter } from './game/SceneInputAdapter';
 import type { CursorSnapshot } from './game/GameSceneContracts';
-import { computeCursorSmoothing } from '../utils/cursorSmoothing';
+import type { TransformComponent, PlayerInputComponent } from '../world';
 import { AbilityManager } from '../systems/AbilityManager';
 import { StatusEffectManager } from '../systems/StatusEffectManager';
 import { EntityQueryService } from '../systems/EntityQueryService';
@@ -56,11 +56,14 @@ import {
   EntityMovementSystem,
   EntityVisualSystem,
   EntityRenderSystem,
+  PlayerTickSystem,
 } from '../systems/entity-systems';
 import { EntitySystemPipeline } from '../systems/EntitySystemPipeline';
+import { World } from '../world';
 import { PluginRegistry } from '../plugins/PluginRegistry';
 import { ModSystemRegistry } from '../plugins/ModSystemRegistry';
 import type { ModSystemContext } from '../plugins/ModSystemRegistry';
+import { ModRegistry } from '../plugins/ModRegistry';
 import { registerBuiltinAbilities } from '../plugins/builtin/abilities';
 import { registerBuiltinEntityTypes } from '../plugins/builtin/entities';
 
@@ -86,6 +89,8 @@ export class GameScene extends Phaser.Scene {
   private entityQueryService!: EntityQueryService;
   private modSystemRegistry!: ModSystemRegistry;
   private entitySystemPipeline!: EntitySystemPipeline;
+  private modRegistry!: ModRegistry;
+  private ecsWorld!: World;
 
   // UI & 이펙트
   private hud!: HUD;
@@ -104,7 +109,6 @@ export class GameScene extends Phaser.Scene {
   private isDockPaused = false;
   private isSimulationPaused = false;
   private isUpgrading = false;
-  private gaugeRatio = 0;
   private maxSpawnedDishRadius = 0;
 
   // 웨이브 전환 상태
@@ -121,11 +125,8 @@ export class GameScene extends Phaser.Scene {
   // BGM
   private bgm: Phaser.Sound.BaseSound | null = null;
 
-  // 커서 시스템
-  private cursorX = 0;
-  private cursorY = 0;
-  private targetCursorX = 0;
-  private targetCursorY = 0;
+  // 커서 시스템 (Player entity via ECS World)
+  private playerTickSystem!: PlayerTickSystem;
   private inputController!: PlayerCursorInputController;
 
   // 기능 모듈
@@ -147,7 +148,6 @@ export class GameScene extends Phaser.Scene {
     this.isUpgrading = false;
     this.gameTime = 0;
     this.pendingWaveNumber = 1;
-    this.gaugeRatio = 0;
     this.time.timeScale = 1;
     this.tweens.resumeAll();
 
@@ -168,8 +168,7 @@ export class GameScene extends Phaser.Scene {
     this.inputAdapter.setup();
 
     // 초기 커서 위치 동기화 (스무딩 없이 즉시 반영)
-    this.cursorX = this.targetCursorX;
-    this.cursorY = this.targetCursorY;
+    this.snapPlayerToTarget();
 
     this.cameras.main.fadeIn(500);
     this.input.setDefaultCursor('none');
@@ -240,6 +239,10 @@ export class GameScene extends Phaser.Scene {
       () => this.fallingBombSystem.getPool()
     );
 
+    // ECS World
+    this.ecsWorld = new World();
+    Entity.setWorld(this.ecsWorld);
+
     // MOD 인프라
     this.statusEffectManager = new StatusEffectManager();
     this.modSystemRegistry = new ModSystemRegistry();
@@ -253,10 +256,33 @@ export class GameScene extends Phaser.Scene {
     this.entitySystemPipeline.register(new EntityVisualSystem());
     this.entitySystemPipeline.register(new EntityRenderSystem());
 
+    // Player entity 생성
+    this.ecsWorld.createEntity('player');
+    this.ecsWorld.identity.set('player', { entityId: 'player', entityType: 'player', isGatekeeper: false });
+    this.ecsWorld.transform.set('player', { x: 0, y: 0, baseX: 0, baseY: 0, alpha: 1, scaleX: 1, scaleY: 1 });
+    this.ecsWorld.health.set('player', { currentHp: INITIAL_HP, maxHp: INITIAL_HP });
+    this.ecsWorld.statusCache.set('player', { isFrozen: false, slowFactor: 1.0, isShielded: false });
+    this.ecsWorld.playerInput.set('player', {
+      targetX: 0, targetY: 0,
+      smoothingConfig: Data.gameConfig.player.input.smoothing,
+    });
+    this.ecsWorld.playerRender.set('player', { gaugeRatio: 0, gameTime: 0 });
+
     // 플러그인 등록 및 초기화
     PluginRegistry.resetInstance();
     registerBuiltinAbilities();
     registerBuiltinEntityTypes();
+
+    // MOD 라이프사이클
+    this.modRegistry = new ModRegistry(
+      PluginRegistry.getInstance(),
+      this.modSystemRegistry,
+      this.entitySystemPipeline,
+      this.statusEffectManager,
+      EventBus.getInstance(),
+    );
+    // Future: new ModLoader().loadMultiple(userMods, this.modRegistry);
+
     this.abilityManager = new AbilityManager();
     this.abilityManager.init({
       scene: this,
@@ -288,6 +314,17 @@ export class GameScene extends Phaser.Scene {
 
     this.starBackground = new StarBackground(this, Data.gameConfig.stars);
     this.starBackground.setDepth(DEPTHS.starBackground);
+
+    // PlayerTickSystem 등록 (cursorRenderer/cursorTrail 의존)
+    this.playerTickSystem = new PlayerTickSystem(
+      this.ecsWorld,
+      this.statusEffectManager,
+      this.cursorRenderer,
+      this.cursorTrail,
+      this.upgradeSystem,
+      this.healthSystem,
+    );
+    this.entitySystemPipeline.register(this.playerTickSystem);
   }
 
   private initializeGameModules(): void {
@@ -362,7 +399,8 @@ export class GameScene extends Phaser.Scene {
         // 보스 엔티티가 내부적으로 MONSTER_HP_CHANGED 이벤트를 직접 구독한다.
       },
       onGaugeUpdated: (payload) => {
-        this.gaugeRatio = payload.ratio;
+        const pr = this.ecsWorld.playerRender.get('player');
+        if (pr) pr.gaugeRatio = payload.ratio;
       },
       onPlayerAttack: () => this.playerAttackController.performPlayerAttack(),
       onMonsterDied: () => {
@@ -390,7 +428,13 @@ export class GameScene extends Phaser.Scene {
       scene: this,
       inputController: this.inputController,
       getInputTimestamp: () => this.getInputTimestamp(),
-      applyCursorPosition: (x, y) => this.applyCursorPosition(x, y),
+      applyCursorPosition: (x, y) => {
+        const input = this.ecsWorld.playerInput.get('player');
+        if (input) {
+          input.targetX = Phaser.Math.Clamp(x, 0, GAME_WIDTH);
+          input.targetY = Phaser.Math.Clamp(y, 0, GAME_HEIGHT);
+        }
+      },
       resetMovementInput: () => this.resetMovementInput(),
       isGameOver: () => this.isGameOver,
       togglePause: () => this.togglePause(),
@@ -527,6 +571,7 @@ export class GameScene extends Phaser.Scene {
     this.resetMovementInput();
     this.eventBinder?.unbind();
     this.inputAdapter?.teardown();
+    this.modRegistry?.unloadAll();
     EventBus.getInstance().clear();
 
     this.bossCombatCoordinator?.destroy();
@@ -541,7 +586,9 @@ export class GameScene extends Phaser.Scene {
     this.inGameUpgradeUI.destroy();
     this.waveCountdownUI.destroy();
 
+    Entity.setWorld(null);
     Entity.setStatusEffectManager(null);
+    this.ecsWorld?.clear();
     this.statusEffectManager?.clear();
     this.modSystemRegistry?.clear();
     this.entitySystemPipeline?.clear();
@@ -564,6 +611,10 @@ export class GameScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     if (this.isGameOver) return;
 
+    const playerT = this.getPlayerTransform();
+    const playerI = this.getPlayerInput();
+
+    // 1. 키보드 입력 → transform.x/y + playerInput.targetX/Y
     if (this.inputController) {
       const now = this.getInputTimestamp();
       const shouldUseKeyboard = this.shouldUseKeyboardMovement(now);
@@ -571,60 +622,65 @@ export class GameScene extends Phaser.Scene {
       const speed = Data.gameConfig.player.cursorSpeed;
       const moveDistance = (speed * delta) / 1000;
       if (shouldUseKeyboard && axis.isMoving) {
-        this.applyKeyboardMovement(
-          this.cursorX + axis.x * moveDistance,
-          this.cursorY + axis.y * moveDistance
-        );
+        const newX = Phaser.Math.Clamp(playerT.x + axis.x * moveDistance, 0, GAME_WIDTH);
+        const newY = Phaser.Math.Clamp(playerT.y + axis.y * moveDistance, 0, GAME_HEIGHT);
+        playerT.x = newX;
+        playerT.y = newY;
+        playerI.targetX = newX;
+        playerI.targetY = newY;
       }
     }
 
-    this.updateCursorSmoothing(delta);
-
-    const cursorSizeBonus = this.upgradeSystem.getCursorSizeBonus();
-    const cursorRadius = CURSOR_HITBOX.BASE_RADIUS * (1 + cursorSizeBonus);
     const hudContext = this.getHudFrameContext();
 
+    // 2. Pause/upgrade 경로: snap + renderOnly
     if (this.isUpgrading) {
+      this.snapPlayerToTarget();
       this.setDockPaused(false);
       this.inGameUpgradeUI.update(delta);
       this.hud.update(this.gameTime, hudContext, delta);
       this.starBackground.update(delta, _time, Data.gameConfig.gameGrid.speed);
       this.gridRenderer.update(delta);
-      this.cursorTrail.update(delta, cursorRadius, this.cursorX, this.cursorY);
-      this.updateAttackRangeIndicator();
+      this.playerTickSystem.renderOnly(delta);
       return;
     }
 
     const hudInteraction = this.hud.updateInteractionState(hudContext, delta);
     this.setDockPaused(hudInteraction.shouldPauseGame || this.isEscPaused);
     if (this.isDockPaused) {
+      this.snapPlayerToTarget();
       this.hud.render(this.gameTime);
-      this.cursorTrail.update(delta, cursorRadius, this.cursorX, this.cursorY);
-      this.updateAttackRangeIndicator();
+      this.playerTickSystem.renderOnly(delta);
       return;
     }
 
+    // 3. Active 경로
     this.gameTime += delta;
+    const pr = this.ecsWorld.playerRender.get('player');
+    if (pr) pr.gameTime = this.gameTime;
 
     this.comboSystem.setWave(this.waveSystem.getCurrentWave());
     this.comboSystem.update(delta);
     this.waveSystem.update(delta);
     this.upgradeSystem.update(delta, this.gameTime);
-    this.healthPackSystem.update(delta, this.gameTime);
-    this.healthPackSystem.checkCollection(this.cursorX, this.cursorY, cursorRadius);
-    this.fallingBombSystem.update(delta, this.gameTime, this.waveSystem.getCurrentWave());
-    this.fallingBombSystem.checkCursorCollision(this.cursorX, this.cursorY, cursorRadius);
 
     // MOD 인프라: 상태효과 틱을 엔티티 업데이트 전에 실행 (만료 처리 우선)
     this.statusEffectManager.tick(delta);
 
-    // ECS-style: 모든 활성 엔티티를 수집하고 data-driven 파이프라인으로 순차 처리
+    // ECS pipeline: PlayerTickSystem이 smoothing + trail + cursor render 처리
     const allEntities = this.collectActiveEntities();
     this.entitySystemPipeline.run(allEntities, delta);
 
-    this.hud.render(this.gameTime);
+    // 4. pipeline 후 player 위치 사용
+    const cursorSizeBonus = this.upgradeSystem.getCursorSizeBonus();
+    const cursorRadius = CURSOR_HITBOX.BASE_RADIUS * (1 + cursorSizeBonus);
 
-    this.cursorTrail.update(delta, cursorRadius, this.cursorX, this.cursorY);
+    this.healthPackSystem.update(delta, this.gameTime);
+    this.healthPackSystem.checkCollection(playerT.x, playerT.y, cursorRadius);
+    this.fallingBombSystem.update(delta, this.gameTime, this.waveSystem.getCurrentWave());
+    this.fallingBombSystem.checkCursorCollision(playerT.x, playerT.y, cursorRadius);
+
+    this.hud.render(this.gameTime);
     this.inGameUpgradeUI.update(delta);
 
     this.gridRenderer.update(delta);
@@ -637,7 +693,7 @@ export class GameScene extends Phaser.Scene {
     this.blackHoleRenderer.render(this.blackHoleSystem.getBlackHoles(), this.gameTime);
 
     this.orbSystem.update(
-      delta, this.gameTime, this.cursorX, this.cursorY, this.dishPool,
+      delta, this.gameTime, playerT.x, playerT.y, this.dishPool,
       () => this.bossCombatCoordinator?.getAliveVisibleBossSnapshotsWithRadius() ?? [],
       (bossId, amount, sourceX, sourceY) => {
         this.monsterSystem.takeDamage(bossId, amount, sourceX, sourceY);
@@ -651,7 +707,6 @@ export class GameScene extends Phaser.Scene {
     this.orbRenderer.render(this.orbSystem.getOrbs());
 
     this.dishLifecycleController.updateCursorAttack(cursor);
-    this.updateAttackRangeIndicator();
     this.bossCombatCoordinator.update(delta, this.gameTime, cursor);
 
     // MOD 시스템 실행 (새 효과 적용은 다음 프레임에 반영)
@@ -664,34 +719,6 @@ export class GameScene extends Phaser.Scene {
       statusEffectManager: this.statusEffectManager,
       eventBus: EventBus.getInstance(),
     };
-  }
-
-  private updateAttackRangeIndicator(): void {
-    const x = this.cursorX;
-    const y = this.cursorY;
-
-    const cursorSizeBonus = this.upgradeSystem.getCursorSizeBonus();
-    const cursorRadius = CURSOR_HITBOX.BASE_RADIUS * (1 + cursorSizeBonus);
-
-    const magnetLevel = this.upgradeSystem.getMagnetLevel();
-    const magnetRadius = this.upgradeSystem.getMagnetRadius();
-
-    const electricLevel = this.upgradeSystem.getElectricShockLevel();
-    const currentHp = this.healthSystem.getHp();
-    const maxHp = this.healthSystem.getMaxHp();
-
-    this.cursorRenderer.renderAttackIndicator(
-      x,
-      y,
-      cursorRadius,
-      this.gaugeRatio,
-      magnetRadius,
-      magnetLevel,
-      electricLevel,
-      this.gameTime,
-      currentHp,
-      maxHp
-    );
   }
 
   private collectActiveEntities(): Entity[] {
@@ -722,10 +749,28 @@ export class GameScene extends Phaser.Scene {
     return this.isUpgrading && this.inGameUpgradeUI.isVisible();
   }
 
+  // === Player entity helpers ===
+
+  private getPlayerTransform(): TransformComponent {
+    return this.ecsWorld.transform.getRequired('player');
+  }
+
+  private getPlayerInput(): PlayerInputComponent {
+    return this.ecsWorld.playerInput.getRequired('player');
+  }
+
+  private snapPlayerToTarget(): void {
+    const input = this.getPlayerInput();
+    const transform = this.getPlayerTransform();
+    transform.x = input.targetX;
+    transform.y = input.targetY;
+  }
+
   private getHudFrameContext(): HudFrameContext {
+    const t = this.getPlayerTransform();
     return {
-      cursorX: this.cursorX,
-      cursorY: this.cursorY,
+      cursorX: t.x,
+      cursorY: t.y,
       isUpgradeSelectionVisible: this.isUpgradeSelectionVisible(),
       isEscPaused: this.isEscPaused,
     };
@@ -742,39 +787,6 @@ export class GameScene extends Phaser.Scene {
     return Date.now();
   }
 
-  private applyCursorPosition(x: number, y: number): void {
-    this.targetCursorX = Phaser.Math.Clamp(x, 0, GAME_WIDTH);
-    this.targetCursorY = Phaser.Math.Clamp(y, 0, GAME_HEIGHT);
-  }
-
-  private applyKeyboardMovement(x: number, y: number): void {
-    const clampedX = Phaser.Math.Clamp(x, 0, GAME_WIDTH);
-    const clampedY = Phaser.Math.Clamp(y, 0, GAME_HEIGHT);
-    this.cursorX = clampedX;
-    this.cursorY = clampedY;
-    this.targetCursorX = clampedX;
-    this.targetCursorY = clampedY;
-  }
-
-  private updateCursorSmoothing(delta: number): void {
-    // 일시정지/업그레이드/ESC 상태 → 즉시 추적
-    if (this.isEscPaused || this.isDockPaused || this.isUpgrading) {
-      this.cursorX = this.targetCursorX;
-      this.cursorY = this.targetCursorY;
-      return;
-    }
-
-    const result = computeCursorSmoothing(
-      this.cursorX, this.cursorY,
-      this.targetCursorX, this.targetCursorY,
-      delta,
-      Data.gameConfig.player.input.smoothing
-    );
-
-    this.cursorX = result.x;
-    this.cursorY = result.y;
-  }
-
   private resetMovementInput(): void {
     this.inputController?.resetMovementInput(this.getInputTimestamp());
   }
@@ -787,10 +799,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private getCursorSnapshot(): CursorSnapshot {
-    return {
-      x: this.cursorX,
-      y: this.cursorY,
-    };
+    const t = this.getPlayerTransform();
+    return { x: t.x, y: t.y };
   }
 
   private setDockPaused(paused: boolean): void {

@@ -42,4 +42,12 @@ export class PluginRegistry {
   getAllEntityTypes(): ReadonlyMap<string, EntityTypePlugin> {
     return this.entityTypes;
   }
+
+  unregisterAbility(id: string): boolean {
+    return this.abilities.delete(id);
+  }
+
+  unregisterEntityType(typeId: string): boolean {
+    return this.entityTypes.delete(typeId);
+  }
 }

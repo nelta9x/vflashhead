@@ -15,3 +15,9 @@ export type {
   DerivedStatEntry,
   AbilityPlugin,
 } from './AbilityPlugin';
+export type {
+  ScopedEventBus,
+  ModContext,
+  ModModule,
+  ModFactory,
+} from './ModTypes';

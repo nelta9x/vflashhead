@@ -165,7 +165,7 @@ ECS 채택은 선택사항이며, 성능이 중요한 경로부터 점진적으�
 
 ### 권장 경로 (수정판)
 
-**Phase 0 완료. Phase 1 완료. Phase 2 (경량 MOD 인프라) 완료. Phase 2.1 (배관 연결 + freeze/slow 마이그레이션) 완료. Phase 2.2 (Entity.update() → ECS 스타일 시스템 분리) 완료. Phase 2.2 보완 (Data-driven Pipeline + 갭 수정) 완료.**
+**Phase 0 완료. Phase 1 완료. Phase 2 (경량 MOD 인프라) 완료. Phase 2.1 (배관 연결 + freeze/slow 마이그레이션) 완료. Phase 2.2 (Entity.update() → ECS 스타일 시스템 분리) 완료. Phase 2.2 보완 (Data-driven Pipeline + 갭 수정) 완료. Phase 3 (MOD Loader & Lifecycle) 완료.**
 
 ### Phase 1 실행 결과 (2026-02-11)
 
@@ -200,9 +200,11 @@ Phase 2.2 보완: Data-driven Pipeline + 갭 수정 ✅ 완료
   - EntitySystemPipeline (game-config.json SSOT 순서)
   - EntityQueryService.setBossProvider() (보스 포함 쿼리)
        ↓
-Phase 3: MOD API 확장
-  - 커스텀 컴포넌트/시스템/쿼리 등록 API
-  - MOD 로더/샌드박스
+Phase 3: MOD Loader & Lifecycle ✅ 완료
+  - ModRegistry (스냅샷 diff 추적 + 일괄 해제)
+  - ScopedEventBusWrapper (MOD별 EventBus 구독 추적)
+  - ModLoader (Factory 해석 + 에러 격리)
+  - PluginRegistry unregister API
        ↓
 Phase 4: 플레이어 Entity 통합
 ```
@@ -350,13 +352,85 @@ Phase 2.2의 3가지 갭을 해소: (1) MOD가 코어 시스템 사이에 삽입
 - 393 테스트 전체 통과 (368 기존 + 25 신규)
 - lint, build 모두 통과
 
-### 지금 할 수 있는 준비
+### Phase 3: MOD Loader & Lifecycle 실행 결과 (2026-02-11)
 
-Phaser 4 stable 대기 중에도 할 수 있는 준비 작업:
+MOD 등록/해제 라이프사이클을 관리하는 최소 인프라 구축. 스냅샷 diff로 MOD가 등록한 리소스를 추적하고, 씬 전환 시 일괄 해제.
 
-1. **Phaser 3.90.0 업그레이드** (`^3.70.0` → `^3.90.0`): v4 전환 전 최신 v3으로 갭 축소
-2. **Entity 컴포넌트 분해 (옵션 C)**: BossEntityBehavior 패턴을 확장하여 Entity 내부를 더 모듈화. ~10파일 변경으로 ECS 전환 부담 감소
-3. **MOD 확장 포인트 확대**: 현재 플러그인 시스템에서 StatusEffect/DamageType 인터페이스를 먼저 설계
+**설계 결정:**
+- `ModContext`에 원본 레지스트리 직접 전달 (보안 불필요한 게임이므로 좁은 인터페이스 불필요)
+- **스냅샷 diff**로 `registerMod()` 전후 레지스트리 상태 비교하여 MOD 리소스 추적
+- `ScopedEventBusWrapper`로 MOD별 EventBus 구독만 추적 (EventBus는 스냅샷 diff 불가)
+- `ModLoader`와 `ModRegistry` 책임 분리: ModLoader는 Factory 해석 + 에러 격리, ModRegistry는 라이프사이클 추적
+
+**신규 파일:**
+- `src/plugins/types/ModTypes.ts`: MOD 계약 인터페이스 (ModModule, ModContext, ModFactory, ScopedEventBus)
+- `src/plugins/ScopedEventBusWrapper.ts`: MOD별 EventBus 구독 추적 래퍼
+- `src/plugins/ModRegistry.ts`: MOD 라이프사이클 관리 (스냅샷 diff + 일괄 해제)
+- `src/plugins/ModLoader.ts`: MOD 모듈 해석 + 에러 격리 + 로딩 오케스트레이션
+- `tests/PluginRegistry.test.ts`: unregister 8 테스트
+- `tests/ScopedEventBusWrapper.test.ts`: 래퍼 11 테스트
+- `tests/ModRegistry.test.ts`: MOD 라이프사이클 18 테스트
+- `tests/ModLoader.test.ts`: 로더 9 테스트
+
+**수정 파일:**
+- `src/plugins/PluginRegistry.ts`: `unregisterAbility(id)`, `unregisterEntityType(typeId)` 추가
+- `src/plugins/types/index.ts`: ModTypes barrel export 추가
+- `src/systems/EntitySystemPipeline.ts`: `getRegisteredIds()` 메서드 추가
+- `src/scenes/GameScene.ts`: ModRegistry 생성 (`initializeSystems()`), `modRegistry.unloadAll()` (`cleanup()`)
+
+**검증:**
+- 439 테스트 전체 통과 (393 기존 + 46 신규)
+- lint, build 모두 통과
+
+### Phase 4a: 컴포넌트 인프라 실행 결과 (2026-02-11)
+
+Entity.ts(752줄)의 God Object를 해소하기 위한 컴포넌트 시스템 구축. ComponentStore + World + 13개 컴포넌트 인터페이스 + dual-write 마이그레이션.
+
+**설계 결정:**
+- String entityId: 코드베이스 전체가 이미 string ID 사용. ~50 엔티티에서 TypedArray 불필요
+- ComponentStore<T>: `Map<string, T>` 기반 제네릭 store. getRequired()로 런타임 안전성 확보
+- Dual-write: Entity가 기존 필드 + World store에 동시 기록. 기존 코드 무변경으로 점진적 전환
+
+**신규 파일:**
+- `src/world/ComponentStore.ts`: 제네릭 컴포넌트 저장소
+- `src/world/components.ts`: 13개 컴포넌트 인터페이스 (C1~C11 Entity + P1~P2 Player)
+- `src/world/World.ts`: store 보유 + entity lifecycle (create/destroy/markDead/flushDead/query)
+- `src/world/index.ts`: barrel export
+- `tests/world/ComponentStore.test.ts`: store 테스트 (13)
+- `tests/world/World.test.ts`: world 테스트 (17)
+
+**수정 파일:**
+- `src/entities/Entity.ts`: `static setWorld()`, `syncToWorld()` dual-write, `deactivate()` 시 `world.destroyEntity()` 호출
+- `src/scenes/GameScene.ts`: World 생성 (`initializeSystems()`), player entity 등록, `cleanup()`에서 `world.clear()` 호출
+
+### Phase 4b: Player Entity 통합 실행 결과 (2026-02-11)
+
+Player를 ECS World의 entity로 통합. 커서 위치가 World store에서 관리되고, PlayerTickSystem이 smoothing/trail/render를 처리.
+
+**설계 결정:**
+- Player entity ID: `'player'` (고정 string). Transform/Health/StatusCache/PlayerInput/PlayerRender 5개 store 사용
+- PlayerTickSystem: EntitySystem 인터페이스 구현, pipeline에서 entity_timing과 entity_movement 사이에 배치
+- GameScene cursorX/Y 제거: 모든 커서 좌표 참조를 `world.transform.get('player')` 경유로 전환
+- `renderOnly(delta)`: pause/upgrade 상태에서 smoothing 없이 visual + cursor render만 수행
+
+**신규 파일:**
+- `src/systems/entity-systems/PlayerTickSystem.ts`: Player tick 시스템 (smoothing + trail + cursor render)
+- `tests/PlayerTickSystem.test.ts`: 14 테스트
+
+**수정 파일:**
+- `src/systems/entity-systems/index.ts`: PlayerTickSystem export 추가
+- `src/scenes/GameScene.ts`: cursorX/Y/targetCursorX/Y/gaugeRatio 필드 제거, playerTickSystem 추가, update() 리팩토링 (keyboard→pipeline→cursor-dependent systems), getPlayerTransform()/getPlayerInput()/snapPlayerToTarget() 추가, applyCursorPosition/applyKeyboardMovement/updateCursorSmoothing/updateAttackRangeIndicator 제거
+- `data/game-config.json`: entityPipeline에 `core:player` 추가 (6개 시스템)
+
+**검증:**
+- 483 테스트 전체 통과 (469 기존 + 14 신규)
+- lint, build 모두 통과
+
+### 다음 단계 (Phase 4c~4e, 별도 세션)
+
+1. **Phase 4c**: 5개 기존 entity 시스템 → World store 직접 읽기 전환
+2. **Phase 4d**: Entity tick 메서드 제거 → Entity 경량화
+3. **Phase 4e**: 외부 소비자(28파일) DishLike → store 읽기 전환
 
 ### Phaser 4 stable 출시 모니터링
 

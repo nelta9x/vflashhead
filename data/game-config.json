@@ -2,6 +2,7 @@
   "entityPipeline": [
     "core:entity_status",
     "core:entity_timing",
+    "core:player",
     "core:entity_movement",
     "core:entity_visual",
     "core:entity_render"

@@ -4,3 +4,4 @@ export { EntityTimingSystem } from './EntityTimingSystem';
 export { EntityMovementSystem } from './EntityMovementSystem';
 export { EntityVisualSystem } from './EntityVisualSystem';
 export { EntityRenderSystem } from './EntityRenderSystem';
+export { PlayerTickSystem } from './PlayerTickSystem';

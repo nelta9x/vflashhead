@@ -57,8 +57,8 @@
 
 | 대상 | 화면 형태 | 실제 렌더링 코드 | 상태 소스 | 설정 파일 |
 |------|-----------|------------------|-----------|-----------|
-| 플레이어 | 커서 둘레 세그먼트 링 | `src/effects/CursorRenderer.ts` (`drawHpRing`) | `HealthSystem` -> `GameScene.updateAttackRangeIndicator()` | `data/game-config.json` (`player.hpRing`) |
-| 보스 | 메뉴 스타일 아머 실루엣 슬롯 | `src/effects/BossRenderer.ts` (호출: `src/entities/Boss.ts`) + `src/entities/bossHpSegments.ts` | `MonsterSystem` -> `MONSTER_HP_CHANGED` (`bossId`, `current`, `max`, `ratio`) | `data/boss.json` (`visual.armor`, `visual.armor.hpSegments`) |
+| 플레이어 | 커서 둘레 세그먼트 링 | `src/effects/CursorRenderer.ts` (`drawHpRing`) | `HealthSystem` -> `PlayerTickSystem.renderCursor()` | `data/game-config.json` (`player.hpRing`) |
+| 보스 | 메뉴 스타일 아머 실루엣 슬롯 | `src/effects/BossRenderer.ts` (호출: `src/entities/Entity.ts` + `BossEntityBehavior`) + `src/entities/bossHpSegments.ts` | `MonsterSystem` -> `MONSTER_HP_CHANGED` (`bossId`, `current`, `max`, `ratio`) | `data/boss.json` (`visual.armor`, `visual.armor.hpSegments`) |
 
 > 참고: `game-config.json`의 `hud.hpDisplay`는 현재 상단 하트 UI 렌더링에 사용되지 않는 레거시/예약 설정입니다.
 

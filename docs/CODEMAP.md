@@ -23,10 +23,10 @@
 - **플레이어 HP 표시**
   - 렌더링 위치: `src/effects/CursorRenderer.ts`의 `drawHpRing()`
   - 데이터 소스: `HealthSystem` (`getHp()`, `getMaxHp()`)
-  - 연결 지점: `src/scenes/GameScene.ts`의 `updateAttackRangeIndicator()`에서 현재/최대 HP를 `CursorRenderer.renderAttackIndicator()`로 전달
+  - 연결 지점: `PlayerTickSystem.renderCursor()`에서 현재/최대 HP를 `CursorRenderer.renderAttackIndicator()`로 전달
   - 설정 파일: `data/game-config.json`의 `player.hpRing`
 - **보스 HP 표시**
-  - 렌더링 위치: `src/effects/BossRenderer.ts` (호출 지점: `src/entities/Boss.ts`)
+  - 렌더링 위치: `src/effects/BossRenderer.ts` (호출 지점: `src/entities/Entity.ts` + `BossEntityBehavior`)
   - 데이터 소스: `MonsterSystem`가 발행하는 `MONSTER_HP_CHANGED` (`bossId`, `current`, `max`, `ratio`)
   - 세그먼트 계산: `src/entities/bossHpSegments.ts`의 `resolveBossHpSegmentState()`
   - 설정 파일: `data/boss.json`의 `visual.armor`, `visual.armor.hpSegments`
@@ -97,27 +97,44 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
 - **`EntityQueryService.ts`** (`src/systems/`): dishPool(`ObjectPool<Entity>`)을 감싸는 읽기 전용 쿼리 파사드. `getActiveEntities()`, `forEachActive(cb)`, `getEntitiesInRadius(x, y, r)`, `getEntitiesWithCondition(pred)`. `setBossProvider(provider)` 호출 시 보스 엔티티도 포함하여 조회. 기존 dishPool 소비 코드 7+ 파일 수정 없이 MOD에 엔티티 접근을 제공한다.
 - **`ModSystemRegistry.ts`** (`src/plugins/`): MOD 커스텀 시스템 등록/실행 레지스트리. `registerSystem(id, tickFn, priority?)` → `runAll(delta, context)`. context로 `{ entities: EntityQueryService, statusEffectManager, eventBus }` 제공. GameScene.update() 끝에서 호출.
 - **`EntityManager.ts` 쿼리 확장**: `getEntitiesInRadius(x, y, radius)`, `getEntitiesWithCondition(predicate)` — MOD 시스템의 크로스 엔티티 상호작용용.
-- **`entity-systems/`** (`src/systems/entity-systems/`): Entity.update()를 제거하고 5개 독립 ECS 스타일 시스템으로 분리. 각 시스템은 `EntitySystem` 인터페이스(`id`, `enabled`, `tick`)를 구현하며 전체 엔티티를 순회하며 단일 관심사만 처리.
+- **`entity-systems/`** (`src/systems/entity-systems/`): Entity.update()를 제거하고 6개 독립 ECS 스타일 시스템으로 분리. 각 시스템은 `EntitySystem` 인터페이스(`id`, `enabled`, `tick`)를 구현하며 전체 엔티티를 순회하며 단일 관심사만 처리.
   - `EntitySystem.ts`: 공통 인터페이스 (`id: string`, `enabled: boolean`, `tick(entities, delta)`)
   - `EntityStatusSystem` (`core:entity_status`): SEM → freeze/slow 캐시 파생 (tickStatusEffects)
   - `EntityTimingSystem` (`core:entity_timing`): effectiveDelta, 시간 누적, lifetime 만료 (tickTimeDelta)
+  - **`PlayerTickSystem` (`core:player`)**: Player entity의 위치 보간(smoothing), 커서 트레일, 커서 렌더링 처리. World store에서 읽고 CursorRenderer/CursorTrail에 위임. `renderOnly(delta)` 메서드로 pause 시 visual만 실행.
   - `EntityMovementSystem` (`core:entity_movement`): 이동 전략 + 보스 오프셋 / wobble (tickMovement)
   - `EntityVisualSystem` (`core:entity_visual`): pull/hitFlash/blink/dangerVibration (tickVisual)
   - `EntityRenderSystem` (`core:entity_render`): drawEntity + typePlugin.onUpdate (tickRender)
-- **`EntitySystemPipeline.ts`** (`src/systems/`): data-driven 엔티티 시스템 실행 파이프라인. `game-config.json`의 `entityPipeline` 배열이 실행 순서의 SSOT. `register(system)`, `unregister(id)`, `setEnabled(id, enabled)`, `run(entities, delta)`. config 순서대로 배치 → config에 없는 등록 시스템은 끝에 추가. `getMissingSystems()`, `getUnmappedSystems()` 진단 메서드 제공.
-  - GameScene 호출 순서: statusEffectManager.tick → entitySystemPipeline.run (5개 코어 시스템 순차) → modSystemRegistry.runAll
-- **`Entity.ts` 연동**: `deactivate()` 시 `StatusEffectManager.clearEntity()` 자동 호출로 풀 반환 시 잔류 효과 방지. freeze/slow는 StatusEffectManager로 위임. 6개 tick 메서드(`tickStatusEffects`/`tickTimeDelta`/`tickMovement`/`tickVisual`/`tickRender`)를 외부 시스템에 노출하고, `update()` 메서드는 제거됨.
+- **`EntitySystemPipeline.ts`** (`src/systems/`): data-driven 엔티티 시스템 실행 파이프라인. `game-config.json`의 `entityPipeline` 배열이 실행 순서의 SSOT. `register(system)`, `unregister(id)`, `setEnabled(id, enabled)`, `run(entities, delta)`. config 순서대로 배치 → config에 없는 등록 시스템은 끝에 추가. `getMissingSystems()`, `getUnmappedSystems()`, `getRegisteredIds()` 진단 메서드 제공.
+  - GameScene 호출 순서: statusEffectManager.tick → entitySystemPipeline.run (6개 코어 시스템 순차, PlayerTickSystem 포함) → modSystemRegistry.runAll
+- **`Entity.ts` 연동**: `deactivate()` 시 `StatusEffectManager.clearEntity()` 및 `World.destroyEntity()` 자동 호출로 풀 반환 시 잔류 효과/컴포넌트 방지. `spawn()` 시 `syncToWorld()`로 모든 컴포넌트를 World에 dual-write. freeze/slow는 StatusEffectManager로 위임. 6개 tick 메서드(`tickStatusEffects`/`tickTimeDelta`/`tickMovement`/`tickVisual`/`tickRender`)를 외부 시스템에 노출하고, `update()` 메서드는 제거됨.
+
+### 2.7 ECS World & 컴포넌트 (Phase 4)
+
+`src/world/` 디렉토리에는 컴포넌트 기반 ECS 인프라가 위치합니다.
+
+- **`ComponentStore.ts`**: `Map<string, T>` 기반 제네릭 컴포넌트 저장소. `set`/`get`/`getRequired`/`has`/`delete`/`forEach`/`entities`/`size`/`clear` API.
+- **`components.ts`**: 13개 컴포넌트 인터페이스 정의.
+  - Entity용 (C1~C11): `IdentityComponent`, `TransformComponent`, `HealthComponent`, `StatusCacheComponent`, `LifetimeComponent`, `DishPropsComponent`, `CursorInteractionComponent`, `VisualStateComponent`, `MovementComponent`, `PhaserNodeComponent`, `BossBehaviorComponent`
+  - Player용 (P1~P2): `PlayerInputComponent` (커서 목표 좌표 + smoothing 설정), `PlayerRenderComponent` (gaugeRatio, gameTime)
+- **`World.ts`**: 모든 ComponentStore를 보유하고 entity lifecycle 관리. `createEntity`/`destroyEntity`/`markDead`/`flushDead` + `query(...stores)` (교차 쿼리). Player entity(`'player'`)가 transform/health/statusCache/playerInput/playerRender 컴포넌트를 보유.
+- **Dual-write 마이그레이션**: Entity가 spawn 시 내부 필드 + World store에 동시 기록. 기존 시스템은 Entity 메서드를 계속 사용하며, 신규 시스템(PlayerTickSystem)은 World store를 직접 읽음.
+- **GameScene 연결**: `initializeSystems()`에서 World 생성 + player entity 등록, `cleanup()`에서 `world.clear()` 호출. 커서 위치는 `world.transform.get('player')` 에서 읽음 (기존 `cursorX`/`cursorY` 필드 제거).
 
 ### 2.6 플러그인 아키텍처
 
 `src/plugins/` 디렉토리에는 확장 가능한 플러그인 시스템이 위치합니다. 코어 코드 수정 없이 새 콘텐츠를 추가할 수 있도록 설계되었습니다.
 
-- **`PluginRegistry.ts`**: 어빌리티 및 엔티티 타입 플러그인을 등록/조회하는 싱글톤.
+- **`PluginRegistry.ts`**: 어빌리티 및 엔티티 타입 플러그인을 등록/조회하는 싱글톤. `unregisterAbility(id)` / `unregisterEntityType(typeId)` 메서드로 MOD teardown 시 등록 해제 지원.
 - **`types/`**: 플러그인 인터페이스 정의.
   - `AbilityPlugin.ts`: 어빌리티 플러그인 인터페이스, `UpgradeSystemCore`, `AbilityContext`, `DerivedStatEntry`.
   - `EntityTypePlugin.ts`: 엔티티 타입 플러그인 인터페이스, `EntityRef`, `EntityTypeRenderer`, `DamageSource`.
   - `MovementStrategy.ts`: 이동 전략 인터페이스 (DriftMovement 등).
   - `AttackPattern.ts`: 공격 패턴 인터페이스 (LaserAttackPattern 등).
+  - `ModTypes.ts`: MOD 계약 인터페이스. `ModModule` (MOD 진입점), `ModContext` (레지스트리 원본 직접 전달), `ModFactory` (지연 생성), `ScopedEventBus` (구독 추적 인터페이스).
+- **`ModRegistry.ts`**: MOD 라이프사이클 관리자. **스냅샷 diff**로 `registerMod()` 전후 레지스트리 상태를 비교하여 MOD가 등록한 ability/entityType/modSystem/entitySystem을 추적. `unloadMod()` / `unloadAll()` 시 diff 기반 일괄 해제 + ScopedEventBus 구독 정리.
+- **`ScopedEventBusWrapper.ts`**: MOD별 EventBus 구독 추적 래퍼. `on()`/`once()`/`off()` 위임 + 내부 tracking, `removeAll()`로 일괄 해제.
+- **`ModLoader.ts`**: MOD 모듈 해석 + 에러 격리 전담. `ModFactory` → `ModModule` 변환, `load()` (단일), `loadMultiple()` (순차, 실패 건너뜀) 제공.
 - **`builtin/abilities/`**: 내장 어빌리티 플러그인 (CursorSize, CriticalChance, Missile, HealthPack, Magnet, ElectricShock, Orb, BlackHole).
 - **`builtin/entities/`**: 내장 엔티티 타입 플러그인 (BasicDish, BombDish, StandardBoss).
 - **`builtin/movement/DriftMovement.ts`**: Boss 사인파 드리프트 이동 전략.
@@ -128,7 +145,7 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
 
 `src/entities/` 디렉토리에는 물리적인 게임 오브젝트가 위치하며, `Dish`, `HealthPack`, `FallingBomb`은 `ObjectPool`에 의해 재사용됩니다.
 
-- **`Entity.ts`** (신규): Dish + Boss를 통합하는 범용 엔티티. `EntityTypePlugin`을 통해 행동을 주입받으며, `Poolable`과 `EntityRef`를 구현합니다. HP 관리, 커서 상호작용 (dps/contact/explode), 이동 전략 위임, 타임아웃을 지원합니다. freeze/slow는 `StatusEffectManager`에 위임합니다. `update()` 메서드는 제거되고 6개 tick 메서드(`tickStatusEffects`/`tickTimeDelta`/`tickMovement`/`tickVisual`/`tickRender`)를 외부 ECS 스타일 시스템에 노출합니다.
+- **`Entity.ts`** (신규): Dish + Boss를 통합하는 범용 엔티티. `EntityTypePlugin`을 통해 행동을 주입받으며, `Poolable`과 `EntityRef`를 구현합니다. HP 관리, 커서 상호작용 (dps/contact/explode), 이동 전략 위임, 타임아웃을 지원합니다. freeze/slow는 `StatusEffectManager`에 위임합니다. `update()` 메서드는 제거되고 6개 tick 메서드를 외부 ECS 스타일 시스템에 노출합니다. `spawn()` 시 World에 dual-write (`syncToWorld()`), `deactivate()` 시 `World.destroyEntity()` 호출.
 - **`EntityTypes.ts`**: Entity와 Dish가 공유하는 `DishUpgradeOptions` 인터페이스 정의.
 - **`Dish.ts`**: 주요 적인 '접시' (레거시, Entity로 마이그레이션 예정).
   - `spawn()`: 초기화 및 애니메이션 시작.
@@ -136,7 +153,7 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
   - `update()`: 생존 시간 체크 및 이동 로직.
   - 내부 분해: `entities/dish/DishDamageResolver.ts`, `entities/dish/DishEventPayloadFactory.ts`
   - 외형 렌더링: `DishRenderer`에 위임 (인게임/메뉴 공용 스타일).
-- **`Boss.ts`**: 보스 몬스터의 로직 엔티티 (레거시, Entity로 마이그레이션 예정). 각 인스턴스는 자신의 `bossId` 이벤트(`MONSTER_HP_CHANGED`/`MONSTER_DIED`)만 처리하며, 시각화는 `BossRenderer`에 위임합니다.
+- **`Entity.ts`**: 통합 엔티티 클래스 (Dish+Boss). 보스는 `BossEntityBehavior` 컴포지션을 통해 `bossId` 이벤트(`MONSTER_HP_CHANGED`/`MONSTER_DIED`)를 처리하며, 시각화는 `BossRenderer`에 위임합니다.
 - **`HealthPack.ts`**: 화면 하단에서 스폰되어 상단으로 이동하는 힐 아이템 오브젝트. 커서와 충돌 시 `HEALTH_PACK_COLLECTED`, 상단 이탈 직전 `HEALTH_PACK_PASSING` 이벤트를 발생시키며, 외형 렌더링은 `HealthPackRenderer`에 위임합니다.
 - **`FallingBomb.ts`**: 화면 상단에서 스폰되어 하단으로 떨어지는 위험 오브젝트. 커서 접촉 시 `FALLING_BOMB_DESTROYED`(데미지), 하단 이탈 시 `FALLING_BOMB_MISSED` 이벤트를 발생시킵니다. 외형은 `DishRenderer.renderDangerDish()`를 재사용합니다.
 

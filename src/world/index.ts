@@ -7,9 +7,7 @@ export type { ArchetypeDefinition } from './archetypes';
 export {
   C_DishTag,
   C_BossTag,
-  C_FallingBombTag,
   C_FallingBomb,
-  C_HealthPackTag,
   C_HealthPack,
   C_Identity,
   C_Transform,
@@ -28,9 +26,7 @@ export {
 export type {
   DishTag,
   BossTag,
-  FallingBombTag,
   FallingBombComponent,
-  HealthPackTag,
   HealthPackComponent,
   DriftData,
   IdentityComponent,

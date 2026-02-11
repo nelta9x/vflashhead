@@ -3,7 +3,7 @@ import { GAME_WIDTH, HEAL_PACK } from '../data/constants';
 import { Data } from '../data/DataManager';
 import { HealthPackRenderer } from '../effects/HealthPackRenderer';
 import { EventBus, GameEvents } from '../utils/EventBus';
-import { C_HealthPackTag, C_HealthPack, C_Transform } from '../world';
+import { C_HealthPack, C_Transform } from '../world';
 import type { World } from '../world';
 import type { UpgradeSystem } from './UpgradeSystem';
 import type { EntitySystem } from './entity-systems/EntitySystem';
@@ -36,7 +36,7 @@ export class HealthPackSystem implements EntitySystem {
 
   tick(delta: number): void {
     // Update all active health packs
-    for (const [entityId, , hp, t] of this.world.query(C_HealthPackTag, C_HealthPack, C_Transform)) {
+    for (const [entityId, hp, t] of this.world.query(C_HealthPack, C_Transform)) {
       // Move upward
       t.y -= (hp.moveSpeed * delta) / 1000;
 
@@ -69,7 +69,7 @@ export class HealthPackSystem implements EntitySystem {
   }
 
   checkCollection(cursorX: number, cursorY: number, cursorRadius: number): void {
-    for (const [entityId, , , t] of this.world.query(C_HealthPackTag, C_HealthPack, C_Transform)) {
+    for (const [entityId, , t] of this.world.query(C_HealthPack, C_Transform)) {
       const dist = Phaser.Math.Distance.Between(cursorX, cursorY, t.x, t.y);
       const hitDistance = cursorRadius + Data.healthPack.hitboxSize;
 
@@ -82,7 +82,7 @@ export class HealthPackSystem implements EntitySystem {
   getActiveCount(): number {
     let count = 0;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const _ of this.world.query(C_HealthPackTag)) {
+    for (const _ of this.world.query(C_HealthPack)) {
       count++;
     }
     return count;
@@ -95,7 +95,7 @@ export class HealthPackSystem implements EntitySystem {
 
   clear(): void {
     const toRemove: string[] = [];
-    for (const [entityId] of this.world.query(C_HealthPackTag)) {
+    for (const [entityId] of this.world.query(C_HealthPack)) {
       toRemove.push(entityId);
     }
     for (const entityId of toRemove) {
@@ -236,7 +236,6 @@ export class HealthPackSystem implements EntitySystem {
     // Spawn into ECS world
     const archetype = this.world.archetypeRegistry.getRequired('healthPack');
     this.world.spawnFromArchetype(archetype, entityId, {
-      healthPackTag: {},
       healthPack: {
         moveSpeed: Data.healthPack.moveSpeed,
         pulsePhase: 0,

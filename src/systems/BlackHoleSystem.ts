@@ -6,7 +6,7 @@ import { EventBus, GameEvents } from '../utils/EventBus';
 import type { EntityDamageService } from './EntityDamageService';
 import type { FallingBombSystem } from './FallingBombSystem';
 import type { UpgradeSystem } from './UpgradeSystem';
-import { C_DishTag, C_DishProps, C_Transform, C_FallingBombTag, C_FallingBomb } from '../world';
+import { C_DishTag, C_DishProps, C_Transform, C_FallingBomb } from '../world';
 import type { EntitySystem } from './entity-systems/EntitySystem';
 import type { World } from '../world';
 
@@ -252,7 +252,7 @@ export class BlackHoleSystem implements EntitySystem {
     // 낙하 폭탄 (ECS World query)
     if (!this.fallingBombSystem) return;
 
-    for (const [bombId, , fb, bt] of this.world.query(C_FallingBombTag, C_FallingBomb, C_Transform)) {
+    for (const [bombId, fb, bt] of this.world.query(C_FallingBomb, C_Transform)) {
       if (!fb.fullySpawned) continue;
 
       let bombPullX = 0;

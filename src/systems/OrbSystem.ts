@@ -4,7 +4,7 @@ import type { EntityDamageService } from './EntityDamageService';
 import type { FallingBombSystem } from './FallingBombSystem';
 import type { SystemUpgradeData } from '../data/types';
 import type { BossRadiusSnapshot } from '../scenes/game/GameSceneContracts';
-import { C_DishTag, C_DishProps, C_Transform, C_Lifetime, C_FallingBombTag, C_FallingBomb } from '../world';
+import { C_DishTag, C_DishProps, C_Transform, C_Lifetime, C_FallingBomb } from '../world';
 import { Data } from '../data/DataManager';
 import type { EntitySystem } from './entity-systems/EntitySystem';
 import type { World } from '../world';
@@ -203,7 +203,7 @@ export class OrbSystem implements EntitySystem {
 
     // Falling bomb collision check (ECS World query)
     if (this._fallingBombSystem) {
-      for (const [bombId, , fb, bt] of this.world.query(C_FallingBombTag, C_FallingBomb, C_Transform)) {
+      for (const [bombId, fb, bt] of this.world.query(C_FallingBomb, C_Transform)) {
         if (!fb.fullySpawned) continue;
 
         for (const orb of this.orbPositions) {

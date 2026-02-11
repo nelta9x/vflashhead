@@ -3,7 +3,7 @@ import { GAME_WIDTH, FALLING_BOMB } from '../data/constants';
 import { Data } from '../data/DataManager';
 import { DishRenderer } from '../effects/DishRenderer';
 import { EventBus, GameEvents } from '../utils/EventBus';
-import { C_FallingBombTag, C_FallingBomb, C_Transform } from '../world';
+import { C_FallingBomb, C_Transform } from '../world';
 import type { World } from '../world';
 import type { EntitySystem } from './entity-systems/EntitySystem';
 
@@ -35,7 +35,7 @@ export class FallingBombSystem implements EntitySystem {
 
   tick(delta: number): void {
     // Update all active falling bombs
-    for (const [entityId, , fb, t] of this.world.query(C_FallingBombTag, C_FallingBomb, C_Transform)) {
+    for (const [entityId, fb, t] of this.world.query(C_FallingBomb, C_Transform)) {
       // Move downward
       t.y += (fb.moveSpeed * delta) / 1000;
 
@@ -68,7 +68,7 @@ export class FallingBombSystem implements EntitySystem {
   }
 
   checkCursorCollision(cursorX: number, cursorY: number, cursorRadius: number): void {
-    for (const [entityId, , fb, t] of this.world.query(C_FallingBombTag, C_FallingBomb, C_Transform)) {
+    for (const [entityId, fb, t] of this.world.query(C_FallingBomb, C_Transform)) {
       if (!fb.fullySpawned) continue;
 
       const dist = Phaser.Math.Distance.Between(cursorX, cursorY, t.x, t.y);
@@ -97,7 +97,7 @@ export class FallingBombSystem implements EntitySystem {
   getActiveCount(): number {
     let count = 0;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const _ of this.world.query(C_FallingBombTag)) {
+    for (const _ of this.world.query(C_FallingBomb)) {
       count++;
     }
     return count;
@@ -105,7 +105,7 @@ export class FallingBombSystem implements EntitySystem {
 
   clear(): void {
     const toRemove: string[] = [];
-    for (const [entityId] of this.world.query(C_FallingBombTag)) {
+    for (const [entityId] of this.world.query(C_FallingBomb)) {
       toRemove.push(entityId);
     }
     for (const entityId of toRemove) {
@@ -168,7 +168,6 @@ export class FallingBombSystem implements EntitySystem {
     // Spawn into ECS world
     const archetype = this.world.archetypeRegistry.getRequired('fallingBomb');
     this.world.spawnFromArchetype(archetype, entityId, {
-      fallingBombTag: {},
       fallingBomb: {
         moveSpeed: Data.fallingBomb.moveSpeed,
         blinkPhase: 0,

@@ -456,6 +456,16 @@ Player를 ECS World의 entity로 통합. 커서 위치가 World store에서 관�
 | 새 코드/시스템 | `world.store(C_Transform).get(id)` | 완전 (Def 토큰 기반) |
 | 아키타입 스폰 | `world.getStoreByName(name)` | unknown (내부만 사용) |
 
+### Phase 5 후속: 불필요 태그 컴포넌트 제거 (2026-02-12)
+
+`C_FallingBombTag`, `C_HealthPackTag` 태그 컴포넌트 삭제. `C_FallingBomb`, `C_HealthPack` 데이터 컴포넌트가 이미 엔티티 타입 식별 역할을 하므로 빈 태그는 중복이었음.
+
+- **삭제**: `FallingBombTag`/`HealthPackTag` 타입 + `C_FallingBombTag`/`C_HealthPackTag` 토큰
+- **World**: `fallingBombTag`/`healthPackTag` 프로퍼티 및 `register()` 호출 제거 (19 → 17 스토어)
+- **아키타입**: `fallingBomb`/`healthPack` 아키타입에서 태그 제거 (4 → 3 컴포넌트)
+- **쿼리**: `FallingBombSystem`, `HealthPackSystem`, `BlackHoleSystem`, `OrbSystem`에서 태그 제거 + destructuring 인덱스 조정
+- **스폰 데이터**: `fallingBombTag: {}`, `healthPackTag: {}` 제거
+
 ### 다음 단계 (Phase 4d~4e, 별도 세션)
 
 1. **Phase 4d**: Entity tick 메서드 제거 → Entity 경량화

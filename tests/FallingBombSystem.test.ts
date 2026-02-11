@@ -87,7 +87,6 @@ function createWorldMock() {
       getRequired: () => ({
         id: 'fallingBomb',
         components: [
-          { name: 'fallingBombTag' },
           { name: 'fallingBomb' },
           { name: 'transform' },
           { name: 'phaserNode' },
@@ -121,13 +120,13 @@ function createWorldMock() {
       get: (id: string) => getStore('phaserNode').get(id),
     },
     query: vi.fn(function* () {
-      const fbTagStore = getStore('fallingBombTag');
-      for (const [entityId] of fbTagStore) {
+      const fbStore = getStore('fallingBomb');
+      for (const [entityId] of fbStore) {
         if (!activeEntities.has(entityId)) continue;
-        const fb = getStore('fallingBomb').get(entityId);
+        const fb = fbStore.get(entityId);
         const t = getStore('transform').get(entityId);
         if (!fb || !t) continue;
-        yield [entityId, fbTagStore.get(entityId), fb, t];
+        yield [entityId, fb, t];
       }
     }),
   };
@@ -222,13 +221,13 @@ describe('FallingBombSystem', () => {
 
       // Refresh the query mock for the collision check
       worldMock.world.query = vi.fn(function* () {
-        const fbTagStore = worldMock.stores.get('fallingBombTag')!;
-        for (const [entityId] of fbTagStore) {
+        const fbStore = worldMock.stores.get('fallingBomb')!;
+        for (const [entityId] of fbStore) {
           if (!worldMock.activeEntities.has(entityId)) continue;
-          const fb = worldMock.stores.get('fallingBomb')!.get(entityId);
+          const fb = fbStore.get(entityId);
           const t = worldMock.stores.get('transform')!.get(entityId);
           if (!fb || !t) continue;
-          yield [entityId, fbTagStore.get(entityId), fb, t];
+          yield [entityId, fb, t];
         }
       }) as never;
 
@@ -249,7 +248,6 @@ describe('FallingBombSystem', () => {
       // Manually add a bomb entity that's not fully spawned
       const entityId = 'test_bomb';
       worldMock.activeEntities.add(entityId);
-      worldMock.stores.set('fallingBombTag', new Map([[entityId, {}]]));
       worldMock.stores.set('fallingBomb', new Map([[entityId, {
         moveSpeed: 120,
         blinkPhase: 0,
@@ -258,7 +256,7 @@ describe('FallingBombSystem', () => {
       worldMock.stores.set('transform', new Map([[entityId, { x: 100, y: 100 }]]));
 
       worldMock.world.query = vi.fn(function* () {
-        yield [entityId, {}, worldMock.stores.get('fallingBomb')!.get(entityId), worldMock.stores.get('transform')!.get(entityId)];
+        yield [entityId, worldMock.stores.get('fallingBomb')!.get(entityId), worldMock.stores.get('transform')!.get(entityId)];
       }) as never;
 
       system.checkCursorCollision(100, 100, 50);
@@ -293,8 +291,6 @@ describe('FallingBombSystem', () => {
       const ids = ['bomb_1', 'bomb_2'];
       for (const id of ids) {
         worldMock.activeEntities.add(id);
-        if (!worldMock.stores.has('fallingBombTag')) worldMock.stores.set('fallingBombTag', new Map());
-        worldMock.stores.get('fallingBombTag')!.set(id, {});
         if (!worldMock.stores.has('phaserNode')) worldMock.stores.set('phaserNode', new Map());
         worldMock.stores.get('phaserNode')!.set(id, {
           container: { setVisible: vi.fn(), setActive: vi.fn() },

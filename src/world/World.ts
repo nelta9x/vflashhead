@@ -18,17 +18,13 @@ import {
   C_PlayerRender,
   C_DishTag,
   C_BossTag,
-  C_FallingBombTag,
   C_FallingBomb,
-  C_HealthPackTag,
   C_HealthPack,
 } from './components';
 import type {
   DishTag,
   BossTag,
-  FallingBombTag,
   FallingBombComponent,
-  HealthPackTag,
   HealthPackComponent,
   IdentityComponent,
   TransformComponent,
@@ -71,9 +67,7 @@ export class World {
   readonly bossTag: ComponentStore<BossTag>;
   readonly playerInput: ComponentStore<PlayerInputComponent>;
   readonly playerRender: ComponentStore<PlayerRenderComponent>;
-  readonly fallingBombTag: ComponentStore<FallingBombTag>;
   readonly fallingBomb: ComponentStore<FallingBombComponent>;
-  readonly healthPackTag: ComponentStore<HealthPackTag>;
   readonly healthPack: ComponentStore<HealthPackComponent>;
 
   // 아키타입 레지스트리
@@ -100,9 +94,7 @@ export class World {
     this.bossTag = this.register(C_BossTag);
     this.playerInput = this.register(C_PlayerInput);
     this.playerRender = this.register(C_PlayerRender);
-    this.fallingBombTag = this.register(C_FallingBombTag);
     this.fallingBomb = this.register(C_FallingBomb);
-    this.healthPackTag = this.register(C_HealthPackTag);
     this.healthPack = this.register(C_HealthPack);
 
     // 빌트인 아키타입 등록

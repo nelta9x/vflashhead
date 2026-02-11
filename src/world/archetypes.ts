@@ -15,9 +15,7 @@ import {
   C_PlayerRender,
   C_DishTag,
   C_BossTag,
-  C_FallingBombTag,
   C_FallingBomb,
-  C_HealthPackTag,
   C_HealthPack,
 } from './components';
 
@@ -95,11 +93,11 @@ export const BUILTIN_ARCHETYPES: readonly ArchetypeDefinition[] = [
   },
   {
     id: 'fallingBomb',
-    components: [C_FallingBombTag, C_FallingBomb, C_Transform, C_PhaserNode],
+    components: [C_FallingBomb, C_Transform, C_PhaserNode],
   },
   {
     id: 'healthPack',
-    components: [C_HealthPackTag, C_HealthPack, C_Transform, C_PhaserNode],
+    components: [C_HealthPack, C_Transform, C_PhaserNode],
   },
 ];
 

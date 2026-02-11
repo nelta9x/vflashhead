@@ -94,7 +94,6 @@ function createWorldMock() {
       getRequired: () => ({
         id: 'healthPack',
         components: [
-          { name: 'healthPackTag' },
           { name: 'healthPack' },
           { name: 'transform' },
           { name: 'phaserNode' },
@@ -128,13 +127,13 @@ function createWorldMock() {
       get: (id: string) => getStore('phaserNode').get(id),
     },
     query: vi.fn(function* () {
-      const hpTagStore = getStore('healthPackTag');
-      for (const [entityId] of hpTagStore) {
+      const hpStore = getStore('healthPack');
+      for (const [entityId] of hpStore) {
         if (!activeEntities.has(entityId)) continue;
-        const hp = getStore('healthPack').get(entityId);
+        const hp = hpStore.get(entityId);
         const t = getStore('transform').get(entityId);
         if (!hp || !t) continue;
-        yield [entityId, hpTagStore.get(entityId), hp, t];
+        yield [entityId, hp, t];
       }
     }),
   };
@@ -233,13 +232,13 @@ describe('HealthPackSystem', () => {
 
       // Reset query mock for second tick
       worldMock.world.query = vi.fn(function* () {
-        const hpTagStore = worldMock.stores.get('healthPackTag')!;
-        for (const [entityId] of hpTagStore) {
+        const hpStore = worldMock.stores.get('healthPack')!;
+        for (const [entityId] of hpStore) {
           if (!worldMock.activeEntities.has(entityId)) continue;
-          const hp = worldMock.stores.get('healthPack')!.get(entityId);
+          const hp = hpStore.get(entityId);
           const t = worldMock.stores.get('transform')!.get(entityId);
           if (!hp || !t) continue;
-          yield [entityId, hpTagStore.get(entityId), hp, t];
+          yield [entityId, hp, t];
         }
       }) as never;
 
@@ -256,8 +255,6 @@ describe('HealthPackSystem', () => {
     it('should collect pack if cursor is in range', () => {
       const entityId = 'hp_1';
       worldMock.activeEntities.add(entityId);
-      if (!worldMock.stores.has('healthPackTag')) worldMock.stores.set('healthPackTag', new Map());
-      worldMock.stores.get('healthPackTag')!.set(entityId, {});
       if (!worldMock.stores.has('healthPack')) worldMock.stores.set('healthPack', new Map());
       worldMock.stores.get('healthPack')!.set(entityId, {
         moveSpeed: 80,
@@ -277,7 +274,7 @@ describe('HealthPackSystem', () => {
       });
 
       worldMock.world.query = vi.fn(function* () {
-        yield [entityId, {}, worldMock.stores.get('healthPack')!.get(entityId), worldMock.stores.get('transform')!.get(entityId)];
+        yield [entityId, worldMock.stores.get('healthPack')!.get(entityId), worldMock.stores.get('transform')!.get(entityId)];
       }) as never;
 
       // Out of range (distance 60 > hitDistance 55)
@@ -295,8 +292,6 @@ describe('HealthPackSystem', () => {
       const ids = ['hp_1', 'hp_2'];
       for (const id of ids) {
         worldMock.activeEntities.add(id);
-        if (!worldMock.stores.has('healthPackTag')) worldMock.stores.set('healthPackTag', new Map());
-        worldMock.stores.get('healthPackTag')!.set(id, {});
         if (!worldMock.stores.has('phaserNode')) worldMock.stores.set('phaserNode', new Map());
         worldMock.stores.get('phaserNode')!.set(id, {
           container: {

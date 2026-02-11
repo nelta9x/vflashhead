@@ -11,7 +11,7 @@ describe('World Store Registry', () => {
   });
 
   describe('빌트인 스토어', () => {
-    it('15개 빌트인 스토어가 등록되어야 함', () => {
+    it('17개 빌트인 스토어가 등록되어야 함', () => {
       const names = world.getStoreNames();
       expect(names).toContain('dishTag');
       expect(names).toContain('bossTag');
@@ -28,11 +28,9 @@ describe('World Store Registry', () => {
       expect(names).toContain('bossState');
       expect(names).toContain('playerInput');
       expect(names).toContain('playerRender');
-      expect(names).toContain('fallingBombTag');
       expect(names).toContain('fallingBomb');
-      expect(names).toContain('healthPackTag');
       expect(names).toContain('healthPack');
-      expect(names).toHaveLength(19);
+      expect(names).toHaveLength(17);
     });
 
     it('typed property와 store() 접근이 같은 인스턴스를 반환해야 함', () => {

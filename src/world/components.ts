@@ -139,9 +139,6 @@ export interface BossStateComponent {
 export const C_BossState = defineComponent<BossStateComponent>('bossState');
 
 // === FallingBomb components ===
-export type FallingBombTag = Record<string, never>;
-export const C_FallingBombTag = defineComponent<FallingBombTag>('fallingBombTag');
-
 export interface FallingBombComponent {
   moveSpeed: number;
   blinkPhase: number;
@@ -150,9 +147,6 @@ export interface FallingBombComponent {
 export const C_FallingBomb = defineComponent<FallingBombComponent>('fallingBomb');
 
 // === HealthPack components ===
-export type HealthPackTag = Record<string, never>;
-export const C_HealthPackTag = defineComponent<HealthPackTag>('healthPackTag');
-
 export interface HealthPackComponent {
   moveSpeed: number;
   pulsePhase: number;

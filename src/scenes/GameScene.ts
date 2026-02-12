@@ -3,7 +3,6 @@ import {
   GAME_WIDTH,
   GAME_HEIGHT,
   COLORS,
-  CURSOR_HITBOX,
   SPAWN_AREA,
   INITIAL_HP,
   DEPTHS,
@@ -54,6 +53,7 @@ import { StatusEffectManager } from '../systems/StatusEffectManager';
 import { EntityDamageService } from '../systems/EntityDamageService';
 import { EntityQueryService } from '../systems/EntityQueryService';
 import type { PlayerTickSystem } from '../systems/entity-systems';
+import { WaveTickSystem, BossCoordinatorSystem, ModTickSystem } from '../systems/entity-systems';
 import { EntitySystemPipeline } from '../systems/EntitySystemPipeline';
 import { World } from '../world';
 import { PluginRegistry } from '../plugins/PluginRegistry';
@@ -120,8 +120,6 @@ export class GameScene extends Phaser.Scene {
   private gridRenderer!: GridRenderer;
   private cursorRenderer!: CursorRenderer;
   private laserRenderer!: LaserRenderer;
-  private orbRenderer!: OrbRenderer;
-  private blackHoleRenderer!: BlackHoleRenderer;
   private playerAttackRenderer: PlayerAttackRenderer | null = null;
 
   // BGM
@@ -288,6 +286,7 @@ export class GameScene extends Phaser.Scene {
     });
     const identityComp = this.ecsWorld.identity.get(this.playerId);
     if (identityComp) identityComp.entityId = this.playerId;
+    this.ecsWorld.context.playerId = this.playerId;
     this.playerTickSystem.setPlayerId(this.playerId);
 
     // ── 8. Plugin registry reset + ability/entity registration ──
@@ -317,12 +316,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private initializeRenderers(): void {
-    this.orbRenderer = new OrbRenderer(this);
-    this.orbRenderer.setDepth(DEPTHS.orb);
-
-    this.blackHoleRenderer = new BlackHoleRenderer(this);
-    this.blackHoleRenderer.setDepth(Data.gameConfig.blackHoleVisual.depth);
-
+    // OrbRenderer and BlackHoleRenderer are now created by CoreServicesPlugin in ServiceRegistry
     this.laserRenderer = new LaserRenderer(this);
 
     this.starBackground = new StarBackground(this, Data.gameConfig.stars);
@@ -453,6 +447,17 @@ export class GameScene extends Phaser.Scene {
       this.bossCombatCoordinator.forEachBoss((boss) => bosses.push(boss));
       return bosses;
     });
+
+    // ── Late-bind wrapper systems (depend on GameScene-only instances) ──
+    this.entitySystemPipeline.register(
+      new WaveTickSystem(this.waveSystem, this.ecsWorld),
+    );
+    this.entitySystemPipeline.register(
+      new BossCoordinatorSystem(this.bossCombatCoordinator, this.ecsWorld),
+    );
+    this.entitySystemPipeline.register(
+      new ModTickSystem(this.modSystemRegistry, () => this.getModSystemContext()),
+    );
   }
 
   private onWaveCompleted(waveNumber: number): void {
@@ -604,8 +609,15 @@ export class GameScene extends Phaser.Scene {
     this.laserRenderer?.destroy();
     this.cursorTrail?.destroy();
     this.gaugeSystem?.destroy();
-    this.orbRenderer?.destroy();
-    this.blackHoleRenderer?.destroy();
+
+    // Renderers managed by ServiceRegistry
+    if (this.serviceRegistry?.has(OrbRenderer)) {
+      this.serviceRegistry.get(OrbRenderer).destroy();
+    }
+    if (this.serviceRegistry?.has(BlackHoleRenderer)) {
+      this.serviceRegistry.get(BlackHoleRenderer).destroy();
+    }
+
     this.blackHoleSystem?.clear();
     this.abilityManager?.destroy();
 
@@ -616,41 +628,21 @@ export class GameScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     if (this.isGameOver) return;
 
-    const playerT = this.getPlayerTransform();
-    const playerI = this.getPlayerInput();
+    // 1. 입력 처리
+    this.processKeyboardInput(delta);
 
-    // 1. 키보드 입력 → transform.x/y + playerInput.targetX/Y
-    if (this.inputController) {
-      const now = this.getInputTimestamp();
-      const shouldUseKeyboard = this.shouldUseKeyboardMovement(now);
-      const axis = this.inputController.getKeyboardAxis(delta, now);
-      const speed = Data.gameConfig.player.cursorSpeed;
-      const moveDistance = (speed * delta) / 1000;
-      if (shouldUseKeyboard && axis.isMoving) {
-        const newX = Phaser.Math.Clamp(playerT.x + axis.x * moveDistance, 0, GAME_WIDTH);
-        const newY = Phaser.Math.Clamp(playerT.y + axis.y * moveDistance, 0, GAME_HEIGHT);
-        playerT.x = newX;
-        playerT.y = newY;
-        playerI.targetX = newX;
-        playerI.targetY = newY;
-      }
-    }
-
-    const hudContext = this.getHudFrameContext();
-
-    // 2. Pause/upgrade 경로: snap + renderOnly
+    // 2. Pause/upgrade 경로
     if (this.isUpgrading) {
       this.snapPlayerToTarget();
       this.setDockPaused(false);
       this.inGameUpgradeUI.update(delta);
-      this.hud.update(this.gameTime, hudContext, delta);
-      this.starBackground.update(delta, _time, Data.gameConfig.gameGrid.speed);
-      this.gridRenderer.update(delta);
+      this.hud.update(this.gameTime, this.getHudFrameContext(), delta);
+      this.updateSceneVisuals(delta, _time);
       this.playerTickSystem.renderOnly(delta);
       return;
     }
 
-    const hudInteraction = this.hud.updateInteractionState(hudContext, delta);
+    const hudInteraction = this.hud.updateInteractionState(this.getHudFrameContext(), delta);
     this.setDockPaused(hudInteraction.shouldPauseGame || this.isEscPaused);
     if (this.isDockPaused) {
       this.snapPlayerToTarget();
@@ -659,61 +651,47 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    // 3. Active 경로
+    // 3. Active 경로: pipeline.run()이 모든 tick 로직 실행
     this.gameTime += delta;
-    const pr = this.ecsWorld.playerRender.get(this.playerId);
-    if (pr) pr.gameTime = this.gameTime;
-
-    this.comboSystem.setWave(this.waveSystem.getCurrentWave());
-    this.comboSystem.update(delta);
-    this.waveSystem.update(delta);
-    this.upgradeSystem.update(delta, this.gameTime);
-
-    // MOD 인프라: 상태효과 틱을 엔티티 업데이트 전에 실행 (만료 처리 우선)
-    this.statusEffectManager.tick(delta);
-
-    // Set context for pipeline-managed systems before they run
-    this.blackHoleSystem.setGameTime(this.gameTime);
-    this.orbSystem.setContext(
-      this.gameTime, playerT.x, playerT.y,
-      () => this.bossCombatCoordinator?.getAliveVisibleBossSnapshotsWithRadius() ?? [],
-      (bossId: string, amount: number, sourceX: number, sourceY: number) => {
-        this.monsterSystem.takeDamage(bossId, amount, sourceX, sourceY);
-        const bossTarget = this.bossCombatCoordinator?.getAliveBossTarget(bossId);
-        this.feedbackSystem.onBossContactDamaged(
-          bossTarget?.x ?? sourceX, bossTarget?.y ?? sourceY, amount, false
-        );
-      },
-    );
-    this.fallingBombSystem.setContext(this.gameTime, this.waveSystem.getCurrentWave());
-    this.healthPackSystem.setContext(this.gameTime);
-
-    // ECS pipeline: all entity systems including magnet, cursor attack, black hole, orb
+    this.syncWorldContext();
     this.entitySystemPipeline.run(delta);
 
-    // 4. pipeline 후 player 위치 사용
-    const cursorSizeBonus = this.upgradeSystem.getCursorSizeBonus();
-    const cursorRadius = CURSOR_HITBOX.BASE_RADIUS * (1 + cursorSizeBonus);
-
-    // HealthPackSystem + FallingBombSystem run in pipeline; post-pipeline checks
-    this.healthPackSystem.checkCollection(playerT.x, playerT.y, cursorRadius);
-    this.fallingBombSystem.checkCursorCollision(playerT.x, playerT.y, cursorRadius);
-
+    // 4. Scene 비주얼
     this.hud.render(this.gameTime);
     this.inGameUpgradeUI.update(delta);
+    this.updateSceneVisuals(delta, _time);
+  }
 
+  private processKeyboardInput(delta: number): void {
+    if (!this.inputController) return;
+
+    const playerT = this.getPlayerTransform();
+    const playerI = this.getPlayerInput();
+    const now = this.getInputTimestamp();
+    const shouldUseKeyboard = this.shouldUseKeyboardMovement(now);
+    const axis = this.inputController.getKeyboardAxis(delta, now);
+    const speed = Data.gameConfig.player.cursorSpeed;
+    const moveDistance = (speed * delta) / 1000;
+    if (shouldUseKeyboard && axis.isMoving) {
+      const newX = Phaser.Math.Clamp(playerT.x + axis.x * moveDistance, 0, GAME_WIDTH);
+      const newY = Phaser.Math.Clamp(playerT.y + axis.y * moveDistance, 0, GAME_HEIGHT);
+      playerT.x = newX;
+      playerT.y = newY;
+      playerI.targetX = newX;
+      playerI.targetY = newY;
+    }
+  }
+
+  private syncWorldContext(): void {
+    this.ecsWorld.context.gameTime = this.gameTime;
+    this.ecsWorld.context.currentWave = this.waveSystem.getCurrentWave();
+    const pr = this.ecsWorld.playerRender.get(this.playerId);
+    if (pr) pr.gameTime = this.gameTime;
+  }
+
+  private updateSceneVisuals(delta: number, time: number): void {
     this.gridRenderer.update(delta);
-    this.starBackground.update(delta, _time, Data.gameConfig.gameGrid.speed);
-
-    // Render outputs from pipeline-managed systems
-    this.blackHoleRenderer.render(this.blackHoleSystem.getBlackHoles(), this.gameTime);
-    this.orbRenderer.render(this.orbSystem.getOrbs());
-
-    const cursor = this.getCursorSnapshot();
-    this.bossCombatCoordinator.update(delta, this.gameTime, cursor);
-
-    // MOD 시스템 실행 (새 효과 적용은 다음 프레임에 반영)
-    this.modSystemRegistry.runAll(delta, this.getModSystemContext());
+    this.starBackground.update(delta, time, Data.gameConfig.gameGrid.speed);
   }
 
   private getModSystemContext(): ModSystemContext {

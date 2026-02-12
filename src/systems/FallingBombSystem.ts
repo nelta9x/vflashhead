@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, FALLING_BOMB } from '../data/constants';
+import { GAME_WIDTH, CURSOR_HITBOX, FALLING_BOMB } from '../data/constants';
 import { Data } from '../data/DataManager';
 import type { Entity } from '../entities/Entity';
 import { DishRenderer } from '../effects/DishRenderer';
@@ -8,6 +8,7 @@ import { C_FallingBomb, C_Transform } from '../world';
 import type { EntityId } from '../world/EntityId';
 import type { World } from '../world';
 import type { EntityPoolManager } from './EntityPoolManager';
+import type { UpgradeSystem } from './UpgradeSystem';
 import type { EntitySystem } from './entity-systems/EntitySystem';
 
 const OFFSCREEN_MARGIN = 40;
@@ -19,22 +20,15 @@ export class FallingBombSystem implements EntitySystem {
   private readonly world: World;
   private readonly scene: Phaser.Scene;
   private readonly entityPoolManager: EntityPoolManager;
+  private readonly upgradeSystem: UpgradeSystem;
   private lastSpawnTime: number = -FALLING_BOMB.COOLDOWN;
   private timeSinceLastCheck: number = 0;
 
-  // Context set before tick
-  private _gameTime = 0;
-  private _currentWave = 0;
-
-  constructor(scene: Phaser.Scene, world: World, entityPoolManager: EntityPoolManager) {
+  constructor(scene: Phaser.Scene, world: World, entityPoolManager: EntityPoolManager, upgradeSystem: UpgradeSystem) {
     this.scene = scene;
     this.world = world;
     this.entityPoolManager = entityPoolManager;
-  }
-
-  setContext(gameTime: number, currentWave: number): void {
-    this._gameTime = gameTime;
-    this._currentWave = currentWave;
+    this.upgradeSystem = upgradeSystem;
   }
 
   tick(delta: number): void {
@@ -66,8 +60,16 @@ export class FallingBombSystem implements EntitySystem {
     }
 
     // Spawn logic
-    if (this._currentWave >= FALLING_BOMB.MIN_WAVE) {
-      this.checkSpawning(delta, this._gameTime);
+    if (this.world.context.currentWave >= FALLING_BOMB.MIN_WAVE) {
+      this.checkSpawning(delta, this.world.context.gameTime);
+    }
+
+    // Cursor collision check (post-movement)
+    const playerT = this.world.transform.get(this.world.context.playerId);
+    if (playerT) {
+      const cursorSizeBonus = this.upgradeSystem.getCursorSizeBonus();
+      const cursorRadius = CURSOR_HITBOX.BASE_RADIUS * (1 + cursorSizeBonus);
+      this.checkCursorCollision(playerT.x, playerT.y, cursorRadius);
     }
   }
 

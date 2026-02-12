@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import type { ServicePlugin } from '../../types/SystemPlugin';
 import type { ServiceEntry } from '../../ServiceRegistry';
 import { DEPTHS } from '../../../data/constants';
+import { Data } from '../../../data/DataManager';
 import { ComboSystem } from '../../../systems/ComboSystem';
 import { UpgradeSystem } from '../../../systems/UpgradeSystem';
 import { HealthSystem } from '../../../systems/HealthSystem';
@@ -15,6 +16,8 @@ import { SoundSystem } from '../../../systems/SoundSystem';
 import { FeedbackSystem } from '../../../systems/FeedbackSystem';
 import { GaugeSystem } from '../../../systems/GaugeSystem';
 import { CursorRenderer } from '../../../effects/CursorRenderer';
+import { OrbRenderer } from '../../../effects/OrbRenderer';
+import { BlackHoleRenderer } from '../../../effects/BlackHoleRenderer';
 
 export class CoreServicesPlugin implements ServicePlugin {
   readonly id = 'core:services';
@@ -53,6 +56,22 @@ export class CoreServicesPlugin implements ServicePlugin {
         const cr = new CursorRenderer(r.get(Phaser.Scene));
         cr.setDepth(DEPTHS.cursor);
         return cr;
+      },
+    },
+    {
+      key: OrbRenderer,
+      factory: (r) => {
+        const renderer = new OrbRenderer(r.get(Phaser.Scene));
+        renderer.setDepth(DEPTHS.orb);
+        return renderer;
+      },
+    },
+    {
+      key: BlackHoleRenderer,
+      factory: (r) => {
+        const renderer = new BlackHoleRenderer(r.get(Phaser.Scene));
+        renderer.setDepth(Data.gameConfig.blackHoleVisual.depth);
+        return renderer;
       },
     },
   ];

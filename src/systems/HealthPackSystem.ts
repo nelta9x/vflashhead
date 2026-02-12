@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, HEAL_PACK } from '../data/constants';
+import { GAME_WIDTH, CURSOR_HITBOX, HEAL_PACK } from '../data/constants';
 import { Data } from '../data/DataManager';
 import type { HealthPackLevelData } from '../data/types';
 import type { Entity } from '../entities/Entity';
@@ -8,7 +8,7 @@ import { EventBus, GameEvents } from '../utils/EventBus';
 import { C_HealthPack, C_Transform } from '../world';
 import type { EntityId } from '../world/EntityId';
 import type { World } from '../world';
-import type { UpgradeSystemCore } from '../plugins/types/AbilityPlugin';
+import type { UpgradeSystem } from './UpgradeSystem';
 import type { EntityPoolManager } from './EntityPoolManager';
 import type { EntitySystem } from './entity-systems/EntitySystem';
 
@@ -20,23 +20,16 @@ export class HealthPackSystem implements EntitySystem {
 
   private readonly world: World;
   private readonly scene: Phaser.Scene;
-  private readonly upgradeSystem: UpgradeSystemCore;
+  private readonly upgradeSystem: UpgradeSystem;
   private readonly entityPoolManager: EntityPoolManager;
   private lastSpawnTime: number = -HEAL_PACK.COOLDOWN;
   private timeSinceLastCheck: number = 0;
 
-  // Context set before tick
-  private _gameTime = 0;
-
-  constructor(scene: Phaser.Scene, upgradeSystem: UpgradeSystemCore, world: World, entityPoolManager: EntityPoolManager) {
+  constructor(scene: Phaser.Scene, upgradeSystem: UpgradeSystem, world: World, entityPoolManager: EntityPoolManager) {
     this.scene = scene;
     this.upgradeSystem = upgradeSystem;
     this.world = world;
     this.entityPoolManager = entityPoolManager;
-  }
-
-  setContext(gameTime: number): void {
-    this._gameTime = gameTime;
   }
 
   tick(delta: number): void {
@@ -70,7 +63,15 @@ export class HealthPackSystem implements EntitySystem {
     }
 
     // Spawn logic
-    this.checkSpawning(delta, this._gameTime);
+    this.checkSpawning(delta, this.world.context.gameTime);
+
+    // Cursor collection check (post-movement)
+    const playerT = this.world.transform.get(this.world.context.playerId);
+    if (playerT) {
+      const cursorSizeBonus = this.upgradeSystem.getCursorSizeBonus();
+      const cursorRadius = CURSOR_HITBOX.BASE_RADIUS * (1 + cursorSizeBonus);
+      this.checkCollection(playerT.x, playerT.y, cursorRadius);
+    }
   }
 
   checkCollection(cursorX: number, cursorY: number, cursorRadius: number): void {

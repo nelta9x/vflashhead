@@ -151,7 +151,8 @@ describe('BlackHoleSystem', () => {
       mockWorld as never,
       mockDamageService as never,
       () => bosses,
-      damageBoss
+      damageBoss,
+      { render: vi.fn() } as never
     );
   };
 

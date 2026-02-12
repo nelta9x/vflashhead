@@ -28,6 +28,9 @@ vi.mock('../src/data/constants', () => ({
     CHECK_INTERVAL: 4000,
     MIN_WAVE: 5,
   },
+  CURSOR_HITBOX: {
+    BASE_RADIUS: 20,
+  },
 }));
 
 vi.mock('../src/data/DataManager', () => ({
@@ -126,6 +129,7 @@ function createWorldMock() {
     phaserNode: {
       get: (id: number) => getStore('phaserNode').get(id),
     },
+    context: { gameTime: 0, currentWave: 1, playerId: 0 },
     query: vi.fn(function* () {
       const fbStore = getStore('fallingBomb');
       for (const [entityId] of fbStore) {
@@ -174,11 +178,15 @@ describe('FallingBombSystem', () => {
     },
   } as never;
 
+  const mockUpgradeSystem = {
+    getCursorSizeBonus: vi.fn(() => 0),
+  } as never;
+
   beforeEach(() => {
     vi.clearAllMocks();
     mockPoolManager.acquire.mockReturnValue(mockEntity);
     worldMock = createWorldMock();
-    system = new FallingBombSystem(mockScene, worldMock.world as never, mockPoolManager as never);
+    system = new FallingBombSystem(mockScene, worldMock.world as never, mockPoolManager as never, mockUpgradeSystem);
   });
 
   describe('EntitySystem interface', () => {
@@ -196,7 +204,7 @@ describe('FallingBombSystem', () => {
       const originalRandom = Math.random;
       Math.random = vi.fn(() => 0.01);
 
-      system.setContext(20000, 2); // wave 2 < MIN_WAVE 5
+      worldMock.world.context = { gameTime: 20000, currentWave: 2, playerId: 0 }; // wave 2 < MIN_WAVE 5
       system.tick(5000);
       expect(worldMock.world.spawnFromArchetype).not.toHaveBeenCalled();
 
@@ -207,7 +215,7 @@ describe('FallingBombSystem', () => {
       const originalRandom = Math.random;
       Math.random = vi.fn(() => 0.01);
 
-      system.setContext(20000, 5); // wave 5 >= MIN_WAVE 5
+      worldMock.world.context = { gameTime: 20000, currentWave: 5, playerId: 0 }; // wave 5 >= MIN_WAVE 5
       system.tick(4100); // > CHECK_INTERVAL (4000)
       expect(worldMock.world.spawnFromArchetype).toHaveBeenCalledTimes(1);
 
@@ -218,7 +226,7 @@ describe('FallingBombSystem', () => {
       const originalRandom = Math.random;
       Math.random = vi.fn(() => 0.01);
 
-      system.setContext(20000, 5);
+      worldMock.world.context = { gameTime: 20000, currentWave: 5, playerId: 0 };
       system.tick(3900); // < CHECK_INTERVAL (4000)
       expect(worldMock.world.spawnFromArchetype).not.toHaveBeenCalled();
 
@@ -232,7 +240,7 @@ describe('FallingBombSystem', () => {
       Math.random = vi.fn(() => 0.01);
 
       // Spawn a bomb
-      system.setContext(20000, 5);
+      worldMock.world.context = { gameTime: 20000, currentWave: 5, playerId: 0 };
       system.tick(4100);
 
       // Refresh the query mock for the collision check

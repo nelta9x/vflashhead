@@ -4,6 +4,8 @@ export { ComponentStore } from './ComponentStore';
 export type { ComponentDef } from './ComponentDef';
 export { defineComponent } from './ComponentDef';
 export { World } from './World';
+export type { GameContext } from './GameContext';
+export { createDefaultGameContext } from './GameContext';
 export { ArchetypeRegistry, registerBuiltinArchetypes, BUILTIN_ARCHETYPES } from './archetypes';
 export type { ArchetypeDefinition } from './archetypes';
 export {

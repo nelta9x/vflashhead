@@ -2,6 +2,7 @@
   "servicePlugins": ["core:services", "core:ecs"],
   "systemPlugins": [
     "core:world_systems",
+    "core:game_level_systems",
     "core:player_system",
     "core:boss_reaction_system",
     "core:magnet_system",
@@ -12,11 +13,15 @@
     "core:health_pack"
   ],
   "entityPipeline": [
+    "core:wave",
+    "core:combo",
+    "core:status_effect_tick",
     "core:entity_status",
     "core:entity_timing",
     "core:player",
     "core:entity_movement",
     "core:boss_reaction",
+    "core:boss_coordinator",
     "core:magnet",
     "core:cursor_attack",
     "core:black_hole",
@@ -24,7 +29,8 @@
     "core:falling_bomb",
     "core:health_pack",
     "core:entity_visual",
-    "core:entity_render"
+    "core:entity_render",
+    "core:mod_tick"
   ],
   "screen": {
     "width": 1280,

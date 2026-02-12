@@ -8,6 +8,7 @@ import { BlackHoleSystemPlugin } from './BlackHoleSystemPlugin';
 import { OrbSystemPlugin } from './OrbSystemPlugin';
 import { FallingBombSystemPlugin } from './FallingBombSystemPlugin';
 import { HealthPackSystemPlugin } from './HealthPackSystemPlugin';
+import { GameLevelSystemsPlugin } from './GameLevelSystemsPlugin';
 
 export function registerBuiltinSystemPlugins(): void {
   const registry = PluginRegistry.getInstance();
@@ -20,4 +21,5 @@ export function registerBuiltinSystemPlugins(): void {
   registry.registerSystemPlugin(new OrbSystemPlugin());
   registry.registerSystemPlugin(new FallingBombSystemPlugin());
   registry.registerSystemPlugin(new HealthPackSystemPlugin());
+  registry.registerSystemPlugin(new GameLevelSystemsPlugin());
 }

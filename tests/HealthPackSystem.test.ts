@@ -34,6 +34,9 @@ vi.mock('../src/data/constants', () => ({
     BASE_SPAWN_CHANCE: 0.04,
     CHECK_INTERVAL: 5000,
   },
+  CURSOR_HITBOX: {
+    BASE_RADIUS: 20,
+  },
 }));
 
 vi.mock('../src/data/DataManager', () => ({
@@ -133,6 +136,7 @@ function createWorldMock() {
     phaserNode: {
       get: (id: number) => getStore('phaserNode').get(id),
     },
+    context: { gameTime: 0, currentWave: 1, playerId: 0 },
     query: vi.fn(function* () {
       const hpStore = getStore('healthPack');
       for (const [entityId] of hpStore) {
@@ -221,7 +225,7 @@ describe('HealthPackSystem', () => {
       const originalRandom = Math.random;
       Math.random = vi.fn(() => 0.01);
 
-      system.setContext(10000);
+      worldMock.world.context = { gameTime: 10000, currentWave: 1, playerId: 0 };
       system.tick(4900); // < CHECK_INTERVAL (5000)
       expect(worldMock.world.spawnFromArchetype).not.toHaveBeenCalled();
 
@@ -232,7 +236,7 @@ describe('HealthPackSystem', () => {
       const originalRandom = Math.random;
       Math.random = vi.fn(() => 0.01);
 
-      system.setContext(10000);
+      worldMock.world.context = { gameTime: 10000, currentWave: 1, playerId: 0 };
       system.tick(5100); // > CHECK_INTERVAL (5000)
       expect(worldMock.world.spawnFromArchetype).toHaveBeenCalledTimes(1);
 
@@ -244,7 +248,7 @@ describe('HealthPackSystem', () => {
       Math.random = vi.fn(() => 0.01);
 
       // First spawn
-      system.setContext(10000);
+      worldMock.world.context = { gameTime: 10000, currentWave: 1, playerId: 0 };
       system.tick(5100);
       expect(worldMock.world.spawnFromArchetype).toHaveBeenCalledTimes(1);
 
@@ -261,7 +265,7 @@ describe('HealthPackSystem', () => {
       }) as never;
 
       // Second tick during cooldown (gameTime 14000 < lastSpawn 10000 + 5000)
-      system.setContext(14000);
+      worldMock.world.context = { gameTime: 14000, currentWave: 1, playerId: 0 };
       system.tick(5100);
       expect(worldMock.world.spawnFromArchetype).toHaveBeenCalledTimes(1); // still 1
 

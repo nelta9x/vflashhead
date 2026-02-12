@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import type { UpgradeSystem } from './UpgradeSystem';
 import type { EntityDamageService } from './EntityDamageService';
 import type { FallingBombSystem } from './FallingBombSystem';
+import type { OrbRenderer } from '../effects/OrbRenderer';
 import type { SystemUpgradeData } from '../data/types';
 import type { BossRadiusSnapshot } from '../scenes/game/GameSceneContracts';
 import { C_DishTag, C_DishProps, C_Transform, C_Lifetime, C_FallingBomb } from '../world';
@@ -26,9 +27,18 @@ export class OrbSystem implements EntitySystem {
   readonly id = 'core:orb';
   enabled = true;
 
-  private upgradeSystem: UpgradeSystem;
-  private world: World;
-  private damageService: EntityDamageService;
+  private readonly upgradeSystem: UpgradeSystem;
+  private readonly world: World;
+  private readonly damageService: EntityDamageService;
+  private readonly getBossSnapshots: () => BossRadiusSnapshot[];
+  private readonly damageBoss: (
+    bossId: string,
+    amount: number,
+    sourceX: number,
+    sourceY: number,
+    isCritical: boolean
+  ) => void;
+  private readonly renderer: OrbRenderer;
   private currentAngle: number = 0;
 
   // Cooldown tracking per entity: Map<entityId, NextHitTime>
@@ -38,43 +48,46 @@ export class OrbSystem implements EntitySystem {
   private orbPositions: OrbPosition[] = [];
   private overclockStacks: number = 0;
   private overclockExpireAt: number = 0;
+  private fallingBombSystem?: FallingBombSystem;
 
-  // Context set each frame before tick
-  private _gameTime = 0;
-  private _playerX = 0;
-  private _playerY = 0;
-  private _getBossSnapshots: () => BossRadiusSnapshot[] = () => [];
-  private _onBossDamage: (bossId: string, damage: number, x: number, y: number) => void = () => {};
-  private _fallingBombSystem?: FallingBombSystem;
-
-  constructor(upgradeSystem: UpgradeSystem, world: World, damageService: EntityDamageService) {
+  constructor(
+    upgradeSystem: UpgradeSystem,
+    world: World,
+    damageService: EntityDamageService,
+    getBossSnapshots: () => BossRadiusSnapshot[],
+    damageBoss: (
+      bossId: string,
+      amount: number,
+      sourceX: number,
+      sourceY: number,
+      isCritical: boolean
+    ) => void,
+    renderer: OrbRenderer,
+  ) {
     this.upgradeSystem = upgradeSystem;
     this.world = world;
     this.damageService = damageService;
-  }
-
-  setContext(
-    gameTime: number,
-    playerX: number,
-    playerY: number,
-    getBossSnapshots: () => BossRadiusSnapshot[],
-    onBossDamage: (bossId: string, damage: number, x: number, y: number) => void,
-  ): void {
-    this._gameTime = gameTime;
-    this._playerX = playerX;
-    this._playerY = playerY;
-    this._getBossSnapshots = getBossSnapshots;
-    this._onBossDamage = onBossDamage;
+    this.getBossSnapshots = getBossSnapshots;
+    this.damageBoss = damageBoss;
+    this.renderer = renderer;
   }
 
   setFallingBombSystem(system: FallingBombSystem): void {
-    this._fallingBombSystem = system;
+    this.fallingBombSystem = system;
   }
 
   tick(delta: number): void {
-    this.update(delta, this._gameTime, this._playerX, this._playerY,
-      this._getBossSnapshots, this._onBossDamage);
+    const ctx = this.world.context;
+    const playerT = this.world.transform.get(ctx.playerId);
+    if (!playerT) return;
+    this.update(delta, ctx.gameTime, playerT.x, playerT.y,
+      this.getBossSnapshots, this.onBossDamage);
+    this.renderer.render(this.orbPositions);
   }
+
+  private onBossDamage = (bossId: string, damage: number, x: number, y: number): void => {
+    this.damageBoss(bossId, damage, x, y, false);
+  };
 
   update(
     delta: number,
@@ -203,14 +216,14 @@ export class OrbSystem implements EntitySystem {
     }
 
     // Falling bomb collision check (ECS World query)
-    if (this._fallingBombSystem) {
+    if (this.fallingBombSystem) {
       for (const [bombId, fb, bt] of this.world.query(C_FallingBomb, C_Transform)) {
         if (!fb.fullySpawned) continue;
 
         for (const orb of this.orbPositions) {
           const dist = Phaser.Math.Distance.Between(orb.x, orb.y, bt.x, bt.y);
           if (dist <= (orbSize + Data.fallingBomb.hitboxSize) * 1.5) {
-            this._fallingBombSystem.forceDestroy(bombId, true);
+            this.fallingBombSystem.forceDestroy(bombId, true);
             this.activateOverclock(gameTime, overclockConfig);
             break;
           }

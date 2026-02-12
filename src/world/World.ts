@@ -3,6 +3,8 @@ import { ComponentStore } from './ComponentStore';
 import type { ComponentDef } from './ComponentDef';
 import { ArchetypeRegistry, registerBuiltinArchetypes } from './archetypes';
 import type { ArchetypeDefinition } from './archetypes'; // used in spawnFromArchetype
+import type { GameContext } from './GameContext';
+import { createDefaultGameContext } from './GameContext';
 import {
   C_Identity,
   C_Transform,
@@ -70,6 +72,9 @@ export class World {
   readonly playerRender: ComponentStore<PlayerRenderComponent>;
   readonly fallingBomb: ComponentStore<FallingBombComponent>;
   readonly healthPack: ComponentStore<HealthPackComponent>;
+
+  // 글로벌 게임 상태 리소스
+  readonly context: GameContext = createDefaultGameContext();
 
   // 아키타입 레지스트리
   readonly archetypeRegistry = new ArchetypeRegistry();
@@ -218,6 +223,10 @@ export class World {
     this.activeEntities.clear();
     this.clearAllStores();
     this.nextId = 1;
+    const defaults = createDefaultGameContext();
+    this.context.gameTime = defaults.gameTime;
+    this.context.currentWave = defaults.currentWave;
+    this.context.playerId = defaults.playerId;
   }
 
   private removeAllComponents(entityId: EntityId): void {

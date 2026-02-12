@@ -3,9 +3,11 @@
 프로젝트 개발 중 반복적으로 발생한 버그와 설계 교훈을 **주제별로 통합**한 문서입니다.
 각 항목의 원본 상세(증상/원인/해결 코드)는 [LESSONS_ARCHIVE.md](LESSONS_ARCHIVE.md)에 보존되어 있습니다.
 
+> **발생 횟수(occurrences)**: 같은 유형의 이슈가 재발할 때마다 숫자를 증가시킨다.
+
 ---
 
-## 1. 난이도 설계
+## 1. 난이도 설계 `occurrences: 1`
 
 ### 원칙
 - 신규 위협 축(레이저/낙하폭탄/신규 접시)은 등장 시점을 최소 1~2웨이브 간격으로 분리
@@ -22,7 +24,7 @@
 
 ---
 
-## 2. 비동기/타이밍 안전성
+## 2. 비동기/타이밍 안전성 `occurrences: 1`
 
 ### 원칙
 - `delayedCall`/tween 콜백은 실행 시점 기준으로 상태 가드(`isGameOver`, `waveNumber`) 필수
@@ -44,7 +46,7 @@
 
 ---
 
-## 3. 이벤트 의미 & byAbility
+## 3. 이벤트 의미 & byAbility `occurrences: 1`
 
 ### 원칙
 - `byAbility` 같은 이벤트 플래그는 단순 메타데이터가 아니라 **게임 규칙 스위치** (콤보/피해/리셋 분기)
@@ -63,7 +65,7 @@
 
 ---
 
-## 4. 피해 기믹 피드백 일관성
+## 4. 피해 기믹 피드백 일관성 `occurrences: 1`
 
 ### 원칙
 - 동일 유형 기믹의 동일 결과는 발생 경로와 무관하게 같은 피드백(색상/텍스트)을 사용
@@ -78,7 +80,7 @@
 
 ---
 
-## 5. ObjectPool 안전성
+## 5. ObjectPool 안전성 `occurrences: 1`
 
 ### 원칙
 - `active` 플래그와 `activeObjects` Set 이중 추적 금지 → `acquire()`에서 두 조건 모두 체크
@@ -93,7 +95,7 @@
 
 ---
 
-## 6. 리팩토링 원칙
+## 6. 리팩토링 원칙 `occurrences: 1`
 
 ### 원칙
 - Scene은 흐름 오케스트레이션(`create/update/cleanup`), 규칙은 모듈로 분리
@@ -111,7 +113,7 @@
 
 ---
 
-## 7. UI/입력
+## 7. UI/입력 `occurrences: 1`
 
 ### 원칙
 - UI 상태 변경(`visible`)은 애니메이션 시작 **전**에 즉시 수행, guard clause는 함수 최상단
@@ -130,7 +132,7 @@
 
 ---
 
-## 8. 데이터 SSOT
+## 8. 데이터 SSOT `occurrences: 1`
 
 ### 원칙
 - 동작 의미가 바뀌는 리팩토링은 데이터 키 명명까지 함께 맞춤
@@ -148,7 +150,7 @@
 
 ---
 
-## 9. 렌더 레이어 깊이 중앙화
+## 9. 렌더 레이어 깊이 중앙화 `occurrences: 1`
 
 ### 원칙
 - 모든 `setDepth()` 값은 `data/game-config.json`의 `depths` 섹션에 정의하고, 소스에서는 `DEPTHS.xxx`로 참조
@@ -163,7 +165,7 @@
 
 ---
 
-## 10. 웨이브 상태 관리
+## 10. 웨이브 상태 관리 `occurrences: 1`
 
 ### 원칙
 - 게임 상태를 변경하는 **모든 경로**(성공/실패/타임아웃)에서 카운트 업데이트 필수
@@ -178,7 +180,7 @@
 
 ---
 
-## 11. 플러그인 아키텍처 (MOD 확장)
+## 11. 플러그인 아키텍처 (MOD 확장) `occurrences: 1`
 
 ### 원칙
 - 새 적 타입, 새 어빌리티, 새 공격 패턴은 코어 코드 수정 없이 플러그인으로 추가할 수 있어야 한다.
@@ -193,7 +195,24 @@
 
 ---
 
-## 12. 엔진 마이그레이션 (Phaser 3 → 4)
+## 12. setContext() 안티패턴 `occurrences: 1`
+
+### 원칙
+- 시스템에 매 프레임 `setContext(gameTime, playerX, ...)` 같은 setter를 호출해 외부 상태를 주입하는 것은 안티패턴이다.
+- 글로벌 게임 상태는 `World.context` (GameContext)에 한 번만 동기화하고, 시스템은 `this.world.context`에서 직접 읽는다.
+- 시스템이 필요로 하는 콜백/서비스는 `setContext()`가 아닌 **생성자 주입**(ServiceRegistry DI 또는 ServiceToken)으로 전달한다.
+- `GameScene.update()`는 오케스트레이션(입력→pause→pipeline.run()→비주얼)에 집중하고, 개별 시스템의 tick/update를 직접 호출하지 않는다.
+
+### 사례 요약
+- BlackHoleSystem.setGameTime(), OrbSystem.setContext(), FallingBombSystem.setContext(), HealthPackSystem.setContext()를 모두 제거
+- World.context (GameContext)로 gameTime/currentWave/playerId를 SSOT화
+- OrbSystem의 getBossSnapshots/damageBoss 콜백을 ServiceToken 기반 생성자 주입으로 전환
+- 게임 레벨 시스템(Wave/Combo/StatusEffect/BossCoordinator/Mod)을 래퍼 EntitySystem으로 파이프라인에 통합
+- GameScene.update()가 ~100줄에서 ~35줄로 축소
+
+---
+
+## 13. 엔진 마이그레이션 (Phaser 3 → 4) `occurrences: 1`
 
 ### 원칙
 - Phaser 4에서 `fillPoints`/`strokePoints`는 `{x,y}` 리터럴 대신 `Phaser.Math.Vector2` 인스턴스를 요구한다.

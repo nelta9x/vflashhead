@@ -69,6 +69,13 @@ FLASHEAD - Phaser 4 기반 웹 슈팅 게임
 - `docs/GAME_DESIGN_PHILOSOPHY.md` - 게임/UI 철학 변경 시
 - `docs/VISUAL_STYLE_GUIDELINES.md` - 비주얼 스타일 변경 시
 
+### 13) ECS 파이프라인 규칙 (필수)
+- `GameScene.update()`에 `entitySystemPipeline.run(delta)` 외의 tick/update 호출 금지.
+- 새 tick 로직은 반드시 `EntitySystem` 구현 + 파이프라인 등록으로 추가.
+- 시스템은 `setContext()`로 외부 상태를 받지 않는다. `World.context` 또는 생성자 주입을 사용.
+- `GameScene.update()`는 4단계만: 입력 처리 → pause 체크 → pipeline.run() → scene 비주얼.
+- 시스템 실행 순서는 `data/game-config.json`의 `entityPipeline`이 SSOT.
+
 ### 12) 주기적 리팩토링 (요약 규칙)
 - 신규 기능 2~3개 구현마다 구조 점검을 수행한다. (출시 직전 핫픽스 구간은 예외)
 - 아래 중 하나라도 만족하면 분리를 우선 검토한다.

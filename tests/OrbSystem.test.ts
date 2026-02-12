@@ -163,7 +163,10 @@ describe('OrbSystem', () => {
     system = new OrbSystem(
       mockUpgradeSystem as unknown as UpgradeSystem,
       mockWorld as never,
-      mockDamageService as never
+      mockDamageService as never,
+      () => [],
+      vi.fn(),
+      { render: vi.fn() } as never
     );
   });
 

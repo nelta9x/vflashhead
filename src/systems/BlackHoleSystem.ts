@@ -6,6 +6,7 @@ import { EventBus, GameEvents } from '../utils/EventBus';
 import type { EntityDamageService } from './EntityDamageService';
 import type { FallingBombSystem } from './FallingBombSystem';
 import type { UpgradeSystem } from './UpgradeSystem';
+import type { BlackHoleRenderer } from '../effects/BlackHoleRenderer';
 import { C_DishTag, C_DishProps, C_Transform, C_FallingBomb } from '../world';
 import type { EntitySystem } from './entity-systems/EntitySystem';
 import type { World } from '../world';
@@ -43,13 +44,13 @@ export class BlackHoleSystem implements EntitySystem {
     sourceY: number,
     isCritical: boolean
   ) => void;
+  private readonly renderer: BlackHoleRenderer;
   private fallingBombSystem?: FallingBombSystem;
 
   private blackHoles: ActiveBlackHole[] = [];
   private timeSinceLastSpawn = 0;
   private timeSinceLastDamageTick = 0;
   private lastAppliedLevel = 0;
-  private gameTime = 0;
 
   constructor(
     upgradeSystem: UpgradeSystem,
@@ -63,24 +64,23 @@ export class BlackHoleSystem implements EntitySystem {
       sourceY: number,
       isCritical: boolean
     ) => void,
+    renderer: BlackHoleRenderer,
   ) {
     this.upgradeSystem = upgradeSystem;
     this.world = world;
     this.damageService = damageService;
     this.getBosses = getBosses;
     this.damageBoss = damageBoss;
+    this.renderer = renderer;
   }
 
   setFallingBombSystem(system: FallingBombSystem): void {
     this.fallingBombSystem = system;
   }
 
-  setGameTime(gameTime: number): void {
-    this.gameTime = gameTime;
-  }
-
   tick(delta: number): void {
-    this.update(delta, this.gameTime);
+    this.update(delta, this.world.context.gameTime);
+    this.renderer.render(this.getBlackHoles(), this.world.context.gameTime);
   }
 
   update(delta: number, gameTime: number): void {

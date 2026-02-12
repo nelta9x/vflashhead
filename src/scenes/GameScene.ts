@@ -73,35 +73,20 @@ export class GameScene extends Phaser.Scene {
   private entityPoolManager!: EntityPoolManager;
   private dishes!: Phaser.GameObjects.Group;
 
-  // 시스템
-  private comboSystem!: ComboSystem;
+  // 시스템 (GameScene 직접 생성 — ServiceRegistry에 없음)
   private waveSystem!: WaveSystem;
-  private upgradeSystem!: UpgradeSystem;
-  private healthSystem!: HealthSystem;
-  private healthPackSystem!: HealthPackSystem;
-  private fallingBombSystem!: FallingBombSystem;
-  private feedbackSystem!: FeedbackSystem;
-  private soundSystem!: SoundSystem;
-  private monsterSystem!: MonsterSystem;
-  private gaugeSystem!: GaugeSystem;
-  private orbSystem!: OrbSystem;
-  private blackHoleSystem!: BlackHoleSystem;
   private abilityManager!: AbilityManager;
-  private statusEffectManager!: StatusEffectManager;
-  private entityQueryService!: EntityQueryService;
   private modSystemRegistry!: ModSystemRegistry;
-  private entitySystemPipeline!: EntitySystemPipeline;
   private modRegistry!: ModRegistry;
+
+  // ECS 핵심 인프라
   private ecsWorld!: World;
-  private entityDamageService!: EntityDamageService;
+  private entitySystemPipeline!: EntitySystemPipeline;
 
   // UI & 이펙트
   private hud!: HUD;
   private inGameUpgradeUI!: InGameUpgradeUI;
   private waveCountdownUI!: WaveCountdownUI;
-  private particleManager!: ParticleManager;
-  private cursorTrail!: CursorTrail;
-  private damageText!: DamageText;
   private starBackground!: StarBackground;
 
   // 게임 상태
@@ -118,7 +103,6 @@ export class GameScene extends Phaser.Scene {
 
   // 렌더러
   private gridRenderer!: GridRenderer;
-  private cursorRenderer!: CursorRenderer;
   private laserRenderer!: LaserRenderer;
   private playerAttackRenderer: PlayerAttackRenderer | null = null;
 
@@ -197,28 +181,18 @@ export class GameScene extends Phaser.Scene {
       this.serviceRegistry.resolveEntries(plugin.services);
     }
 
-    // ── 2. Local references (from registry) ──
-    this.comboSystem = this.serviceRegistry.get(ComboSystem);
-    this.upgradeSystem = this.serviceRegistry.get(UpgradeSystem);
-    this.healthSystem = this.serviceRegistry.get(HealthSystem);
-    this.monsterSystem = this.serviceRegistry.get(MonsterSystem);
-    this.statusEffectManager = this.serviceRegistry.get(StatusEffectManager);
-    this.particleManager = this.serviceRegistry.get(ParticleManager);
-    this.cursorTrail = this.serviceRegistry.get(CursorTrail);
-    this.damageText = this.serviceRegistry.get(DamageText);
-    this.soundSystem = this.serviceRegistry.get(SoundSystem);
-    this.feedbackSystem = this.serviceRegistry.get(FeedbackSystem);
-    this.gaugeSystem = this.serviceRegistry.get(GaugeSystem);
-    this.cursorRenderer = this.serviceRegistry.get(CursorRenderer);
+    // ── 2. Local references (핵심 인프라만) ──
     this.ecsWorld = this.serviceRegistry.get(World);
     this.entityPoolManager = this.serviceRegistry.get(EntityPoolManager);
-    this.entityDamageService = this.serviceRegistry.get(EntityDamageService);
-    this.entityQueryService = this.serviceRegistry.get(EntityQueryService);
 
     // ── 3. GameScene-only services (not plugin targets) ──
     this.maxSpawnedDishRadius = this.calculateMaxSpawnedDishRadius();
 
-    this.inGameUpgradeUI = new InGameUpgradeUI(this, this.upgradeSystem, this.particleManager);
+    this.inGameUpgradeUI = new InGameUpgradeUI(
+      this,
+      this.serviceRegistry.get(UpgradeSystem),
+      this.serviceRegistry.get(ParticleManager),
+    );
 
     this.waveSystem = new WaveSystem(
       this,
@@ -240,11 +214,11 @@ export class GameScene extends Phaser.Scene {
       () => this.bossCombatCoordinator?.getAliveVisibleBossSnapshotsWithRadius() ?? []);
     this.serviceRegistry.set(DamageBossToken,
       (bossId: string, amount: number, sourceX: number, sourceY: number, isCritical: boolean) => {
-        this.monsterSystem.takeDamage(bossId, amount, sourceX, sourceY);
+        this.serviceRegistry.get(MonsterSystem).takeDamage(bossId, amount, sourceX, sourceY);
         const bossTarget = this.bossCombatCoordinator?.getAliveBossTarget(bossId);
         const textX = bossTarget?.x ?? sourceX;
         const textY = bossTarget?.y ?? sourceY;
-        this.feedbackSystem.onBossContactDamaged(textX, textY, amount, isCritical);
+        this.serviceRegistry.get(FeedbackSystem).onBossContactDamaged(textX, textY, amount, isCritical);
       });
 
     // ── 5. SystemPlugin pipeline (data-driven) ──
@@ -263,13 +237,12 @@ export class GameScene extends Phaser.Scene {
     }
 
     // ── 6. Cross-system wiring ──
-    this.fallingBombSystem = this.entitySystemPipeline.getSystem('core:falling_bomb') as FallingBombSystem;
-    this.healthPackSystem = this.entitySystemPipeline.getSystem('core:health_pack') as HealthPackSystem;
-    this.orbSystem = this.entitySystemPipeline.getSystem('core:orb') as OrbSystem;
-    this.blackHoleSystem = this.entitySystemPipeline.getSystem('core:black_hole') as BlackHoleSystem;
+    const fallingBombSystem = this.entitySystemPipeline.getSystem('core:falling_bomb') as FallingBombSystem;
+    const orbSystem = this.entitySystemPipeline.getSystem('core:orb') as OrbSystem;
+    const blackHoleSystem = this.entitySystemPipeline.getSystem('core:black_hole') as BlackHoleSystem;
     this.playerTickSystem = this.entitySystemPipeline.getSystem('core:player') as PlayerTickSystem;
-    this.orbSystem.setFallingBombSystem(this.fallingBombSystem);
-    this.blackHoleSystem.setFallingBombSystem(this.fallingBombSystem);
+    orbSystem.setFallingBombSystem(fallingBombSystem);
+    blackHoleSystem.setFallingBombSystem(fallingBombSystem);
 
     // ── 7. Player entity (archetype-based) ──
     const playerArchetype = this.ecsWorld.archetypeRegistry.getRequired('player');
@@ -299,7 +272,7 @@ export class GameScene extends Phaser.Scene {
       PluginRegistry.getInstance(),
       this.modSystemRegistry,
       this.entitySystemPipeline,
-      this.statusEffectManager,
+      this.serviceRegistry.get(StatusEffectManager),
       EventBus.getInstance(),
       this.ecsWorld,
     );
@@ -307,11 +280,16 @@ export class GameScene extends Phaser.Scene {
     this.abilityManager = new AbilityManager();
     this.abilityManager.init({
       scene: this,
-      upgradeSystem: this.upgradeSystem,
+      upgradeSystem: this.serviceRegistry.get(UpgradeSystem),
       getCursor: () => this.getCursorSnapshot(),
     });
 
-    this.hud = new HUD(this, this.waveSystem, this.healthSystem, this.upgradeSystem);
+    this.hud = new HUD(
+      this,
+      this.waveSystem,
+      this.serviceRegistry.get(HealthSystem),
+      this.serviceRegistry.get(UpgradeSystem),
+    );
     this.waveCountdownUI = new WaveCountdownUI(this);
   }
 
@@ -335,16 +313,16 @@ export class GameScene extends Phaser.Scene {
     this.bossCombatCoordinator = new BossCombatCoordinator({
       scene: this,
       waveSystem: this.waveSystem,
-      monsterSystem: this.monsterSystem,
-      feedbackSystem: this.feedbackSystem,
-      soundSystem: this.soundSystem,
-      damageText: this.damageText,
+      monsterSystem: this.serviceRegistry.get(MonsterSystem),
+      feedbackSystem: this.serviceRegistry.get(FeedbackSystem),
+      soundSystem: this.serviceRegistry.get(SoundSystem),
+      damageText: this.serviceRegistry.get(DamageText),
       laserRenderer: this.laserRenderer,
-      healthSystem: this.healthSystem,
-      upgradeSystem: this.upgradeSystem,
-      damageService: this.entityDamageService,
+      healthSystem: this.serviceRegistry.get(HealthSystem),
+      upgradeSystem: this.serviceRegistry.get(UpgradeSystem),
+      damageService: this.serviceRegistry.get(EntityDamageService),
       world: this.ecsWorld,
-      statusEffectManager: this.statusEffectManager,
+      statusEffectManager: this.serviceRegistry.get(StatusEffectManager),
       isGameOver: () => this.isGameOver,
       isPaused: () => this.isDockPaused,
     });
@@ -353,13 +331,13 @@ export class GameScene extends Phaser.Scene {
       world: this.ecsWorld,
       dishPool: this.entityPoolManager.getPool('dish')!,
       dishes: this.dishes,
-      healthSystem: this.healthSystem,
-      comboSystem: this.comboSystem,
-      upgradeSystem: this.upgradeSystem,
-      feedbackSystem: this.feedbackSystem,
-      soundSystem: this.soundSystem,
-      damageText: this.damageText,
-      damageService: this.entityDamageService,
+      healthSystem: this.serviceRegistry.get(HealthSystem),
+      comboSystem: this.serviceRegistry.get(ComboSystem),
+      upgradeSystem: this.serviceRegistry.get(UpgradeSystem),
+      feedbackSystem: this.serviceRegistry.get(FeedbackSystem),
+      soundSystem: this.serviceRegistry.get(SoundSystem),
+      damageText: this.serviceRegistry.get(DamageText),
+      damageService: this.serviceRegistry.get(EntityDamageService),
       getPlayerAttackRenderer: () => this.getPlayerAttackRenderer(),
       isAnyLaserFiring: () => this.bossCombatCoordinator.isAnyLaserFiring(),
       isGameOver: () => this.isGameOver,
@@ -368,13 +346,13 @@ export class GameScene extends Phaser.Scene {
     this.playerAttackController = new PlayerAttackController({
       scene: this,
       world: this.ecsWorld,
-      damageService: this.entityDamageService,
-      upgradeSystem: this.upgradeSystem,
+      damageService: this.serviceRegistry.get(EntityDamageService),
+      upgradeSystem: this.serviceRegistry.get(UpgradeSystem),
       waveSystem: this.waveSystem,
-      monsterSystem: this.monsterSystem,
-      feedbackSystem: this.feedbackSystem,
-      soundSystem: this.soundSystem,
-      particleManager: this.particleManager,
+      monsterSystem: this.serviceRegistry.get(MonsterSystem),
+      feedbackSystem: this.serviceRegistry.get(FeedbackSystem),
+      soundSystem: this.serviceRegistry.get(SoundSystem),
+      particleManager: this.serviceRegistry.get(ParticleManager),
       getCursor: () => this.getCursorSnapshot(),
       getPlayerAttackRenderer: () => this.getPlayerAttackRenderer(),
       bossGateway: this.bossCombatCoordinator,
@@ -384,7 +362,7 @@ export class GameScene extends Phaser.Scene {
     this.eventBinder = new GameSceneEventBinder({
       onDishDestroyed: (payload) => this.dishLifecycleController.onDishDestroyed(payload),
       onDishDamaged: (payload) => this.dishLifecycleController.onDishDamaged(payload),
-      onComboMilestone: (milestone) => this.feedbackSystem.onComboMilestone(milestone),
+      onComboMilestone: (milestone) => this.serviceRegistry.get(FeedbackSystem).onComboMilestone(milestone),
       onWaveStarted: (_waveNumber) => this.bossCombatCoordinator.syncBossesForCurrentWave(),
       onWaveCompleted: (waveNumber) => this.onWaveCompleted(waveNumber),
       onUpgradeSelected: () => this.onUpgradeSelected(),
@@ -405,23 +383,23 @@ export class GameScene extends Phaser.Scene {
       },
       onPlayerAttack: () => this.playerAttackController.performPlayerAttack(),
       onMonsterDied: () => {
-        if (this.monsterSystem.areAllDead()) {
+        if (this.serviceRegistry.get(MonsterSystem).areAllDead()) {
           this.waveSystem.forceCompleteWave();
         }
       },
       onFallingBombDestroyed: (payload) => {
         if (!payload.byAbility) {
-          this.healthSystem.takeDamage(Data.fallingBomb.playerDamage);
+          this.serviceRegistry.get(HealthSystem).takeDamage(Data.fallingBomb.playerDamage);
           if (Data.fallingBomb.resetCombo) {
-            this.comboSystem.reset();
+            this.serviceRegistry.get(ComboSystem).reset();
           }
         } else {
-          this.damageText.showText(payload.x, payload.y - 40, Data.t('feedback.bomb_removed'), COLORS.CYAN);
+          this.serviceRegistry.get(DamageText).showText(payload.x, payload.y - 40, Data.t('feedback.bomb_removed'), COLORS.CYAN);
         }
-        this.feedbackSystem.onBombExploded(payload.x, payload.y, !!payload.byAbility);
+        this.serviceRegistry.get(FeedbackSystem).onBombExploded(payload.x, payload.y, !!payload.byAbility);
       },
       onBlackHoleConsumed: (payload) => {
-        this.damageText.showText(payload.x, payload.y - 40, Data.t('feedback.black_hole_consumed'), COLORS.CYAN);
+        this.serviceRegistry.get(DamageText).showText(payload.x, payload.y - 40, Data.t('feedback.black_hole_consumed'), COLORS.CYAN);
       },
     });
 
@@ -442,7 +420,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     // EntityQueryService에 보스 프로바이더 연결
-    this.entityQueryService.setBossProvider(() => {
+    this.serviceRegistry.get(EntityQueryService).setBossProvider(() => {
       const bosses: Entity[] = [];
       this.bossCombatCoordinator.forEachBoss((boss) => bosses.push(boss));
       return bosses;
@@ -486,30 +464,31 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onHealthPackUpgraded(hpBonus: number): void {
-    this.healthSystem.setMaxHp(INITIAL_HP + hpBonus);
-    this.healthSystem.heal(hpBonus);
+    const hs = this.serviceRegistry.get(HealthSystem);
+    hs.setMaxHp(INITIAL_HP + hpBonus);
+    hs.heal(hpBonus);
   }
 
   private onHpChanged(data: { hp: number; maxHp: number; delta: number; isFullHeal?: boolean }): void {
     if (data.isFullHeal) {
-      this.healthSystem.reset();
-      this.feedbackSystem.onHealthPackCollected(GAME_WIDTH / 2, GAME_HEIGHT / 2);
+      this.serviceRegistry.get(HealthSystem).reset();
+      this.serviceRegistry.get(FeedbackSystem).onHealthPackCollected(GAME_WIDTH / 2, GAME_HEIGHT / 2);
       return;
     }
 
     if (data.delta < 0) {
       this.hud.showHpLoss();
-      this.feedbackSystem.onHpLost();
+      this.serviceRegistry.get(FeedbackSystem).onHpLost();
     }
   }
 
   private onHealthPackCollected(x: number, y: number): void {
-    this.healthSystem.heal(1);
-    this.feedbackSystem.onHealthPackCollected(x, y);
+    this.serviceRegistry.get(HealthSystem).heal(1);
+    this.serviceRegistry.get(FeedbackSystem).onHealthPackCollected(x, y);
   }
 
   private onHealthPackPassing(x: number, y: number): void {
-    this.feedbackSystem.onHealthPackPassing(x, y);
+    this.serviceRegistry.get(FeedbackSystem).onHealthPackPassing(x, y);
   }
 
   private getPlayerAttackRenderer(): PlayerAttackRenderer {
@@ -572,7 +551,7 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.once('camerafadeoutcomplete', () => {
       this.cleanup();
       this.scene.start('GameOverScene', {
-        maxCombo: this.comboSystem.getMaxCombo(),
+        maxCombo: this.serviceRegistry.get(ComboSystem).getMaxCombo(),
         wave: this.waveSystem.getCurrentWave(),
         time: this.gameTime,
       });
@@ -590,25 +569,30 @@ export class GameScene extends Phaser.Scene {
     this.playerAttackController?.destroy();
 
     this.entityPoolManager.clearAll();
-    this.healthPackSystem?.destroy();
-    this.healthPackSystem?.clear();
-    this.fallingBombSystem?.destroy();
-    this.fallingBombSystem?.clear();
-    this.monsterSystem?.destroy();
+
+    const healthPackSystem = this.entitySystemPipeline?.getSystem('core:health_pack') as HealthPackSystem | undefined;
+    healthPackSystem?.destroy();
+    healthPackSystem?.clear();
+
+    const fallingBombSystem = this.entitySystemPipeline?.getSystem('core:falling_bomb') as FallingBombSystem | undefined;
+    fallingBombSystem?.destroy();
+    fallingBombSystem?.clear();
+
+    this.serviceRegistry?.get(MonsterSystem)?.destroy();
     this.inGameUpgradeUI.destroy();
     this.waveCountdownUI.destroy();
 
     this.ecsWorld?.clear();
-    this.statusEffectManager?.clear();
+    this.serviceRegistry?.get(StatusEffectManager)?.clear();
     this.modSystemRegistry?.clear();
     this.entitySystemPipeline?.clear();
 
     this.starBackground?.destroy();
     this.gridRenderer?.destroy();
-    this.cursorRenderer?.destroy();
+    this.serviceRegistry?.get(CursorRenderer)?.destroy();
     this.laserRenderer?.destroy();
-    this.cursorTrail?.destroy();
-    this.gaugeSystem?.destroy();
+    this.serviceRegistry?.get(CursorTrail)?.destroy();
+    this.serviceRegistry?.get(GaugeSystem)?.destroy();
 
     // Renderers managed by ServiceRegistry
     if (this.serviceRegistry?.has(OrbRenderer)) {
@@ -618,7 +602,8 @@ export class GameScene extends Phaser.Scene {
       this.serviceRegistry.get(BlackHoleRenderer).destroy();
     }
 
-    this.blackHoleSystem?.clear();
+    const blackHoleSystem = this.entitySystemPipeline?.getSystem('core:black_hole') as BlackHoleSystem | undefined;
+    blackHoleSystem?.clear();
     this.abilityManager?.destroy();
 
     this.playerAttackRenderer?.destroy();
@@ -696,18 +681,19 @@ export class GameScene extends Phaser.Scene {
 
   private getModSystemContext(): ModSystemContext {
     return {
-      entities: this.entityQueryService,
-      statusEffectManager: this.statusEffectManager,
+      entities: this.serviceRegistry.get(EntityQueryService),
+      statusEffectManager: this.serviceRegistry.get(StatusEffectManager),
       eventBus: EventBus.getInstance(),
     };
   }
 
   private clearAllDishes(): void {
+    const statusEffectManager = this.serviceRegistry.get(StatusEffectManager);
     for (const [entityId] of this.ecsWorld.query(C_DishTag)) {
       const node = this.ecsWorld.phaserNode.get(entityId);
       if (node) {
         const entity = node.container as Entity;
-        deactivateEntity(entity, this.ecsWorld, this.statusEffectManager);
+        deactivateEntity(entity, this.ecsWorld, statusEffectManager);
         this.dishes.remove(entity);
         this.entityPoolManager.release('dish', entity);
       }

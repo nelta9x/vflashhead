@@ -32,48 +32,6 @@ describe('World', () => {
       expect(world.identity.has('e1')).toBe(false);
       expect(world.transform.has('e1')).toBe(false);
     });
-
-    it('dead 상태인 엔티티도 파괴할 수 있어야 함', () => {
-      world.createEntity('e1');
-      world.markDead('e1');
-      world.destroyEntity('e1');
-
-      expect(world.isActive('e1')).toBe(false);
-      expect(world.isDead('e1')).toBe(false);
-    });
-  });
-
-  describe('markDead / isDead', () => {
-    it('markDead로 dead 표시할 수 있어야 함', () => {
-      world.createEntity('e1');
-      world.markDead('e1');
-      expect(world.isDead('e1')).toBe(true);
-      expect(world.isActive('e1')).toBe(true); // still active until flushed
-    });
-
-    it('마크되지 않은 엔티티는 dead가 아니어야 함', () => {
-      world.createEntity('e1');
-      expect(world.isDead('e1')).toBe(false);
-    });
-  });
-
-  describe('getActiveEntityIds', () => {
-    it('모든 active 엔티티 ID를 반환해야 함', () => {
-      world.createEntity('e1');
-      world.createEntity('e2');
-      world.createEntity('e3');
-
-      const ids = world.getActiveEntityIds().sort();
-      expect(ids).toEqual(['e1', 'e2', 'e3']);
-    });
-
-    it('파괴된 엔티티는 제외해야 함', () => {
-      world.createEntity('e1');
-      world.createEntity('e2');
-      world.destroyEntity('e1');
-
-      expect(world.getActiveEntityIds()).toEqual(['e2']);
-    });
   });
 
   describe('query', () => {
@@ -146,49 +104,17 @@ describe('World', () => {
     });
   });
 
-  describe('flushDead', () => {
-    it('dead 엔티티를 정리하고 제거된 ID를 반환해야 함', () => {
-      world.createEntity('e1');
-      world.createEntity('e2');
-      world.identity.set('e1', { entityId: 'e1', entityType: 'a', isGatekeeper: false });
-
-      world.markDead('e1');
-
-      const flushed = world.flushDead();
-      expect(flushed).toEqual(['e1']);
-      expect(world.isActive('e1')).toBe(false);
-      expect(world.isDead('e1')).toBe(false);
-      expect(world.identity.has('e1')).toBe(false);
-    });
-
-    it('dead가 없으면 빈 배열을 반환해야 함', () => {
-      world.createEntity('e1');
-      expect(world.flushDead()).toEqual([]);
-    });
-
-    it('flush 후 active 목록에서 제거되어야 함', () => {
-      world.createEntity('e1');
-      world.createEntity('e2');
-      world.markDead('e1');
-      world.flushDead();
-
-      expect(world.getActiveEntityIds()).toEqual(['e2']);
-    });
-  });
-
   describe('clear', () => {
     it('모든 엔티티와 store 데이터를 제거해야 함', () => {
       world.createEntity('e1');
       world.createEntity('e2');
       world.identity.set('e1', { entityId: 'e1', entityType: 'a', isGatekeeper: false });
       world.health.set('e1', { currentHp: 10, maxHp: 10, isDead: false });
-      world.markDead('e2');
 
       world.clear();
 
-      expect(world.getActiveEntityIds()).toEqual([]);
       expect(world.isActive('e1')).toBe(false);
-      expect(world.isDead('e2')).toBe(false);
+      expect(world.isActive('e2')).toBe(false);
       expect(world.identity.size()).toBe(0);
       expect(world.health.size()).toBe(0);
     });

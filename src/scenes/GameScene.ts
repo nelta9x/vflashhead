@@ -317,7 +317,6 @@ export class GameScene extends Phaser.Scene {
     this.blackHoleRenderer.setDepth(Data.gameConfig.blackHoleVisual.depth);
 
     this.laserRenderer = new LaserRenderer(this);
-    this.playerAttackRenderer = new PlayerAttackRenderer(this);
 
     this.starBackground = new StarBackground(this, Data.gameConfig.stars);
     this.starBackground.setDepth(DEPTHS.starBackground);
@@ -730,15 +729,11 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  public getDishPool() {
-    return this.entityPoolManager.getPool('dish')!;
-  }
-
   public getCursorPosition(): CursorSnapshot {
     return this.getCursorSnapshot();
   }
 
-  public isUpgradeSelectionVisible(): boolean {
+  private isUpgradeSelectionVisible(): boolean {
     return this.isUpgrading && this.inGameUpgradeUI.isVisible();
   }
 

@@ -44,8 +44,7 @@ import type {
 /**
  * World: 동적 스토어 레지스트리 + entity lifecycle 관리.
  * - register(def)로 ComponentDef 토큰 기반 스토어 등록
- * - store(def)로 타입 안전 스토어 조회
- * - 빌트인 13개 스토어는 typed property로 직접 접근 (기존 코드 호환)
+ * - 빌트인 17개 스토어는 typed property로 직접 접근
  */
 export class World {
   // 동적 스토어 레지스트리 (name → store)
@@ -73,9 +72,8 @@ export class World {
   // 아키타입 레지스트리
   readonly archetypeRegistry = new ArchetypeRegistry();
 
-  // Active/Dead entity tracking
+  // Active entity tracking
   private readonly activeEntities = new Set<string>();
-  private readonly deadEntities = new Set<string>();
 
   constructor() {
     // 빌트인 컴포넌트를 Def 토큰으로 등록
@@ -111,20 +109,9 @@ export class World {
     return store;
   }
 
-  /** ComponentDef 토큰으로 스토어 조회 — 타입 안전 */
-  store<T>(def: ComponentDef<T>): ComponentStore<T> {
-    const s = this.stores.get(def.name);
-    if (!s) throw new Error(`World: store "${def.name}" not registered`);
-    return s as ComponentStore<T>;
-  }
-
   /** 이름(string)으로 스토어 조회 — 아키타입 스폰용 (내부) */
   getStoreByName(name: string): ComponentStore<unknown> | undefined {
     return this.stores.get(name);
-  }
-
-  hasStore(name: string): boolean {
-    return this.stores.has(name);
   }
 
   /** MOD 언로드 시 커스텀 스토어 제거 */
@@ -154,29 +141,15 @@ export class World {
 
   createEntity(entityId: string): void {
     this.activeEntities.add(entityId);
-    this.deadEntities.delete(entityId);
   }
 
   destroyEntity(entityId: string): void {
     this.activeEntities.delete(entityId);
-    this.deadEntities.delete(entityId);
     this.removeAllComponents(entityId);
-  }
-
-  markDead(entityId: string): void {
-    this.deadEntities.add(entityId);
   }
 
   isActive(entityId: string): boolean {
     return this.activeEntities.has(entityId);
-  }
-
-  isDead(entityId: string): boolean {
-    return this.deadEntities.has(entityId);
-  }
-
-  getActiveEntityIds(): string[] {
-    return Array.from(this.activeEntities);
   }
 
   /** 지정 ComponentDef 토큰에 해당하는 active 엔티티의 [id, ...components] 튜플을 yield */
@@ -233,20 +206,8 @@ export class World {
     }
   }
 
-  /** dead 엔티티를 정리하고 제거된 ID 목록을 반환 */
-  flushDead(): string[] {
-    const flushed = Array.from(this.deadEntities);
-    for (const entityId of flushed) {
-      this.activeEntities.delete(entityId);
-      this.removeAllComponents(entityId);
-    }
-    this.deadEntities.clear();
-    return flushed;
-  }
-
   clear(): void {
     this.activeEntities.clear();
-    this.deadEntities.clear();
     this.clearAllStores();
   }
 

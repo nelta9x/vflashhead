@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { World } from '../../src/world/World';
 import { defineComponent } from '../../src/world/ComponentDef';
-import { C_Identity, C_Transform, C_Health } from '../../src/world/components';
 
 describe('World Store Registry', () => {
   let world: World;
@@ -33,10 +32,10 @@ describe('World Store Registry', () => {
       expect(names).toHaveLength(17);
     });
 
-    it('typed property와 store() 접근이 같은 인스턴스를 반환해야 함', () => {
-      expect(world.store(C_Identity)).toBe(world.identity);
-      expect(world.store(C_Transform)).toBe(world.transform);
-      expect(world.store(C_Health)).toBe(world.health);
+    it('getStoreByName으로 빌트인 스토어에 접근할 수 있어야 함', () => {
+      expect(world.getStoreByName('identity')).toBe(world.identity);
+      expect(world.getStoreByName('transform')).toBe(world.transform);
+      expect(world.getStoreByName('health')).toBe(world.health);
     });
   });
 
@@ -48,20 +47,13 @@ describe('World Store Registry', () => {
       const store = world.register(C_Poison);
       store.set('e1', { dps: 5 });
 
-      expect(world.store(C_Poison).get('e1')).toEqual({ dps: 5 });
-      expect(world.hasStore('mod:poison')).toBe(true);
+      expect(world.getStoreByName('mod:poison')?.get('e1')).toEqual({ dps: 5 });
+      expect(world.getStoreNames()).toContain('mod:poison');
     });
 
     it('중복 이름 등록 시 에러를 던져야 함', () => {
       const dup = defineComponent('identity');
       expect(() => world.register(dup)).toThrow('already registered');
-    });
-  });
-
-  describe('store', () => {
-    it('미등록 스토어 조회 시 에러를 던져야 함', () => {
-      const unknown = defineComponent('nonexistent');
-      expect(() => world.store(unknown)).toThrow('not registered');
     });
   });
 
@@ -80,10 +72,10 @@ describe('World Store Registry', () => {
     it('커스텀 스토어를 제거할 수 있어야 함', () => {
       const C_Custom = defineComponent('mod:custom');
       world.register(C_Custom);
-      expect(world.hasStore('mod:custom')).toBe(true);
+      expect(world.getStoreNames()).toContain('mod:custom');
 
       expect(world.unregisterStore('mod:custom')).toBe(true);
-      expect(world.hasStore('mod:custom')).toBe(false);
+      expect(world.getStoreNames()).not.toContain('mod:custom');
     });
 
     it('없는 스토어 제거 시 false 반환', () => {
@@ -144,15 +136,15 @@ describe('World Store Registry', () => {
   describe('커스텀 스토어 + removeAllComponents', () => {
     it('destroyEntity가 커스텀 스토어도 정리해야 함', () => {
       const C_Custom = defineComponent<{ val: number }>('mod:custom');
-      world.register(C_Custom);
+      const customStore = world.register(C_Custom);
 
       world.createEntity('e1');
-      world.store(C_Custom).set('e1', { val: 42 });
+      customStore.set('e1', { val: 42 });
       world.identity.set('e1', { entityId: 'e1', entityType: 'test', isGatekeeper: false });
 
       world.destroyEntity('e1');
 
-      expect(world.store(C_Custom).has('e1')).toBe(false);
+      expect(customStore.has('e1')).toBe(false);
       expect(world.identity.has('e1')).toBe(false);
     });
   });
@@ -160,17 +152,17 @@ describe('World Store Registry', () => {
   describe('clear', () => {
     it('커스텀 스토어 포함 전체 정리', () => {
       const C_Custom = defineComponent<{ val: number }>('mod:custom');
-      world.register(C_Custom);
+      const customStore = world.register(C_Custom);
 
       world.createEntity('e1');
-      world.store(C_Custom).set('e1', { val: 1 });
+      customStore.set('e1', { val: 1 });
       world.identity.set('e1', { entityId: 'e1', entityType: 'a', isGatekeeper: false });
 
       world.clear();
 
-      expect(world.store(C_Custom).size()).toBe(0);
+      expect(customStore.size()).toBe(0);
       expect(world.identity.size()).toBe(0);
-      expect(world.getActiveEntityIds()).toEqual([]);
+      expect(world.isActive('e1')).toBe(false);
     });
   });
 });

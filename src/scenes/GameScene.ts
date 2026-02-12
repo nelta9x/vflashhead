@@ -245,7 +245,7 @@ export class GameScene extends Phaser.Scene {
         this.feedbackSystem.onBossContactDamaged(textX, textY, amount, isCritical);
       });
 
-    // ── 5. SystemPlugin pipeline ──
+    // ── 5. SystemPlugin pipeline (data-driven) ──
     this.entitySystemPipeline = new EntitySystemPipeline(Data.gameConfig.entityPipeline);
     registerBuiltinSystemPlugins();
     const ctx: SystemPluginContext = {
@@ -253,7 +253,8 @@ export class GameScene extends Phaser.Scene {
       world: this.ecsWorld,
       services: this.serviceRegistry,
     };
-    for (const plugin of PluginRegistry.getInstance().getAllSystemPlugins().values()) {
+    for (const pluginId of Data.gameConfig.systemPlugins) {
+      const plugin = PluginRegistry.getInstance().getSystemPlugin(pluginId);
       for (const system of plugin.createSystems(ctx)) {
         this.entitySystemPipeline.register(system);
       }

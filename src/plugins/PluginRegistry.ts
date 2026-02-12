@@ -75,12 +75,10 @@ export class PluginRegistry {
     this.systemPlugins.set(plugin.id, plugin);
   }
 
-  getSystemPlugin(id: string): SystemPlugin | undefined {
-    return this.systemPlugins.get(id);
-  }
-
-  getAllSystemPlugins(): ReadonlyMap<string, SystemPlugin> {
-    return this.systemPlugins;
+  getSystemPlugin(id: string): SystemPlugin {
+    const p = this.systemPlugins.get(id);
+    if (!p) throw new Error(`SystemPlugin not found: ${id}`);
+    return p;
   }
 
   unregisterSystemPlugin(id: string): boolean {

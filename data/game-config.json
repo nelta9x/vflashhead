@@ -1,5 +1,16 @@
 {
   "servicePlugins": ["core:services", "core:ecs"],
+  "systemPlugins": [
+    "core:world_systems",
+    "core:player_system",
+    "core:boss_reaction_system",
+    "core:magnet_system",
+    "core:cursor_attack_system",
+    "core:black_hole_system",
+    "core:orb_system",
+    "core:falling_bomb",
+    "core:health_pack"
+  ],
   "entityPipeline": [
     "core:entity_status",
     "core:entity_timing",

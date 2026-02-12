@@ -1,10 +1,11 @@
-import type { AbilityPlugin, EntityTypePlugin, SystemPlugin } from './types';
+import type { AbilityPlugin, EntityTypePlugin, ServicePlugin, SystemPlugin } from './types';
 
 export class PluginRegistry {
   private static instance: PluginRegistry;
 
   private readonly abilities = new Map<string, AbilityPlugin>();
   private readonly entityTypes = new Map<string, EntityTypePlugin>();
+  private readonly servicePlugins = new Map<string, ServicePlugin>();
   private readonly systemPlugins = new Map<string, SystemPlugin>();
 
   private constructor() {}
@@ -50,6 +51,24 @@ export class PluginRegistry {
 
   unregisterEntityType(typeId: string): boolean {
     return this.entityTypes.delete(typeId);
+  }
+
+  registerServicePlugin(plugin: ServicePlugin): void {
+    this.servicePlugins.set(plugin.id, plugin);
+  }
+
+  getServicePlugin(id: string): ServicePlugin {
+    const p = this.servicePlugins.get(id);
+    if (!p) throw new Error(`ServicePlugin not found: ${id}`);
+    return p;
+  }
+
+  getAllServicePlugins(): ReadonlyMap<string, ServicePlugin> {
+    return this.servicePlugins;
+  }
+
+  unregisterServicePlugin(id: string): boolean {
+    return this.servicePlugins.delete(id);
   }
 
   registerSystemPlugin(plugin: SystemPlugin): void {

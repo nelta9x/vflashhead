@@ -7,6 +7,7 @@ import { DamageText } from '../ui/DamageText';
 import { SoundSystem } from './SoundSystem';
 
 export class FeedbackSystem {
+  static inject = [Phaser.Scene, ParticleManager, ScreenShake, DamageText, SoundSystem] as const;
   private particleManager: ParticleManager;
   private screenShake: ScreenShake;
   private damageText: DamageText;

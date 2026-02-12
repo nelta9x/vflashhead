@@ -14,6 +14,7 @@ interface DamageTextConfig {
 }
 
 export class DamageText {
+  static inject = [Phaser.Scene] as const;
   private scene: Phaser.Scene;
   private pool: Phaser.GameObjects.Text[] = [];
   private comboPool: Phaser.GameObjects.Text[] = [];

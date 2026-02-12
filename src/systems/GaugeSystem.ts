@@ -3,6 +3,7 @@ import { EventBus, GameEvents } from '../utils/EventBus';
 import { ComboSystem } from './ComboSystem';
 
 export class GaugeSystem {
+  static inject = [ComboSystem] as const;
   private currentGauge: number = 0;
   private readonly maxGauge: number = Data.gameConfig.gauge.maxGauge;
   private readonly gainPerDish: number = Data.gameConfig.gauge.gainPerDish;

@@ -20,6 +20,7 @@ export type {
   ModFactory,
 } from './ModTypes';
 export type {
+  ServicePlugin,
   SystemPluginContext,
   SystemPlugin,
 } from './SystemPlugin';

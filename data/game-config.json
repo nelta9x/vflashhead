@@ -1,4 +1,5 @@
 {
+  "servicePlugins": ["core:services", "core:ecs"],
   "entityPipeline": [
     "core:entity_status",
     "core:entity_timing",

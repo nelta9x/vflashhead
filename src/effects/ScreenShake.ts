@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 
 export class ScreenShake {
+  static inject = [Phaser.Scene] as const;
   private scene: Phaser.Scene;
   private isShaking: boolean = false;
 

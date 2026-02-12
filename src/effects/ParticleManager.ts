@@ -9,6 +9,7 @@ import {
 
 
 export class ParticleManager {
+  static inject = [Phaser.Scene] as const;
   private scene: Phaser.Scene;
   private emitters: Map<string, Phaser.GameObjects.Particles.ParticleEmitter> = new Map();
   private readonly cursorProvider?: CursorPositionProvider;

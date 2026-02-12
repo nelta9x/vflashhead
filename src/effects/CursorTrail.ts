@@ -22,6 +22,7 @@ interface TrailConfig {
 }
 
 export class CursorTrail {
+  static inject = [Phaser.Scene] as const;
   private scene: Phaser.Scene;
   private graphics: Phaser.GameObjects.Graphics;
   private points: TrailPoint[] = [];

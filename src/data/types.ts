@@ -520,6 +520,7 @@ export interface DepthsConfig {
 }
 
 export interface GameConfig {
+  servicePlugins: readonly string[];
   entityPipeline: readonly string[];
   screen: ScreenConfig;
   defaultLanguage: string;

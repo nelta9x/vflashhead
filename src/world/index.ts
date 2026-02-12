@@ -1,3 +1,5 @@
+export type { EntityId } from './EntityId';
+export { INVALID_ENTITY_ID } from './EntityId';
 export { ComponentStore } from './ComponentStore';
 export type { ComponentDef } from './ComponentDef';
 export { defineComponent } from './ComponentDef';

@@ -48,6 +48,7 @@ import { SceneInputAdapter } from './game/SceneInputAdapter';
 import type { CursorSnapshot } from './game/GameSceneContracts';
 import { C_DishTag } from '../world';
 import type { TransformComponent, PlayerInputComponent } from '../world';
+import type { EntityId } from '../world/EntityId';
 import { AbilityManager } from '../systems/AbilityManager';
 import { StatusEffectManager } from '../systems/StatusEffectManager';
 import { EntityDamageService } from '../systems/EntityDamageService';
@@ -129,6 +130,9 @@ export class GameScene extends Phaser.Scene {
   // 커서 시스템 (Player entity via ECS World)
   private playerTickSystem!: PlayerTickSystem;
   private inputController!: PlayerCursorInputController;
+
+  // Player entity ID (assigned by World at spawn)
+  private playerId!: EntityId;
 
   // 기능 모듈
   private bossCombatCoordinator!: BossCombatCoordinator;
@@ -271,8 +275,8 @@ export class GameScene extends Phaser.Scene {
 
     // ── 7. Player entity (archetype-based) ──
     const playerArchetype = this.ecsWorld.archetypeRegistry.getRequired('player');
-    this.ecsWorld.spawnFromArchetype(playerArchetype, 'player', {
-      identity: { entityId: 'player', entityType: 'player', isGatekeeper: false },
+    this.playerId = this.ecsWorld.spawnFromArchetype(playerArchetype, {
+      identity: { entityId: 0, entityType: 'player', isGatekeeper: false },
       transform: { x: 0, y: 0, baseX: 0, baseY: 0, alpha: 1, scaleX: 1, scaleY: 1 },
       health: { currentHp: INITIAL_HP, maxHp: INITIAL_HP, isDead: false },
       statusCache: { isFrozen: false, slowFactor: 1.0, isShielded: false },
@@ -282,6 +286,9 @@ export class GameScene extends Phaser.Scene {
       },
       playerRender: { gaugeRatio: 0, gameTime: 0 },
     });
+    const identityComp = this.ecsWorld.identity.get(this.playerId);
+    if (identityComp) identityComp.entityId = this.playerId;
+    this.playerTickSystem.setPlayerId(this.playerId);
 
     // ── 8. Plugin registry reset + ability/entity registration ──
     PluginRegistry.resetInstance();
@@ -399,7 +406,7 @@ export class GameScene extends Phaser.Scene {
         // 보스 엔티티가 내부적으로 MONSTER_HP_CHANGED 이벤트를 직접 구독한다.
       },
       onGaugeUpdated: (payload) => {
-        const pr = this.ecsWorld.playerRender.get('player');
+        const pr = this.ecsWorld.playerRender.get(this.playerId);
         if (pr) pr.gaugeRatio = payload.ratio;
       },
       onPlayerAttack: () => this.playerAttackController.performPlayerAttack(),
@@ -429,7 +436,7 @@ export class GameScene extends Phaser.Scene {
       inputController: this.inputController,
       getInputTimestamp: () => this.getInputTimestamp(),
       applyCursorPosition: (x, y) => {
-        const input = this.ecsWorld.playerInput.get('player');
+        const input = this.ecsWorld.playerInput.get(this.playerId);
         if (input) {
           input.targetX = Phaser.Math.Clamp(x, 0, GAME_WIDTH);
           input.targetY = Phaser.Math.Clamp(y, 0, GAME_HEIGHT);
@@ -654,7 +661,7 @@ export class GameScene extends Phaser.Scene {
 
     // 3. Active 경로
     this.gameTime += delta;
-    const pr = this.ecsWorld.playerRender.get('player');
+    const pr = this.ecsWorld.playerRender.get(this.playerId);
     if (pr) pr.gameTime = this.gameTime;
 
     this.comboSystem.setWave(this.waveSystem.getCurrentWave());
@@ -740,11 +747,11 @@ export class GameScene extends Phaser.Scene {
   // === Player entity helpers ===
 
   private getPlayerTransform(): TransformComponent {
-    return this.ecsWorld.transform.getRequired('player');
+    return this.ecsWorld.transform.getRequired(this.playerId);
   }
 
   private getPlayerInput(): PlayerInputComponent {
-    return this.ecsWorld.playerInput.getRequired('player');
+    return this.ecsWorld.playerInput.getRequired(this.playerId);
   }
 
   private snapPlayerToTarget(): void {

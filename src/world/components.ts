@@ -12,7 +12,7 @@ export const C_BossTag = defineComponent<BossTag>('bossTag');
 
 // === C1: Identity ===
 export interface IdentityComponent {
-  entityId: string;
+  entityId: import('./EntityId').EntityId;
   entityType: string;
   isGatekeeper: boolean;
 }

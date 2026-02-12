@@ -51,7 +51,7 @@ vi.mock('../src/data/DataManager', () => ({
 
 function makeSnapshot(overrides: Partial<EntitySnapshot> = {}): EntitySnapshot {
   return {
-    entityId: 'e1',
+    entityId: 1,
     x: 100,
     y: 200,
     entityType: 'basic',
@@ -99,35 +99,35 @@ describe('DishLifecycleController', () => {
   };
 
   // World store mocks — supports phaserNode, dishProps, dishTag, transform, and query()
-  const phaserNodeStore = new Map<string, { container: unknown }>();
-  const dishPropsStore = new Map<string, { dangerous: boolean }>();
-  const dishTagStore = new Map<string, Record<string, never>>();
-  const transformStore = new Map<string, { x: number; y: number }>();
-  const activeEntities = new Set<string>();
+  const phaserNodeStore = new Map<number, { container: unknown }>();
+  const dishPropsStore = new Map<number, { dangerous: boolean }>();
+  const dishTagStore = new Map<number, Record<string, never>>();
+  const transformStore = new Map<number, { x: number; y: number }>();
+  const activeEntities = new Set<number>();
 
   const world = {
     phaserNode: {
-      get: (id: string) => phaserNodeStore.get(id),
+      get: (id: number) => phaserNodeStore.get(id),
     },
     dishProps: {
-      get: (id: string) => dishPropsStore.get(id),
-      has: (id: string) => dishPropsStore.has(id),
+      get: (id: number) => dishPropsStore.get(id),
+      has: (id: number) => dishPropsStore.has(id),
       size: () => dishPropsStore.size,
       entries: () => dishPropsStore.entries(),
     },
     dishTag: {
-      get: (id: string) => dishTagStore.get(id),
-      has: (id: string) => dishTagStore.has(id),
+      get: (id: number) => dishTagStore.get(id),
+      has: (id: number) => dishTagStore.has(id),
       size: () => dishTagStore.size,
       entries: () => dishTagStore.entries(),
     },
     transform: {
-      get: (id: string) => transformStore.get(id),
-      has: (id: string) => transformStore.has(id),
+      get: (id: number) => transformStore.get(id),
+      has: (id: number) => transformStore.has(id),
       size: () => transformStore.size,
       entries: () => transformStore.entries(),
     },
-    isActive: (id: string) => activeEntities.has(id),
+    isActive: (id: number) => activeEntities.has(id),
     query: vi.fn(function () {
       return (function* () {
         for (const [entityId] of dishTagStore) {
@@ -142,7 +142,7 @@ describe('DishLifecycleController', () => {
   };
 
   /** Add a dish entity to the World stores for query-based iteration */
-  function addDishToWorld(id: string, x: number, y: number, dangerous: boolean): void {
+  function addDishToWorld(id: number, x: number, y: number, dangerous: boolean): void {
     activeEntities.add(id);
     dishTagStore.set(id, {} as Record<string, never>);
     dishPropsStore.set(id, { dangerous });
@@ -211,10 +211,10 @@ describe('DishLifecycleController', () => {
   it('handles dangerous dish destruction with penalty and release', () => {
     const controller = createController();
     const bombEntity = { getDishType: () => 'bomb' };
-    phaserNodeStore.set('bomb1', { container: bombEntity });
+    phaserNodeStore.set(10, { container: bombEntity });
 
     controller.onDishDestroyed({
-      snapshot: makeSnapshot({ entityId: 'bomb1', entityType: 'bomb', dangerous: true }),
+      snapshot: makeSnapshot({ entityId: 10, entityType: 'bomb', dangerous: true }),
       x: 100,
       y: 200,
     });
@@ -236,13 +236,13 @@ describe('DishLifecycleController', () => {
     });
 
     // Set up entities in the World stores for query-based iteration
-    addDishToWorld('src', 100, 100, false);
-    addDishToWorld('near', 110, 120, false);
-    addDishToWorld('danger', 115, 115, true);
-    addDishToWorld('far', 500, 500, false);
+    addDishToWorld(100, 100, 100, false);
+    addDishToWorld(101, 110, 120, false);
+    addDishToWorld(102, 115, 115, true);
+    addDishToWorld(103, 500, 500, false);
 
     controller.onDishDamaged({
-      snapshot: makeSnapshot({ entityId: 'src', entityType: 'basic' }),
+      snapshot: makeSnapshot({ entityId: 100, entityType: 'basic' }),
       x: 100,
       y: 100,
       type: 'basic',
@@ -254,9 +254,9 @@ describe('DishLifecycleController', () => {
       byAbility: false,
     });
 
-    expect(damageService.applyUpgradeDamage).toHaveBeenCalledWith('near', 5, 0, 0);
-    expect(damageService.applyUpgradeDamage).not.toHaveBeenCalledWith('danger', expect.anything(), expect.anything(), expect.anything());
-    expect(damageService.applyUpgradeDamage).not.toHaveBeenCalledWith('far', expect.anything(), expect.anything(), expect.anything());
+    expect(damageService.applyUpgradeDamage).toHaveBeenCalledWith(101, 5, 0, 0);
+    expect(damageService.applyUpgradeDamage).not.toHaveBeenCalledWith(102, expect.anything(), expect.anything(), expect.anything());
+    expect(damageService.applyUpgradeDamage).not.toHaveBeenCalledWith(103, expect.anything(), expect.anything(), expect.anything());
     expect(feedbackSystem.onElectricShock).toHaveBeenCalledWith(100, 100, [{ x: 110, y: 120 }]);
   });
 
@@ -270,7 +270,7 @@ describe('DishLifecycleController', () => {
     });
 
     controller.onDishDamaged({
-      snapshot: makeSnapshot({ entityId: 'src', entityType: 'basic' }),
+      snapshot: makeSnapshot({ entityId: 200, entityType: 'basic' }),
       x: 100,
       y: 100,
       type: 'basic',
@@ -296,10 +296,10 @@ describe('DishLifecycleController', () => {
     });
 
     // Set up entities in the World stores for query-based iteration
-    addDishToWorld('src', 100, 100, false);
-    addDishToWorld('near', 110, 120, false);
+    addDishToWorld(300, 100, 100, false);
+    addDishToWorld(301, 110, 120, false);
 
-    const snap = makeSnapshot({ entityId: 'src', entityType: 'basic' });
+    const snap = makeSnapshot({ entityId: 300, entityType: 'basic' });
     controller.onDishDamaged({
       snapshot: snap, x: 100, y: 100, type: 'basic',
       damage: 3, currentHp: 7, maxHp: 10, hpRatio: 0.7, isFirstHit: false, byAbility: false,
@@ -322,10 +322,10 @@ describe('DishLifecycleController', () => {
       },
     });
 
-    phaserNodeStore.set('e1', { container: {} });
+    phaserNodeStore.set(1, { container: {} });
 
     controller.onDishDestroyed({
-      snapshot: makeSnapshot({ entityId: 'e1', entityType: 'basic' }),
+      snapshot: makeSnapshot({ entityId: 1, entityType: 'basic' }),
       x: 100,
       y: 100,
       byAbility: false,
@@ -338,7 +338,7 @@ describe('DishLifecycleController', () => {
     const controller = createController();
 
     controller.onDishDamaged({
-      snapshot: makeSnapshot({ entityId: 'e1', entityType: 'amber', color: 0xffffff }),
+      snapshot: makeSnapshot({ entityId: 1, entityType: 'amber', color: 0xffffff }),
       x: 100,
       y: 100,
       type: 'amber',

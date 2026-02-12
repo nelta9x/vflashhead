@@ -10,6 +10,7 @@ import type { StatusEffectManager } from '../../../systems/StatusEffectManager';
 import type { WaveSystem } from '../../../systems/WaveSystem';
 import type { EntityDamageService } from '../../../systems/EntityDamageService';
 import type { World } from '../../../world';
+import { INVALID_ENTITY_ID } from '../../../world/EntityId';
 import type { ActiveLaser } from './BossCombatTypes';
 
 interface BossRosterSyncDeps {
@@ -106,13 +107,13 @@ export class BossRosterSync {
 
       if (plugin) {
         const config = {
-          entityId: bossConfig.id,
+          entityId: INVALID_ENTITY_ID,
           entityType: 'boss_standard',
           hp: this.monsterSystem.getMaxHp(bossConfig.id) || 1,
           lifetime: null,
           isGatekeeper: true,
+          bossDataId: bossConfig.id,
         };
-        boss.setEntityId(config.entityId);
         boss.active = true;
         initializeEntitySpawn(boss, this.world, config, plugin, spawnPosition.x, spawnPosition.y);
       }
@@ -129,8 +130,8 @@ export class BossRosterSync {
   public clearForWaveTransition(): void {
     this.setActiveLasers([]);
     this.laserNextTimeByBossId.clear();
-    this.bosses.forEach((boss, bossId) => {
-      this.damageService.unfreeze(bossId);
+    this.bosses.forEach((boss) => {
+      this.damageService.unfreeze(boss.getEntityId());
       deactivateEntity(boss, this.world, this.statusEffectManager);
     });
     this.bosses.clear();

@@ -1,4 +1,6 @@
 import Phaser from 'phaser';
+import { INVALID_ENTITY_ID } from '../world/EntityId';
+import type { EntityId } from '../world/EntityId';
 import type { Poolable } from '../utils/ObjectPool';
 
 export type { EntitySpawnConfig } from './EntitySpawnConfig';
@@ -15,7 +17,7 @@ export interface EntityOptions {
 export class Entity extends Phaser.GameObjects.Container implements Poolable {
   active: boolean = false;
 
-  private _entityId: string = '';
+  private _entityId: EntityId = INVALID_ENTITY_ID;
   private graphics: Phaser.GameObjects.Graphics;
 
   constructor(scene: Phaser.Scene, options?: EntityOptions) {
@@ -48,9 +50,9 @@ export class Entity extends Phaser.GameObjects.Container implements Poolable {
 
   // === Identity ===
 
-  getEntityId(): string { return this._entityId; }
+  getEntityId(): EntityId { return this._entityId; }
 
-  setEntityId(id: string): void { this._entityId = id; }
+  setEntityId(id: EntityId): void { this._entityId = id; }
 
   // === Graphics ===
 

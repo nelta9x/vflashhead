@@ -1,3 +1,5 @@
+import type { EntityId } from '../world/EntityId';
+
 /**
  * StatusEffectManager: 엔티티에 상태효과(독/화상/버프/실드 등)를 부착·관리하는 시스템.
  * MOD가 커스텀 StatusEffect 구현체를 등록하여 새로운 상태효과를 추가할 수 있다.
@@ -13,17 +15,17 @@ export interface StatusEffect {
   /** 남은 지속시간 (ms) */
   remaining: number;
   /** 매 tick마다 호출. delta는 ms 단위 */
-  onTick?: (entityId: string, delta: number, data: Record<string, unknown>) => void;
+  onTick?: (entityId: EntityId, delta: number, data: Record<string, unknown>) => void;
   /** 만료 시 호출 (수동 제거 시에는 호출되지 않음) */
-  onExpire?: (entityId: string, data: Record<string, unknown>) => void;
+  onExpire?: (entityId: EntityId, data: Record<string, unknown>) => void;
   /** MOD가 자유롭게 사용하는 임의 데이터 */
   data: Record<string, unknown>;
 }
 
 export class StatusEffectManager {
-  private readonly effects = new Map<string, StatusEffect[]>();
+  private readonly effects = new Map<EntityId, StatusEffect[]>();
 
-  applyEffect(entityId: string, effect: StatusEffect): void {
+  applyEffect(entityId: EntityId, effect: StatusEffect): void {
     let list = this.effects.get(entityId);
     if (!list) {
       list = [];
@@ -32,7 +34,7 @@ export class StatusEffectManager {
     list.push(effect);
   }
 
-  removeEffect(entityId: string, effectId: string): void {
+  removeEffect(entityId: EntityId, effectId: string): void {
     const list = this.effects.get(entityId);
     if (!list) return;
 
@@ -67,21 +69,21 @@ export class StatusEffectManager {
     }
   }
 
-  clearEntity(entityId: string): void {
+  clearEntity(entityId: EntityId): void {
     this.effects.delete(entityId);
   }
 
-  getEffects(entityId: string): readonly StatusEffect[] {
+  getEffects(entityId: EntityId): readonly StatusEffect[] {
     return this.effects.get(entityId) ?? [];
   }
 
-  getEffectsByType(entityId: string, type: string): readonly StatusEffect[] {
+  getEffectsByType(entityId: EntityId, type: string): readonly StatusEffect[] {
     const list = this.effects.get(entityId);
     if (!list) return [];
     return list.filter((e) => e.type === type);
   }
 
-  hasEffect(entityId: string, type: string): boolean {
+  hasEffect(entityId: EntityId, type: string): boolean {
     const list = this.effects.get(entityId);
     if (!list) return false;
     return list.some((e) => e.type === type);

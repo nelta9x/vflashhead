@@ -199,6 +199,7 @@ export class BossCombatCoordinator implements BossInteractionGateway {
   }
 
   public findNearestAliveBoss(x: number, y: number): BossTargetSnapshot | null {
+    let nearestBossId: string | null = null;
     let nearestBoss: Entity | null = null;
     let nearestDistance = Number.POSITIVE_INFINITY;
 
@@ -209,13 +210,14 @@ export class BossCombatCoordinator implements BossInteractionGateway {
       const distance = Phaser.Math.Distance.Between(x, y, boss.x, boss.y);
       if (distance < nearestDistance) {
         nearestDistance = distance;
+        nearestBossId = bossId;
         nearestBoss = boss;
       }
     }
 
-    if (!nearestBoss) return null;
+    if (!nearestBoss || !nearestBossId) return null;
     return {
-      id: nearestBoss.getEntityId(),
+      id: nearestBossId,
       x: nearestBoss.x,
       y: nearestBoss.y,
     };

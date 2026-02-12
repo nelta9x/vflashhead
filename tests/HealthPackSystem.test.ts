@@ -75,8 +75,9 @@ vi.mock('../src/effects/HealthPackRenderer', () => ({
 }));
 
 function createWorldMock() {
-  const stores = new Map<string, Map<string, unknown>>();
-  const activeEntities = new Set<string>();
+  const stores = new Map<string, Map<number, unknown>>();
+  const activeEntities = new Set<number>();
+  let nextId = 1;
 
   function getStore(name: string) {
     if (!stores.has(name)) stores.set(name, new Map());
@@ -84,9 +85,13 @@ function createWorldMock() {
   }
 
   const world = {
-    isActive: (id: string) => activeEntities.has(id),
-    createEntity: (id: string) => activeEntities.add(id),
-    destroyEntity: (id: string) => {
+    isActive: (id: number) => activeEntities.has(id),
+    createEntity: () => {
+      const id = nextId++;
+      activeEntities.add(id);
+      return id;
+    },
+    destroyEntity: (id: number) => {
       activeEntities.delete(id);
       stores.forEach(s => s.delete(id));
     },
@@ -100,31 +105,33 @@ function createWorldMock() {
         ],
       }),
     },
-    spawnFromArchetype: vi.fn((_arch: unknown, entityId: string, values: Record<string, unknown>) => {
+    spawnFromArchetype: vi.fn((_arch: unknown, values: Record<string, unknown>) => {
+      const entityId = nextId++;
       activeEntities.add(entityId);
       for (const [name, value] of Object.entries(values)) {
         getStore(name).set(entityId, value);
       }
+      return entityId;
     }),
     getStoreByName: (name: string) => {
       const s = getStore(name);
       return {
-        get: (id: string) => s.get(id),
-        has: (id: string) => s.has(id),
-        set: (id: string, val: unknown) => s.set(id, val),
-        delete: (id: string) => s.delete(id),
+        get: (id: number) => s.get(id),
+        has: (id: number) => s.has(id),
+        set: (id: number, val: unknown) => s.set(id, val),
+        delete: (id: number) => s.delete(id),
         size: () => s.size,
         entries: () => s.entries(),
       };
     },
     healthPack: {
-      get: (id: string) => getStore('healthPack').get(id),
+      get: (id: number) => getStore('healthPack').get(id),
     },
     transform: {
-      get: (id: string) => getStore('transform').get(id),
+      get: (id: number) => getStore('transform').get(id),
     },
     phaserNode: {
-      get: (id: string) => getStore('phaserNode').get(id),
+      get: (id: number) => getStore('phaserNode').get(id),
     },
     query: vi.fn(function* () {
       const hpStore = getStore('healthPack');
@@ -264,7 +271,7 @@ describe('HealthPackSystem', () => {
 
   describe('checkCollection', () => {
     it('should collect pack if cursor is in range', () => {
-      const entityId = 'hp_1';
+      const entityId = 99;
       worldMock.activeEntities.add(entityId);
       if (!worldMock.stores.has('healthPack')) worldMock.stores.set('healthPack', new Map());
       worldMock.stores.get('healthPack')!.set(entityId, {
@@ -301,7 +308,7 @@ describe('HealthPackSystem', () => {
 
   describe('clear', () => {
     it('should remove all health pack entities', () => {
-      const ids = ['hp_1', 'hp_2'];
+      const ids = [71, 72];
       for (const id of ids) {
         worldMock.activeEntities.add(id);
         if (!worldMock.stores.has('phaserNode')) worldMock.stores.set('phaserNode', new Map());

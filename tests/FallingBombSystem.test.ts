@@ -68,8 +68,9 @@ vi.mock('../src/effects/DishRenderer', () => ({
 
 // Create a minimal World mock
 function createWorldMock() {
-  const stores = new Map<string, Map<string, unknown>>();
-  const activeEntities = new Set<string>();
+  const stores = new Map<string, Map<number, unknown>>();
+  const activeEntities = new Set<number>();
+  let nextId = 1;
 
   function getStore(name: string) {
     if (!stores.has(name)) stores.set(name, new Map());
@@ -77,9 +78,13 @@ function createWorldMock() {
   }
 
   const world = {
-    isActive: (id: string) => activeEntities.has(id),
-    createEntity: (id: string) => activeEntities.add(id),
-    destroyEntity: (id: string) => {
+    isActive: (id: number) => activeEntities.has(id),
+    createEntity: () => {
+      const id = nextId++;
+      activeEntities.add(id);
+      return id;
+    },
+    destroyEntity: (id: number) => {
       activeEntities.delete(id);
       stores.forEach(s => s.delete(id));
     },
@@ -93,31 +98,33 @@ function createWorldMock() {
         ],
       }),
     },
-    spawnFromArchetype: vi.fn((_arch: unknown, entityId: string, values: Record<string, unknown>) => {
+    spawnFromArchetype: vi.fn((_arch: unknown, values: Record<string, unknown>) => {
+      const entityId = nextId++;
       activeEntities.add(entityId);
       for (const [name, value] of Object.entries(values)) {
         getStore(name).set(entityId, value);
       }
+      return entityId;
     }),
     getStoreByName: (name: string) => {
       const s = getStore(name);
       return {
-        get: (id: string) => s.get(id),
-        has: (id: string) => s.has(id),
-        set: (id: string, val: unknown) => s.set(id, val),
-        delete: (id: string) => s.delete(id),
+        get: (id: number) => s.get(id),
+        has: (id: number) => s.has(id),
+        set: (id: number, val: unknown) => s.set(id, val),
+        delete: (id: number) => s.delete(id),
         size: () => s.size,
         entries: () => s.entries(),
       };
     },
     fallingBomb: {
-      get: (id: string) => getStore('fallingBomb').get(id),
+      get: (id: number) => getStore('fallingBomb').get(id),
     },
     transform: {
-      get: (id: string) => getStore('transform').get(id),
+      get: (id: number) => getStore('transform').get(id),
     },
     phaserNode: {
-      get: (id: string) => getStore('phaserNode').get(id),
+      get: (id: number) => getStore('phaserNode').get(id),
     },
     query: vi.fn(function* () {
       const fbStore = getStore('fallingBomb');
@@ -255,7 +262,7 @@ describe('FallingBombSystem', () => {
 
     it('should not destroy a bomb that is not fully spawned', () => {
       // Manually add a bomb entity that's not fully spawned
-      const entityId = 'test_bomb';
+      const entityId = 99;
       worldMock.activeEntities.add(entityId);
       worldMock.stores.set('fallingBomb', new Map([[entityId, {
         moveSpeed: 120,
@@ -278,7 +285,7 @@ describe('FallingBombSystem', () => {
 
   describe('forceDestroy', () => {
     it('should emit FALLING_BOMB_DESTROYED and remove entity', () => {
-      const entityId = 'test_bomb_1';
+      const entityId = 50;
       worldMock.activeEntities.add(entityId);
       worldMock.stores.set('transform', new Map([[entityId, { x: 200, y: 300 }]]));
       worldMock.stores.set('phaserNode', new Map([[entityId, {
@@ -298,7 +305,7 @@ describe('FallingBombSystem', () => {
   describe('clear', () => {
     it('should remove all bomb entities', () => {
       // Add some entities
-      const ids = ['bomb_1', 'bomb_2'];
+      const ids = [71, 72];
       for (const id of ids) {
         worldMock.activeEntities.add(id);
         if (!worldMock.stores.has('phaserNode')) worldMock.stores.set('phaserNode', new Map());

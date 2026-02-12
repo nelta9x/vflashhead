@@ -10,7 +10,7 @@ export class EntityMovementSystem implements EntitySystem {
 
   tick(delta: number): void {
     this.world.movement.forEach((entityId, mov) => {
-      if (entityId === 'player') return;
+      if (this.world.playerInput.has(entityId)) return;
       if (!this.world.isActive(entityId)) return;
 
       const statusCache = this.world.statusCache.get(entityId);

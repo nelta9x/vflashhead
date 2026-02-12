@@ -8,6 +8,7 @@ import { C_DishTag, C_DishProps, C_Transform, C_Lifetime, C_FallingBomb } from '
 import { Data } from '../data/DataManager';
 import type { EntitySystem } from './entity-systems/EntitySystem';
 import type { World } from '../world';
+import type { EntityId } from '../world/EntityId';
 
 export interface OrbPosition {
   x: number;
@@ -31,7 +32,7 @@ export class OrbSystem implements EntitySystem {
   private currentAngle: number = 0;
 
   // Cooldown tracking per entity: Map<entityId, NextHitTime>
-  private lastHitTimes: Map<string, number> = new Map();
+  private lastHitTimes: Map<EntityId, number> = new Map();
   private bossLastHitTimes: Map<string, number> = new Map();
 
   private orbPositions: OrbPosition[] = [];

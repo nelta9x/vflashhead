@@ -5,6 +5,7 @@ import { BossRenderer } from '../../effects/BossRenderer';
 import { resolveBossHpSegmentState } from '../../entities/bossHpSegments';
 import type { EntitySystem } from './EntitySystem';
 import type { World, BossStateComponent } from '../../world';
+import type { EntityId } from '../../world/EntityId';
 import type { FeedbackSystem } from '../FeedbackSystem';
 
 interface BossReactionSystemDeps {
@@ -57,7 +58,7 @@ export class BossReactionSystem implements EntitySystem {
   }
 
   private refreshArmorSegments(
-    entityId: string,
+    entityId: EntityId,
     bs: BossStateComponent,
     currentHp: number,
     maxHp: number,
@@ -90,7 +91,7 @@ export class BossReactionSystem implements EntitySystem {
   }
 
   private createDamageReaction(
-    entityId: string,
+    entityId: EntityId,
     bs: BossStateComponent,
     sourceX: number,
     sourceY: number,
@@ -176,7 +177,7 @@ export class BossReactionSystem implements EntitySystem {
     );
   }
 
-  private createDeathAnimation(entityId: string, bs: BossStateComponent): void {
+  private createDeathAnimation(entityId: EntityId, bs: BossStateComponent): void {
     this.stopAllTweens(bs);
     const deathAnim = Data.boss.feedback.deathAnimation;
     const node = this.world.phaserNode.get(entityId);

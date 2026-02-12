@@ -1,3 +1,4 @@
+import type { EntityId } from './EntityId';
 import { ComponentStore } from './ComponentStore';
 import type { ComponentDef } from './ComponentDef';
 import { ArchetypeRegistry, registerBuiltinArchetypes } from './archetypes';
@@ -45,6 +46,7 @@ import type {
  * World: 동적 스토어 레지스트리 + entity lifecycle 관리.
  * - register(def)로 ComponentDef 토큰 기반 스토어 등록
  * - 빌트인 17개 스토어는 typed property로 직접 접근
+ * - createEntity()로 자동 증가 EntityId 할당
  */
 export class World {
   // 동적 스토어 레지스트리 (name → store)
@@ -73,7 +75,10 @@ export class World {
   readonly archetypeRegistry = new ArchetypeRegistry();
 
   // Active entity tracking
-  private readonly activeEntities = new Set<string>();
+  private readonly activeEntities = new Set<EntityId>();
+
+  // Auto-increment ID counter
+  private nextId: EntityId = 1;
 
   constructor() {
     // 빌트인 컴포넌트를 Def 토큰으로 등록
@@ -123,13 +128,19 @@ export class World {
     return Array.from(this.stores.keys());
   }
 
-  /** 아키타입 기반 엔티티 스폰. values 키 = ComponentDef.name */
+  /** 새 EntityId를 할당하고 active로 등록 */
+  createEntity(): EntityId {
+    const id = this.nextId++;
+    this.activeEntities.add(id);
+    return id;
+  }
+
+  /** 아키타입 기반 엔티티 스폰. 내부에서 createEntity() 호출. */
   spawnFromArchetype(
     archetype: ArchetypeDefinition,
-    entityId: string,
     values: Record<string, unknown>,
-  ): void {
-    this.createEntity(entityId);
+  ): EntityId {
+    const entityId = this.createEntity();
     for (const def of archetype.components) {
       const store = this.getStoreByName(def.name);
       if (!store) throw new Error(`spawnFromArchetype: store "${def.name}" not registered`);
@@ -137,33 +148,30 @@ export class World {
       if (value === undefined) throw new Error(`spawnFromArchetype: missing value for "${def.name}"`);
       store.set(entityId, value);
     }
+    return entityId;
   }
 
-  createEntity(entityId: string): void {
-    this.activeEntities.add(entityId);
-  }
-
-  destroyEntity(entityId: string): void {
+  destroyEntity(entityId: EntityId): void {
     this.activeEntities.delete(entityId);
     this.removeAllComponents(entityId);
   }
 
-  isActive(entityId: string): boolean {
+  isActive(entityId: EntityId): boolean {
     return this.activeEntities.has(entityId);
   }
 
   /** 지정 ComponentDef 토큰에 해당하는 active 엔티티의 [id, ...components] 튜플을 yield */
-  query<A>(c1: ComponentDef<A>): IterableIterator<[string, A]>;
-  query<A, B>(c1: ComponentDef<A>, c2: ComponentDef<B>): IterableIterator<[string, A, B]>;
-  query<A, B, C>(c1: ComponentDef<A>, c2: ComponentDef<B>, c3: ComponentDef<C>): IterableIterator<[string, A, B, C]>;
-  query<A, B, C, D>(c1: ComponentDef<A>, c2: ComponentDef<B>, c3: ComponentDef<C>, c4: ComponentDef<D>): IterableIterator<[string, A, B, C, D]>;
-  query<A, B, C, D, E>(c1: ComponentDef<A>, c2: ComponentDef<B>, c3: ComponentDef<C>, c4: ComponentDef<D>, c5: ComponentDef<E>): IterableIterator<[string, A, B, C, D, E]>;
+  query<A>(c1: ComponentDef<A>): IterableIterator<[EntityId, A]>;
+  query<A, B>(c1: ComponentDef<A>, c2: ComponentDef<B>): IterableIterator<[EntityId, A, B]>;
+  query<A, B, C>(c1: ComponentDef<A>, c2: ComponentDef<B>, c3: ComponentDef<C>): IterableIterator<[EntityId, A, B, C]>;
+  query<A, B, C, D>(c1: ComponentDef<A>, c2: ComponentDef<B>, c3: ComponentDef<C>, c4: ComponentDef<D>): IterableIterator<[EntityId, A, B, C, D]>;
+  query<A, B, C, D, E>(c1: ComponentDef<A>, c2: ComponentDef<B>, c3: ComponentDef<C>, c4: ComponentDef<D>, c5: ComponentDef<E>): IterableIterator<[EntityId, A, B, C, D, E]>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  query(...defs: ComponentDef<any>[]): IterableIterator<[string, ...unknown[]]> {
+  query(...defs: ComponentDef<any>[]): IterableIterator<[EntityId, ...unknown[]]> {
     return this.queryImpl(defs);
   }
 
-  private *queryImpl(defs: ComponentDef[]): Generator<[string, ...unknown[]]> {
+  private *queryImpl(defs: ComponentDef[]): Generator<[EntityId, ...unknown[]]> {
     if (defs.length === 0) return;
 
     // Resolve stores
@@ -198,7 +206,7 @@ export class World {
       if (!valid) continue;
 
       // Build tuple: [entityId, c1Data, c2Data, ...]
-      const tuple: [string, ...unknown[]] = [entityId];
+      const tuple: [EntityId, ...unknown[]] = [entityId];
       for (const store of stores) {
         tuple.push(store.get(entityId)!);
       }
@@ -209,9 +217,10 @@ export class World {
   clear(): void {
     this.activeEntities.clear();
     this.clearAllStores();
+    this.nextId = 1;
   }
 
-  private removeAllComponents(entityId: string): void {
+  private removeAllComponents(entityId: EntityId): void {
     this.stores.forEach(s => s.delete(entityId));
   }
 

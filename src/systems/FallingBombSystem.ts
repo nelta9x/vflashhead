@@ -5,6 +5,7 @@ import type { Entity } from '../entities/Entity';
 import { DishRenderer } from '../effects/DishRenderer';
 import { EventBus, GameEvents } from '../utils/EventBus';
 import { C_FallingBomb, C_Transform } from '../world';
+import type { EntityId } from '../world/EntityId';
 import type { World } from '../world';
 import type { EntityPoolManager } from './EntityPoolManager';
 import type { EntitySystem } from './entity-systems/EntitySystem';
@@ -20,7 +21,6 @@ export class FallingBombSystem implements EntitySystem {
   private readonly entityPoolManager: EntityPoolManager;
   private lastSpawnTime: number = -FALLING_BOMB.COOLDOWN;
   private timeSinceLastCheck: number = 0;
-  private spawnCounter: number = 0;
 
   // Context set before tick
   private _gameTime = 0;
@@ -84,7 +84,7 @@ export class FallingBombSystem implements EntitySystem {
     }
   }
 
-  forceDestroy(entityId: string, byAbility: boolean): void {
+  forceDestroy(entityId: EntityId, byAbility: boolean): void {
     if (!this.world.isActive(entityId)) return;
 
     const t = this.world.transform.get(entityId);
@@ -108,7 +108,7 @@ export class FallingBombSystem implements EntitySystem {
   }
 
   clear(): void {
-    const toRemove: string[] = [];
+    const toRemove: EntityId[] = [];
     for (const [entityId] of this.world.query(C_FallingBomb)) {
       toRemove.push(entityId);
     }
@@ -123,14 +123,14 @@ export class FallingBombSystem implements EntitySystem {
     // No event listeners to clean up (system is pipeline-managed)
   }
 
-  private onMissed(entityId: string): void {
+  private onMissed(entityId: EntityId): void {
     if (!this.world.isActive(entityId)) return;
 
     EventBus.getInstance().emit(GameEvents.FALLING_BOMB_MISSED);
     this.destroyBombEntity(entityId);
   }
 
-  private destroyBombEntity(entityId: string): void {
+  private destroyBombEntity(entityId: EntityId): void {
     const node = this.world.phaserNode.get(entityId);
     if (node) {
       if (node.spawnTween) {
@@ -168,13 +168,11 @@ export class FallingBombSystem implements EntitySystem {
   private spawnBomb(gameTime: number): void {
     const margin = Data.fallingBomb.spawnMargin;
     const x = Phaser.Math.Between(margin, GAME_WIDTH - margin);
-    const entityId = `falling_bomb_${++this.spawnCounter}`;
 
     // Acquire Entity from pool
     const entity = this.entityPoolManager.acquire('fallingBomb');
     if (!entity) return;
 
-    entity.setEntityId(entityId);
     entity.setPosition(x, -OFFSCREEN_MARGIN);
     entity.reset();
 
@@ -183,7 +181,7 @@ export class FallingBombSystem implements EntitySystem {
 
     // Spawn into ECS world
     const archetype = this.world.archetypeRegistry.getRequired('fallingBomb');
-    this.world.spawnFromArchetype(archetype, entityId, {
+    const entityId = this.world.spawnFromArchetype(archetype, {
       fallingBomb: {
         moveSpeed: Data.fallingBomb.moveSpeed,
         blinkPhase: 0,
@@ -203,6 +201,8 @@ export class FallingBombSystem implements EntitySystem {
         typePlugin: null,
       },
     });
+
+    entity.setEntityId(entityId);
 
     // Spawn animation
     container.setScale(0);

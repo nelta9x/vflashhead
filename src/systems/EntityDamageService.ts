@@ -4,6 +4,7 @@ import { DishDamageResolver } from '../entities/dish/DishDamageResolver';
 import { DishEventPayloadFactory } from '../entities/dish/DishEventPayloadFactory';
 import { createEntitySnapshot } from '../entities/EntitySnapshot';
 import { deactivateEntity } from '../entities/EntityLifecycle';
+import type { EntityId } from '../world/EntityId';
 import type { Entity } from '../entities/Entity';
 import type { World } from '../world';
 import type { StatusEffectManager } from './StatusEffectManager';
@@ -14,18 +15,18 @@ import type { StatusEffectManager } from './StatusEffectManager';
  * 데미지 타이머는 내부 Map으로 관리한다.
  */
 export class EntityDamageService {
-  private readonly timers = new Map<string, Phaser.Time.TimerEvent>();
+  private readonly timers = new Map<EntityId, Phaser.Time.TimerEvent>();
 
   constructor(
     private readonly world: World,
     private readonly sem: StatusEffectManager,
-    private readonly entityLookup: (entityId: string) => Entity | undefined,
+    private readonly entityLookup: (entityId: EntityId) => Entity | undefined,
     private readonly scene: Phaser.Scene,
   ) {}
 
   // === Cursor interaction ===
 
-  setInCursorRange(entityId: string, inRange: boolean): void {
+  setInCursorRange(entityId: EntityId, inRange: boolean): void {
     const ci = this.world.cursorInteraction.get(entityId);
     const interaction = ci?.cursorInteractionType ?? 'dps';
     const entity = this.entityLookup(entityId);
@@ -50,7 +51,7 @@ export class EntityDamageService {
     }
   }
 
-  private startDamaging(entityId: string): void {
+  private startDamaging(entityId: EntityId): void {
     const entity = this.entityLookup(entityId);
     if (!entity?.active) return;
 
@@ -71,14 +72,14 @@ export class EntityDamageService {
     this.setDamageTimer(entityId, timer);
   }
 
-  private stopDamaging(entityId: string): void {
+  private stopDamaging(entityId: EntityId): void {
     const ci = this.world.cursorInteraction.get(entityId);
     if (ci) ci.isBeingDamaged = false;
 
     this.clearDamageTimer(entityId);
   }
 
-  private takeDamageFromCursor(entityId: string, isFirstHit: boolean): void {
+  private takeDamageFromCursor(entityId: EntityId, isFirstHit: boolean): void {
     const entity = this.entityLookup(entityId);
     if (!entity?.active) return;
 
@@ -113,7 +114,7 @@ export class EntityDamageService {
 
   // === Ability damage ===
 
-  applyDamage(entityId: string, damage: number): void {
+  applyDamage(entityId: EntityId, damage: number): void {
     const entity = this.entityLookup(entityId);
     if (!entity?.active) return;
 
@@ -146,7 +147,7 @@ export class EntityDamageService {
 
   // === Upgrade damage ===
 
-  applyUpgradeDamage(entityId: string, baseDamage: number, damageBonus: number, criticalChanceBonus: number): void {
+  applyUpgradeDamage(entityId: EntityId, baseDamage: number, damageBonus: number, criticalChanceBonus: number): void {
     const entity = this.entityLookup(entityId);
     if (!entity?.active) return;
 
@@ -182,7 +183,7 @@ export class EntityDamageService {
 
   // === Boss contact damage ===
 
-  applyContactDamage(entityId: string, damage: number, sourceX: number, sourceY: number): void {
+  applyContactDamage(entityId: EntityId, damage: number, sourceX: number, sourceY: number): void {
     const entity = this.entityLookup(entityId);
     if (!entity?.active) return;
 
@@ -210,7 +211,7 @@ export class EntityDamageService {
 
   // === External HP change (MonsterSystem) ===
 
-  handleExternalHpChange(entityId: string, currentHp: number, maxHp: number, sourceX?: number, sourceY?: number): void {
+  handleExternalHpChange(entityId: EntityId, currentHp: number, maxHp: number, sourceX?: number, sourceY?: number): void {
     const entity = this.entityLookup(entityId);
     if (!entity) return;
 
@@ -235,7 +236,7 @@ export class EntityDamageService {
 
   // === Force destroy ===
 
-  forceDestroy(entityId: string, byAbility: boolean = true): void {
+  forceDestroy(entityId: EntityId, byAbility: boolean = true): void {
     const entity = this.entityLookup(entityId);
     if (!entity?.active) return;
 
@@ -247,7 +248,7 @@ export class EntityDamageService {
 
   // === Explode (bomb interaction) ===
 
-  explode(entityId: string): void {
+  explode(entityId: EntityId): void {
     const entity = this.entityLookup(entityId);
     if (!entity?.active) return;
 
@@ -268,7 +269,7 @@ export class EntityDamageService {
 
   // === Timeout ===
 
-  handleTimeout(entityId: string): void {
+  handleTimeout(entityId: EntityId): void {
     const entity = this.entityLookup(entityId);
     if (!entity?.active) return;
 
@@ -288,7 +289,7 @@ export class EntityDamageService {
 
   // === Status effects ===
 
-  applySlow(entityId: string, duration: number, factor: number = 0.3): void {
+  applySlow(entityId: EntityId, duration: number, factor: number = 0.3): void {
     const entity = this.entityLookup(entityId);
     if (!entity?.active) return;
 
@@ -303,7 +304,7 @@ export class EntityDamageService {
     });
   }
 
-  freeze(entityId: string): void {
+  freeze(entityId: EntityId): void {
     const effectId = `${entityId}:freeze`;
     this.sem.applyEffect(entityId, {
       id: effectId,
@@ -314,25 +315,25 @@ export class EntityDamageService {
     });
   }
 
-  unfreeze(entityId: string): void {
+  unfreeze(entityId: EntityId): void {
     this.sem.removeEffect(entityId, `${entityId}:freeze`);
   }
 
   // === Magnet ===
 
-  setBeingPulled(entityId: string, pulled: boolean): void {
+  setBeingPulled(entityId: EntityId, pulled: boolean): void {
     const vs = this.world.visualState.get(entityId);
     if (vs) vs.isBeingPulled = pulled;
   }
 
   // === Timer management ===
 
-  private setDamageTimer(entityId: string, timer: Phaser.Time.TimerEvent): void {
+  private setDamageTimer(entityId: EntityId, timer: Phaser.Time.TimerEvent): void {
     this.clearDamageTimer(entityId);
     this.timers.set(entityId, timer);
   }
 
-  clearDamageTimer(entityId: string): void {
+  clearDamageTimer(entityId: EntityId): void {
     const timer = this.timers.get(entityId);
     if (timer) {
       timer.destroy();
@@ -342,29 +343,29 @@ export class EntityDamageService {
 
   // === Plugin helpers (World 스토어에서 typePlugin 조회) ===
 
-  private getTypePlugin(entityId: string) {
+  private getTypePlugin(entityId: EntityId) {
     const node = this.world.phaserNode.get(entityId);
     return node?.typePlugin ?? null;
   }
 
-  private invokePluginOnDamaged(entityId: string, damage: number, source: string): void {
+  private invokePluginOnDamaged(entityId: EntityId, damage: number, source: string): void {
     const plugin = this.getTypePlugin(entityId);
     plugin?.onDamaged?.(entityId, this.world, damage, source as import('../plugins/types').DamageSource);
   }
 
-  private invokePluginOnDestroyed(entityId: string): void {
+  private invokePluginOnDestroyed(entityId: EntityId): void {
     const plugin = this.getTypePlugin(entityId);
     plugin?.onDestroyed?.(entityId, this.world);
   }
 
-  private invokePluginOnTimeout(entityId: string): void {
+  private invokePluginOnTimeout(entityId: EntityId): void {
     const plugin = this.getTypePlugin(entityId);
     plugin?.onTimeout?.(entityId, this.world);
   }
 
   // === Private: standard destroy ===
 
-  private destroyEntity(entityId: string): void {
+  private destroyEntity(entityId: EntityId): void {
     const entity = this.entityLookup(entityId);
     if (!entity) return;
 

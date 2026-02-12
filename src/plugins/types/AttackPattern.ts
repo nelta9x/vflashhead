@@ -1,4 +1,5 @@
 import type Phaser from 'phaser';
+import type { EntityId } from '../../world/EntityId';
 
 /**
  * Entity 공격 패턴 인터페이스
@@ -8,7 +9,7 @@ export interface AttackPattern {
   readonly patternId: string;
   init(
     scene: Phaser.Scene,
-    entityId: string,
+    entityId: EntityId,
     getPosition: () => { x: number; y: number }
   ): void;
   update(delta: number, gameTime: number): void;

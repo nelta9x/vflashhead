@@ -45,9 +45,10 @@ describe('World Store Registry', () => {
       const C_Poison = defineComponent<PoisonComponent>('mod:poison');
 
       const store = world.register(C_Poison);
-      store.set('e1', { dps: 5 });
+      const e1 = world.createEntity();
+      store.set(e1, { dps: 5 });
 
-      expect(world.getStoreByName('mod:poison')?.get('e1')).toEqual({ dps: 5 });
+      expect(world.getStoreByName('mod:poison')?.get(e1)).toEqual({ dps: 5 });
       expect(world.getStoreNames()).toContain('mod:poison');
     });
 
@@ -87,8 +88,8 @@ describe('World Store Registry', () => {
     it('아키타입 기반으로 엔티티를 스폰해야 함', () => {
       const playerArch = world.archetypeRegistry.getRequired('player');
 
-      world.spawnFromArchetype(playerArch, 'p1', {
-        identity: { entityId: 'p1', entityType: 'player', isGatekeeper: false },
+      const p1 = world.spawnFromArchetype(playerArch, {
+        identity: { entityId: 0, entityType: 'player', isGatekeeper: false },
         transform: { x: 10, y: 20, baseX: 10, baseY: 20, alpha: 1, scaleX: 1, scaleY: 1 },
         health: { currentHp: 100, maxHp: 100 },
         statusCache: { isFrozen: false, slowFactor: 1.0, isShielded: false },
@@ -96,19 +97,19 @@ describe('World Store Registry', () => {
         playerRender: { gaugeRatio: 0, gameTime: 0 },
       });
 
-      expect(world.isActive('p1')).toBe(true);
-      expect(world.identity.getRequired('p1').entityType).toBe('player');
-      expect(world.transform.getRequired('p1').x).toBe(10);
-      expect(world.health.getRequired('p1').currentHp).toBe(100);
-      expect(world.playerInput.getRequired('p1').targetX).toBe(10);
-      expect(world.playerRender.getRequired('p1').gaugeRatio).toBe(0);
+      expect(world.isActive(p1)).toBe(true);
+      expect(world.identity.getRequired(p1).entityType).toBe('player');
+      expect(world.transform.getRequired(p1).x).toBe(10);
+      expect(world.health.getRequired(p1).currentHp).toBe(100);
+      expect(world.playerInput.getRequired(p1).targetX).toBe(10);
+      expect(world.playerRender.getRequired(p1).gaugeRatio).toBe(0);
     });
 
     it('누락된 컴포넌트 값이 있으면 에러를 던져야 함', () => {
       const playerArch = world.archetypeRegistry.getRequired('player');
 
-      expect(() => world.spawnFromArchetype(playerArch, 'p1', {
-        identity: { entityId: 'p1', entityType: 'player', isGatekeeper: false },
+      expect(() => world.spawnFromArchetype(playerArch, {
+        identity: { entityId: 0, entityType: 'player', isGatekeeper: false },
         // missing transform, health, statusCache, playerInput, playerRender
       })).toThrow('missing value');
     });
@@ -119,7 +120,7 @@ describe('World Store Registry', () => {
         components: [defineComponent('notRegistered')],
       };
 
-      expect(() => world.spawnFromArchetype(unknownArch, 'e1', {
+      expect(() => world.spawnFromArchetype(unknownArch, {
         notRegistered: {},
       })).toThrow('store "notRegistered" not registered');
     });
@@ -138,14 +139,14 @@ describe('World Store Registry', () => {
       const C_Custom = defineComponent<{ val: number }>('mod:custom');
       const customStore = world.register(C_Custom);
 
-      world.createEntity('e1');
-      customStore.set('e1', { val: 42 });
-      world.identity.set('e1', { entityId: 'e1', entityType: 'test', isGatekeeper: false });
+      const e1 = world.createEntity();
+      customStore.set(e1, { val: 42 });
+      world.identity.set(e1, { entityId: e1, entityType: 'test', isGatekeeper: false });
 
-      world.destroyEntity('e1');
+      world.destroyEntity(e1);
 
-      expect(customStore.has('e1')).toBe(false);
-      expect(world.identity.has('e1')).toBe(false);
+      expect(customStore.has(e1)).toBe(false);
+      expect(world.identity.has(e1)).toBe(false);
     });
   });
 
@@ -154,15 +155,15 @@ describe('World Store Registry', () => {
       const C_Custom = defineComponent<{ val: number }>('mod:custom');
       const customStore = world.register(C_Custom);
 
-      world.createEntity('e1');
-      customStore.set('e1', { val: 1 });
-      world.identity.set('e1', { entityId: 'e1', entityType: 'a', isGatekeeper: false });
+      const e1 = world.createEntity();
+      customStore.set(e1, { val: 1 });
+      world.identity.set(e1, { entityId: e1, entityType: 'a', isGatekeeper: false });
 
       world.clear();
 
       expect(customStore.size()).toBe(0);
       expect(world.identity.size()).toBe(0);
-      expect(world.isActive('e1')).toBe(false);
+      expect(world.isActive(e1)).toBe(false);
     });
   });
 });

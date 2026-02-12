@@ -33,16 +33,16 @@ describe('EntityStatusSystem', () => {
   it('updates statusCache from SEM for active entities', () => {
     const world = new World();
     const sem = createMockSEM();
-    sem.hasEffect.mockImplementation((_id: string, type: string) => type === 'freeze');
+    sem.hasEffect.mockImplementation((_id: number, type: string) => type === 'freeze');
     sem.getEffectsByType.mockReturnValue([{ data: { factor: 0.5 } }]);
     const system = new EntityStatusSystem(world, sem as never);
 
-    world.createEntity('e1');
-    world.statusCache.set('e1', { isFrozen: false, slowFactor: 1.0, isShielded: false });
+    const e1 = world.createEntity();
+    world.statusCache.set(e1, { isFrozen: false, slowFactor: 1.0, isShielded: false });
 
     system.tick(16);
 
-    const status = world.statusCache.getRequired('e1');
+    const status = world.statusCache.getRequired(e1);
     expect(status.isFrozen).toBe(true);
     expect(status.slowFactor).toBe(0.5);
   });
@@ -52,12 +52,12 @@ describe('EntityStatusSystem', () => {
     const sem = createMockSEM();
     const system = new EntityStatusSystem(world, sem as never);
 
-    world.createEntity('e1');
-    world.statusCache.set('e1', { isFrozen: false, slowFactor: 0.3, isShielded: false });
+    const e1 = world.createEntity();
+    world.statusCache.set(e1, { isFrozen: false, slowFactor: 0.3, isShielded: false });
 
     system.tick(16);
 
-    expect(world.statusCache.getRequired('e1').slowFactor).toBe(1.0);
+    expect(world.statusCache.getRequired(e1).slowFactor).toBe(1.0);
   });
 
   it('skips inactive entities', () => {
@@ -66,7 +66,8 @@ describe('EntityStatusSystem', () => {
     const system = new EntityStatusSystem(world, sem as never);
 
     // Set statusCache but don't create entity (not active)
-    world.statusCache.set('e1', { isFrozen: false, slowFactor: 1.0, isShielded: false });
+    const fakeId = 999;
+    world.statusCache.set(fakeId, { isFrozen: false, slowFactor: 1.0, isShielded: false });
 
     system.tick(16);
 
@@ -80,12 +81,12 @@ describe('EntityStatusSystem', () => {
     sem.getEffectsByType.mockReturnValue([{ data: { factor: 0.5 } }]);
     const system = new EntityStatusSystem(world, sem as never);
 
-    world.createEntity('player');
-    world.statusCache.set('player', { isFrozen: false, slowFactor: 1.0, isShielded: false });
+    const player = world.createEntity();
+    world.statusCache.set(player, { isFrozen: false, slowFactor: 1.0, isShielded: false });
 
     system.tick(16);
 
-    expect(world.statusCache.getRequired('player').isFrozen).toBe(true);
+    expect(world.statusCache.getRequired(player).isFrozen).toBe(true);
   });
 
   it('handles empty world', () => {

@@ -28,9 +28,9 @@ describe('EntityRenderSystem', () => {
     const mockGraphics = { clear: vi.fn() };
     const system = new EntityRenderSystem(world);
 
-    world.createEntity('e1');
-    world.transform.set('e1', { x: 100, y: 200, baseX: 100, baseY: 200, alpha: 0.5, scaleX: 2, scaleY: 2 });
-    world.phaserNode.set('e1', {
+    const e1 = world.createEntity();
+    world.transform.set(e1, { x: 100, y: 200, baseX: 100, baseY: 200, alpha: 0.5, scaleX: 2, scaleY: 2 });
+    world.phaserNode.set(e1, {
       container: mockContainer as never,
       graphics: mockGraphics as never,
       body: null,
@@ -38,17 +38,17 @@ describe('EntityRenderSystem', () => {
       bossRenderer: null,
       typePlugin: null,
     });
-    world.identity.set('e1', { entityId: 'e1', entityType: 'basic', isGatekeeper: false });
-    world.dishProps.set('e1', {
+    world.identity.set(e1, { entityId: e1, entityType: 'basic', isGatekeeper: false });
+    world.dishProps.set(e1, {
       dangerous: false, invulnerable: false, color: 0x00ffff, size: 30,
       interactiveRadius: 40, upgradeOptions: {}, destroyedByAbility: false,
     });
-    world.health.set('e1', { currentHp: 10, maxHp: 10, isDead: false });
-    world.statusCache.set('e1', { isFrozen: false, slowFactor: 1.0, isShielded: false });
-    world.visualState.set('e1', {
+    world.health.set(e1, { currentHp: 10, maxHp: 10, isDead: false });
+    world.statusCache.set(e1, { isFrozen: false, slowFactor: 1.0, isShielded: false });
+    world.visualState.set(e1, {
       hitFlashPhase: 0, wobblePhase: 0, blinkPhase: 0, isBeingPulled: false, pullPhase: 0,
     });
-    world.cursorInteraction.set('e1', {
+    world.cursorInteraction.set(e1, {
       isHovered: false, isBeingDamaged: false, damageInterval: 150,
       damageTimerHandle: null, cursorInteractionType: 'dps',
     });
@@ -68,8 +68,8 @@ describe('EntityRenderSystem', () => {
     const mockContainer = { x: 0, y: 0, alpha: 1, scaleX: 1, scaleY: 1 };
     const system = new EntityRenderSystem(world);
 
-    world.createEntity('e1');
-    world.phaserNode.set('e1', {
+    const e1 = world.createEntity();
+    world.phaserNode.set(e1, {
       container: mockContainer as never,
       graphics: {} as never,
       body: null,
@@ -77,24 +77,25 @@ describe('EntityRenderSystem', () => {
       bossRenderer: null,
       typePlugin: mockPlugin as never,
     });
-    world.transform.set('e1', { x: 0, y: 0, baseX: 0, baseY: 0, alpha: 1, scaleX: 1, scaleY: 1 });
-    world.identity.set('e1', { entityId: 'e1', entityType: 'basic', isGatekeeper: false });
-    world.lifetime.set('e1', {
+    world.transform.set(e1, { x: 0, y: 0, baseX: 0, baseY: 0, alpha: 1, scaleX: 1, scaleY: 1 });
+    world.identity.set(e1, { entityId: e1, entityType: 'basic', isGatekeeper: false });
+    world.lifetime.set(e1, {
       elapsedTime: 0, movementTime: 500, lifetime: 5000, spawnDuration: 150, globalSlowPercent: 0,
     });
 
     system.tick(16);
 
-    expect(mockOnUpdate).toHaveBeenCalledWith('e1', world, 16, 500);
+    expect(mockOnUpdate).toHaveBeenCalledWith(e1, world, 16, 500);
   });
 
   it('skips player entity', () => {
     const mockContainer = { x: 0, y: 0, alpha: 1, scaleX: 1, scaleY: 1 };
     const system = new EntityRenderSystem(world);
 
-    world.createEntity('player');
-    world.transform.set('player', { x: 100, y: 200, baseX: 0, baseY: 0, alpha: 1, scaleX: 1, scaleY: 1 });
-    world.phaserNode.set('player', {
+    const player = world.createEntity();
+    world.playerInput.set(player, { targetX: 0, targetY: 0, smoothingConfig: {} } as never);
+    world.transform.set(player, { x: 100, y: 200, baseX: 0, baseY: 0, alpha: 1, scaleX: 1, scaleY: 1 });
+    world.phaserNode.set(player, {
       container: mockContainer as never,
       graphics: {} as never,
       body: null,
@@ -112,10 +113,10 @@ describe('EntityRenderSystem', () => {
     const mockContainer = { x: 0, y: 0, alpha: 0.3, scaleX: 0.5, scaleY: 0.5, };
     const system = new EntityRenderSystem(world);
 
-    world.createEntity('e1');
+    const e1 = world.createEntity();
     const transform = { x: 50, y: 60, baseX: 50, baseY: 60, alpha: 0, scaleX: 0, scaleY: 0 };
-    world.transform.set('e1', transform);
-    world.phaserNode.set('e1', {
+    world.transform.set(e1, transform);
+    world.phaserNode.set(e1, {
       container: mockContainer as never,
       graphics: {} as never,
       body: null,
@@ -123,7 +124,7 @@ describe('EntityRenderSystem', () => {
       bossRenderer: null,
       typePlugin: null,
     });
-    world.identity.set('e1', { entityId: 'e1', entityType: 'basic', isGatekeeper: false });
+    world.identity.set(e1, { entityId: e1, entityType: 'basic', isGatekeeper: false });
 
     system.tick(16);
 
@@ -144,8 +145,9 @@ describe('EntityRenderSystem', () => {
     const mockContainer = { x: 0, y: 0, alpha: 1, scaleX: 1, scaleY: 1 };
     const system = new EntityRenderSystem(world);
 
-    world.transform.set('e1', { x: 100, y: 200, baseX: 0, baseY: 0, alpha: 1, scaleX: 1, scaleY: 1 });
-    world.phaserNode.set('e1', {
+    const fakeId = 999;
+    world.transform.set(fakeId, { x: 100, y: 200, baseX: 0, baseY: 0, alpha: 1, scaleX: 1, scaleY: 1 });
+    world.phaserNode.set(fakeId, {
       container: mockContainer as never,
       graphics: {} as never,
       body: null,

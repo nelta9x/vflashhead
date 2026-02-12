@@ -47,12 +47,12 @@ describe('EntityMovementSystem', () => {
     const world = new World();
     const system = new EntityMovementSystem(world);
 
-    world.createEntity('e1');
+    const e1 = world.createEntity();
     const mov = makeDrift();
-    world.movement.set('e1', mov);
-    world.statusCache.set('e1', { isFrozen: false, slowFactor: 1.0, isShielded: false });
-    world.transform.set('e1', makeTransform());
-    world.visualState.set('e1', makeVisualState());
+    world.movement.set(e1, mov);
+    world.statusCache.set(e1, { isFrozen: false, slowFactor: 1.0, isShielded: false });
+    world.transform.set(e1, makeTransform());
+    world.visualState.set(e1, makeVisualState());
 
     const delta = 16;
     system.tick(delta);
@@ -65,7 +65,7 @@ describe('EntityMovementSystem', () => {
     const expectedBaseX = 100 + Math.sin(delta * d.xFrequency + d.phaseX) * d.xAmplitude;
     const expectedBaseY = 200 + Math.sin(delta * d.yFrequency + d.phaseY) * d.yAmplitude;
 
-    const t = world.transform.getRequired('e1');
+    const t = world.transform.getRequired(e1);
     expect(t.baseX).toBeCloseTo(expectedBaseX, 5);
     expect(t.baseY).toBeCloseTo(expectedBaseY, 5);
     expect(t.x).toBeCloseTo(expectedBaseX, 5);
@@ -77,12 +77,12 @@ describe('EntityMovementSystem', () => {
     const world = new World();
     const system = new EntityMovementSystem(world);
 
-    world.createEntity('e1');
+    const e1 = world.createEntity();
     const mov = makeDrift();
-    world.movement.set('e1', mov);
-    world.statusCache.set('e1', { isFrozen: false, slowFactor: 1.0, isShielded: false });
-    world.transform.set('e1', makeTransform());
-    world.bossState.set('e1', {
+    world.movement.set(e1, mov);
+    world.statusCache.set(e1, { isFrozen: false, slowFactor: 1.0, isShielded: false });
+    world.transform.set(e1, makeTransform());
+    world.bossState.set(e1, {
       defaultArmorPieces: 0,
       armorPieceCount: 0,
       currentArmorCount: 0,
@@ -108,7 +108,7 @@ describe('EntityMovementSystem', () => {
     const expectedBaseX = 100 + Math.sin(delta * d.xFrequency + d.phaseX) * d.xAmplitude;
     const expectedBaseY = 200 + Math.sin(delta * d.yFrequency + d.phaseY) * d.yAmplitude;
 
-    const t = world.transform.getRequired('e1');
+    const t = world.transform.getRequired(e1);
     expect(t.baseX).toBeCloseTo(expectedBaseX, 5);
     expect(t.baseY).toBeCloseTo(expectedBaseY, 5);
     expect(t.x).toBeCloseTo(expectedBaseX + 5 + 2, 5);
@@ -120,12 +120,12 @@ describe('EntityMovementSystem', () => {
     const world = new World();
     const system = new EntityMovementSystem(world);
 
-    world.createEntity('e1');
+    const e1 = world.createEntity();
     const mov = makeDrift();
-    world.movement.set('e1', mov);
-    world.statusCache.set('e1', { isFrozen: true, slowFactor: 0.5, isShielded: false });
-    world.transform.set('e1', makeTransform({ x: 10, y: 20, baseX: 10, baseY: 20 }));
-    world.visualState.set('e1', makeVisualState());
+    world.movement.set(e1, mov);
+    world.statusCache.set(e1, { isFrozen: true, slowFactor: 0.5, isShielded: false });
+    world.transform.set(e1, makeTransform({ x: 10, y: 20, baseX: 10, baseY: 20 }));
+    world.visualState.set(e1, makeVisualState());
 
     system.tick(16);
 
@@ -133,7 +133,7 @@ describe('EntityMovementSystem', () => {
     expect(mov.movementTime).toBe(0);
 
     // Transform should remain unchanged
-    const t = world.transform.getRequired('e1');
+    const t = world.transform.getRequired(e1);
     expect(t.baseX).toBe(10);
     expect(t.baseY).toBe(20);
     expect(t.x).toBe(10);
@@ -145,15 +145,15 @@ describe('EntityMovementSystem', () => {
     const world = new World();
     const system = new EntityMovementSystem(world);
 
-    world.createEntity('e1');
-    world.movement.set('e1', { type: 'none', homeX: 0, homeY: 0, movementTime: 0, drift: null });
-    world.statusCache.set('e1', { isFrozen: false, slowFactor: 0.5, isShielded: false });
-    world.transform.set('e1', makeTransform());
-    world.visualState.set('e1', makeVisualState());
+    const e1 = world.createEntity();
+    world.movement.set(e1, { type: 'none', homeX: 0, homeY: 0, movementTime: 0, drift: null });
+    world.statusCache.set(e1, { isFrozen: false, slowFactor: 0.5, isShielded: false });
+    world.transform.set(e1, makeTransform());
+    world.visualState.set(e1, makeVisualState());
 
     system.tick(16);
 
-    expect(world.visualState.getRequired('e1').wobblePhase).toBeCloseTo(0.1 * 0.5, 5);
+    expect(world.visualState.getRequired(e1).wobblePhase).toBeCloseTo(0.1 * 0.5, 5);
   });
 
   it('skips player entity', async () => {
@@ -161,11 +161,12 @@ describe('EntityMovementSystem', () => {
     const world = new World();
     const system = new EntityMovementSystem(world);
 
-    world.createEntity('player');
+    const player = world.createEntity();
+    world.playerInput.set(player, { targetX: 0, targetY: 0, smoothingConfig: {} } as never);
     const mov = makeDrift();
-    world.movement.set('player', mov);
-    world.statusCache.set('player', { isFrozen: false, slowFactor: 1.0, isShielded: false });
-    world.transform.set('player', makeTransform());
+    world.movement.set(player, mov);
+    world.statusCache.set(player, { isFrozen: false, slowFactor: 1.0, isShielded: false });
+    world.transform.set(player, makeTransform());
 
     system.tick(16);
 
@@ -179,9 +180,10 @@ describe('EntityMovementSystem', () => {
     const system = new EntityMovementSystem(world);
 
     // Set movement without calling createEntity (entity not active)
+    const fakeId = 999;
     const mov = makeDrift();
-    world.movement.set('e1', mov);
-    world.transform.set('e1', makeTransform());
+    world.movement.set(fakeId, mov);
+    world.transform.set(fakeId, makeTransform());
 
     system.tick(16);
 

@@ -7,6 +7,7 @@ import type { PlayerAttackRenderer } from '../../../effects/PlayerAttackRenderer
 import type { ObjectPool } from '../../../utils/ObjectPool';
 import type { UpgradeSystem } from '../../../systems/UpgradeSystem';
 import type { World } from '../../../world';
+import { INVALID_ENTITY_ID } from '../../../world/EntityId';
 import { PluginRegistry } from '../../../plugins/PluginRegistry';
 
 interface DishSpawnServiceDeps {
@@ -25,7 +26,6 @@ export class DishSpawnService {
   private readonly world: World;
   private readonly getPlayerAttackRenderer: () => PlayerAttackRenderer;
   private readonly isGameOver: () => boolean;
-  private spawnCounter: number = 0;
 
   constructor(deps: DishSpawnServiceDeps) {
     this.dishPool = deps.dishPool;
@@ -69,7 +69,7 @@ export class DishSpawnService {
     };
 
     const config = {
-      entityId: `dish_${++this.spawnCounter}`,
+      entityId: INVALID_ENTITY_ID,
       entityType: type,
       hp: dishData?.hp ?? 10,
       lifetime: dishData?.lifetime ?? 7000,
@@ -78,7 +78,6 @@ export class DishSpawnService {
       upgradeOptions: options,
     };
 
-    entity.setEntityId(config.entityId);
     entity.active = true;
     initializeEntitySpawn(entity, this.world, config, plugin, x, y);
 

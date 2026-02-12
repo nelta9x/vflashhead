@@ -12,6 +12,7 @@ import type { SoundSystem } from '../../../systems/SoundSystem';
 import type { UpgradeSystem } from '../../../systems/UpgradeSystem';
 import { C_DishTag, C_DishProps, C_Transform } from '../../../world';
 import type { World } from '../../../world';
+import type { EntityId } from '../../../world/EntityId';
 import type {
   DishDamagedEventPayload,
   DishDestroyedEventPayload,
@@ -140,7 +141,7 @@ export class DishResolutionService {
     this.removeDishFromPool(snapshot.entityId);
   }
 
-  private applyElectricShock(x: number, y: number, excludeEntityId: string, radius: number): void {
+  private applyElectricShock(x: number, y: number, excludeEntityId: EntityId, radius: number): void {
     const targets: { x: number; y: number }[] = [];
     const damage = this.upgradeSystem.getElectricShockDamage();
     const criticalChanceBonus = this.upgradeSystem.getCriticalChanceBonus();
@@ -161,7 +162,7 @@ export class DishResolutionService {
     }
   }
 
-  private removeDishFromPool(entityId: string): void {
+  private removeDishFromPool(entityId: EntityId): void {
     const node = this.world.phaserNode.get(entityId);
     if (node) {
       this.dishes.remove(node.container as unknown as Phaser.GameObjects.GameObject);

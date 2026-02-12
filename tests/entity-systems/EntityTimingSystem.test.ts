@@ -11,15 +11,15 @@ describe('EntityTimingSystem', () => {
     const world = new World();
     const system = createSystem(world);
 
-    world.createEntity('e1');
-    world.statusCache.set('e1', { isFrozen: false, slowFactor: 1.0, isShielded: false });
-    world.lifetime.set('e1', {
+    const e1 = world.createEntity();
+    world.statusCache.set(e1, { isFrozen: false, slowFactor: 1.0, isShielded: false });
+    world.lifetime.set(e1, {
       elapsedTime: 0, movementTime: 0, lifetime: 5000, spawnDuration: 150, globalSlowPercent: 0,
     });
 
     system.tick(100);
 
-    const lt = world.lifetime.getRequired('e1');
+    const lt = world.lifetime.getRequired(e1);
     expect(lt.elapsedTime).toBe(100);
     expect(lt.movementTime).toBe(100);
   });
@@ -28,31 +28,31 @@ describe('EntityTimingSystem', () => {
     const world = new World();
     const system = createSystem(world);
 
-    world.createEntity('e1');
-    world.statusCache.set('e1', { isFrozen: false, slowFactor: 0.5, isShielded: false });
-    world.lifetime.set('e1', {
+    const e1 = world.createEntity();
+    world.statusCache.set(e1, { isFrozen: false, slowFactor: 0.5, isShielded: false });
+    world.lifetime.set(e1, {
       elapsedTime: 0, movementTime: 0, lifetime: 5000, spawnDuration: 150, globalSlowPercent: 0,
     });
 
     system.tick(100);
 
-    expect(world.lifetime.getRequired('e1').elapsedTime).toBe(50);
-    expect(world.lifetime.getRequired('e1').movementTime).toBe(100);
+    expect(world.lifetime.getRequired(e1).elapsedTime).toBe(50);
+    expect(world.lifetime.getRequired(e1).movementTime).toBe(100);
   });
 
   it('applies globalSlowPercent', () => {
     const world = new World();
     const system = createSystem(world);
 
-    world.createEntity('e1');
-    world.statusCache.set('e1', { isFrozen: false, slowFactor: 1.0, isShielded: false });
-    world.lifetime.set('e1', {
+    const e1 = world.createEntity();
+    world.statusCache.set(e1, { isFrozen: false, slowFactor: 1.0, isShielded: false });
+    world.lifetime.set(e1, {
       elapsedTime: 0, movementTime: 0, lifetime: 5000, spawnDuration: 150, globalSlowPercent: 0.5,
     });
 
     system.tick(100);
 
-    expect(world.lifetime.getRequired('e1').elapsedTime).toBe(50);
+    expect(world.lifetime.getRequired(e1).elapsedTime).toBe(50);
   });
 
   it('calls handleTimeout when lifetime exceeded', () => {
@@ -60,9 +60,9 @@ describe('EntityTimingSystem', () => {
     const handleTimeout = vi.fn();
     const system = createSystem(world, { handleTimeout });
 
-    world.createEntity('e1');
-    world.statusCache.set('e1', { isFrozen: false, slowFactor: 1.0, isShielded: false });
-    world.lifetime.set('e1', {
+    const e1 = world.createEntity();
+    world.statusCache.set(e1, { isFrozen: false, slowFactor: 1.0, isShielded: false });
+    world.lifetime.set(e1, {
       elapsedTime: 4900, movementTime: 0, lifetime: 5000, spawnDuration: 150, globalSlowPercent: 0,
     });
 
@@ -75,27 +75,29 @@ describe('EntityTimingSystem', () => {
     const world = new World();
     const system = createSystem(world);
 
-    world.createEntity('player');
-    world.lifetime.set('player', {
+    const player = world.createEntity();
+    world.playerInput.set(player, { targetX: 0, targetY: 0, smoothingConfig: {} } as never);
+    world.lifetime.set(player, {
       elapsedTime: 0, movementTime: 0, lifetime: 5000, spawnDuration: 150, globalSlowPercent: 0,
     });
 
     system.tick(100);
 
     // Player's lifetime should not be updated
-    expect(world.lifetime.getRequired('player').elapsedTime).toBe(0);
+    expect(world.lifetime.getRequired(player).elapsedTime).toBe(0);
   });
 
   it('skips inactive entities', () => {
     const world = new World();
     const system = createSystem(world);
 
-    world.lifetime.set('e1', {
+    const fakeId = 999;
+    world.lifetime.set(fakeId, {
       elapsedTime: 0, movementTime: 0, lifetime: 5000, spawnDuration: 150, globalSlowPercent: 0,
     });
 
     system.tick(100);
 
-    expect(world.lifetime.getRequired('e1').elapsedTime).toBe(0);
+    expect(world.lifetime.getRequired(fakeId).elapsedTime).toBe(0);
   });
 });

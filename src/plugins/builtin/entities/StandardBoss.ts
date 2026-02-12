@@ -1,4 +1,5 @@
 import type Phaser from 'phaser';
+import type { EntityId } from '../../../world/EntityId';
 import type {
   EntityTypePlugin,
   EntityTypeConfig,
@@ -51,7 +52,7 @@ export class StandardBossPlugin implements EntityTypePlugin {
     };
   }
 
-  createMovementData(entityId: string, homeX: number, homeY: number): MovementComponent {
+  createMovementData(entityId: EntityId, homeX: number, homeY: number): MovementComponent {
     if (!this.movementConfig || this.movementConfig.type !== 'drift') {
       return { type: 'none', homeX, homeY, movementTime: 0, drift: null };
     }
@@ -68,20 +69,16 @@ export class StandardBossPlugin implements EntityTypePlugin {
         xFrequency: d.xFrequency,
         yAmplitude: d.yAmplitude,
         yFrequency: d.yFrequency,
-        phaseX: resolvePhase(`${entityId}:x`),
-        phaseY: resolvePhase(`${entityId}:y`),
+        phaseX: resolvePhase(entityId, 0),
+        phaseY: resolvePhase(entityId, 1),
         bounds: { minX: b.minX, maxX: b.maxX, minY: b.minY, maxY: b.maxY },
       },
     };
   }
 }
 
-function resolvePhase(seed: string): number {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    hash = (hash << 5) - hash + seed.charCodeAt(i);
-    hash |= 0;
-  }
-  const normalized = (hash >>> 0) / 0xffffffff;
+function resolvePhase(entityId: EntityId, axis: number): number {
+  const hash = Math.imul(entityId, 2654435761) + axis;
+  const normalized = ((hash & 0x7fffffff) >>> 0) / 0x7fffffff;
   return normalized * Math.PI * 2;
 }

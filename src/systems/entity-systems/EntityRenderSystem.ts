@@ -10,7 +10,7 @@ export class EntityRenderSystem implements EntitySystem {
 
   tick(delta: number): void {
     this.world.phaserNode.forEach((entityId, node) => {
-      if (entityId === 'player') return;
+      if (this.world.playerInput.has(entityId)) return;
       if (!this.world.isActive(entityId)) return;
 
       // Skip FallingBomb/HealthPack (rendered by their own systems)

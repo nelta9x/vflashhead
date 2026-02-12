@@ -1,3 +1,4 @@
+import type { EntityId } from '../world/EntityId';
 import type { World } from '../world';
 
 /**
@@ -5,7 +6,7 @@ import type { World } from '../world';
  * 이벤트 페이로드에서 Entity 참조 대신 사용한다.
  */
 export interface EntitySnapshot {
-  entityId: string;
+  entityId: EntityId;
   x: number;
   y: number;
   entityType: string;
@@ -17,7 +18,7 @@ export interface EntitySnapshot {
   hpRatio: number;
 }
 
-export function createEntitySnapshot(world: World, entityId: string): EntitySnapshot {
+export function createEntitySnapshot(world: World, entityId: EntityId): EntitySnapshot {
   const t = world.transform.get(entityId);
   const identity = world.identity.get(entityId);
   const health = world.health.get(entityId);

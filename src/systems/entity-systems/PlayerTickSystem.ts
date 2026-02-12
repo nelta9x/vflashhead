@@ -1,5 +1,7 @@
 import { CURSOR_HITBOX } from '../../data/constants';
 import type { World } from '../../world';
+import { INVALID_ENTITY_ID } from '../../world/EntityId';
+import type { EntityId } from '../../world/EntityId';
 import type { CursorRenderer } from '../../effects/CursorRenderer';
 import type { CursorTrail } from '../../effects/CursorTrail';
 import type { UpgradeSystem } from '../UpgradeSystem';
@@ -16,6 +18,8 @@ export class PlayerTickSystem implements EntitySystem {
   readonly id = 'core:player';
   enabled = true;
 
+  private playerId: EntityId = INVALID_ENTITY_ID;
+
   constructor(
     private readonly world: World,
     private readonly cursorRenderer: CursorRenderer,
@@ -24,8 +28,12 @@ export class PlayerTickSystem implements EntitySystem {
     private readonly healthSystem: HealthSystem,
   ) {}
 
+  setPlayerId(id: EntityId): void {
+    this.playerId = id;
+  }
+
   tick(delta: number): void {
-    const playerId = 'player';
+    const playerId = this.playerId;
     if (!this.world.isActive(playerId)) return;
 
     this.updatePosition(playerId, delta);
@@ -37,14 +45,14 @@ export class PlayerTickSystem implements EntitySystem {
 
   /** Pause/upgrade용: smoothing 없이 visual + render만 수행 */
   renderOnly(delta: number): void {
-    if (!this.world.isActive('player')) return;
+    if (!this.world.isActive(this.playerId)) return;
 
     const cursorRadius = this.computeCursorRadius();
-    this.updateVisual('player', delta, cursorRadius);
-    this.renderCursor('player', cursorRadius);
+    this.updateVisual(this.playerId, delta, cursorRadius);
+    this.renderCursor(this.playerId, cursorRadius);
   }
 
-  private updatePosition(id: string, delta: number): void {
+  private updatePosition(id: EntityId, delta: number): void {
     const transform = this.world.transform.get(id);
     const input = this.world.playerInput.get(id);
     if (!transform || !input) return;
@@ -64,14 +72,14 @@ export class PlayerTickSystem implements EntitySystem {
     return CURSOR_HITBOX.BASE_RADIUS * (1 + cursorSizeBonus);
   }
 
-  private updateVisual(id: string, delta: number, cursorRadius: number): void {
+  private updateVisual(id: EntityId, delta: number, cursorRadius: number): void {
     const transform = this.world.transform.get(id);
     if (!transform) return;
 
     this.cursorTrail.update(delta, cursorRadius, transform.x, transform.y);
   }
 
-  private renderCursor(id: string, cursorRadius: number): void {
+  private renderCursor(id: EntityId, cursorRadius: number): void {
     const transform = this.world.transform.get(id);
     const playerRender = this.world.playerRender.get(id);
     if (!transform || !playerRender) return;

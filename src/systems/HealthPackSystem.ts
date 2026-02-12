@@ -6,6 +6,7 @@ import type { Entity } from '../entities/Entity';
 import { HealthPackRenderer } from '../effects/HealthPackRenderer';
 import { EventBus, GameEvents } from '../utils/EventBus';
 import { C_HealthPack, C_Transform } from '../world';
+import type { EntityId } from '../world/EntityId';
 import type { World } from '../world';
 import type { UpgradeSystemCore } from '../plugins/types/AbilityPlugin';
 import type { EntityPoolManager } from './EntityPoolManager';
@@ -23,7 +24,6 @@ export class HealthPackSystem implements EntitySystem {
   private readonly entityPoolManager: EntityPoolManager;
   private lastSpawnTime: number = -HEAL_PACK.COOLDOWN;
   private timeSinceLastCheck: number = 0;
-  private spawnCounter: number = 0;
 
   // Context set before tick
   private _gameTime = 0;
@@ -99,7 +99,7 @@ export class HealthPackSystem implements EntitySystem {
   }
 
   clear(): void {
-    const toRemove: string[] = [];
+    const toRemove: EntityId[] = [];
     for (const [entityId] of this.world.query(C_HealthPack)) {
       toRemove.push(entityId);
     }
@@ -114,7 +114,7 @@ export class HealthPackSystem implements EntitySystem {
     // No event listeners to clean up (system is pipeline-managed)
   }
 
-  private collect(entityId: string): void {
+  private collect(entityId: EntityId): void {
     if (!this.world.isActive(entityId)) return;
 
     const t = this.world.transform.get(entityId);
@@ -150,7 +150,7 @@ export class HealthPackSystem implements EntitySystem {
     }
   }
 
-  private onMissed(entityId: string): void {
+  private onMissed(entityId: EntityId): void {
     if (!this.world.isActive(entityId)) return;
 
     const node = this.world.phaserNode.get(entityId);
@@ -164,7 +164,7 @@ export class HealthPackSystem implements EntitySystem {
   }
 
   private emitPreMissWarningIfNeeded(
-    entityId: string,
+    entityId: EntityId,
     hp: { hasPreMissWarningEmitted: boolean },
     t: { x: number; y: number },
   ): void {
@@ -185,7 +185,7 @@ export class HealthPackSystem implements EntitySystem {
     void entityId;
   }
 
-  private destroyHealthPackEntity(entityId: string): void {
+  private destroyHealthPackEntity(entityId: EntityId): void {
     const node = this.world.phaserNode.get(entityId);
     if (node) {
       if (node.spawnTween) {
@@ -231,31 +231,20 @@ export class HealthPackSystem implements EntitySystem {
     const margin = Data.healthPack.spawnMargin;
     const x = Phaser.Math.Between(margin, GAME_WIDTH - margin);
     const gameHeight = Data.gameConfig.screen.height;
-    const entityId = `health_pack_${++this.spawnCounter}`;
 
     // Acquire Entity from pool
     const entity = this.entityPoolManager.acquire('healthPack');
     if (!entity) return;
 
-    entity.setEntityId(entityId);
     entity.setPosition(x, gameHeight + OFFSCREEN_MARGIN);
     entity.reset();
 
     const container = entity;
     const graphics = entity.getGraphics();
 
-    // Click/hover collection
-    container.setInteractive(
-      new Phaser.Geom.Circle(0, 0, Data.healthPack.hitboxSize),
-      Phaser.Geom.Circle.Contains
-    );
-    container.on('pointerover', () => {
-      this.collect(entityId);
-    });
-
     // Spawn into ECS world
     const archetype = this.world.archetypeRegistry.getRequired('healthPack');
-    this.world.spawnFromArchetype(archetype, entityId, {
+    const entityId = this.world.spawnFromArchetype(archetype, {
       healthPack: {
         moveSpeed: Data.healthPack.moveSpeed,
         pulsePhase: 0,
@@ -274,6 +263,17 @@ export class HealthPackSystem implements EntitySystem {
         bossRenderer: null,
         typePlugin: null,
       },
+    });
+
+    entity.setEntityId(entityId);
+
+    // Click/hover collection
+    container.setInteractive(
+      new Phaser.Geom.Circle(0, 0, Data.healthPack.hitboxSize),
+      Phaser.Geom.Circle.Contains
+    );
+    container.on('pointerover', () => {
+      this.collect(entityId);
     });
 
     // Spawn animation

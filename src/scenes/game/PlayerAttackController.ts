@@ -11,6 +11,7 @@ import type { WaveSystem } from '../../systems/WaveSystem';
 import type { EntityDamageService } from '../../systems/EntityDamageService';
 import { C_DishTag, C_DishProps, C_Transform, C_Lifetime } from '../../world';
 import type { World } from '../../world';
+import type { EntityId } from '../../world/EntityId';
 import type { BossInteractionGateway, CursorSnapshot } from './GameSceneContracts';
 
 interface PlayerAttackControllerDeps {
@@ -299,7 +300,7 @@ export class PlayerAttackController {
     toY: number,
     pathRadius: number
   ): void {
-    const hitCandidates: string[] = [];
+    const hitCandidates: EntityId[] = [];
 
     for (const [entityId, , dp, t, lt] of this.world.query(C_DishTag, C_DishProps, C_Transform, C_Lifetime)) {
       const dangerous = dp.dangerous;

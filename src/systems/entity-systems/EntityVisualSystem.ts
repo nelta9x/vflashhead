@@ -10,7 +10,7 @@ export class EntityVisualSystem implements EntitySystem {
 
   tick(delta: number): void {
     this.world.visualState.forEach((entityId, vs) => {
-      if (entityId === 'player') return;
+      if (this.world.playerInput.has(entityId)) return;
       if (!this.world.isActive(entityId)) return;
 
       // Magnet pull animation

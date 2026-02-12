@@ -101,7 +101,7 @@ export class BossLaserController {
     }
 
     const boss = this.bosses.get(bossId);
-    if (boss) this.damageService.unfreeze(bossId);
+    if (boss) this.damageService.unfreeze(boss.getEntityId());
 
     const textX = boss?.x ?? lastCursor.x;
     const textY = boss ? boss.y - 60 : lastCursor.y - 60;
@@ -212,7 +212,7 @@ export class BossLaserController {
     const dirY = dy / len;
     const endPoint = this.findScreenEdgePoint(startX, startY, dirX, dirY);
 
-    this.damageService.freeze(bossId);
+    this.damageService.freeze(boss.getEntityId());
     const laserWave = this.waveSystem.getCurrentWave();
 
     const laser: ActiveLaser = {
@@ -259,7 +259,7 @@ export class BossLaserController {
         }
 
         const ownerBoss = this.bosses.get(bossId);
-        if (ownerBoss) this.damageService.unfreeze(bossId);
+        if (ownerBoss) this.damageService.unfreeze(ownerBoss.getEntityId());
       });
     });
   }
@@ -272,7 +272,7 @@ export class BossLaserController {
     }
 
     const staleBoss = this.bosses.get(bossId);
-    if (staleBoss) this.damageService.unfreeze(bossId);
+    if (staleBoss) this.damageService.unfreeze(staleBoss.getEntityId());
 
     if (activeLasers.length === 0) {
       this.laserRenderer.clear();

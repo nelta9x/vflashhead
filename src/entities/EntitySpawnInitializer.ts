@@ -1,10 +1,12 @@
 import Phaser from 'phaser';
 import { Data } from '../data/DataManager';
 import { CURSOR_HITBOX } from '../data/constants';
+import { INVALID_ENTITY_ID } from '../world/EntityId';
 import { EventBus, GameEvents } from '../utils/EventBus';
 import { DishRenderer } from '../effects/DishRenderer';
 import { BossRenderer } from '../effects/BossRenderer';
 import { resolveBossHpSegmentState } from './bossHpSegments';
+import type { EntityId } from '../world/EntityId';
 import type { Entity } from './Entity';
 import type { EntitySpawnConfig } from './EntitySpawnConfig';
 import type { World, BossStateComponent } from '../world';
@@ -13,7 +15,9 @@ import type { EntityTypePlugin } from '../plugins/types';
 /**
  * Entity spawn 초기화 로직.
  * 타입 데이터 로드 → World 스토어 구성 → Phaser 물리/인터랙티브 설정
- * → 이동 데이터 → 보스 초기화 → 스폰 애니메이션 → 초기 렌더링 → 이벤트.
+ * → 보스 초기화 → 스폰 애니메이션 → World spawn → 이동 데이터 → 초기 렌더링 → 이벤트.
+ *
+ * Returns the EntityId assigned by World.
  */
 export function initializeEntitySpawn(
   entity: Entity,
@@ -22,7 +26,7 @@ export function initializeEntitySpawn(
   plugin: EntityTypePlugin,
   x: number,
   y: number,
-): void {
+): EntityId {
   const upgradeOptions = config.upgradeOptions ?? {};
 
   // 1. 타입 데이터 로드
@@ -56,10 +60,7 @@ export function initializeEntitySpawn(
     Phaser.Geom.Circle.Contains
   );
 
-  // 5. Movement data (pure data — no class instances)
-  const movementData = resolveMovementData(plugin, config.entityId, x, y);
-
-  // 6. Boss state initialization (pure data)
+  // 5. Boss state initialization (pure data)
   let bossRenderer: BossRenderer | null = null;
   let bossState: BossStateComponent | null = null;
   const finalSize = config.isGatekeeper ? Data.boss.visual.armor.radius : size;
@@ -71,7 +72,6 @@ export function initializeEntitySpawn(
     const bossConfig = Data.boss.visual;
     const defaultArmorPieces = Math.max(1, Math.floor(bossConfig.armor.maxPieces));
 
-    // Compute initial armor segments
     const segmentState = resolveBossHpSegmentState(config.hp, config.hp, {
       defaultPieces: defaultArmorPieces,
       hpScale: bossConfig.armor.hpSegments,
@@ -95,14 +95,14 @@ export function initializeEntitySpawn(
       reactionTweens: [],
       deathTween: null,
     };
-
-    // Setup EventBus listeners for MONSTER_HP_CHANGED / MONSTER_DIED
-    setupBossEventListeners(config.entityId);
   }
 
-  // 7. Spawn animation
+  // 6. Spawn animation
   let spawnDuration: number;
   let spawnTween: Phaser.Tweens.Tween | null = null;
+
+  // assignedEntityId will be set after spawnFromArchetype; tween callbacks capture it via closure
+  let assignedEntityId: EntityId = INVALID_ENTITY_ID;
 
   if (config.isGatekeeper) {
     const bossSpawn = Data.boss.spawn;
@@ -118,7 +118,7 @@ export function initializeEntitySpawn(
       ease: 'Back.easeOut',
       onComplete: () => {
         if (!entity.scene) return;
-        const pn = world.phaserNode.get(config.entityId);
+        const pn = world.phaserNode.get(assignedEntityId);
         if (pn) pn.spawnTween = null;
       },
     });
@@ -136,21 +136,24 @@ export function initializeEntitySpawn(
       ease: spawnAnim.ease,
       onComplete: () => {
         if (!entity.scene) return;
-        const pn = world.phaserNode.get(config.entityId);
+        const pn = world.phaserNode.get(assignedEntityId);
         if (pn) pn.spawnTween = null;
       },
     });
   }
 
-  // 8. World 스토어 기록 (archetype 기반)
+  // 7. World 스토어 기록 (archetype 기반) — placeholder movement
   const archetypeId = plugin.config.archetypeId
     ?? (config.isGatekeeper ? 'boss' : 'dish');
   const archetype = world.archetypeRegistry.get(archetypeId);
 
+  const placeholderMovement = { type: 'none' as const, homeX: x, homeY: y, movementTime: 0, drift: null };
+
   const values: Record<string, unknown> = {
     ...(config.isGatekeeper ? { bossTag: {} } : { dishTag: {} }),
     identity: {
-      entityId: config.entityId, entityType: config.entityType,
+      entityId: 0, // placeholder — overwritten after spawn
+      entityType: config.entityType,
       isGatekeeper: config.isGatekeeper,
     },
     transform: {
@@ -178,7 +181,7 @@ export function initializeEntitySpawn(
       hitFlashPhase: 0, wobblePhase: 0, blinkPhase: 0,
       isBeingPulled: false, pullPhase: 0,
     },
-    movement: movementData,
+    movement: placeholderMovement,
     phaserNode: {
       container: entity, graphics: entity.getGraphics(),
       body: entity.body as Phaser.Physics.Arcade.Body | null,
@@ -193,16 +196,32 @@ export function initializeEntitySpawn(
   }
 
   if (archetype) {
-    world.spawnFromArchetype(archetype, config.entityId, values);
+    assignedEntityId = world.spawnFromArchetype(archetype, values);
   } else {
-    world.createEntity(config.entityId);
+    assignedEntityId = world.createEntity();
     for (const [key, val] of Object.entries(values)) {
       const store = world.getStoreByName(key);
-      if (store) store.set(config.entityId, val);
+      if (store) store.set(assignedEntityId, val);
     }
   }
 
-  // 9. Initial render
+  // 8. Patch identity.entityId with the real assigned ID
+  const identityComp = world.identity.get(assignedEntityId);
+  if (identityComp) identityComp.entityId = assignedEntityId;
+
+  // 9. Compute movement with real entityId and update store
+  const movementData = resolveMovementData(plugin, assignedEntityId, x, y);
+  world.movement.set(assignedEntityId, movementData);
+
+  // 10. Update entity's cached ID
+  entity.setEntityId(assignedEntityId);
+
+  // 11. Setup boss event listeners if needed
+  if (config.isGatekeeper) {
+    setupBossEventListeners(assignedEntityId, config.bossDataId);
+  }
+
+  // 12. Initial render
   if (config.isGatekeeper && bossRenderer && bossState) {
     bossRenderer.render({
       hpRatio: 1,
@@ -222,15 +241,17 @@ export function initializeEntitySpawn(
     });
   }
 
-  // 10. Plugin callback + event
-  plugin.onSpawn?.(config.entityId, world);
+  // 13. Plugin callback + event
+  plugin.onSpawn?.(assignedEntityId, world);
   EventBus.getInstance().emit(GameEvents.DISH_SPAWNED, { x, y });
+
+  return assignedEntityId;
 }
 
 /** Get movement data from plugin or default to 'none' */
 function resolveMovementData(
   plugin: EntityTypePlugin,
-  entityId: string,
+  entityId: EntityId,
   homeX: number,
   homeY: number,
 ): import('../world').MovementComponent {
@@ -249,10 +270,11 @@ export function setSpawnDamageServiceGetter(getter: () => import('../systems/Ent
 /**
  * Setup EventBus listeners for boss entities.
  * Routes MONSTER_HP_CHANGED to EntityDamageService.
- * MONSTER_DIED is handled by EntityDamageService.applyContactDamage directly.
+ * bossDataId is the string ID from waves.json (e.g. "boss_center").
  */
-function setupBossEventListeners(entityId: string): void {
+function setupBossEventListeners(entityId: EntityId, bossDataId?: string): void {
   const bus = EventBus.getInstance();
+  const matchId = bossDataId ?? String(entityId);
 
   const onHpChanged = (...args: unknown[]) => {
     const data = args[0] as {
@@ -263,7 +285,7 @@ function setupBossEventListeners(entityId: string): void {
       sourceX?: number;
       sourceY?: number;
     };
-    if (data.bossId !== entityId) return;
+    if (data.bossId !== matchId) return;
     const max = typeof data.max === 'number' && data.max > 0 ? Math.floor(data.max) : 0;
     const current = typeof data.current === 'number'
       ? Math.max(0, Math.floor(data.current))

@@ -1,4 +1,5 @@
 import type Phaser from 'phaser';
+import type { EntityId } from '../../world/EntityId';
 import type { AttackPattern } from './AttackPattern';
 import type { World, MovementComponent } from '../../world';
 
@@ -14,7 +15,7 @@ export interface EntityTypeConfig {
 
 /** 엔티티 타입별 렌더러 */
 export interface EntityTypeRenderer {
-  render(entityId: string, world: World, timeElapsed: number): void;
+  render(entityId: EntityId, world: World, timeElapsed: number): void;
   playHitFlash?(duration: number): void;
   destroy(): void;
 }
@@ -32,12 +33,12 @@ export interface EntityTypePlugin {
   readonly config: EntityTypeConfig;
 
   createRenderer(scene: Phaser.Scene, host: Phaser.GameObjects.Container): EntityTypeRenderer;
-  createMovementData?(entityId: string, homeX: number, homeY: number): MovementComponent;
-  createAttackPatterns?(scene: Phaser.Scene, entityId: string): AttackPattern[];
+  createMovementData?(entityId: EntityId, homeX: number, homeY: number): MovementComponent;
+  createAttackPatterns?(scene: Phaser.Scene, entityId: EntityId): AttackPattern[];
 
-  onSpawn?(entityId: string, world: World): void;
-  onUpdate?(entityId: string, world: World, delta: number, gameTime: number): void;
-  onDamaged?(entityId: string, world: World, damage: number, source: DamageSource): void;
-  onDestroyed?(entityId: string, world: World): void;
-  onTimeout?(entityId: string, world: World): void;
+  onSpawn?(entityId: EntityId, world: World): void;
+  onUpdate?(entityId: EntityId, world: World, delta: number, gameTime: number): void;
+  onDamaged?(entityId: EntityId, world: World, damage: number, source: DamageSource): void;
+  onDestroyed?(entityId: EntityId, world: World): void;
+  onTimeout?(entityId: EntityId, world: World): void;
 }

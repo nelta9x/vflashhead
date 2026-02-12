@@ -5,7 +5,8 @@ import { EventBus, GameEvents } from '../utils/EventBus';
 import { DishRenderer } from '../effects/DishRenderer';
 import { BossRenderer } from '../effects/BossRenderer';
 import { resolveBossHpSegmentState } from './bossHpSegments';
-import type { Entity, EntitySpawnConfig } from './Entity';
+import type { Entity } from './Entity';
+import type { EntitySpawnConfig } from './EntitySpawnConfig';
 import type { World, BossStateComponent } from '../world';
 import type { EntityTypePlugin } from '../plugins/types';
 
@@ -117,7 +118,6 @@ export function initializeEntitySpawn(
       ease: 'Back.easeOut',
       onComplete: () => {
         if (!entity.scene) return;
-        entity.setSpawnTween(null);
         const pn = world.phaserNode.get(config.entityId);
         if (pn) pn.spawnTween = null;
       },
@@ -136,14 +136,11 @@ export function initializeEntitySpawn(
       ease: spawnAnim.ease,
       onComplete: () => {
         if (!entity.scene) return;
-        entity.setSpawnTween(null);
         const pn = world.phaserNode.get(config.entityId);
         if (pn) pn.spawnTween = null;
       },
     });
   }
-
-  entity.setSpawnTween(spawnTween);
 
   // 8. World 스토어 기록 (archetype 기반)
   const archetypeId = plugin.config.archetypeId
@@ -160,7 +157,7 @@ export function initializeEntitySpawn(
       x, y, baseX: x, baseY: y,
       alpha: entity.alpha, scaleX: entity.scaleX, scaleY: entity.scaleY,
     },
-    health: { currentHp: config.hp, maxHp: config.hp },
+    health: { currentHp: config.hp, maxHp: config.hp, isDead: false },
     statusCache: { isFrozen: false, slowFactor: 1.0, isShielded: false },
     lifetime: {
       elapsedTime: 0, movementTime: 0,
@@ -187,6 +184,7 @@ export function initializeEntitySpawn(
       body: entity.body as Phaser.Physics.Arcade.Body | null,
       spawnTween,
       bossRenderer,
+      typePlugin: plugin,
     },
   };
 

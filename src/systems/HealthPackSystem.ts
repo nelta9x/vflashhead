@@ -1,11 +1,14 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, HEAL_PACK } from '../data/constants';
 import { Data } from '../data/DataManager';
+import type { HealthPackLevelData } from '../data/types';
+import type { Entity } from '../entities/Entity';
 import { HealthPackRenderer } from '../effects/HealthPackRenderer';
 import { EventBus, GameEvents } from '../utils/EventBus';
 import { C_HealthPack, C_Transform } from '../world';
 import type { World } from '../world';
-import type { UpgradeSystem } from './UpgradeSystem';
+import type { UpgradeSystemCore } from '../plugins/types/AbilityPlugin';
+import type { EntityPoolManager } from './EntityPoolManager';
 import type { EntitySystem } from './entity-systems/EntitySystem';
 
 const OFFSCREEN_MARGIN = 40;
@@ -16,7 +19,8 @@ export class HealthPackSystem implements EntitySystem {
 
   private readonly world: World;
   private readonly scene: Phaser.Scene;
-  private readonly upgradeSystem: UpgradeSystem;
+  private readonly upgradeSystem: UpgradeSystemCore;
+  private readonly entityPoolManager: EntityPoolManager;
   private lastSpawnTime: number = -HEAL_PACK.COOLDOWN;
   private timeSinceLastCheck: number = 0;
   private spawnCounter: number = 0;
@@ -24,10 +28,11 @@ export class HealthPackSystem implements EntitySystem {
   // Context set before tick
   private _gameTime = 0;
 
-  constructor(scene: Phaser.Scene, upgradeSystem: UpgradeSystem, world: World) {
+  constructor(scene: Phaser.Scene, upgradeSystem: UpgradeSystemCore, world: World, entityPoolManager: EntityPoolManager) {
     this.scene = scene;
     this.upgradeSystem = upgradeSystem;
     this.world = world;
+    this.entityPoolManager = entityPoolManager;
   }
 
   setContext(gameTime: number): void {
@@ -89,7 +94,7 @@ export class HealthPackSystem implements EntitySystem {
   }
 
   getSpawnChance(): number {
-    const upgradeBonus = this.upgradeSystem.getHealthPackDropBonus();
+    const upgradeBonus = this.upgradeSystem.getLevelData<HealthPackLevelData>('health_pack')?.dropChanceBonus ?? 0;
     return HEAL_PACK.BASE_SPAWN_CHANCE + upgradeBonus;
   }
 
@@ -122,21 +127,24 @@ export class HealthPackSystem implements EntitySystem {
 
     // Collection animation
     if (node) {
-      node.container.disableInteractive();
-      node.container.removeAllListeners();
+      const entity = node.container as Entity;
+      entity.disableInteractive();
+      entity.removeAllListeners();
+      // Mark as inactive in world immediately to prevent double-collect
+      this.world.destroyEntity(entityId);
       this.scene.tweens.add({
-        targets: node.container,
+        targets: entity,
         scaleX: 1.5,
         scaleY: 1.5,
         alpha: 0,
         duration: 150,
         ease: 'Power2',
         onComplete: () => {
-          this.destroyHealthPackEntity(entityId);
+          entity.setVisible(false);
+          entity.setActive(false);
+          this.entityPoolManager.release('healthPack', entity);
         },
       });
-      // Mark as inactive in world immediately to prevent double-collect
-      this.world.destroyEntity(entityId);
     } else {
       this.destroyHealthPackEntity(entityId);
     }
@@ -180,10 +188,16 @@ export class HealthPackSystem implements EntitySystem {
   private destroyHealthPackEntity(entityId: string): void {
     const node = this.world.phaserNode.get(entityId);
     if (node) {
-      node.container.setVisible(false);
-      node.container.setActive(false);
-      node.container.disableInteractive();
-      node.container.removeAllListeners();
+      if (node.spawnTween) {
+        node.spawnTween.stop();
+        node.spawnTween = null;
+      }
+      const entity = node.container as Entity;
+      entity.setVisible(false);
+      entity.setActive(false);
+      entity.disableInteractive();
+      entity.removeAllListeners();
+      this.entityPoolManager.release('healthPack', entity);
     }
     this.world.destroyEntity(entityId);
   }
@@ -219,10 +233,16 @@ export class HealthPackSystem implements EntitySystem {
     const gameHeight = Data.gameConfig.screen.height;
     const entityId = `health_pack_${++this.spawnCounter}`;
 
-    // Create Phaser container + graphics
-    const container = this.scene.add.container(x, gameHeight + OFFSCREEN_MARGIN);
-    const graphics = this.scene.add.graphics();
-    container.add(graphics);
+    // Acquire Entity from pool
+    const entity = this.entityPoolManager.acquire('healthPack');
+    if (!entity) return;
+
+    entity.setEntityId(entityId);
+    entity.setPosition(x, gameHeight + OFFSCREEN_MARGIN);
+    entity.reset();
+
+    const container = entity;
+    const graphics = entity.getGraphics();
 
     // Click/hover collection
     container.setInteractive(
@@ -252,13 +272,14 @@ export class HealthPackSystem implements EntitySystem {
         body: null,
         spawnTween: null,
         bossRenderer: null,
+        typePlugin: null,
       },
     });
 
     // Spawn animation
     container.setScale(0);
     container.setAlpha(0);
-    this.scene.tweens.add({
+    const spawnTween = this.scene.tweens.add({
       targets: container,
       scaleX: 1,
       scaleY: 1,
@@ -266,6 +287,12 @@ export class HealthPackSystem implements EntitySystem {
       duration: 200,
       ease: 'Back.easeOut',
     });
+
+    // Store spawn tween for cleanup
+    const node = this.world.phaserNode.get(entityId);
+    if (node) {
+      node.spawnTween = spawnTween;
+    }
 
     // Initial draw
     HealthPackRenderer.render(graphics, {

@@ -53,6 +53,10 @@ export class EntitySystemPipeline {
     return Array.from(this.systems.keys()).filter((id) => !configSet.has(id));
   }
 
+  getSystem(id: string): EntitySystem | undefined {
+    return this.systems.get(id);
+  }
+
   getRegisteredIds(): string[] {
     return Array.from(this.systems.keys());
   }

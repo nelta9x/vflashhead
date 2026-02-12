@@ -43,6 +43,7 @@ export class DishLifecycleController {
       dishPool: deps.dishPool,
       dishes: deps.dishes,
       upgradeSystem: deps.upgradeSystem,
+      world: deps.world,
       getPlayerAttackRenderer: deps.getPlayerAttackRenderer,
       isGameOver: deps.isGameOver,
     });

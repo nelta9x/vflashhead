@@ -85,15 +85,15 @@ describe('World', () => {
       world.identity.set('e1', { entityId: 'e1', entityType: 'a', isGatekeeper: false });
       world.identity.set('e2', { entityId: 'e2', entityType: 'b', isGatekeeper: false });
 
-      world.health.set('e1', { currentHp: 10, maxHp: 10 });
-      world.health.set('e3', { currentHp: 5, maxHp: 5 });
+      world.health.set('e1', { currentHp: 10, maxHp: 10, isDead: false });
+      world.health.set('e3', { currentHp: 5, maxHp: 5, isDead: false });
 
       // only e1 has both identity and health
       const result = [...world.query(C_Identity, C_Health)];
       expect(result.length).toBe(1);
       expect(result[0][0]).toBe('e1');
       expect(result[0][1]).toEqual({ entityId: 'e1', entityType: 'a', isGatekeeper: false });
-      expect(result[0][2]).toEqual({ currentHp: 10, maxHp: 10 });
+      expect(result[0][2]).toEqual({ currentHp: 10, maxHp: 10, isDead: false });
     });
 
     it('비활성 엔티티는 반환하지 않아야 함', () => {
@@ -114,9 +114,9 @@ describe('World', () => {
       world.dishTag.set('dish2', {} as Record<string, never>);
       world.bossTag.set('boss1', {} as Record<string, never>);
 
-      world.health.set('dish1', { currentHp: 10, maxHp: 10 });
-      world.health.set('boss1', { currentHp: 50, maxHp: 50 });
-      world.health.set('dish2', { currentHp: 5, maxHp: 5 });
+      world.health.set('dish1', { currentHp: 10, maxHp: 10, isDead: false });
+      world.health.set('boss1', { currentHp: 50, maxHp: 50, isDead: false });
+      world.health.set('dish2', { currentHp: 5, maxHp: 5, isDead: false });
 
       const dishes = [...world.query(C_DishTag, C_Health)];
       expect(dishes.length).toBe(2);
@@ -138,7 +138,7 @@ describe('World', () => {
       world.identity.set('e2', { entityId: 'e2', entityType: 'b', isGatekeeper: false });
       world.identity.set('e3', { entityId: 'e3', entityType: 'c', isGatekeeper: false });
 
-      world.health.set('e2', { currentHp: 20, maxHp: 20 });
+      world.health.set('e2', { currentHp: 20, maxHp: 20, isDead: false });
 
       const result = [...world.query(C_Identity, C_Health)];
       expect(result.length).toBe(1);
@@ -181,7 +181,7 @@ describe('World', () => {
       world.createEntity('e1');
       world.createEntity('e2');
       world.identity.set('e1', { entityId: 'e1', entityType: 'a', isGatekeeper: false });
-      world.health.set('e1', { currentHp: 10, maxHp: 10 });
+      world.health.set('e1', { currentHp: 10, maxHp: 10, isDead: false });
       world.markDead('e2');
 
       world.clear();

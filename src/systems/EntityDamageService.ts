@@ -3,6 +3,7 @@ import { EventBus, GameEvents } from '../utils/EventBus';
 import { DishDamageResolver } from '../entities/dish/DishDamageResolver';
 import { DishEventPayloadFactory } from '../entities/dish/DishEventPayloadFactory';
 import { createEntitySnapshot } from '../entities/EntitySnapshot';
+import { deactivateEntity } from '../entities/EntityLifecycle';
 import type { Entity } from '../entities/Entity';
 import type { World } from '../world';
 import type { StatusEffectManager } from './StatusEffectManager';
@@ -10,12 +11,16 @@ import type { StatusEffectManager } from './StatusEffectManager';
 /**
  * EntityDamageService: 데미지 계산, 이벤트 발행, 상태효과를 Entity에서 분리.
  * World 스토어를 직접 읽고/쓰며, entityLookup으로 Entity 참조를 획득한다.
+ * 데미지 타이머는 내부 Map으로 관리한다.
  */
 export class EntityDamageService {
+  private readonly timers = new Map<string, Phaser.Time.TimerEvent>();
+
   constructor(
     private readonly world: World,
     private readonly sem: StatusEffectManager,
     private readonly entityLookup: (entityId: string) => Entity | undefined,
+    private readonly scene: Phaser.Scene,
   ) {}
 
   // === Cursor interaction ===
@@ -58,19 +63,19 @@ export class EntityDamageService {
     ci.isBeingDamaged = true;
     this.takeDamageFromCursor(entityId, true);
 
-    entity.setDamageTimer(entity.scene.time.addEvent({
+    const timer = this.scene.time.addEvent({
       delay: ci.damageInterval,
       callback: () => this.takeDamageFromCursor(entityId, false),
       loop: true,
-    }));
+    });
+    this.setDamageTimer(entityId, timer);
   }
 
   private stopDamaging(entityId: string): void {
     const ci = this.world.cursorInteraction.get(entityId);
     if (ci) ci.isBeingDamaged = false;
 
-    const entity = this.entityLookup(entityId);
-    entity?.clearDamageTimer();
+    this.clearDamageTimer(entityId);
   }
 
   private takeDamageFromCursor(entityId: string, isFirstHit: boolean): void {
@@ -179,10 +184,10 @@ export class EntityDamageService {
 
   applyContactDamage(entityId: string, damage: number, sourceX: number, sourceY: number): void {
     const entity = this.entityLookup(entityId);
-    if (!entity?.active || entity.getIsDead()) return;
+    if (!entity?.active) return;
 
     const health = this.world.health.get(entityId);
-    if (!health) return;
+    if (!health || health.isDead) return;
 
     health.currentHp = Math.max(0, health.currentHp - damage);
 
@@ -196,7 +201,7 @@ export class EntityDamageService {
     this.invokePluginOnDamaged(entityId, damage, 'cursor');
 
     if (health.currentHp <= 0) {
-      entity.markDead();
+      health.isDead = true;
       if (bs) bs.pendingDeathAnimation = true;
       this.invokePluginOnDestroyed(entityId);
       EventBus.getInstance().emit(GameEvents.MONSTER_DIED, { bossId: entityId });
@@ -207,10 +212,10 @@ export class EntityDamageService {
 
   handleExternalHpChange(entityId: string, currentHp: number, maxHp: number, sourceX?: number, sourceY?: number): void {
     const entity = this.entityLookup(entityId);
-    if (!entity || entity.getIsDead()) return;
+    if (!entity) return;
 
     const health = this.world.health.get(entityId);
-    if (!health) return;
+    if (!health || health.isDead) return;
 
     health.currentHp = Math.max(0, Math.floor(currentHp));
     health.maxHp = Math.max(1, Math.floor(maxHp));
@@ -223,7 +228,7 @@ export class EntityDamageService {
     }
 
     if (health.currentHp <= 0) {
-      entity.markDead();
+      health.isDead = true;
       if (bs) bs.pendingDeathAnimation = true;
     }
   }
@@ -247,7 +252,7 @@ export class EntityDamageService {
     if (!entity?.active) return;
 
     entity.active = false;
-    entity.clearDamageTimer();
+    this.clearDamageTimer(entityId);
     entity.disableInteractive();
     entity.removeAllListeners();
 
@@ -258,7 +263,7 @@ export class EntityDamageService {
     );
 
     this.invokePluginOnDestroyed(entityId);
-    entity.deactivate();
+    deactivateEntity(entity, this.world, this.sem);
   }
 
   // === Timeout ===
@@ -267,7 +272,7 @@ export class EntityDamageService {
     const entity = this.entityLookup(entityId);
     if (!entity?.active) return;
 
-    entity.clearDamageTimer();
+    this.clearDamageTimer(entityId);
 
     const dp = this.world.dishProps.get(entityId);
     const snapshot = createEntitySnapshot(this.world, entityId);
@@ -276,7 +281,7 @@ export class EntityDamageService {
       isDangerous: dp?.dangerous ?? false,
     });
 
-    entity.deactivate();
+    deactivateEntity(entity, this.world, this.sem);
     this.invokePluginOnTimeout(entityId);
     EventBus.getInstance().emit(GameEvents.DISH_MISSED, eventData);
   }
@@ -320,13 +325,26 @@ export class EntityDamageService {
     if (vs) vs.isBeingPulled = pulled;
   }
 
+  // === Timer management ===
+
+  private setDamageTimer(entityId: string, timer: Phaser.Time.TimerEvent): void {
+    this.clearDamageTimer(entityId);
+    this.timers.set(entityId, timer);
+  }
+
+  clearDamageTimer(entityId: string): void {
+    const timer = this.timers.get(entityId);
+    if (timer) {
+      timer.destroy();
+      this.timers.delete(entityId);
+    }
+  }
+
   // === Plugin helpers (World 스토어에서 typePlugin 조회) ===
 
   private getTypePlugin(entityId: string) {
     const node = this.world.phaserNode.get(entityId);
-    if (!node) return null;
-    const entity = node.container as Entity;
-    return entity.getTypePlugin();
+    return node?.typePlugin ?? null;
   }
 
   private invokePluginOnDamaged(entityId: string, damage: number, source: string): void {
@@ -351,7 +369,7 @@ export class EntityDamageService {
     if (!entity) return;
 
     entity.active = false;
-    entity.clearDamageTimer();
+    this.clearDamageTimer(entityId);
     entity.disableInteractive();
     entity.removeAllListeners();
 
@@ -366,6 +384,6 @@ export class EntityDamageService {
     );
 
     this.invokePluginOnDestroyed(entityId);
-    entity.deactivate();
+    deactivateEntity(entity, this.world, this.sem);
   }
 }

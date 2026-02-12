@@ -18,6 +18,8 @@ import type {
   CursorSnapshot,
 } from './GameSceneContracts';
 import type { EntityDamageService } from '../../systems/EntityDamageService';
+import type { StatusEffectManager } from '../../systems/StatusEffectManager';
+import type { World } from '../../world';
 import { BossContactDamageController } from './boss/BossContactDamageController';
 import { BossLaserController } from './boss/BossLaserController';
 import { BossRosterSync } from './boss/BossRosterSync';
@@ -34,6 +36,8 @@ interface BossCombatCoordinatorDeps {
   healthSystem: HealthSystem;
   upgradeSystem: UpgradeSystem;
   damageService: EntityDamageService;
+  world: World;
+  statusEffectManager: StatusEffectManager;
   isGameOver: () => boolean;
   isPaused: () => boolean;
 }
@@ -94,6 +98,8 @@ export class BossCombatCoordinator implements BossInteractionGateway {
       setNextLaserTime: (bossId, gameTime) => this.setNextLaserTime(bossId, gameTime),
       getCurrentGameTime: () => this.currentGameTime,
       damageService: deps.damageService,
+      world: deps.world,
+      statusEffectManager: deps.statusEffectManager,
     });
 
     this.bossLaserController = new BossLaserController({

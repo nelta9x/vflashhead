@@ -1,7 +1,6 @@
 import type { EntitySystem } from './EntitySystem';
 import type { World } from '../../world';
 import { DishRenderer } from '../../effects/DishRenderer';
-import type { Entity } from '../../entities/Entity';
 
 export class EntityRenderSystem implements EntitySystem {
   readonly id = 'core:entity_render';
@@ -14,26 +13,29 @@ export class EntityRenderSystem implements EntitySystem {
       if (entityId === 'player') return;
       if (!this.world.isActive(entityId)) return;
 
-      // World transform ↔ Phaser Container 동기화
+      // Skip FallingBomb/HealthPack (rendered by their own systems)
+      if (this.world.fallingBomb.has(entityId) || this.world.healthPack.has(entityId)) return;
+
+      // World transform <-> Phaser Container sync
       const transform = this.world.transform.get(entityId);
       if (transform) {
         node.container.x = transform.x;
         node.container.y = transform.y;
 
         if (node.spawnTween) {
-          // 스폰 트윈이 Container를 제어 → World로 역동기화
+          // spawn tween controls Container -> reverse-sync to World
           transform.alpha = node.container.alpha;
           transform.scaleX = node.container.scaleX;
           transform.scaleY = node.container.scaleY;
         } else {
-          // 정상: World SSOT → Container
+          // normal: World SSOT -> Container
           node.container.alpha = transform.alpha;
           node.container.scaleX = transform.scaleX;
           node.container.scaleY = transform.scaleY;
         }
       }
 
-      // Drawing: World 스토어에서 직접 읽어 렌더링
+      // Drawing: read from World stores
       const identity = this.world.identity.get(entityId);
       const dishProps = this.world.dishProps.get(entityId);
       const health = this.world.health.get(entityId);
@@ -72,9 +74,8 @@ export class EntityRenderSystem implements EntitySystem {
         });
       }
 
-      // plugin.onUpdate (container → Entity cast → typePlugin 조회)
-      const entity = node.container as Entity;
-      const plugin = entity.getTypePlugin();
+      // plugin.onUpdate (typePlugin stored in PhaserNodeComponent)
+      const plugin = node.typePlugin;
       plugin?.onUpdate?.(entityId, this.world, delta, lifetime?.movementTime ?? 0);
     });
   }

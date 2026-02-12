@@ -2,15 +2,18 @@ import Phaser from 'phaser';
 import { Data } from '../../../data/DataManager';
 import type { BombWarningConfig } from '../../../data/types';
 import type { Entity } from '../../../entities/Entity';
+import { initializeEntitySpawn } from '../../../entities/EntitySpawnInitializer';
 import type { PlayerAttackRenderer } from '../../../effects/PlayerAttackRenderer';
 import type { ObjectPool } from '../../../utils/ObjectPool';
 import type { UpgradeSystem } from '../../../systems/UpgradeSystem';
+import type { World } from '../../../world';
 import { PluginRegistry } from '../../../plugins/PluginRegistry';
 
 interface DishSpawnServiceDeps {
   dishPool: ObjectPool<Entity>;
   dishes: Phaser.GameObjects.Group;
   upgradeSystem: UpgradeSystem;
+  world: World;
   getPlayerAttackRenderer: () => PlayerAttackRenderer;
   isGameOver: () => boolean;
 }
@@ -19,6 +22,7 @@ export class DishSpawnService {
   private readonly dishPool: ObjectPool<Entity>;
   private readonly dishes: Phaser.GameObjects.Group;
   private readonly upgradeSystem: UpgradeSystem;
+  private readonly world: World;
   private readonly getPlayerAttackRenderer: () => PlayerAttackRenderer;
   private readonly isGameOver: () => boolean;
   private spawnCounter: number = 0;
@@ -27,6 +31,7 @@ export class DishSpawnService {
     this.dishPool = deps.dishPool;
     this.dishes = deps.dishes;
     this.upgradeSystem = deps.upgradeSystem;
+    this.world = deps.world;
     this.getPlayerAttackRenderer = deps.getPlayerAttackRenderer;
     this.isGameOver = deps.isGameOver;
   }
@@ -63,7 +68,7 @@ export class DishSpawnService {
       criticalChance: this.upgradeSystem.getCriticalChanceBonus(),
     };
 
-    entity.spawn(x, y, {
+    const config = {
       entityId: `dish_${++this.spawnCounter}`,
       entityType: type,
       hp: dishData?.hp ?? 10,
@@ -71,7 +76,11 @@ export class DishSpawnService {
       isGatekeeper: false,
       spawnAnimation: dishData?.spawnAnimation,
       upgradeOptions: options,
-    }, plugin);
+    };
+
+    entity.setEntityId(config.entityId);
+    entity.active = true;
+    initializeEntitySpawn(entity, this.world, config, plugin, x, y);
 
     this.dishes.add(entity);
   }

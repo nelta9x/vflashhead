@@ -143,41 +143,50 @@ vi.mock('../src/entities/Entity', () => ({
     private id = '';
 
     public readonly setDepth = vi.fn().mockReturnThis();
-    public readonly freeze = vi.fn();
-    public readonly unfreeze = vi.fn();
-    public readonly tickStatusEffects = vi.fn();
-    public readonly tickTimeDelta = vi.fn().mockReturnValue(false);
-    public readonly tickMovement = vi.fn();
-    public readonly tickVisual = vi.fn();
-    public readonly tickRender = vi.fn();
-    public readonly getIsDead = vi.fn().mockReturnValue(false);
-    public readonly deactivate = vi.fn(function(this: { visible: boolean; active: boolean }) {
-      this.visible = false;
-      this.active = false;
-    });
     public readonly destroy = vi.fn();
+    public readonly setVisible = vi.fn();
+    public readonly setActive = vi.fn();
+    public readonly disableInteractive = vi.fn();
+    public readonly removeAllListeners = vi.fn();
+    public readonly getGraphics = vi.fn(() => ({}));
+    public body = null;
 
     constructor(_scene?: unknown) {}
 
-    public spawn(x: number, y: number, config: { entityId: string }, _plugin?: unknown): void {
-      this.x = x;
-      this.y = y;
-      this.id = config.entityId;
-      this.visible = true;
-      this.active = true;
+    public setEntityId(entityId: string): void {
+      this.id = entityId;
     }
 
-    public spawnAt(x: number, y: number): void {
-      this.x = x;
-      this.y = y;
-      this.visible = true;
-      this.active = true;
-    }
-
-    public getBossId(): string {
+    public getEntityId(): string {
       return this.id;
     }
+
+    public reset(): void {
+      this.visible = true;
+      this.active = true;
+    }
   },
+}));
+
+vi.mock('../src/entities/EntitySpawnInitializer', () => ({
+  initializeEntitySpawn: vi.fn(
+    (entity: { x: number; y: number; visible: boolean; active: boolean }, _world: unknown, _config: unknown, _plugin: unknown, x: number, y: number) => {
+      entity.x = x;
+      entity.y = y;
+      entity.visible = true;
+      entity.active = true;
+    }
+  ),
+  setSpawnDamageServiceGetter: vi.fn(),
+}));
+
+vi.mock('../src/entities/EntityLifecycle', () => ({
+  deactivateEntity: vi.fn(
+    (entity: { visible: boolean; active: boolean }) => {
+      entity.visible = false;
+      entity.active = false;
+    }
+  ),
 }));
 
 vi.mock('../src/plugins/PluginRegistry', () => ({
@@ -306,6 +315,12 @@ describe('BossCombatCoordinator', () => {
         getCriticalChanceBonus: () => 0,
       } as never,
       damageService: { freeze: vi.fn(), unfreeze: vi.fn() } as never,
+      world: {
+        bossState: { get: vi.fn(() => null) },
+        phaserNode: { get: vi.fn(() => null) },
+        destroyEntity: vi.fn(),
+      } as never,
+      statusEffectManager: { clearEntity: vi.fn() } as never,
       isGameOver: () => isGameOver,
       isPaused: () => isPaused,
     });

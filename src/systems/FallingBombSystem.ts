@@ -1,10 +1,12 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, FALLING_BOMB } from '../data/constants';
 import { Data } from '../data/DataManager';
+import type { Entity } from '../entities/Entity';
 import { DishRenderer } from '../effects/DishRenderer';
 import { EventBus, GameEvents } from '../utils/EventBus';
 import { C_FallingBomb, C_Transform } from '../world';
 import type { World } from '../world';
+import type { EntityPoolManager } from './EntityPoolManager';
 import type { EntitySystem } from './entity-systems/EntitySystem';
 
 const OFFSCREEN_MARGIN = 40;
@@ -15,6 +17,7 @@ export class FallingBombSystem implements EntitySystem {
 
   private readonly world: World;
   private readonly scene: Phaser.Scene;
+  private readonly entityPoolManager: EntityPoolManager;
   private lastSpawnTime: number = -FALLING_BOMB.COOLDOWN;
   private timeSinceLastCheck: number = 0;
   private spawnCounter: number = 0;
@@ -23,9 +26,10 @@ export class FallingBombSystem implements EntitySystem {
   private _gameTime = 0;
   private _currentWave = 0;
 
-  constructor(scene: Phaser.Scene, world: World) {
+  constructor(scene: Phaser.Scene, world: World, entityPoolManager: EntityPoolManager) {
     this.scene = scene;
     this.world = world;
+    this.entityPoolManager = entityPoolManager;
   }
 
   setContext(gameTime: number, currentWave: number): void {
@@ -129,8 +133,14 @@ export class FallingBombSystem implements EntitySystem {
   private destroyBombEntity(entityId: string): void {
     const node = this.world.phaserNode.get(entityId);
     if (node) {
-      node.container.setVisible(false);
-      node.container.setActive(false);
+      if (node.spawnTween) {
+        node.spawnTween.stop();
+        node.spawnTween = null;
+      }
+      const entity = node.container;
+      entity.setVisible(false);
+      entity.setActive(false);
+      this.entityPoolManager.release('fallingBomb', entity as Entity);
     }
     this.world.destroyEntity(entityId);
   }
@@ -160,10 +170,16 @@ export class FallingBombSystem implements EntitySystem {
     const x = Phaser.Math.Between(margin, GAME_WIDTH - margin);
     const entityId = `falling_bomb_${++this.spawnCounter}`;
 
-    // Create Phaser container + graphics
-    const container = this.scene.add.container(x, -OFFSCREEN_MARGIN);
-    const graphics = this.scene.add.graphics();
-    container.add(graphics);
+    // Acquire Entity from pool
+    const entity = this.entityPoolManager.acquire('fallingBomb');
+    if (!entity) return;
+
+    entity.setEntityId(entityId);
+    entity.setPosition(x, -OFFSCREEN_MARGIN);
+    entity.reset();
+
+    const container = entity;
+    const graphics = entity.getGraphics();
 
     // Spawn into ECS world
     const archetype = this.world.archetypeRegistry.getRequired('fallingBomb');
@@ -184,13 +200,14 @@ export class FallingBombSystem implements EntitySystem {
         body: null,
         spawnTween: null,
         bossRenderer: null,
+        typePlugin: null,
       },
     });
 
     // Spawn animation
     container.setScale(0);
     container.setAlpha(0);
-    this.scene.tweens.add({
+    const spawnTween = this.scene.tweens.add({
       targets: container,
       scaleX: 1,
       scaleY: 1,
@@ -204,6 +221,12 @@ export class FallingBombSystem implements EntitySystem {
         }
       },
     });
+
+    // Store spawn tween for cleanup
+    const node = this.world.phaserNode.get(entityId);
+    if (node) {
+      node.spawnTween = spawnTween;
+    }
 
     // Initial draw
     DishRenderer.renderDangerDish(graphics, {

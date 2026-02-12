@@ -10,14 +10,15 @@ import {
 } from '../data/constants';
 import { Data } from '../data/DataManager';
 import { Entity } from '../entities/Entity';
+import { deactivateEntity } from '../entities/EntityLifecycle';
 import { EventBus } from '../utils/EventBus';
-import { ObjectPool } from '../utils/ObjectPool';
+import { EntityPoolManager } from '../systems/EntityPoolManager';
 import { ComboSystem } from '../systems/ComboSystem';
 import { WaveSystem } from '../systems/WaveSystem';
 import { UpgradeSystem } from '../systems/UpgradeSystem';
 import { HealthSystem } from '../systems/HealthSystem';
-import { HealthPackSystem } from '../systems/HealthPackSystem';
-import { FallingBombSystem } from '../systems/FallingBombSystem';
+import type { HealthPackSystem } from '../systems/HealthPackSystem';
+import type { FallingBombSystem } from '../systems/FallingBombSystem';
 import { HUD } from '../ui/HUD';
 import { ParticleManager } from '../effects/ParticleManager';
 import { ScreenShake } from '../effects/ScreenShake';
@@ -72,9 +73,11 @@ import type { ModSystemContext } from '../plugins/ModSystemRegistry';
 import { ModRegistry } from '../plugins/ModRegistry';
 import { registerBuiltinAbilities } from '../plugins/builtin/abilities';
 import { registerBuiltinEntityTypes } from '../plugins/builtin/entities';
+import { registerBuiltinSystemPlugins } from '../plugins/builtin/systems';
+import type { SystemPluginContext } from '../plugins/types/SystemPlugin';
 
 export class GameScene extends Phaser.Scene {
-  private dishPool!: ObjectPool<Entity>;
+  private entityPoolManager!: EntityPoolManager;
   private dishes!: Phaser.GameObjects.Group;
 
   // 시스템
@@ -215,7 +218,7 @@ export class GameScene extends Phaser.Scene {
 
     this.waveSystem = new WaveSystem(
       this,
-      () => this.dishPool,
+      () => this.entityPoolManager.getPool('dish')!,
       () => {
         const baseMaxY = this.inGameUpgradeUI.isVisible()
           ? this.inGameUpgradeUI.getBlockedYArea()
@@ -231,29 +234,22 @@ export class GameScene extends Phaser.Scene {
     this.gaugeSystem = new GaugeSystem(this.comboSystem);
     // ECS World (BlackHoleSystem, OrbSystem 생성 전 필요)
     this.ecsWorld = new World();
-    Entity.setWorld(this.ecsWorld);
 
     // MOD 인프라
     this.statusEffectManager = new StatusEffectManager();
     this.modSystemRegistry = new ModSystemRegistry();
-    Entity.setStatusEffectManager(this.statusEffectManager);
 
     // EntityDamageService 연결
     this.entityDamageService = new EntityDamageService(
       this.ecsWorld,
       this.statusEffectManager,
       (id) => this.findEntityById(id),
+      this,
     );
-    Entity.setDamageService(this.entityDamageService);
     setSpawnDamageServiceGetter(() => this.entityDamageService);
-
-    // HealthPackSystem + FallingBombSystem (ECS World 필요)
-    this.healthPackSystem = new HealthPackSystem(this, this.upgradeSystem, this.ecsWorld);
-    this.fallingBombSystem = new FallingBombSystem(this, this.ecsWorld);
 
     // OrbSystem / BlackHoleSystem (World + DamageService 필요)
     this.orbSystem = new OrbSystem(this.upgradeSystem, this.ecsWorld, this.entityDamageService);
-    this.orbSystem.setFallingBombSystem(this.fallingBombSystem);
     this.blackHoleSystem = new BlackHoleSystem(
       this.upgradeSystem,
       this.ecsWorld,
@@ -268,7 +264,6 @@ export class GameScene extends Phaser.Scene {
         this.feedbackSystem.onBossContactDamaged(textX, textY, amount, isCritical);
       },
     );
-    this.blackHoleSystem.setFallingBombSystem(this.fallingBombSystem);
 
     // ECS-style entity system pipeline (data-driven 순서)
     this.entitySystemPipeline = new EntitySystemPipeline(Data.gameConfig.entityPipeline);
@@ -300,18 +295,38 @@ export class GameScene extends Phaser.Scene {
       getCursor: () => this.getCursorSnapshot(),
     }));
 
-    // Register BlackHoleSystem + OrbSystem + FallingBombSystem + HealthPackSystem as pipeline systems
+    // Register BlackHoleSystem + OrbSystem as pipeline systems
     this.entitySystemPipeline.register(this.blackHoleSystem);
     this.entitySystemPipeline.register(this.orbSystem);
-    this.entitySystemPipeline.register(this.fallingBombSystem);
-    this.entitySystemPipeline.register(this.healthPackSystem);
+
+    // Register SystemPlugin-based systems (FallingBombSystem, HealthPackSystem)
+    registerBuiltinSystemPlugins();
+    const systemCtx: SystemPluginContext = {
+      scene: this,
+      world: this.ecsWorld,
+      entityPoolManager: this.entityPoolManager,
+      upgradeSystem: this.upgradeSystem,
+      entityDamageService: this.entityDamageService,
+      statusEffectManager: this.statusEffectManager,
+    };
+    for (const plugin of PluginRegistry.getInstance().getAllSystemPlugins().values()) {
+      for (const system of plugin.createSystems(systemCtx)) {
+        this.entitySystemPipeline.register(system);
+      }
+    }
+
+    // Cross-system wiring: OrbSystem/BlackHoleSystem → FallingBombSystem
+    this.fallingBombSystem = this.entitySystemPipeline.getSystem('core:falling_bomb') as FallingBombSystem;
+    this.healthPackSystem = this.entitySystemPipeline.getSystem('core:health_pack') as HealthPackSystem;
+    this.orbSystem.setFallingBombSystem(this.fallingBombSystem);
+    this.blackHoleSystem.setFallingBombSystem(this.fallingBombSystem);
 
     // Player entity 생성 (아키타입 기반)
     const playerArchetype = this.ecsWorld.archetypeRegistry.getRequired('player');
     this.ecsWorld.spawnFromArchetype(playerArchetype, 'player', {
       identity: { entityId: 'player', entityType: 'player', isGatekeeper: false },
       transform: { x: 0, y: 0, baseX: 0, baseY: 0, alpha: 1, scaleX: 1, scaleY: 1 },
-      health: { currentHp: INITIAL_HP, maxHp: INITIAL_HP },
+      health: { currentHp: INITIAL_HP, maxHp: INITIAL_HP, isDead: false },
       statusCache: { isFrozen: false, slowFactor: 1.0, isShielded: false },
       playerInput: {
         targetX: 0, targetY: 0,
@@ -348,8 +363,14 @@ export class GameScene extends Phaser.Scene {
   }
 
   private initializeEntities(): void {
-    this.dishPool = new ObjectPool<Entity>(() => new Entity(this), 10, 50);
-    this.entityQueryService = new EntityQueryService(this.dishPool);
+    this.entityPoolManager = new EntityPoolManager();
+    this.entityPoolManager.registerPool('dish', () => new Entity(this), 10, 50);
+    this.entityPoolManager.registerPool('boss', () => new Entity(this), 2, 5);
+    this.entityPoolManager.registerPool('fallingBomb', () => new Entity(this, { physics: false }), 3, 10);
+    this.entityPoolManager.registerPool('healthPack', () => new Entity(this, { physics: false }), 2, 5);
+
+    const dishPool = this.entityPoolManager.getPool('dish')!;
+    this.entityQueryService = new EntityQueryService(dishPool);
   }
 
   private initializeRenderers(): void {
@@ -399,13 +420,15 @@ export class GameScene extends Phaser.Scene {
       healthSystem: this.healthSystem,
       upgradeSystem: this.upgradeSystem,
       damageService: this.entityDamageService,
+      world: this.ecsWorld,
+      statusEffectManager: this.statusEffectManager,
       isGameOver: () => this.isGameOver,
       isPaused: () => this.isDockPaused,
     });
 
     this.dishLifecycleController = new DishLifecycleController({
       world: this.ecsWorld,
-      dishPool: this.dishPool,
+      dishPool: this.entityPoolManager.getPool('dish')!,
       dishes: this.dishes,
       healthSystem: this.healthSystem,
       comboSystem: this.comboSystem,
@@ -632,7 +655,7 @@ export class GameScene extends Phaser.Scene {
     this.bossCombatCoordinator?.destroy();
     this.playerAttackController?.destroy();
 
-    this.dishPool.clear();
+    this.entityPoolManager.clearAll();
     this.healthPackSystem?.destroy();
     this.healthPackSystem?.clear();
     this.fallingBombSystem?.destroy();
@@ -641,9 +664,6 @@ export class GameScene extends Phaser.Scene {
     this.inGameUpgradeUI.destroy();
     this.waveCountdownUI.destroy();
 
-    Entity.setWorld(null);
-    Entity.setStatusEffectManager(null);
-    Entity.setDamageService(null);
     this.ecsWorld?.clear();
     this.statusEffectManager?.clear();
     this.modSystemRegistry?.clear();
@@ -792,15 +812,15 @@ export class GameScene extends Phaser.Scene {
       const node = this.ecsWorld.phaserNode.get(entityId);
       if (node) {
         const entity = node.container as Entity;
-        entity.deactivate();
+        deactivateEntity(entity, this.ecsWorld, this.statusEffectManager);
         this.dishes.remove(entity);
-        this.dishPool.release(entity);
+        this.entityPoolManager.release('dish', entity);
       }
     }
   }
 
-  public getDishPool(): ObjectPool<Entity> {
-    return this.dishPool;
+  public getDishPool() {
+    return this.entityPoolManager.getPool('dish')!;
   }
 
   public getCursorPosition(): CursorSnapshot {

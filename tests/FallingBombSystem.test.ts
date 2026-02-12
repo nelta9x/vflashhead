@@ -138,31 +138,40 @@ describe('FallingBombSystem', () => {
   let system: FallingBombSystem;
   let worldMock: ReturnType<typeof createWorldMock>;
 
+  const mockGraphics = {};
+  const mockEntity = {
+    setEntityId: vi.fn(),
+    setPosition: vi.fn(),
+    reset: vi.fn(),
+    getGraphics: vi.fn(() => mockGraphics),
+    setScale: vi.fn(),
+    setAlpha: vi.fn(),
+    setVisible: vi.fn(),
+    setActive: vi.fn(),
+    x: 0,
+    y: 0,
+  };
+
+  const mockPoolManager = {
+    acquire: vi.fn(() => mockEntity),
+    release: vi.fn(),
+  };
+
   const mockScene = {
-    add: {
-      container: vi.fn(() => ({
-        add: vi.fn(),
-        setScale: vi.fn(),
-        setAlpha: vi.fn(),
-        setVisible: vi.fn(),
-        setActive: vi.fn(),
-        x: 0,
-        y: 0,
-      })),
-      graphics: vi.fn(() => ({})),
-    },
     tweens: {
       add: vi.fn((config: { onComplete?: () => void }) => {
         // Immediately call onComplete for spawn animation
         if (config.onComplete) config.onComplete();
+        return { stop: vi.fn() };
       }),
     },
   } as never;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPoolManager.acquire.mockReturnValue(mockEntity);
     worldMock = createWorldMock();
-    system = new FallingBombSystem(mockScene, worldMock.world as never);
+    system = new FallingBombSystem(mockScene, worldMock.world as never, mockPoolManager as never);
   });
 
   describe('EntitySystem interface', () => {
@@ -274,6 +283,7 @@ describe('FallingBombSystem', () => {
       worldMock.stores.set('transform', new Map([[entityId, { x: 200, y: 300 }]]));
       worldMock.stores.set('phaserNode', new Map([[entityId, {
         container: { setVisible: vi.fn(), setActive: vi.fn() },
+        spawnTween: null,
       }]]));
 
       system.forceDestroy(entityId, true);
@@ -294,6 +304,7 @@ describe('FallingBombSystem', () => {
         if (!worldMock.stores.has('phaserNode')) worldMock.stores.set('phaserNode', new Map());
         worldMock.stores.get('phaserNode')!.set(id, {
           container: { setVisible: vi.fn(), setActive: vi.fn() },
+          spawnTween: null,
         });
       }
 

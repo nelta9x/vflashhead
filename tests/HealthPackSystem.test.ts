@@ -141,32 +141,42 @@ function createWorldMock() {
   return { world, activeEntities, stores };
 }
 
-const mockGetHealthPackDropBonus = vi.fn(() => 0);
+const mockGetLevelData = vi.fn((): unknown => null);
 const mockUpgradeSystem = {
-  getHealthPackDropBonus: mockGetHealthPackDropBonus,
+  getUpgradeStack: vi.fn(() => 0),
+  getLevelData: mockGetLevelData,
+  getSystemUpgrade: vi.fn(() => undefined),
+  getAllUpgradeStacks: vi.fn(() => new Map()),
 } as unknown as UpgradeSystem;
 
 describe('HealthPackSystem', () => {
   let system: HealthPackSystem;
   let worldMock: ReturnType<typeof createWorldMock>;
 
+  const mockGraphics = {};
+  const mockEntity = {
+    setEntityId: vi.fn(),
+    setPosition: vi.fn(),
+    reset: vi.fn(),
+    getGraphics: vi.fn(() => mockGraphics),
+    setScale: vi.fn(),
+    setAlpha: vi.fn(),
+    setVisible: vi.fn(),
+    setActive: vi.fn(),
+    setInteractive: vi.fn(),
+    disableInteractive: vi.fn(),
+    removeAllListeners: vi.fn(),
+    on: vi.fn(),
+    x: 0,
+    y: 0,
+  };
+
+  const mockPoolManager = {
+    acquire: vi.fn(() => mockEntity),
+    release: vi.fn(),
+  };
+
   const mockScene = {
-    add: {
-      container: vi.fn(() => ({
-        add: vi.fn(),
-        setScale: vi.fn(),
-        setAlpha: vi.fn(),
-        setVisible: vi.fn(),
-        setActive: vi.fn(),
-        setInteractive: vi.fn(),
-        disableInteractive: vi.fn(),
-        removeAllListeners: vi.fn(),
-        on: vi.fn(),
-        x: 0,
-        y: 0,
-      })),
-      graphics: vi.fn(() => ({})),
-    },
     tweens: {
       add: vi.fn(),
     },
@@ -174,9 +184,10 @@ describe('HealthPackSystem', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetHealthPackDropBonus.mockReturnValue(0);
+    mockGetLevelData.mockReturnValue(null);
+    mockPoolManager.acquire.mockReturnValue(mockEntity);
     worldMock = createWorldMock();
-    system = new HealthPackSystem(mockScene, mockUpgradeSystem, worldMock.world as never);
+    system = new HealthPackSystem(mockScene, mockUpgradeSystem, worldMock.world as never, mockPoolManager as never);
   });
 
   describe('EntitySystem interface', () => {
@@ -195,7 +206,7 @@ describe('HealthPackSystem', () => {
     });
 
     it('should include upgrade bonus in spawn chance', () => {
-      mockGetHealthPackDropBonus.mockReturnValue(0.02);
+      mockGetLevelData.mockReturnValue({ dropChanceBonus: 0.02 });
       expect(system.getSpawnChance()).toBe(0.06);
     });
 
@@ -271,6 +282,7 @@ describe('HealthPackSystem', () => {
           setVisible: vi.fn(),
           setActive: vi.fn(),
         },
+        spawnTween: null,
       });
 
       worldMock.world.query = vi.fn(function* () {
@@ -300,6 +312,7 @@ describe('HealthPackSystem', () => {
             disableInteractive: vi.fn(),
             removeAllListeners: vi.fn(),
           },
+          spawnTween: null,
         });
       }
 

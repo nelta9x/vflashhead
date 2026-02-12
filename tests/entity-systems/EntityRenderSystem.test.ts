@@ -24,7 +24,7 @@ describe('EntityRenderSystem', () => {
   });
 
   it('syncs transform to Phaser container', () => {
-    const mockContainer = { x: 0, y: 0, alpha: 1, scaleX: 1, scaleY: 1, getTypePlugin: () => null };
+    const mockContainer = { x: 0, y: 0, alpha: 1, scaleX: 1, scaleY: 1, };
     const mockGraphics = { clear: vi.fn() };
     const system = new EntityRenderSystem(world);
 
@@ -36,13 +36,14 @@ describe('EntityRenderSystem', () => {
       body: null,
       spawnTween: null,
       bossRenderer: null,
+      typePlugin: null,
     });
     world.identity.set('e1', { entityId: 'e1', entityType: 'basic', isGatekeeper: false });
     world.dishProps.set('e1', {
       dangerous: false, invulnerable: false, color: 0x00ffff, size: 30,
       interactiveRadius: 40, upgradeOptions: {}, destroyedByAbility: false,
     });
-    world.health.set('e1', { currentHp: 10, maxHp: 10 });
+    world.health.set('e1', { currentHp: 10, maxHp: 10, isDead: false });
     world.statusCache.set('e1', { isFrozen: false, slowFactor: 1.0, isShielded: false });
     world.visualState.set('e1', {
       hitFlashPhase: 0, wobblePhase: 0, blinkPhase: 0, isBeingPulled: false, pullPhase: 0,
@@ -61,10 +62,10 @@ describe('EntityRenderSystem', () => {
     expect(mockContainer.scaleY).toBe(2);
   });
 
-  it('calls plugin.onUpdate via container.getTypePlugin()', () => {
+  it('calls plugin.onUpdate via node.typePlugin', () => {
     const mockOnUpdate = vi.fn();
     const mockPlugin = { onUpdate: mockOnUpdate };
-    const mockContainer = { x: 0, y: 0, alpha: 1, scaleX: 1, scaleY: 1, getTypePlugin: () => mockPlugin };
+    const mockContainer = { x: 0, y: 0, alpha: 1, scaleX: 1, scaleY: 1 };
     const system = new EntityRenderSystem(world);
 
     world.createEntity('e1');
@@ -74,6 +75,7 @@ describe('EntityRenderSystem', () => {
       body: null,
       spawnTween: null,
       bossRenderer: null,
+      typePlugin: mockPlugin as never,
     });
     world.transform.set('e1', { x: 0, y: 0, baseX: 0, baseY: 0, alpha: 1, scaleX: 1, scaleY: 1 });
     world.identity.set('e1', { entityId: 'e1', entityType: 'basic', isGatekeeper: false });
@@ -98,6 +100,7 @@ describe('EntityRenderSystem', () => {
       body: null,
       spawnTween: null,
       bossRenderer: null,
+      typePlugin: null,
     });
 
     system.tick(16);
@@ -106,7 +109,7 @@ describe('EntityRenderSystem', () => {
   });
 
   it('reverse-syncs alpha/scale from container to World when spawnTween is active', () => {
-    const mockContainer = { x: 0, y: 0, alpha: 0.3, scaleX: 0.5, scaleY: 0.5, getTypePlugin: () => null };
+    const mockContainer = { x: 0, y: 0, alpha: 0.3, scaleX: 0.5, scaleY: 0.5, };
     const system = new EntityRenderSystem(world);
 
     world.createEntity('e1');
@@ -118,6 +121,7 @@ describe('EntityRenderSystem', () => {
       body: null,
       spawnTween: {} as never, // truthy = active tween
       bossRenderer: null,
+      typePlugin: null,
     });
     world.identity.set('e1', { entityId: 'e1', entityType: 'basic', isGatekeeper: false });
 
@@ -147,6 +151,7 @@ describe('EntityRenderSystem', () => {
       body: null,
       spawnTween: null,
       bossRenderer: null,
+      typePlugin: null,
     });
 
     system.tick(16);

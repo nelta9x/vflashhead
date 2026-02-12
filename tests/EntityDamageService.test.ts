@@ -51,38 +51,36 @@ interface MockEntity {
   active: boolean;
   x: number;
   y: number;
-  scene: { time: { addEvent: ReturnType<typeof vi.fn> } };
-  getIsDead: () => boolean;
-  getTypePlugin: () => null;
-  markDead: ReturnType<typeof vi.fn>;
-  clearDamageTimer: ReturnType<typeof vi.fn>;
-  setDamageTimer: ReturnType<typeof vi.fn>;
   disableInteractive: ReturnType<typeof vi.fn>;
   removeAllListeners: ReturnType<typeof vi.fn>;
-  deactivate: ReturnType<typeof vi.fn>;
+  setVisible: ReturnType<typeof vi.fn>;
+  setActive: ReturnType<typeof vi.fn>;
+  getEntityId: () => string;
+  body: null;
 }
 
-function createMockEntity(_id: string): MockEntity {
+function createMockEntity(id: string): MockEntity {
   return {
     active: true,
     x: 100,
     y: 200,
-    scene: { time: { addEvent: vi.fn(() => ({ destroy: vi.fn() })) as ReturnType<typeof vi.fn> } },
-    getIsDead: () => false,
-    getTypePlugin: () => null,
-    markDead: vi.fn(),
-    clearDamageTimer: vi.fn(),
-    setDamageTimer: vi.fn(),
     disableInteractive: vi.fn(),
     removeAllListeners: vi.fn(),
-    deactivate: vi.fn(),
+    setVisible: vi.fn(),
+    setActive: vi.fn(),
+    getEntityId: () => id,
+    body: null,
   };
 }
+
+const mockScene = {
+  time: { addEvent: vi.fn(() => ({ destroy: vi.fn() })) },
+} as never;
 
 function setupEntity(world: World, id: string): void {
   world.createEntity(id);
   world.identity.set(id, { entityId: id, entityType: 'basic', isGatekeeper: false });
-  world.health.set(id, { currentHp: 100, maxHp: 100 });
+  world.health.set(id, { currentHp: 100, maxHp: 100, isDead: false });
   world.dishProps.set(id, {
     dangerous: false, invulnerable: false, color: 0x00ffff, size: 30,
     interactiveRadius: 40, upgradeOptions: {}, destroyedByAbility: false,
@@ -98,20 +96,21 @@ function setupEntity(world: World, id: string): void {
 
 describe('EntityDamageService', () => {
   let world: World;
-  let sem: { applyEffect: ReturnType<typeof vi.fn>; removeEffect: ReturnType<typeof vi.fn> };
+  let sem: { applyEffect: ReturnType<typeof vi.fn>; removeEffect: ReturnType<typeof vi.fn>; clearEntity: ReturnType<typeof vi.fn> };
   let mockEntity: MockEntity;
   let service: EntityDamageService;
 
   beforeEach(() => {
     vi.clearAllMocks();
     world = new World();
-    sem = { applyEffect: vi.fn(), removeEffect: vi.fn() };
+    sem = { applyEffect: vi.fn(), removeEffect: vi.fn(), clearEntity: vi.fn() };
     mockEntity = createMockEntity('e1');
     setupEntity(world, 'e1');
     service = new EntityDamageService(
       world,
       sem as never,
       () => mockEntity as never,
+      mockScene,
     );
   });
 
@@ -136,7 +135,7 @@ describe('EntityDamageService', () => {
 
     it('destroys entity when HP <= 0', () => {
       service.applyDamage('e1', 200);
-      expect(mockEntity.deactivate).toHaveBeenCalled();
+      expect(mockEntity.active).toBe(false);
     });
 
     it('does nothing for invulnerable entities', () => {
@@ -169,15 +168,16 @@ describe('EntityDamageService', () => {
   describe('forceDestroy', () => {
     it('marks destroyedByAbility and deactivates', () => {
       service.forceDestroy('e1', true);
-      expect(world.dishProps.getRequired('e1').destroyedByAbility).toBe(true);
-      expect(mockEntity.deactivate).toHaveBeenCalled();
+      expect(mockEntity.active).toBe(false);
+      const bus = EventBus.getInstance();
+      expect(bus.emit).toHaveBeenCalledWith(GameEvents.DISH_DESTROYED, expect.anything());
     });
   });
 
   describe('handleTimeout', () => {
     it('deactivates entity and emits DISH_MISSED', () => {
       service.handleTimeout('e1');
-      expect(mockEntity.deactivate).toHaveBeenCalled();
+      expect(mockEntity.active).toBe(false);
       const bus = EventBus.getInstance();
       expect(bus.emit).toHaveBeenCalledWith(GameEvents.DISH_MISSED, expect.anything());
     });
@@ -257,12 +257,12 @@ describe('EntityDamageService', () => {
       service.applyContactDamage('e1', 200, 50, 50);
       const bs = world.bossState.getRequired('e1');
       expect(bs.pendingDeathAnimation).toBe(true);
-      expect(mockEntity.markDead).toHaveBeenCalled();
+      expect(world.health.getRequired('e1').isDead).toBe(true);
     });
 
     it('does not apply damage to dead entities', () => {
       setupBossState('e1');
-      mockEntity.getIsDead = () => true;
+      world.health.getRequired('e1').isDead = true;
       service.applyContactDamage('e1', 20, 50, 50);
       expect(world.health.getRequired('e1').currentHp).toBe(100);
     });
@@ -308,13 +308,13 @@ describe('EntityDamageService', () => {
 
     it('marks dead when HP reaches 0', () => {
       service.handleExternalHpChange('e1', 0, 100);
-      expect(mockEntity.markDead).toHaveBeenCalled();
+      expect(world.health.getRequired('e1').isDead).toBe(true);
     });
 
     it('sets pendingDeathAnimation when HP reaches 0 with bossState', () => {
       setupBossState('e1');
       service.handleExternalHpChange('e1', 0, 100);
-      expect(mockEntity.markDead).toHaveBeenCalled();
+      expect(world.health.getRequired('e1').isDead).toBe(true);
       const bs = world.bossState.getRequired('e1');
       expect(bs.pendingDeathAnimation).toBe(true);
     });
@@ -324,7 +324,7 @@ describe('EntityDamageService', () => {
     it('deactivates entity and emits DISH_DESTROYED', () => {
       service.explode('e1');
       expect(mockEntity.active).toBe(false);
-      expect(mockEntity.deactivate).toHaveBeenCalled();
+      expect(mockEntity.disableInteractive).toHaveBeenCalled();
       const bus = EventBus.getInstance();
       expect(bus.emit).toHaveBeenCalledWith(GameEvents.DISH_DESTROYED, expect.anything());
     });

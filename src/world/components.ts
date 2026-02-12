@@ -1,6 +1,6 @@
 import type { BossRenderer } from '../effects/BossRenderer';
 import type { DishUpgradeOptions } from '../entities/EntityTypes';
-import type { CursorInteractionType } from '../plugins/types';
+import type { CursorInteractionType, EntityTypePlugin } from '../plugins/types';
 import type { CursorSmoothingConfig } from '../data/types';
 import { defineComponent } from './ComponentDef';
 
@@ -34,6 +34,7 @@ export const C_Transform = defineComponent<TransformComponent>('transform');
 export interface HealthComponent {
   currentHp: number;
   maxHp: number;
+  isDead: boolean;
 }
 export const C_Health = defineComponent<HealthComponent>('health');
 
@@ -114,6 +115,7 @@ export interface PhaserNodeComponent {
   body: Phaser.Physics.Arcade.Body | null;
   spawnTween: Phaser.Tweens.Tween | null;
   bossRenderer: BossRenderer | null;
+  typePlugin: EntityTypePlugin | null;
 }
 export const C_PhaserNode = defineComponent<PhaserNodeComponent>('phaserNode');
 

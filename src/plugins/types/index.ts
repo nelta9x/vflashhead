@@ -19,3 +19,7 @@ export type {
   ModModule,
   ModFactory,
 } from './ModTypes';
+export type {
+  SystemPluginContext,
+  SystemPlugin,
+} from './SystemPlugin';

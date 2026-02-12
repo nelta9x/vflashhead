@@ -1,11 +1,15 @@
 import Phaser from 'phaser';
 import type { WaveBossConfig } from '../../../data/types/waves';
 import { Entity } from '../../../entities/Entity';
+import { initializeEntitySpawn } from '../../../entities/EntitySpawnInitializer';
+import { deactivateEntity } from '../../../entities/EntityLifecycle';
 import { PluginRegistry } from '../../../plugins/PluginRegistry';
 import type { LaserRenderer } from '../../../effects/LaserRenderer';
 import type { MonsterSystem } from '../../../systems/MonsterSystem';
+import type { StatusEffectManager } from '../../../systems/StatusEffectManager';
 import type { WaveSystem } from '../../../systems/WaveSystem';
 import type { EntityDamageService } from '../../../systems/EntityDamageService';
+import type { World } from '../../../world';
 import type { ActiveLaser } from './BossCombatTypes';
 
 interface BossRosterSyncDeps {
@@ -21,6 +25,8 @@ interface BossRosterSyncDeps {
   setNextLaserTime: (bossId: string, gameTime: number) => void;
   getCurrentGameTime: () => number;
   damageService: EntityDamageService;
+  world: World;
+  statusEffectManager: StatusEffectManager;
 }
 
 export class BossRosterSync {
@@ -36,6 +42,8 @@ export class BossRosterSync {
   private readonly setNextLaserTime: (bossId: string, gameTime: number) => void;
   private readonly getCurrentGameTime: () => number;
   private readonly damageService: EntityDamageService;
+  private readonly world: World;
+  private readonly statusEffectManager: StatusEffectManager;
 
   constructor(deps: BossRosterSyncDeps) {
     this.scene = deps.scene;
@@ -50,6 +58,8 @@ export class BossRosterSync {
     this.setNextLaserTime = deps.setNextLaserTime;
     this.getCurrentGameTime = deps.getCurrentGameTime;
     this.damageService = deps.damageService;
+    this.world = deps.world;
+    this.statusEffectManager = deps.statusEffectManager;
   }
 
   public syncBossesForCurrentWave(): void {
@@ -59,8 +69,7 @@ export class BossRosterSync {
     const staleBossIds: string[] = [];
     this.bosses.forEach((boss, bossId) => {
       if (activeBossIds.has(bossId)) return;
-      boss.deactivate();
-      boss.destroy();
+      deactivateEntity(boss, this.world, this.statusEffectManager);
       staleBossIds.push(bossId);
       this.laserNextTimeByBossId.delete(bossId);
       this.bossOverlapLastHitTimeByBossId.delete(bossId);
@@ -96,13 +105,16 @@ export class BossRosterSync {
       }
 
       if (plugin) {
-        boss.spawn(spawnPosition.x, spawnPosition.y, {
+        const config = {
           entityId: bossConfig.id,
           entityType: 'boss_standard',
           hp: this.monsterSystem.getMaxHp(bossConfig.id) || 1,
           lifetime: null,
           isGatekeeper: true,
-        }, plugin);
+        };
+        boss.setEntityId(config.entityId);
+        boss.active = true;
+        initializeEntitySpawn(boss, this.world, config, plugin, spawnPosition.x, spawnPosition.y);
       }
 
       this.monsterSystem.publishBossHpSnapshot(bossConfig.id);
@@ -119,8 +131,7 @@ export class BossRosterSync {
     this.laserNextTimeByBossId.clear();
     this.bosses.forEach((boss, bossId) => {
       this.damageService.unfreeze(bossId);
-      boss.deactivate();
-      boss.destroy();
+      deactivateEntity(boss, this.world, this.statusEffectManager);
     });
     this.bosses.clear();
     this.laserRenderer.clear();

@@ -42,7 +42,7 @@ function setupPlayerEntity(world: World): void {
   world.createEntity('player');
   world.identity.set('player', { entityId: 'player', entityType: 'player', isGatekeeper: false });
   world.transform.set('player', { x: 100, y: 200, baseX: 0, baseY: 0, alpha: 1, scaleX: 1, scaleY: 1 });
-  world.health.set('player', { currentHp: 5, maxHp: 5 });
+  world.health.set('player', { currentHp: 5, maxHp: 5, isDead: false });
   world.statusCache.set('player', { isFrozen: false, slowFactor: 1.0, isShielded: false });
   world.playerInput.set('player', {
     targetX: 300, targetY: 400,

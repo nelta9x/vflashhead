@@ -4,8 +4,10 @@ import type { AttackPattern } from './AttackPattern';
 import type { World, MovementComponent } from '../../world';
 
 export type CursorInteractionType = 'dps' | 'contact' | 'explode' | 'none';
+export type EntitySpawnCategory = 'pooled' | 'singleton';
 
 export interface EntityTypeConfig {
+  spawnCategory: EntitySpawnCategory;
   poolSize: number;
   defaultLifetime: number | null;
   isGatekeeper: boolean;
@@ -36,6 +38,8 @@ export interface EntityTypePlugin {
   createMovementData?(entityId: EntityId, homeX: number, homeY: number): MovementComponent;
   createAttackPatterns?(scene: Phaser.Scene, entityId: EntityId): AttackPattern[];
 
+  /** singleton 엔티티 스폰. archetype 해석 + 컴포넌트 조립 + 후처리까지 플러그인이 전담. */
+  spawn?(world: World): EntityId;
   onSpawn?(entityId: EntityId, world: World): void;
   onUpdate?(entityId: EntityId, world: World, delta: number, gameTime: number): void;
   onDamaged?(entityId: EntityId, world: World, damage: number, source: DamageSource): void;

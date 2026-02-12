@@ -17,6 +17,7 @@ export class BasicDishPlugin implements EntityTypePlugin {
   constructor(typeId: string, config: Partial<EntityTypeConfig> = {}) {
     this.typeId = typeId;
     this.config = {
+      spawnCategory: 'pooled',
       poolSize: config.poolSize ?? 50,
       defaultLifetime: config.defaultLifetime ?? 7000,
       isGatekeeper: false,

@@ -30,6 +30,7 @@ interface BossMovementConfig {
 export class StandardBossPlugin implements EntityTypePlugin {
   readonly typeId = 'boss_standard';
   readonly config: EntityTypeConfig = {
+    spawnCategory: 'pooled',
     poolSize: 0,
     defaultLifetime: null,
     isGatekeeper: true,

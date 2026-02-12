@@ -1,6 +1,7 @@
 export type { AttackPattern } from './AttackPattern';
 export type {
   CursorInteractionType,
+  EntitySpawnCategory,
   EntityTypeConfig,
   EntityTypeRenderer,
   DamageSource,

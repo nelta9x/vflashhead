@@ -12,6 +12,7 @@ import type {
 export class BombDishPlugin implements EntityTypePlugin {
   readonly typeId = 'bomb';
   readonly config: EntityTypeConfig = {
+    spawnCategory: 'pooled',
     poolSize: 10,
     defaultLifetime: 2800,
     isGatekeeper: false,

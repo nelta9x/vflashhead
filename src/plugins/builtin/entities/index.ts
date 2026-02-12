@@ -2,10 +2,14 @@ import { PluginRegistry } from '../../PluginRegistry';
 import { BasicDishPlugin } from './BasicDish';
 import { BombDishPlugin } from './BombDish';
 import { StandardBossPlugin } from './StandardBoss';
+import { PlayerEntityPlugin } from './PlayerEntity';
 import entitiesJson from '../../../../data/entities.json';
 
 export function registerBuiltinEntityTypes(): void {
   const registry = PluginRegistry.getInstance();
+
+  // 플레이어 (싱글톤)
+  registry.registerEntityType(new PlayerEntityPlugin());
 
   // 기본 접시 타입들 (공유 플러그인, JSON 데이터로 차이화)
   const dishTypes = ['basic', 'golden', 'crystal', 'mini', 'amber'];

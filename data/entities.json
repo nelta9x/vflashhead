@@ -1,5 +1,10 @@
 {
   "types": {
+    "player": {
+      "name": "플레이어",
+      "spawnCategory": "singleton",
+      "cursorInteraction": "none"
+    },
     "basic": {
       "name": "기본 접시",
       "hp": 10,

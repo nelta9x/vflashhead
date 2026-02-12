@@ -194,7 +194,7 @@ vi.mock('../src/plugins/PluginRegistry', () => ({
     getInstance: () => ({
       getEntityType: () => ({
         typeId: 'boss_standard',
-        config: { poolSize: 0, defaultLifetime: null, isGatekeeper: true, cursorInteraction: 'contact' },
+        config: { spawnCategory: 'pooled', poolSize: 0, defaultLifetime: null, isGatekeeper: true, cursorInteraction: 'contact' },
         createMovementData: () => ({ type: 'none', homeX: 0, homeY: 0, movementTime: 0, drift: null }),
       }),
     }),

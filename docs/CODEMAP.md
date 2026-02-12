@@ -157,7 +157,7 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
 - **`ScopedEventBusWrapper.ts`**: MOD별 EventBus 구독 추적 래퍼. `on()`/`once()`/`off()` 위임 + 내부 tracking, `removeAll()`로 일괄 해제.
 - **`ModLoader.ts`**: MOD 모듈 해석 + 에러 격리 전담. `ModFactory` → `ModModule` 변환, `load()` (단일), `loadMultiple()` (순차, 실패 건너뜀) 제공.
 - **`builtin/abilities/`**: 내장 어빌리티 플러그인 (CursorSize, CriticalChance, Missile, HealthPack, Magnet, ElectricShock, Orb, BlackHole).
-- **`builtin/entities/`**: 내장 엔티티 타입 플러그인 (BasicDish, BombDish, StandardBoss).
+- **`builtin/entities/`**: 내장 엔티티 타입 플러그인 (PlayerEntity, BasicDish, BombDish, StandardBoss). PlayerEntity는 `singleton` 카테고리로 풀링 없이 단일 인스턴스만 존재.
 - **`builtin/movement/DriftMovement.ts`**: Boss 사인파 드리프트 이동 전략.
 - **`AbilityManager.ts`** (`src/systems/`): 어빌리티 플러그인의 init/update/clear/destroy 라이프사이클 통합 관리.
 

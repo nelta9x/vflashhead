@@ -3,7 +3,6 @@ import {
   GAME_WIDTH,
   GAME_HEIGHT,
   COLORS,
-  INITIAL_HP,
   DEPTHS,
 } from '../data/constants';
 import { Data } from '../data/DataManager';
@@ -131,30 +130,16 @@ export class GameScene extends Phaser.Scene {
     }
     this.entitySystemPipeline.startAll({ services: this.serviceRegistry });
 
-    // ── 4. Player entity ──
-    const playerArchetype = world.archetypeRegistry.getRequired('player');
-    const playerId = world.spawnFromArchetype(playerArchetype, {
-      identity: { entityId: 0, entityType: 'player', isGatekeeper: false },
-      transform: { x: 0, y: 0, baseX: 0, baseY: 0, alpha: 1, scaleX: 1, scaleY: 1 },
-      health: { currentHp: INITIAL_HP, maxHp: INITIAL_HP, isDead: false },
-      statusCache: { isFrozen: false, slowFactor: 1.0, isShielded: false },
-      playerInput: {
-        targetX: 0, targetY: 0,
-        smoothingConfig: Data.gameConfig.player.input.smoothing,
-      },
-      playerRender: { gaugeRatio: 0, gameTime: 0 },
-    });
-    const identityComp = world.identity.get(playerId);
-    if (identityComp) identityComp.entityId = playerId;
-    world.context.playerId = playerId;
-
-    // ── 5. GameSceneController ──
-    this.controller = new GameSceneController(this, this.serviceRegistry);
-
-    // ── 6. Plugin registry + ability/mod lifecycle ──
+    // ── 4. Plugin registry (service/system 플러그인은 이미 소비됨, reset 안전) ──
     PluginRegistry.resetInstance();
     registerBuiltinAbilities();
     registerBuiltinEntityTypes();
+
+    // ── 5. Player entity ──
+    PluginRegistry.getInstance().getEntityType('player')!.spawn!(world);
+
+    // ── 6. GameSceneController ──
+    this.controller = new GameSceneController(this, this.serviceRegistry);
 
     this.modRegistry = new ModRegistry(
       PluginRegistry.getInstance(),

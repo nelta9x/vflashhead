@@ -82,7 +82,7 @@ function createMockGraphics() {
   };
 }
 
-import { CursorRenderer } from '../src/effects/CursorRenderer';
+import { CursorRenderer } from '../src/plugins/builtin/entities/CursorRenderer';
 
 describe('CursorRenderer', () => {
   let mockScene: { add: { graphics: () => ReturnType<typeof createMockGraphics> } };

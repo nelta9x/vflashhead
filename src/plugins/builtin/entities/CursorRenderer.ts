@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { COLORS } from '../data/constants';
-import { Data } from '../data/DataManager';
+import { COLORS } from '../../../data/constants';
+import { Data } from '../../../data/DataManager';
 
 export class CursorRenderer {
   private graphics: Phaser.GameObjects.Graphics;

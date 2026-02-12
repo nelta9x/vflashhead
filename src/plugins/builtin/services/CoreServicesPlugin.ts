@@ -9,13 +9,13 @@ import { HealthSystem } from '../../../systems/HealthSystem';
 import { MonsterSystem } from '../../../systems/MonsterSystem';
 import { StatusEffectManager } from '../../../systems/StatusEffectManager';
 import { ParticleManager } from '../../../effects/ParticleManager';
-import { ScreenShake } from '../../../effects/ScreenShake';
+import { ScreenShake } from '../../../systems/ScreenShake';
 import { DamageText } from '../../../ui/DamageText';
-import { CursorTrail } from '../../../effects/CursorTrail';
+import { CursorTrail } from '../entities/CursorTrail';
 import { SoundSystem } from '../../../systems/SoundSystem';
 import { FeedbackSystem } from '../../../systems/FeedbackSystem';
 import { GaugeSystem } from '../../../systems/GaugeSystem';
-import { CursorRenderer } from '../../../effects/CursorRenderer';
+import { CursorRenderer } from '../entities/CursorRenderer';
 import { OrbRenderer } from '../abilities/OrbRenderer';
 import { BlackHoleRenderer } from '../abilities/BlackHoleRenderer';
 

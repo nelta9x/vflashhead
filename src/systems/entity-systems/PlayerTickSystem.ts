@@ -1,8 +1,8 @@
 import { CURSOR_HITBOX } from '../../data/constants';
 import type { World } from '../../world';
 import type { EntityId } from '../../world/EntityId';
-import type { CursorRenderer } from '../../effects/CursorRenderer';
-import type { CursorTrail } from '../../effects/CursorTrail';
+import type { CursorRenderer } from '../../plugins/builtin/entities/CursorRenderer';
+import type { CursorTrail } from '../../plugins/builtin/entities/CursorTrail';
 import type { UpgradeSystem } from '../UpgradeSystem';
 import type { HealthSystem } from '../HealthSystem';
 import type { EntitySystem } from './EntitySystem';

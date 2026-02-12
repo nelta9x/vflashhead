@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { World } from '../src/world/World';
 import type { EntityId } from '../src/world/EntityId';
-import type { CursorRenderer } from '../src/effects/CursorRenderer';
-import type { CursorTrail } from '../src/effects/CursorTrail';
+import type { CursorRenderer } from '../src/plugins/builtin/entities/CursorRenderer';
+import type { CursorTrail } from '../src/plugins/builtin/entities/CursorTrail';
 import type { UpgradeSystem } from '../src/systems/UpgradeSystem';
 import type { HealthSystem } from '../src/systems/HealthSystem';
 

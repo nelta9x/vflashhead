@@ -1,6 +1,6 @@
 import { PlayerTickSystem } from '../../../systems/entity-systems';
-import { CursorRenderer } from '../../../effects/CursorRenderer';
-import { CursorTrail } from '../../../effects/CursorTrail';
+import { CursorRenderer } from '../entities/CursorRenderer';
+import { CursorTrail } from '../entities/CursorTrail';
 import { UpgradeSystem } from '../../../systems/UpgradeSystem';
 import { HealthSystem } from '../../../systems/HealthSystem';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';

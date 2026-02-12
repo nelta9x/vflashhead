@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../../data/constants';
 import { Data } from '../../data/DataManager';
-import { CursorTrail } from '../../effects/CursorTrail';
-import { CursorRenderer } from '../../effects/CursorRenderer';
+import { CursorTrail } from '../../plugins/builtin/entities/CursorTrail';
+import { CursorRenderer } from '../../plugins/builtin/entities/CursorRenderer';
 import { DishRenderer } from '../../plugins/builtin/entities/DishRenderer';
 import { ParticleManager } from '../../effects/ParticleManager';
 

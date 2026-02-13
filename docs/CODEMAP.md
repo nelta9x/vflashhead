@@ -147,7 +147,7 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
 
 ### 2.6 플러그인 아키텍처
 
-`src/plugins/` 디렉토리에는 확장 가능한 플러그인 시스템이 위치합니다. 코어 코드 수정 없이 새 콘텐츠를 추가할 수 있도록 설계되었습니다.
+`src/plugins/` 디렉토리에는 확장 가능한 플러그인 시스템이 위치합니다. 코어 코드 수정 없이 새 콘텐츠를 추가할 수 있도록 설계되었습니다. 플러그인 추가 절차/인터페이스 계약/금지 사항은 `docs/PLUGIN_ARCHITECTURE.md`를 참조하세요.
 
 - **`PluginRegistry.ts`**: 어빌리티 및 엔티티 타입 플러그인을 등록/조회하는 싱글톤. `unregisterAbility(id)` / `unregisterEntityType(typeId)` 메서드로 MOD teardown 시 등록 해제 지원.
 - **`types/`**: 플러그인 인터페이스 정의.

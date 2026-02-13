@@ -21,6 +21,7 @@ FLASHEAD - Phaser 4 기반 웹 슈팅 게임
 3. `data/README.md` - 데이터 필드/밸런스 가이드
 4. `docs/GAME_DESIGN_PHILOSOPHY.md` - 게임/UI 철학 (통합 UI, 최소 UI 노출)
 5. `docs/VISUAL_STYLE_GUIDELINES.md` - 비주얼 원칙 (보스 HP 실루엣, 형태/스타일 제약)
+6. `docs/PLUGIN_ARCHITECTURE.md` - 플러그인 아키텍처/추가 절차 가이드
 
 ## AI 에이전트 핵심 원칙 (필수)
 
@@ -33,6 +34,13 @@ FLASHEAD - Phaser 4 기반 웹 슈팅 게임
 - 로직: `scenes/`, `systems/`, `entities/`가 상태/수치/흐름 담당.
 - 외형: `src/effects/*Renderer.ts`가 `Phaser.Graphics` 드로잉 담당.
 - Scene/Entity에서 복잡 드로잉 직접 구현 금지, Renderer로 위임.
+
+### 3) 플러그인 우선 콘텐츠 확장 (필수)
+- 모든 콘텐츠(엔티티, 어빌리티, 시스템)는 **플러그인 추가만으로 동작**해야 한다.
+- 코어 코드(`GameScene.update()`, `EntitySystemPipeline`, `PluginRegistry`)를 콘텐츠 추가 목적으로 수정하지 않는다.
+- 새 콘텐츠 추가 절차: 플러그인 클래스 구현 → 팩토리 맵(`index.ts`) 등록 → `data/game-config.json` ID 배열 추가.
+- 전용 렌더러는 플러그인과 같은 디렉토리에 colocate한다.
+- 상세 가이드: `docs/PLUGIN_ARCHITECTURE.md` 참조.
 
 ### 5) Renderer 공용화 우선
 - 메뉴/인게임이 같은 비주얼 언어를 쓰면 전용 렌더러 분리보다 공용 렌더러 확장을 우선.
@@ -66,6 +74,7 @@ FLASHEAD - Phaser 4 기반 웹 슈팅 게임
 - `docs/LESSONS.md` - 교훈/재발 방지
 - `AGENTS.md` - 작업 규칙
 - `docs/REFACTORING_GUIDELINES.md` - 리팩토링 기준/절차(상세)
+- `docs/PLUGIN_ARCHITECTURE.md` - 플러그인 구조/추가 절차 변경 시
 - `docs/GAME_DESIGN_PHILOSOPHY.md` - 게임/UI 철학 변경 시
 - `docs/VISUAL_STYLE_GUIDELINES.md` - 비주얼 스타일 변경 시
 
@@ -88,7 +97,7 @@ FLASHEAD - Phaser 4 기반 웹 슈팅 게임
 - 상세 기준/예시/반례는 `docs/REFACTORING_GUIDELINES.md`를 따른다.
 
 ## 작업 프로토콜 (권장)
-1. 문서 확인: `docs/CODEMAP.md` → `docs/LESSONS.md` → 관련 JSON → (UI 작업 시) `docs/GAME_DESIGN_PHILOSOPHY.md` → (비주얼 작업 시) `docs/VISUAL_STYLE_GUIDELINES.md`
+1. 문서 확인: `docs/CODEMAP.md` → `docs/LESSONS.md` → 관련 JSON → (콘텐츠 추가 시) `docs/PLUGIN_ARCHITECTURE.md` → (UI 작업 시) `docs/GAME_DESIGN_PHILOSOPHY.md` → (비주얼 작업 시) `docs/VISUAL_STYLE_GUIDELINES.md`
 2. 변경 설계: 데이터 변경 여부, Event 영향 범위, SoC 경계 확정
 3. 구현: 데이터 정의 → 타입 정의 → 로직 구현 → 렌더러 구현/연결
 4. 검증: `lint` → `test:run` → `build`
@@ -97,6 +106,7 @@ FLASHEAD - Phaser 4 기반 웹 슈팅 게임
 ## PR/완료 체크리스트
 - [ ] 데이터가 JSON(SSOT)에 먼저 반영되었는가
 - [ ] 로직/외형 분리가 지켜졌는가
+- [ ] 콘텐츠 추가가 플러그인 패턴(팩토리 맵 + config ID)으로 완결되는가
 - [ ] 주기적 리팩토링 트리거를 점검했는가 (해당 시 분리 수행/기록)
 - [ ] 공용 Renderer 우선 원칙을 검토했는가
 - [ ] EventBus payload가 값 스냅샷인가

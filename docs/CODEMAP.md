@@ -13,7 +13,7 @@
 본 프로젝트는 **관심사의 분리(SoC)**를 위해 로직 제어층과 시각 렌더링층을 엄격히 분리합니다.
 
 - **Scene/System**: 게임의 상태(State)와 규칙(Rule)을 관리합니다. "무엇이 어디에 있는가?"와 "무슨 일이 일어나는가?"를 결정합니다.
-- **Renderer (src/effects/)**: 전달받은 상태를 바탕으로 화면에 그립니다. "어떻게 보이는가?"를 결정하며, `Phaser.Graphics` API를 전담하여 사용합니다.
+- **Renderer**: 전달받은 상태를 바탕으로 화면에 그립니다. "어떻게 보이는가?"를 결정하며, `Phaser.Graphics` API를 전담하여 사용합니다. 엔티티/어빌리티 전용 렌더러는 해당 플러그인(`plugins/builtin/entities/`, `plugins/builtin/abilities/`)에 colocate되며, 범용 이펙트만 `src/effects/`에 위치합니다.
 - **이점**: 로직의 변경 없이 Renderer만 교체하여 게임의 테마나 그래픽 스타일을 완전히 바꿀 수 있습니다.
 
 ### 0.5 빠른 탐색: 체력 표시(중요)
@@ -21,12 +21,12 @@
 이 프로젝트의 체력 표시는 일반적인 "상단 가로 바"가 아니라 **인게임 오브젝트 통합형**입니다.
 
 - **플레이어 HP 표시**
-  - 렌더링 위치: `src/effects/CursorRenderer.ts`의 `drawHpRing()`
+  - 렌더링 위치: `src/plugins/builtin/entities/CursorRenderer.ts`의 `drawHpRing()`
   - 데이터 소스: `HealthSystem` (`getHp()`, `getMaxHp()`)
   - 연결 지점: `PlayerTickSystem.renderCursor()`에서 현재/최대 HP를 `CursorRenderer.renderAttackIndicator()`로 전달
   - 설정 파일: `data/game-config.json`의 `player.hpRing`
 - **보스 HP 표시**
-  - 렌더링 위치: `src/effects/BossRenderer.ts` (호출 지점: `EntityRenderSystem` → `BossRenderer`)
+  - 렌더링 위치: `src/plugins/builtin/entities/BossRenderer.ts` (호출 지점: `EntityRenderSystem` → `BossRenderer`)
   - 데이터 소스: `MonsterSystem`가 발행하는 `MONSTER_HP_CHANGED` (`bossId`, `current`, `max`, `ratio`)
   - 세그먼트 계산: `src/entities/bossHpSegments.ts`의 `resolveBossHpSegmentState()`
   - 설정 파일: `data/boss.json`의 `visual.armor`, `visual.armor.hpSegments`
@@ -152,15 +152,14 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
 - **`types/`**: 플러그인 인터페이스 정의.
   - `AbilityPlugin.ts`: 어빌리티 플러그인 인터페이스, `UpgradeSystemCore`, `AbilityContext`, `DerivedStatEntry`.
   - `EntityTypePlugin.ts`: 엔티티 타입 플러그인 인터페이스, `EntityTypeRenderer`, `DamageSource`.
-  - `MovementStrategy.ts`: 이동 전략 인터페이스 (DriftMovement 등).
   - `AttackPattern.ts`: 공격 패턴 인터페이스 (LaserAttackPattern 등).
   - `ModTypes.ts`: MOD 계약 인터페이스. `ModModule` (MOD 진입점), `ModContext` (레지스트리 + `world` + `archetypeRegistry` 전달), `ModFactory` (지연 생성), `ScopedEventBus` (구독 추적 인터페이스).
 - **`ModRegistry.ts`**: MOD 라이프사이클 관리자. **스냅샷 diff**로 `registerMod()` 전후 레지스트리 상태를 비교하여 MOD가 등록한 ability/entityType/modSystem/entitySystem/archetype/store를 추적. `unloadMod()` / `unloadAll()` 시 diff 기반 일괄 해제 + ScopedEventBus 구독 정리.
 - **`ScopedEventBusWrapper.ts`**: MOD별 EventBus 구독 추적 래퍼. `on()`/`once()`/`off()` 위임 + 내부 tracking, `removeAll()`로 일괄 해제.
 - **`ModLoader.ts`**: MOD 모듈 해석 + 에러 격리 전담. `ModFactory` → `ModModule` 변환, `load()` (단일), `loadMultiple()` (순차, 실패 건너뜀) 제공.
 - **`builtin/abilities/`**: 내장 어빌리티 플러그인 (CursorSize, CriticalChance, Missile, HealthPack, Magnet, ElectricShock, Orb, BlackHole). `ABILITY_FACTORIES` factory map + `registerBuiltinAbilities(ids)` 패턴으로 `game-config.json`의 `abilities` 배열 기반 동적 등록.
-- **`builtin/entities/`**: 내장 엔티티 타입 플러그인 (PlayerEntity, BasicDish, BombDish, StandardBoss). `ENTITY_TYPE_FACTORIES` factory map + `registerBuiltinEntityTypes(ids)` 패턴으로 `game-config.json`의 `entityTypes` 배열 기반 동적 등록. PlayerEntity는 `singleton` 카테고리로 풀링 없이 단일 인스턴스만 존재.
-- **`builtin/movement/DriftMovement.ts`**: Boss 사인파 드리프트 이동 전략.
+- **`builtin/entities/`**: 내장 엔티티 타입 플러그인 (PlayerEntity, BasicDish, BombDish, StandardBoss). `ENTITY_TYPE_FACTORIES` factory map + `registerBuiltinEntityTypes(ids)` 패턴으로 `game-config.json`의 `entityTypes` 배열 기반 동적 등록. PlayerEntity는 `singleton` 카테고리로 풀링 없이 단일 인스턴스만 존재. **엔티티 전용 렌더러도 colocate**: `BossRenderer`, `BossShatterEffect`, `LaserRenderer`, `MenuBossRenderer`, `DishRenderer`, `CursorRenderer`, `CursorTrail`.
+- **`builtin/abilities/`** (렌더러 포함): 내장 어빌리티 플러그인과 함께 **어빌리티 전용 렌더러도 colocate**: `OrbRenderer`, `BlackHoleRenderer`, `HealthPackRenderer`, `PlayerAttackRenderer`.
 - **`AbilityManager.ts`** (`src/systems/`): 어빌리티 플러그인의 init/update/clear/destroy 라이프사이클 통합 관리.
 
 ### 3. 엔티티 및 오브젝트 (Entities)
@@ -175,24 +174,25 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
 
 ### 4. 시각 효과 및 UI (Effects & UI)
 
-- **`src/effects/`**:
-  - `ParticleManager`: 폭발 및 피격 파티클 생성. 보스 파편/업그레이드 흡수 이펙트는 전용 클래스로 위임.
-  - **`BossShatterEffect.ts`**: 보스 아머 파괴 시 파편·스파크 연출 (ParticleManager에서 분리).
+- **`src/effects/`** (범용 공유 이펙트만 보유, 엔티티/어빌리티 전용 렌더러는 `plugins/builtin/`에 colocate):
+  - **`ParticleManager.ts`**: 기본 이펙트 관리 파사드 + `BossShatterEffect`·`UpgradeAbsorptionEffect` 위임. 커서 좌표 조회를 `CursorPositionProvider` 기반으로 통합.
   - **`UpgradeAbsorptionEffect.ts`**: 업그레이드 흡수 파티클·임팩트 연출 (ParticleManager에서 분리).
-  - `ScreenShake`: 카메라 흔들림 효과.
-  - `CursorTrail`: 커서의 움직임을 따라가는 잔상 효과.
-  - `StarBackground`: 별 배경 애니메이션 (반짝임, 수직 스크롤).
-  - **`GridRenderer.ts`**: 배경 그리드의 원근감 렌더링 로직 (공유 가능).
-  - **`LaserRenderer.ts`**: 보스의 레이저 공격 경고 및 발사 연출 렌더러.
-  - **`BossRenderer.ts`**: 인게임 보스 코어/아머/글로우 렌더링 전담 클래스. `Boss` 엔티티가 상태를 전달해 그리기를 위임합니다.
-  - **`OrbRenderer.ts`**: 플레이어 보호 오브의 글로우 및 전기 스파크 연출 렌더러.
-  - **`BlackHoleRenderer.ts`**: 블랙홀 코어/링/글로우/아크 노이즈를 렌더링하는 전용 렌더러.
+  - **`StarBackground.ts`**: 별 배경 애니메이션 (반짝임, 수직 스크롤).
+  - **`GridRenderer.ts`**: 배경 그리드의 원근감 렌더링 로직 (메뉴+게임 공용).
+- **엔티티 전용 렌더러** (`src/plugins/builtin/entities/`에 colocate):
+  - **`BossRenderer.ts`**: 인게임 보스 코어/아머/글로우 렌더링 전담.
+  - **`BossShatterEffect.ts`**: 보스 아머 파괴 시 파편·스파크 연출.
+  - **`LaserRenderer.ts`**: 보스의 레이저 공격 경고 및 발사 연출.
   - **`MenuBossRenderer.ts`**: 메인 메뉴 보스의 화려한 애니메이션 렌더링.
-  - **`DishRenderer.ts`**: 접시 외형 렌더링 전담 클래스. `Dish` 엔티티의 인게임 접시 및 `MenuScene` 배경 접시를 공용 렌더링합니다.
-  - **`HealthPackRenderer.ts`**: 힐팩 외형 렌더링 전담 클래스.
-  - **`PlayerAttackRenderer.ts`**: 플레이어 필살기(충전 글로우/커서 외곽 백색 에너지 수렴/발사 직전 커서 글로우/전기 스파크/미사일 트레일/폭탄 경고) 연출 렌더러.
-  - **`CursorRenderer.ts`**: 메뉴/인게임 커서 외형, 공격 게이지, 자기장/전기 충격 범위, 그리고 플레이어 HP 세그먼트 링을 통합 렌더링.
-  - **`ParticleManager.ts`**: 기본 이펙트 관리 + `BossShatterEffect`·`UpgradeAbsorptionEffect` 위임. 커서 좌표 조회를 `CursorPositionProvider` 기반으로 통합.
+  - **`DishRenderer.ts`**: 접시 외형 렌더링. 인게임 접시 및 `MenuScene` 배경 접시를 공용 렌더링.
+  - **`CursorRenderer.ts`**: 메뉴/인게임 커서 외형, 공격 게이지, 자기장/전기 충격 범위, 플레이어 HP 세그먼트 링을 통합 렌더링.
+  - **`CursorTrail.ts`**: 커서의 움직임을 따라가는 잔상 효과.
+- **어빌리티 전용 렌더러** (`src/plugins/builtin/abilities/`에 colocate):
+  - **`OrbRenderer.ts`**: 플레이어 보호 오브의 글로우 및 전기 스파크 연출.
+  - **`BlackHoleRenderer.ts`**: 블랙홀 코어/링/글로우/아크 노이즈 렌더링.
+  - **`HealthPackRenderer.ts`**: 힐팩 외형 렌더링.
+  - **`PlayerAttackRenderer.ts`**: 플레이어 필살기(충전 글로우/미사일 트레일/폭탄 경고) 연출.
+- **`src/systems/ScreenShake.ts`**: 카메라 흔들림 효과 (렌더러가 아닌 시스템 유틸).
 - **`src/ui/`**:
   - `HUD`: HUD 오케스트레이터. 매 프레임 컨텍스트(커서 위치, 업그레이드 선택 상태)를 받아 표시 정책을 적용하며, 도크바 hover 진행도(기본 1.2초 누적 정지)를 씬에 제공합니다.
   - `hud/AbilitySummaryWidget`: 보유 어빌리티 슬롯 렌더링, 도크 영역(맥OS 스타일 오버레이/게이지/재개 힌트) 렌더링, hover 영역 계산(기본 폭 또는 어빌리티 수에 따라 확장), 슬롯 hover 툴팁 카드(아이콘/이름/레벨/설명) 렌더링을 담당합니다. 도크가 열린 동안에만 슬롯과 슬롯 툴팁을 표시합니다.

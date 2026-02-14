@@ -4,6 +4,7 @@ import { COLORS, CURSOR_HITBOX } from '../../data/constants';
 import type { ParticleManager } from '../../effects/ParticleManager';
 import type { PlayerAttackRenderer } from '../../plugins/builtin/abilities/PlayerAttackRenderer';
 import type { FeedbackSystem } from '../../systems/FeedbackSystem';
+import type { HealthSystem } from '../../systems/HealthSystem';
 import type { MonsterSystem } from '../../systems/MonsterSystem';
 import type { SoundSystem } from '../../systems/SoundSystem';
 import type { UpgradeSystem } from '../../systems/UpgradeSystem';
@@ -20,6 +21,7 @@ interface PlayerAttackControllerDeps {
   world: World;
   damageService: EntityDamageService;
   upgradeSystem: UpgradeSystem;
+  healthSystem: HealthSystem;
   waveSystem: WaveSystem;
   monsterSystem: MonsterSystem;
   feedbackSystem: FeedbackSystem;
@@ -35,6 +37,7 @@ export class PlayerAttackController {
   private readonly world: World;
   private readonly damageService: EntityDamageService;
   private readonly upgradeSystem: UpgradeSystem;
+  private readonly healthSystem: HealthSystem;
   private readonly waveSystem: WaveSystem;
   private readonly monsterSystem: MonsterSystem;
   private readonly feedbackSystem: FeedbackSystem;
@@ -49,6 +52,7 @@ export class PlayerAttackController {
     this.world = deps.world;
     this.damageService = deps.damageService;
     this.upgradeSystem = deps.upgradeSystem;
+    this.healthSystem = deps.healthSystem;
     this.waveSystem = deps.waveSystem;
     this.monsterSystem = deps.monsterSystem;
     this.feedbackSystem = deps.feedbackSystem;
@@ -263,9 +267,23 @@ export class PlayerAttackController {
           attackConfig.criticalChance + this.upgradeSystem.getCriticalChanceBonus()
         );
         const isCritical = Math.random() < criticalChance;
+
+        // 변덕 저주: 치명타 배율 오버라이드 / 비치명타 패널티
+        const volatilityCritMult = this.upgradeSystem.getVolatilityCritMultiplier();
         if (isCritical) {
-          totalDamage *= attackConfig.criticalMultiplier;
+          totalDamage *= volatilityCritMult > 0 ? volatilityCritMult : attackConfig.criticalMultiplier;
+        } else {
+          const nonCritPenalty = this.upgradeSystem.getVolatilityNonCritPenalty();
+          if (nonCritPenalty > 0) {
+            totalDamage *= nonCritPenalty;
+          }
         }
+
+        // 글로벌 데미지 승수 (글래스 캐논 + 광전사)
+        totalDamage *= this.upgradeSystem.getGlobalDamageMultiplier(
+          this.healthSystem.getHp(),
+          this.healthSystem.getMaxHp()
+        );
 
         this.monsterSystem.takeDamage(targetBossId, totalDamage, curStartX, curStartY);
 

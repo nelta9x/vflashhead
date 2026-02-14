@@ -133,6 +133,9 @@ export const GameEvents = {
   HEALTH_PACK_MISSED: 'healthPack:missed',
   HEALTH_PACK_UPGRADED: 'healthPack:upgraded',
 
+  // 저주 관련
+  CURSE_HP_PENALTY: 'curse:hpPenalty',
+
   // 폭탄 통합 이벤트 (웨이브 + 낙하)
   BOMB_DESTROYED: 'bomb:destroyed',
   BOMB_MISSED: 'bomb:missed',

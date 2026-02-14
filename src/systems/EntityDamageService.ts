@@ -1,6 +1,7 @@
 import { Data } from '../data/DataManager';
 import { EventBus, GameEvents } from '../utils/EventBus';
 import { DishDamageResolver } from './DishDamageResolver';
+import type { CurseModifiers } from './DishDamageResolver';
 import { DishEventPayloadFactory } from './DishEventPayloadFactory';
 import { createEntitySnapshot } from '../entities/EntitySnapshot';
 import { deactivateEntity } from '../entities/EntityLifecycle';
@@ -16,6 +17,7 @@ import type { StatusEffectManager } from './StatusEffectManager';
  */
 export class EntityDamageService {
   private readonly timers = new Map<EntityId, Phaser.Time.TimerEvent>();
+  private getCurseModifiers: (() => CurseModifiers) | null = null;
 
   constructor(
     private readonly world: World,
@@ -23,6 +25,10 @@ export class EntityDamageService {
     private readonly entityLookup: (entityId: EntityId) => Entity | undefined,
     private readonly scene: Phaser.Scene,
   ) {}
+
+  setCurseModifiersProvider(provider: () => CurseModifiers): void {
+    this.getCurseModifiers = provider;
+  }
 
   // === Cursor interaction ===
 
@@ -86,7 +92,8 @@ export class EntityDamageService {
 
     const damageConfig = Data.dishes.damage;
     const upgradeOptions = dp?.upgradeOptions ?? {};
-    const { damage, isCritical } = DishDamageResolver.resolveCursorDamage(damageConfig, upgradeOptions);
+    const curseModifiers = this.getCurseModifiers?.() ?? undefined;
+    const { damage, isCritical } = DishDamageResolver.resolveCursorDamage(damageConfig, upgradeOptions, curseModifiers);
 
     health.currentHp -= damage;
 
@@ -119,7 +126,13 @@ export class EntityDamageService {
     const health = this.world.health.get(entityId);
     if (!health) return;
 
-    health.currentHp -= damage;
+    // 글로벌 데미지 승수 적용 (글래스 캐논 + 광전사)
+    const mods = this.getCurseModifiers?.();
+    const effectiveDamage = mods && mods.globalDamageMultiplier !== 1
+      ? damage * mods.globalDamageMultiplier
+      : damage;
+
+    health.currentHp -= effectiveDamage;
 
     const vs = this.world.visualState.get(entityId);
     if (vs) vs.hitFlashPhase = 1;
@@ -128,13 +141,13 @@ export class EntityDamageService {
     EventBus.getInstance().emit(
       GameEvents.DISH_DAMAGED,
       DishEventPayloadFactory.createDishDamagedPayload({
-        snapshot, damage,
+        snapshot, damage: effectiveDamage,
         currentHp: health.currentHp, maxHp: health.maxHp,
         isFirstHit: false, byAbility: true,
       })
     );
 
-    this.invokePluginOnDamaged(entityId, damage, 'ability');
+    this.invokePluginOnDamaged(entityId, effectiveDamage, 'ability');
     if (health.currentHp <= 0) this.destroyEntity(entityId);
   }
 
@@ -149,8 +162,9 @@ export class EntityDamageService {
     if (!health) return;
 
     const damageConfig = Data.dishes.damage;
+    const upgradeCurseModifiers = this.getCurseModifiers?.() ?? undefined;
     const { damage: totalDamage, isCritical } = DishDamageResolver.resolveUpgradeDamage(
-      damageConfig, baseDamage, damageBonus, criticalChanceBonus
+      damageConfig, baseDamage, damageBonus, criticalChanceBonus, upgradeCurseModifiers
     );
 
     health.currentHp -= totalDamage;

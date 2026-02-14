@@ -21,6 +21,7 @@ import type { EntityDamageService } from '../../systems/EntityDamageService';
 import type { StatusEffectManager } from '../../systems/StatusEffectManager';
 import type { World } from '../../world';
 import type { GameEnvironment } from './GameEnvironment';
+import { BossAttackScheduler } from './boss/BossAttackScheduler';
 import { BossContactDamageController } from './boss/BossContactDamageController';
 import { BossLaserController } from './boss/BossLaserController';
 import { BossRosterSync } from './boss/BossRosterSync';
@@ -68,6 +69,7 @@ export class BossCombatCoordinator implements BossInteractionGateway {
   private readonly bossRosterSync: BossRosterSync;
   private readonly bossLaserController: BossLaserController;
   private readonly bossContactDamageController: BossContactDamageController;
+  private readonly bossAttackScheduler: BossAttackScheduler;
 
   constructor(deps: BossCombatCoordinatorDeps) {
     this.scene = deps.scene;
@@ -98,6 +100,7 @@ export class BossCombatCoordinator implements BossInteractionGateway {
       damageService: deps.damageService,
       world: deps.world,
       statusEffectManager: deps.statusEffectManager,
+      initBossAttackTimers: (bossId, gameTime) => this.bossAttackScheduler.initBossTimers(bossId, gameTime),
     });
 
     this.bossLaserController = new BossLaserController({
@@ -129,7 +132,19 @@ export class BossCombatCoordinator implements BossInteractionGateway {
       monsterSystem: this.monsterSystem,
       feedbackSystem: this.feedbackSystem,
       upgradeSystem: this.upgradeSystem,
+      healthSystem: this.healthSystem,
       bossOverlapLastHitTimeByBossId: this.bossOverlapLastHitTimeByBossId,
+    });
+
+    this.bossAttackScheduler = new BossAttackScheduler({
+      scene: this.scene,
+      waveSystem: this.waveSystem,
+      monsterSystem: this.monsterSystem,
+      healthSystem: this.healthSystem,
+      feedbackSystem: this.feedbackSystem,
+      soundSystem: this.soundSystem,
+      bosses: this.bosses,
+      isGameOver: () => this.gameEnv.isGameOver,
     });
   }
 
@@ -148,6 +163,7 @@ export class BossCombatCoordinator implements BossInteractionGateway {
     const cursorRadius = CURSOR_HITBOX.BASE_RADIUS * (1 + this.upgradeSystem.getCursorSizeBonus());
     this.bossContactDamageController.updateBossOverlapDamage(cursor, cursorRadius, gameTime);
     this.updateLaser(delta, gameTime, cursor);
+    this.bossAttackScheduler.update(delta, gameTime, cursor, cursorRadius);
   }
 
   /** Expose active boss entities for external iteration */
@@ -157,6 +173,7 @@ export class BossCombatCoordinator implements BossInteractionGateway {
 
   public clearForWaveTransition(): void {
     this.bossRosterSync.clearForWaveTransition();
+    this.bossAttackScheduler.clear();
   }
 
   public getVisibleBossSnapshots(): BossVisibilitySnapshot[] {
@@ -249,6 +266,7 @@ export class BossCombatCoordinator implements BossInteractionGateway {
 
   public destroy(): void {
     this.clearForWaveTransition();
+    this.bossAttackScheduler.destroy();
     this.bosses.forEach((boss) => boss.destroy());
     this.bosses.clear();
     this.bossOverlapLastHitTimeByBossId.clear();

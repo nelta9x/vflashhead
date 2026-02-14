@@ -467,6 +467,62 @@
           }
         ]
       }
+    },
+    {
+      "id": "glass_cannon",
+      "name": "글래스 캐논",
+      "description": "전체 데미지 대폭 증가, 최대 체력 감소",
+      "rarity": "epic",
+      "isCurse": true,
+      "effectType": "glassCannonLevel",
+      "levels": [
+        { "damageMultiplier": 0.4, "hpPenalty": 1 },
+        { "damageMultiplier": 0.6, "hpPenalty": 1 },
+        { "damageMultiplier": 0.8, "hpPenalty": 1 }
+      ],
+      "previewDisplay": {
+        "stats": [
+          { "id": "damageMultiplier", "labelKey": "upgrade.stat.damage_multiplier_pct" },
+          { "id": "hpPenalty", "labelKey": "upgrade.stat.hp_penalty" }
+        ]
+      }
+    },
+    {
+      "id": "berserker",
+      "name": "광전사",
+      "description": "미싱 HP당 데미지 증가, 치유 불가",
+      "rarity": "rare",
+      "isCurse": true,
+      "effectType": "berserkerLevel",
+      "levels": [
+        { "missingHpDamagePercent": 0.15 },
+        { "missingHpDamagePercent": 0.25 },
+        { "missingHpDamagePercent": 0.35 }
+      ],
+      "previewDisplay": {
+        "stats": [
+          { "id": "missingHpDamagePercent", "labelKey": "upgrade.stat.missing_hp_damage_pct" }
+        ]
+      }
+    },
+    {
+      "id": "volatility",
+      "name": "변덕",
+      "description": "치명타 배율 대폭 증가, 비치명타 데미지 감소",
+      "rarity": "legendary",
+      "isCurse": true,
+      "effectType": "volatilityLevel",
+      "levels": [
+        { "critMultiplier": 2.5, "nonCritPenalty": 0.7 },
+        { "critMultiplier": 3.0, "nonCritPenalty": 0.6 },
+        { "critMultiplier": 3.5, "nonCritPenalty": 0.5 }
+      ],
+      "previewDisplay": {
+        "stats": [
+          { "id": "critMultiplier", "labelKey": "upgrade.stat.crit_multiplier" },
+          { "id": "nonCritPenalty", "labelKey": "upgrade.stat.non_crit_penalty_pct" }
+        ]
+      }
     }
   ]
 }

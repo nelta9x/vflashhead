@@ -1,8 +1,10 @@
 export type {
+  BerserkerLevelData,
   BlackHoleLevelData,
   CriticalChanceLevelData,
   CursorSizeLevelData,
   ElectricShockLevelData,
+  GlassCannonLevelData,
   HealthPackLevelData,
   MagnetLevelData,
   MissileLevelData,
@@ -18,4 +20,5 @@ export type {
   SystemUpgradeLevelData,
   UpgradeTimingConfig,
   UpgradesConfig,
+  VolatilityLevelData,
 } from '../types';

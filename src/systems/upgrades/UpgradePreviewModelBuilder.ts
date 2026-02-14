@@ -11,12 +11,15 @@ interface UpgradePreviewModelBuilderDeps {
   getUpgradeStack: (upgradeId: string) => number;
 }
 
-const INVERSE_IMPROVEMENT_STATS = new Set<UpgradePreviewStatId>(['damageInterval', 'spawnInterval']);
+const INVERSE_IMPROVEMENT_STATS = new Set<UpgradePreviewStatId>(['damageInterval', 'spawnInterval', 'hpPenalty']);
 const PERCENT_STATS = new Set<UpgradePreviewStatId>([
   'sizeBonus',
   'missileThicknessBonus',
   'criticalChance',
   'dropChanceBonus',
+  'damageMultiplier',
+  'missingHpDamagePercent',
+  'nonCritPenalty',
 ]);
 
 type NumericField =
@@ -34,7 +37,12 @@ type NumericField =
   | 'damageInterval'
   | 'spawnInterval'
   | 'duration'
-  | 'spawnCount';
+  | 'spawnCount'
+  | 'damageMultiplier'
+  | 'hpPenalty'
+  | 'missingHpDamagePercent'
+  | 'critMultiplier'
+  | 'nonCritPenalty';
 
 const NUMERIC_FIELDS: readonly NumericField[] = [
   'sizeBonus',
@@ -52,6 +60,11 @@ const NUMERIC_FIELDS: readonly NumericField[] = [
   'spawnInterval',
   'duration',
   'spawnCount',
+  'damageMultiplier',
+  'hpPenalty',
+  'missingHpDamagePercent',
+  'critMultiplier',
+  'nonCritPenalty',
 ];
 
 export class UpgradePreviewModelBuilder {
@@ -211,6 +224,16 @@ export class UpgradePreviewModelBuilder {
         return 'duration' in levelData ? levelData.duration : null;
       case 'spawnCount':
         return 'spawnCount' in levelData ? levelData.spawnCount : null;
+      case 'damageMultiplier':
+        return 'damageMultiplier' in levelData ? levelData.damageMultiplier : null;
+      case 'hpPenalty':
+        return 'hpPenalty' in levelData ? levelData.hpPenalty : null;
+      case 'missingHpDamagePercent':
+        return 'missingHpDamagePercent' in levelData ? levelData.missingHpDamagePercent : null;
+      case 'critMultiplier':
+        return 'critMultiplier' in levelData ? levelData.critMultiplier : null;
+      case 'nonCritPenalty':
+        return 'nonCritPenalty' in levelData ? levelData.nonCritPenalty : null;
       default:
         return null;
     }

@@ -893,11 +893,24 @@ export interface WaveBossSpawnRange {
   maxY: number;
 }
 
+export interface WaveBossAttackEntry {
+  enabled: boolean;
+  minInterval: number;
+  maxInterval: number;
+}
+
+export interface WaveBossAttacksConfig {
+  bulletSpread?: WaveBossAttackEntry;
+  shockwave?: WaveBossAttackEntry;
+  dangerZone?: WaveBossAttackEntry;
+}
+
 export interface WaveBossConfig {
   id: string;
   hpWeight: number;
   spawnRange: WaveBossSpawnRange;
   laser: WaveLaserConfig;
+  attacks?: WaveBossAttacksConfig;
 }
 
 export interface WaveData {
@@ -1069,6 +1082,20 @@ export interface BlackHoleLevelData {
   consumeDurationGrowth: number;
 }
 
+export interface GlassCannonLevelData {
+  damageMultiplier: number;
+  hpPenalty: number;
+}
+
+export interface BerserkerLevelData {
+  missingHpDamagePercent: number;
+}
+
+export interface VolatilityLevelData {
+  critMultiplier: number;
+  nonCritPenalty: number;
+}
+
 export type SystemUpgradeLevelData =
   | CursorSizeLevelData
   | CriticalChanceLevelData
@@ -1077,7 +1104,10 @@ export type SystemUpgradeLevelData =
   | MissileLevelData
   | HealthPackLevelData
   | OrbitingOrbLevelData
-  | BlackHoleLevelData;
+  | BlackHoleLevelData
+  | GlassCannonLevelData
+  | BerserkerLevelData
+  | VolatilityLevelData;
 
 export type UpgradePreviewStatId =
   | 'sizeBonus'
@@ -1096,7 +1126,12 @@ export type UpgradePreviewStatId =
   | 'damageInterval'
   | 'spawnInterval'
   | 'duration'
-  | 'spawnCount';
+  | 'spawnCount'
+  | 'damageMultiplier'
+  | 'hpPenalty'
+  | 'missingHpDamagePercent'
+  | 'critMultiplier'
+  | 'nonCritPenalty';
 
 export interface UpgradePreviewStatDisplay {
   id: UpgradePreviewStatId;
@@ -1135,6 +1170,7 @@ export interface SystemUpgradeData {
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
   effectType: string;
   previewDisplay: UpgradePreviewDisplayConfig;
+  isCurse?: boolean;
   hitInterval?: number;
   overclockDurationMs?: number;
   overclockSpeedMultiplier?: number;

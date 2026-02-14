@@ -27,10 +27,14 @@ export function drawUpgradeBoxBackground(
   width: number,
   height: number,
   borderColor: number,
-  hovered: boolean
+  hovered: boolean,
+  isCurse: boolean = false
 ): void {
   graphics.clear();
-  graphics.fillStyle(hovered ? COLORS.UPGRADE_CARD_BG_HOVER : COLORS.UPGRADE_CARD_BG, 0.95);
+  const bgColor = isCurse
+    ? (hovered ? COLORS.CURSE_CARD_BG_HOVER : COLORS.CURSE_CARD_BG)
+    : (hovered ? COLORS.UPGRADE_CARD_BG_HOVER : COLORS.UPGRADE_CARD_BG);
+  graphics.fillStyle(bgColor, 0.95);
   graphics.fillRoundedRect(-width / 2, -height / 2, width, height, 20);
   graphics.lineStyle(hovered ? 6 : 4, borderColor, hovered ? 1 : 0.7);
   graphics.strokeRoundedRect(-width / 2, -height / 2, width, height, 20);

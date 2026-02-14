@@ -118,7 +118,10 @@
           "id": "boss_center",
           "hpWeight": 1,
           "spawnRange": { "minX": 640, "maxX": 640, "minY": 100, "maxY": 100 },
-          "laser": { "maxCount": 1, "minInterval": 6500, "maxInterval": 10000 }
+          "laser": { "maxCount": 1, "minInterval": 6500, "maxInterval": 10000 },
+          "attacks": {
+            "bulletSpread": { "enabled": true, "minInterval": 10000, "maxInterval": 16000 }
+          }
         }
       ],
       "bossSpawnMinDistance": 150,
@@ -141,7 +144,10 @@
           "id": "boss_center",
           "hpWeight": 1,
           "spawnRange": { "minX": 640, "maxX": 640, "minY": 100, "maxY": 100 },
-          "laser": { "maxCount": 1, "minInterval": 5500, "maxInterval": 8500 }
+          "laser": { "maxCount": 1, "minInterval": 5500, "maxInterval": 8500 },
+          "attacks": {
+            "bulletSpread": { "enabled": true, "minInterval": 9000, "maxInterval": 14000 }
+          }
         }
       ],
       "bossSpawnMinDistance": 150,
@@ -164,7 +170,11 @@
           "id": "boss_center",
           "hpWeight": 1,
           "spawnRange": { "minX": 640, "maxX": 640, "minY": 100, "maxY": 100 },
-          "laser": { "maxCount": 1, "minInterval": 4500, "maxInterval": 7500 }
+          "laser": { "maxCount": 1, "minInterval": 4500, "maxInterval": 7500 },
+          "attacks": {
+            "bulletSpread": { "enabled": true, "minInterval": 8000, "maxInterval": 13000 },
+            "shockwave": { "enabled": true, "minInterval": 12000, "maxInterval": 18000 }
+          }
         }
       ],
       "bossSpawnMinDistance": 150,
@@ -187,7 +197,11 @@
           "id": "boss_center",
           "hpWeight": 1,
           "spawnRange": { "minX": 640, "maxX": 640, "minY": 100, "maxY": 100 },
-          "laser": { "maxCount": 1, "minInterval": 5500, "maxInterval": 9000 }
+          "laser": { "maxCount": 1, "minInterval": 5500, "maxInterval": 9000 },
+          "attacks": {
+            "bulletSpread": { "enabled": true, "minInterval": 8000, "maxInterval": 13000 },
+            "shockwave": { "enabled": true, "minInterval": 11000, "maxInterval": 16000 }
+          }
         }
       ],
       "bossSpawnMinDistance": 150,
@@ -211,7 +225,12 @@
           "id": "boss_center",
           "hpWeight": 1,
           "spawnRange": { "minX": 640, "maxX": 640, "minY": 100, "maxY": 100 },
-          "laser": { "maxCount": 1, "minInterval": 4500, "maxInterval": 7500 }
+          "laser": { "maxCount": 1, "minInterval": 4500, "maxInterval": 7500 },
+          "attacks": {
+            "bulletSpread": { "enabled": true, "minInterval": 7000, "maxInterval": 12000 },
+            "shockwave": { "enabled": true, "minInterval": 10000, "maxInterval": 15000 },
+            "dangerZone": { "enabled": true, "minInterval": 14000, "maxInterval": 20000 }
+          }
         }
       ],
       "bossSpawnMinDistance": 150,
@@ -235,13 +254,23 @@
           "id": "boss_left",
           "hpWeight": 1,
           "spawnRange": { "minX": 320, "maxX": 440, "minY": 90, "maxY": 120 },
-          "laser": { "maxCount": 1, "minInterval": 3800, "maxInterval": 6500 }
+          "laser": { "maxCount": 1, "minInterval": 3800, "maxInterval": 6500 },
+          "attacks": {
+            "bulletSpread": { "enabled": true, "minInterval": 7000, "maxInterval": 11000 },
+            "shockwave": { "enabled": true, "minInterval": 9000, "maxInterval": 14000 },
+            "dangerZone": { "enabled": true, "minInterval": 12000, "maxInterval": 18000 }
+          }
         },
         {
           "id": "boss_right",
           "hpWeight": 1,
           "spawnRange": { "minX": 840, "maxX": 960, "minY": 90, "maxY": 120 },
-          "laser": { "maxCount": 1, "minInterval": 3800, "maxInterval": 6500 }
+          "laser": { "maxCount": 1, "minInterval": 3800, "maxInterval": 6500 },
+          "attacks": {
+            "bulletSpread": { "enabled": true, "minInterval": 7000, "maxInterval": 11000 },
+            "shockwave": { "enabled": true, "minInterval": 9000, "maxInterval": 14000 },
+            "dangerZone": { "enabled": true, "minInterval": 12000, "maxInterval": 18000 }
+          }
         }
       ],
       "bossSpawnMinDistance": 280,
@@ -265,13 +294,23 @@
           "id": "boss_left",
           "hpWeight": 1,
           "spawnRange": { "minX": 320, "maxX": 440, "minY": 90, "maxY": 120 },
-          "laser": { "maxCount": 1, "minInterval": 5000, "maxInterval": 8500 }
+          "laser": { "maxCount": 1, "minInterval": 5000, "maxInterval": 8500 },
+          "attacks": {
+            "bulletSpread": { "enabled": true, "minInterval": 7000, "maxInterval": 11000 },
+            "shockwave": { "enabled": true, "minInterval": 9000, "maxInterval": 14000 },
+            "dangerZone": { "enabled": true, "minInterval": 12000, "maxInterval": 18000 }
+          }
         },
         {
           "id": "boss_right",
           "hpWeight": 1,
           "spawnRange": { "minX": 840, "maxX": 960, "minY": 90, "maxY": 120 },
-          "laser": { "maxCount": 1, "minInterval": 5000, "maxInterval": 8500 }
+          "laser": { "maxCount": 1, "minInterval": 5000, "maxInterval": 8500 },
+          "attacks": {
+            "bulletSpread": { "enabled": true, "minInterval": 7000, "maxInterval": 11000 },
+            "shockwave": { "enabled": true, "minInterval": 9000, "maxInterval": 14000 },
+            "dangerZone": { "enabled": true, "minInterval": 12000, "maxInterval": 18000 }
+          }
         }
       ],
       "bossSpawnMinDistance": 280,
@@ -295,13 +334,23 @@
           "id": "boss_left",
           "hpWeight": 1,
           "spawnRange": { "minX": 320, "maxX": 440, "minY": 90, "maxY": 120 },
-          "laser": { "maxCount": 1, "minInterval": 3400, "maxInterval": 6000 }
+          "laser": { "maxCount": 1, "minInterval": 3400, "maxInterval": 6000 },
+          "attacks": {
+            "bulletSpread": { "enabled": true, "minInterval": 6000, "maxInterval": 10000 },
+            "shockwave": { "enabled": true, "minInterval": 8000, "maxInterval": 13000 },
+            "dangerZone": { "enabled": true, "minInterval": 10000, "maxInterval": 16000 }
+          }
         },
         {
           "id": "boss_right",
           "hpWeight": 1,
           "spawnRange": { "minX": 840, "maxX": 960, "minY": 90, "maxY": 120 },
-          "laser": { "maxCount": 1, "minInterval": 3400, "maxInterval": 6000 }
+          "laser": { "maxCount": 1, "minInterval": 3400, "maxInterval": 6000 },
+          "attacks": {
+            "bulletSpread": { "enabled": true, "minInterval": 6000, "maxInterval": 10000 },
+            "shockwave": { "enabled": true, "minInterval": 8000, "maxInterval": 13000 },
+            "dangerZone": { "enabled": true, "minInterval": 10000, "maxInterval": 16000 }
+          }
         }
       ],
       "bossSpawnMinDistance": 280,
@@ -335,19 +384,34 @@
         "id": "boss_left",
         "hpWeight": 1,
         "spawnRange": { "minX": 280, "maxX": 400, "minY": 90, "maxY": 120 },
-        "laser": { "maxCount": 1, "minInterval": 3000, "maxInterval": 5500 }
+        "laser": { "maxCount": 1, "minInterval": 3000, "maxInterval": 5500 },
+        "attacks": {
+          "bulletSpread": { "enabled": true, "minInterval": 6000, "maxInterval": 10000 },
+          "shockwave": { "enabled": true, "minInterval": 8000, "maxInterval": 12000 },
+          "dangerZone": { "enabled": true, "minInterval": 10000, "maxInterval": 15000 }
+        }
       },
       {
         "id": "boss_center",
         "hpWeight": 1,
         "spawnRange": { "minX": 560, "maxX": 720, "minY": 90, "maxY": 120 },
-        "laser": { "maxCount": 1, "minInterval": 3000, "maxInterval": 5500 }
+        "laser": { "maxCount": 1, "minInterval": 3000, "maxInterval": 5500 },
+        "attacks": {
+          "bulletSpread": { "enabled": true, "minInterval": 6000, "maxInterval": 10000 },
+          "shockwave": { "enabled": true, "minInterval": 8000, "maxInterval": 12000 },
+          "dangerZone": { "enabled": true, "minInterval": 10000, "maxInterval": 15000 }
+        }
       },
       {
         "id": "boss_right",
         "hpWeight": 1,
         "spawnRange": { "minX": 880, "maxX": 1000, "minY": 90, "maxY": 120 },
-        "laser": { "maxCount": 1, "minInterval": 3000, "maxInterval": 5500 }
+        "laser": { "maxCount": 1, "minInterval": 3000, "maxInterval": 5500 },
+        "attacks": {
+          "bulletSpread": { "enabled": true, "minInterval": 6000, "maxInterval": 10000 },
+          "shockwave": { "enabled": true, "minInterval": 8000, "maxInterval": 12000 },
+          "dangerZone": { "enabled": true, "minInterval": 10000, "maxInterval": 15000 }
+        }
       }
     ],
     "minDishCountIncrease": 0,

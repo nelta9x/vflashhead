@@ -115,6 +115,13 @@ describe('PlayerAttackController', () => {
         getCriticalChanceBonus: () => 0,
         getCursorMissileThicknessBonus: () => 0,
         getCursorSizeBonus: () => 0,
+        getVolatilityCritMultiplier: () => 0,
+        getVolatilityNonCritPenalty: () => 0,
+        getGlobalDamageMultiplier: () => 1,
+      } as never,
+      healthSystem: {
+        getHp: () => 5,
+        getMaxHp: () => 5,
       } as never,
       waveSystem: {
         getCurrentWave: () => wave,

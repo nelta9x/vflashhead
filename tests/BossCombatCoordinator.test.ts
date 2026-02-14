@@ -108,6 +108,25 @@ vi.mock('../src/data/DataManager', () => ({
           },
         },
       },
+      depths: { laser: 100 },
+    },
+    bossAttacks: {
+      bulletSpread: {
+        warningDuration: 1000, projectileCount: 8, projectileSpeed: 280,
+        projectileSize: 6, spreadAngleDeg: 360, projectileLifetime: 3000,
+        damage: 1, hitboxRadius: 8, invincibilityDuration: 300,
+        warningColor: '#ff4444', projectileColor: '#ff4444', projectileCoreColor: '#ffffff',
+      },
+      shockwave: {
+        warningDuration: 800, ringSpeed: 320, ringThickness: 12, maxRadius: 600,
+        damage: 1, hitboxThickness: 20, invincibilityDuration: 300,
+        warningColor: '#ff8800', ringColor: '#ff8800', ringCoreColor: '#ffffff',
+      },
+      dangerZone: {
+        warningDuration: 1200, zoneCount: { min: 2, max: 3 }, zoneRadius: { min: 80, max: 120 },
+        explosionDuration: 300, damage: 1, invincibilityDuration: 300, spawnPadding: 60,
+        warningColor: '#ff2244', explosionColor: '#ff4444', explosionCoreColor: '#ffffff',
+      },
     },
     boss: {
       spawn: { y: 120 },
@@ -254,6 +273,10 @@ describe('BossCombatCoordinator', () => {
             lineStyle: vi.fn().mockReturnThis(),
             fillCircle: vi.fn().mockReturnThis(),
             strokeCircle: vi.fn().mockReturnThis(),
+            fillRoundedRect: vi.fn().mockReturnThis(),
+            strokeRoundedRect: vi.fn().mockReturnThis(),
+            fillRect: vi.fn().mockReturnThis(),
+            strokeRect: vi.fn().mockReturnThis(),
             beginPath: vi.fn().mockReturnThis(),
             closePath: vi.fn().mockReturnThis(),
             arc: vi.fn().mockReturnThis(),
@@ -262,6 +285,8 @@ describe('BossCombatCoordinator', () => {
             fillPath: vi.fn().mockReturnThis(),
             strokePath: vi.fn().mockReturnThis(),
             setBlendMode: vi.fn().mockReturnThis(),
+            setDepth: vi.fn().mockReturnThis(),
+            destroy: vi.fn(),
           })),
           arc: vi.fn(() => ({
             setAlpha: vi.fn().mockReturnThis(),

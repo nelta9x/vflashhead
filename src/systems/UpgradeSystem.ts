@@ -1,9 +1,11 @@
 import { Data } from '../data/DataManager';
 import type {
+  BerserkerLevelData,
   BlackHoleLevelData,
   CriticalChanceLevelData,
   CursorSizeLevelData,
   ElectricShockLevelData,
+  GlassCannonLevelData,
   HealthPackLevelData,
   MagnetLevelData,
   MissileLevelData,
@@ -11,6 +13,7 @@ import type {
   RarityWeights,
   UpgradePreviewCardModel,
   SystemUpgradeData,
+  VolatilityLevelData,
 } from '../data/types/upgrades';
 import type { UpgradeSystemCore } from '../plugins/types';
 import { EventBus, GameEvents } from '../utils/EventBus';
@@ -25,6 +28,7 @@ export interface Upgrade {
   description: string;
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
   maxStack: number;
+  isCurse: boolean;
   effect: (upgradeSystem: UpgradeSystem, stack: number) => void;
 }
 
@@ -43,6 +47,7 @@ function createSystemUpgrades(): Upgrade[] {
     description: data.description,
     rarity: data.rarity,
     maxStack: data.levels ? data.levels.length : (data.maxStack ?? 999),
+    isCurse: data.isCurse ?? false,
     effect: (us: UpgradeSystem) => {
       // levels 기반 어빌리티: 스택은 applyUpgrade에서 자동 증가하므로 no-op
       // healthPackLevel 업그레이드 시 HP 보너스 적용을 위한 이벤트 발생
@@ -51,6 +56,15 @@ function createSystemUpgrades(): Upgrade[] {
         if (levelData) {
           EventBus.getInstance().emit(GameEvents.HEALTH_PACK_UPGRADED, {
             hpBonus: levelData.hpBonus,
+          });
+        }
+      }
+      // 글래스 캐논: 선택 시 최대 체력 감소
+      if (data.effectType === 'glassCannonLevel') {
+        const levelData = us.getLevelData<GlassCannonLevelData>(data.id);
+        if (levelData) {
+          EventBus.getInstance().emit(GameEvents.CURSE_HP_PENALTY, {
+            hpPenalty: levelData.hpPenalty,
           });
         }
       }
@@ -218,6 +232,57 @@ export class UpgradeSystem implements UpgradeSystemCore {
 
   getBlackHoleData(): BlackHoleLevelData | null {
     return this.getLevelData<BlackHoleLevelData>('black_hole');
+  }
+
+  // ========== 저주: 글래스 캐논 ==========
+  getGlassCannonDamageMultiplier(): number {
+    return this.getLevelData<GlassCannonLevelData>('glass_cannon')?.damageMultiplier ?? 0;
+  }
+
+  getGlassCannonHpPenalty(): number {
+    return this.getLevelData<GlassCannonLevelData>('glass_cannon')?.hpPenalty ?? 0;
+  }
+
+  // ========== 저주: 광전사 ==========
+  isHealDisabled(): boolean {
+    return this.getUpgradeStack('berserker') > 0;
+  }
+
+  getBerserkerMissingHpDamagePercent(): number {
+    return this.getLevelData<BerserkerLevelData>('berserker')?.missingHpDamagePercent ?? 0;
+  }
+
+  // ========== 저주: 변덕 ==========
+  getVolatilityCritMultiplier(): number {
+    return this.getLevelData<VolatilityLevelData>('volatility')?.critMultiplier ?? 0;
+  }
+
+  getVolatilityNonCritPenalty(): number {
+    return this.getLevelData<VolatilityLevelData>('volatility')?.nonCritPenalty ?? 0;
+  }
+
+  /**
+   * 전체 데미지 승수를 반환. 글래스 캐논 + 광전사 효과 포함.
+   * @param currentHp 현재 체력 (광전사 계산용)
+   * @param maxHp 최대 체력 (광전사 계산용)
+   */
+  getGlobalDamageMultiplier(currentHp: number, maxHp: number): number {
+    let multiplier = 1;
+
+    // 글래스 캐논: +damageMultiplier%
+    const glassCannonBonus = this.getGlassCannonDamageMultiplier();
+    if (glassCannonBonus > 0) {
+      multiplier += glassCannonBonus;
+    }
+
+    // 광전사: 잃은 HP당 데미지 증가
+    const berserkerPercent = this.getBerserkerMissingHpDamagePercent();
+    if (berserkerPercent > 0 && maxHp > 0) {
+      const missingHp = maxHp - currentHp;
+      multiplier += berserkerPercent * missingHp;
+    }
+
+    return multiplier;
   }
 
   // ========== 유틸리티 ==========

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { Data } from '../../../data/DataManager';
 import type { Entity } from '../../../entities/Entity';
 import type { FeedbackSystem } from '../../../systems/FeedbackSystem';
+import type { HealthSystem } from '../../../systems/HealthSystem';
 import type { MonsterSystem } from '../../../systems/MonsterSystem';
 import type { UpgradeSystem } from '../../../systems/UpgradeSystem';
 import type { CursorSnapshot } from '../GameSceneContracts';
@@ -11,6 +12,7 @@ interface BossContactDamageControllerDeps {
   monsterSystem: MonsterSystem;
   feedbackSystem: FeedbackSystem;
   upgradeSystem: UpgradeSystem;
+  healthSystem: HealthSystem;
   bossOverlapLastHitTimeByBossId: Map<string, number>;
 }
 
@@ -19,6 +21,7 @@ export class BossContactDamageController {
   private readonly monsterSystem: MonsterSystem;
   private readonly feedbackSystem: FeedbackSystem;
   private readonly upgradeSystem: UpgradeSystem;
+  private readonly healthSystem: HealthSystem;
   private readonly bossOverlapLastHitTimeByBossId: Map<string, number>;
 
   constructor(deps: BossContactDamageControllerDeps) {
@@ -26,6 +29,7 @@ export class BossContactDamageController {
     this.monsterSystem = deps.monsterSystem;
     this.feedbackSystem = deps.feedbackSystem;
     this.upgradeSystem = deps.upgradeSystem;
+    this.healthSystem = deps.healthSystem;
     this.bossOverlapLastHitTimeByBossId = deps.bossOverlapLastHitTimeByBossId;
   }
 
@@ -64,9 +68,23 @@ export class BossContactDamageController {
 
       let damage = baseDamage;
       const isCritical = Math.random() < criticalChance;
+
+      // 변덕 저주: 치명타 배율 오버라이드 / 비치명타 패널티
+      const volatilityCritMult = this.upgradeSystem.getVolatilityCritMultiplier();
       if (isCritical) {
-        damage *= criticalMultiplier;
+        damage *= volatilityCritMult > 0 ? volatilityCritMult : criticalMultiplier;
+      } else {
+        const nonCritPenalty = this.upgradeSystem.getVolatilityNonCritPenalty();
+        if (nonCritPenalty > 0) {
+          damage *= nonCritPenalty;
+        }
       }
+
+      // 글로벌 데미지 승수 (글래스 캐논 + 광전사)
+      damage *= this.upgradeSystem.getGlobalDamageMultiplier(
+        this.healthSystem.getHp(),
+        this.healthSystem.getMaxHp()
+      );
 
       this.monsterSystem.takeDamage(bossId, damage, cursor.x, cursor.y);
       this.feedbackSystem.onBossContactDamaged(boss.x, boss.y, damage, isCritical);

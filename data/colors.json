@@ -19,7 +19,10 @@
     "upgradeCardBgHover": "#2a1a4e",
     "progressBarBg": "#333333",
     "bootProgressBg": "#222222",
-    "menuBossArmor": "#1a0505"
+    "menuBossArmor": "#1a0505",
+    "curseCardBorder": "#ff3366",
+    "curseCardBg": "#2a0515",
+    "curseCardBgHover": "#3a1525"
   },
   "numeric": {
     "cyan": 65535,
@@ -40,7 +43,10 @@
     "upgradeCardBgHover": 2759246,
     "progressBarBg": 3355443,
     "bootProgressBg": 2236962,
-    "menuBossArmor": 1705221
+    "menuBossArmor": 1705221,
+    "curseCardBorder": 16724838,
+    "curseCardBg": 2753813,
+    "curseCardBgHover": 3806501
   },
   "rainbow": [16711680, 16744192, 16776960, 65280, 255, 4915330, 9699539]
 }

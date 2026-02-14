@@ -25,6 +25,9 @@ const UPGRADE_SYMBOLS: Record<string, string> = {
   auto_destroy: '⟳',
   missile: '✹',
   orbiting_orb: '◎',
+  glass_cannon: '☠',
+  berserker: '⚔',
+  volatility: '⁂',
 };
 
 export function getUpgradeFallbackSymbol(upgradeId: string): string {

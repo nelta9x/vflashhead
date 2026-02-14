@@ -6,7 +6,9 @@ import { Entity } from '../../../entities/Entity';
 import { EntityPoolManager } from '../../../systems/EntityPoolManager';
 import { EntityDamageService } from '../../../systems/EntityDamageService';
 import { EntityQueryService } from '../../../systems/EntityQueryService';
+import { HealthSystem } from '../../../systems/HealthSystem';
 import { StatusEffectManager } from '../../../systems/StatusEffectManager';
+import { UpgradeSystem } from '../../../systems/UpgradeSystem';
 import { setSpawnDamageServiceGetter } from '../../../entities/EntitySpawnInitializer';
 
 export class EcsFoundationPlugin implements ServicePlugin {
@@ -39,6 +41,15 @@ export class EcsFoundationPlugin implements ServicePlugin {
           r.get(Phaser.Scene),
         );
         setSpawnDamageServiceGetter(() => svc);
+        svc.setCurseModifiersProvider(() => {
+          const us = r.get(UpgradeSystem);
+          const hs = r.get(HealthSystem);
+          return {
+            globalDamageMultiplier: us.getGlobalDamageMultiplier(hs.getHp(), hs.getMaxHp()),
+            volatilityCritMultiplier: us.getVolatilityCritMultiplier(),
+            volatilityNonCritPenalty: us.getVolatilityNonCritPenalty(),
+          };
+        });
         return svc;
       },
     },

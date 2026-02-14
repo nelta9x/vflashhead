@@ -224,6 +224,7 @@ export class GameModulesPlugin implements ServicePlugin {
           world: r.get(World),
           damageService: r.get(EntityDamageService),
           upgradeSystem: r.get(UpgradeSystem),
+          healthSystem: r.get(HealthSystem),
           waveSystem: r.get(WaveSystem),
           monsterSystem: r.get(MonsterSystem),
           feedbackSystem: r.get(FeedbackSystem),

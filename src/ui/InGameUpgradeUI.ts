@@ -25,6 +25,7 @@ interface UpgradeBox {
   progressBar: Phaser.GameObjects.Graphics;
   bg: Phaser.GameObjects.Graphics;
   borderColor: number;
+  isCurse: boolean;
   emphasisTexts: Phaser.GameObjects.Text[];
 }
 
@@ -124,21 +125,37 @@ export class InGameUpgradeUI {
     const container = this.scene.add.container(x, y);
     this.mainContainer.add(container);
 
+    const isCurse = upgrade.isCurse;
     const rarityColors: Record<string, number> = {
       common: COLORS.WHITE,
       rare: COLORS.CYAN,
       epic: COLORS.MAGENTA,
       legendary: COLORS.YELLOW,
     };
-    const borderColor = rarityColors[upgrade.rarity] || COLORS.WHITE;
+    const borderColor = isCurse ? COLORS.CURSE_CARD_BORDER : (rarityColors[upgrade.rarity] || COLORS.WHITE);
 
     // 배경
     const bg = this.scene.add.graphics();
-    drawUpgradeBoxBackground(bg, BOX_WIDTH, BOX_HEIGHT, borderColor, false);
+    drawUpgradeBoxBackground(bg, BOX_WIDTH, BOX_HEIGHT, borderColor, false, isCurse);
     container.add(bg);
 
+    // 저주 뱃지
+    if (isCurse) {
+      const badgeY = -BOX_HEIGHT / 2 + 20;
+      const badgeText = Data.t('upgrade.curse_label');
+      const badge = this.scene.add
+        .text(0, badgeY, badgeText, {
+          fontFamily: FONTS.MAIN,
+          fontSize: '18px',
+          color: '#ff3366',
+          fontStyle: 'bold',
+        })
+        .setOrigin(0.5);
+      container.add(badge);
+    }
+
     // 아이콘 표시 (SVG 스프라이트 또는 텍스트 폴백)
-    const iconY = -BOX_HEIGHT / 2 + 80;
+    const iconY = -BOX_HEIGHT / 2 + (isCurse ? 95 : 80);
     const iconSize = 80;
 
     // 텍스처가 존재하는지 확인
@@ -209,6 +226,7 @@ export class InGameUpgradeUI {
       progressBar,
       bg,
       borderColor,
+      isCurse,
       emphasisTexts: content.emphasisTexts,
     };
   }
@@ -236,7 +254,7 @@ export class InGameUpgradeUI {
 
       // 호버 상태 변경 시 배경 업데이트
       if (wasHovered !== box.isHovered) {
-        drawUpgradeBoxBackground(box.bg, BOX_WIDTH, BOX_HEIGHT, box.borderColor, box.isHovered);
+        drawUpgradeBoxBackground(box.bg, BOX_WIDTH, BOX_HEIGHT, box.borderColor, box.isHovered, box.isCurse);
         if (box.isHovered) {
           box.container.setScale(1.05);
         } else {

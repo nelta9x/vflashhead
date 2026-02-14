@@ -4,6 +4,7 @@ import { FeedbackSystem } from '../../systems/FeedbackSystem';
 import { HealthSystem } from '../../systems/HealthSystem';
 import { MonsterSystem } from '../../systems/MonsterSystem';
 import { ComboSystem } from '../../systems/ComboSystem';
+import { UpgradeSystem } from '../../systems/UpgradeSystem';
 import { WaveSystem } from '../../systems/WaveSystem';
 import { DamageText } from '../../ui/DamageText';
 import { HUD } from '../../ui/HUD';
@@ -95,6 +96,14 @@ export class GameSceneEventBinder {
       hs.setMaxHp(INITIAL_HP + payload.hpBonus);
       hs.heal(payload.hpBonus);
     });
+    this.on(GameEvents.CURSE_HP_PENALTY, (payload: { hpPenalty: number }) => {
+      const hs = s.get(HealthSystem);
+      const newMax = Math.max(1, hs.getMaxHp() - payload.hpPenalty);
+      hs.setMaxHp(newMax);
+      if (hs.getHp() > newMax) {
+        hs.takeDamage(hs.getHp() - newMax);
+      }
+    });
     this.on(GameEvents.HP_CHANGED, (data: { hp: number; maxHp: number; delta: number; isFullHeal?: boolean }) => {
       if (data.isFullHeal) {
         s.get(HealthSystem).reset();
@@ -110,7 +119,9 @@ export class GameSceneEventBinder {
       s.get(FeedbackSystem).onHealthPackPassing(payload.x, payload.y);
     });
     this.on(GameEvents.HEALTH_PACK_COLLECTED, (payload: { x: number; y: number }) => {
-      s.get(HealthSystem).heal(1);
+      if (!s.get(UpgradeSystem).isHealDisabled()) {
+        s.get(HealthSystem).heal(1);
+      }
       s.get(FeedbackSystem).onHealthPackCollected(payload.x, payload.y);
     });
     this.on(GameEvents.GAUGE_UPDATED, (payload: GaugeUpdatedPayload) => {

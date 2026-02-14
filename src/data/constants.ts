@@ -31,6 +31,9 @@ export const COLORS = {
   PROGRESS_BAR_BG: Data.colors.numeric.progressBarBg,
   BOOT_PROGRESS_BG: Data.colors.numeric.bootProgressBg,
   MENU_BOSS_ARMOR: Data.colors.numeric.menuBossArmor,
+  CURSE_CARD_BORDER: Data.colors.numeric.curseCardBorder,
+  CURSE_CARD_BG: Data.colors.numeric.curseCardBg,
+  CURSE_CARD_BG_HOVER: Data.colors.numeric.curseCardBgHover,
 } as const;
 
 // 무지개 색상 배열

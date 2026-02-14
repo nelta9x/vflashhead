@@ -23,6 +23,7 @@ import type {
   RarityWeights,
   BombEntityData,
 } from './types';
+import type { BossAttacksConfig } from './types/bossAttacks';
 
 // JSON 파일 직접 import
 import gameConfigJson from '../../data/game-config.json';
@@ -40,6 +41,7 @@ import bossJson from '../../data/boss.json';
 import fallingBombJson from '../../data/falling-bomb.json';
 import localesJson from '../../data/locales.json';
 import entitiesJson from '../../data/entities.json';
+import bossAttacksJson from '../../data/boss-attacks.json';
 
 class DataManager {
   private static instance: DataManager;
@@ -60,6 +62,7 @@ class DataManager {
   public readonly boss: BossConfig;
   public readonly fallingBomb: FallingBombConfig;
   public readonly locales: LocalesConfig;
+  public readonly bossAttacks: BossAttacksConfig;
 
   private currentLang: 'en' | 'ko' = 'en';
 
@@ -93,6 +96,7 @@ class DataManager {
     this.boss = bossJson as BossConfig;
     this.fallingBomb = fallingBombJson as FallingBombConfig;
     this.locales = localesJson as LocalesConfig;
+    this.bossAttacks = bossAttacksJson as BossAttacksConfig;
 
     // 지원하는 언어 목록 확인
     const supportedLanguages = Object.keys(this.locales);

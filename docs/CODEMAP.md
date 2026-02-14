@@ -50,8 +50,12 @@
 
 ### 1.5 GameScene 보조 모듈 (`src/scenes/game/`)
 
-- **`BossCombatCoordinator.ts`**: 멀티 보스 동기화, 보스 스폰 배치, 레이저 스케줄/취소/충돌, 보스 접촉 데미지, 보스 스냅샷 제공. `forEachBoss(cb)` 로 활성 보스 엔티티를 외부에 노출 (ECS 시스템 순회용).
-  - 내부 분해: `boss/BossRosterSync.ts`, `boss/BossLaserController.ts`, `boss/BossContactDamageController.ts`
+- **`BossCombatCoordinator.ts`**: 멀티 보스 동기화, 보스 스폰 배치, 레이저 스케줄/취소/충돌, 보스 접촉 데미지, 다중 공격 스케줄링, 보스 스냅샷 제공. `forEachBoss(cb)` 로 활성 보스 엔티티를 외부에 노출 (ECS 시스템 순회용).
+  - 내부 분해: `boss/BossRosterSync.ts`, `boss/BossLaserController.ts`, `boss/BossContactDamageController.ts`, `boss/BossAttackScheduler.ts`
+  - **`boss/BossAttackScheduler.ts`**: 보스별 다중 공격(bulletSpread, shockwave, dangerZone) 쿨다운 스케줄링. 보스당 동시 1개 공격 제한(레이저 제외). 각 공격은 전용 컨트롤러에 위임.
+    - `boss/BossBulletSpreadController.ts`: 방사형 탄막 — 경고 링 펄스 → 탄환 발사 → 충돌 판정
+    - `boss/BossShockwaveController.ts`: 충격파 — 보스 중심 팽창 링 → 링 충돌 판정
+    - `boss/BossDangerZoneController.ts`: 위험 지대 — 2~3 원형 영역 경고 → 동시 폭발 충돌 판정
 - **`PlayerAttackController.ts`**: 게이지 공격(차지/순차 미사일/재타겟), 미사일 경로 접시 제거, 치명타 시 레이저 취소 처리.
 - **`DishLifecycleController.ts`**: **접시 이벤트 처리 및 스폰 전담**. `DISH_DESTROYED/DISH_DAMAGED/DISH_MISSED` 처리, 접시/폭탄 스폰(폭탄 경고 포함), 전기 충격(직접 커서 히트 기반)/자기장/커서 범위 판정, `removeEntityFromPool()` 풀 해제.
   - 내부 분해: `dish/DishSpawnService.ts`, `dish/DishResolutionService.ts`, `dish/DishFieldEffectService.ts`
@@ -74,12 +78,12 @@
   - `wave/WaveSpawnPlanner.ts`: 접시 타입 롤 + 스폰 위치 제약 검증(보스/접시 거리)
 - **`waveBossConfig.ts`**: 웨이브별 보스 구성 해석 유틸리티. `bossTotalHp`/`hpWeight` 분배, 무한 웨이브 보스 수/총 HP 스케일링(`bossTotalHpIncrease`, `infiniteBossCount`)을 공용 계산합니다.
 - **`ComboSystem.ts`**: 콤보 증가, 타임아웃 처리, 마일스톤 관리. 콤보 수치에 따라 `COMBO_MILESTONE` 이벤트를 발생시켜 연출을 트리거합니다.
-- **`UpgradeSystem.ts`**: 업그레이드 파사드. 내부 상태/선택/설명/카드 프리뷰 모델 생성을 분리 모듈로 위임합니다.
+- **`UpgradeSystem.ts`**: 업그레이드 파사드. 내부 상태/선택/설명/카드 프리뷰 모델 생성을 분리 모듈로 위임합니다. 저주 업그레이드(`isCurse`) 쿼리 메서드 제공: `getGlassCannonDamageMultiplier()`, `isHealDisabled()`, `getBerserkerMissingHpDamagePercent()`, `getVolatilityCritMultiplier()`, `getVolatilityNonCritPenalty()`, `getGlobalDamageMultiplier()`.
   - `upgrades/UpgradeStateStore.ts`: 스택 상태 저장
   - `upgrades/UpgradeRarityRoller.ts`: 희귀도 가중치 기반 선택
   - `upgrades/UpgradeDescriptionFormatter.ts`: 로케일 템플릿 기반 설명 문자열 생성
   - `upgrades/UpgradePreviewModelBuilder.ts`: `previewDisplay` 스키마 기반 카드 프리뷰 모델(`현재 -> 다음`, 델타/직접+간접 수치) 생성
-- **`HealthSystem.ts`**: 플레이어 HP 관리. 데미지 수신 시 `HP_CHANGED` 이벤트를 발행하며, 현재 HP는 `GameScene -> CursorRenderer` 경로로 커서 통합형 링에 반영됩니다. HP가 0이 되면 `GAME_OVER` 발생.
+- **`HealthSystem.ts`**: 플레이어 HP 관리. 데미지 수신 시 `HP_CHANGED` 이벤트를 발행하며, 현재 HP는 `GameScene -> CursorRenderer` 경로로 커서 통합형 링에 반영됩니다. HP가 0이 되면 `GAME_OVER` 발생. `adjustMaxHp(delta)` — 저주(글래스캐논) HP 패널티 적용. `isHealDisabled()` — 광전사 저주 활성 시 헬스팩 획득 차단.
 - **`MonsterSystem.ts`**: 보스 몬스터 HP/사망 상태를 `bossId`별 `Map`으로 관리합니다. 웨이브 시작 시 `bossTotalHp`를 가중치(`hpWeight`) 기반으로 분배하고, `MONSTER_HP_CHANGED`/`MONSTER_DIED`를 `bossId` 스냅샷 payload로 발행합니다. `destroy()` 메서드로 EventBus 리스너 해제.
 - **`OrbSystem.ts`**: `EntitySystem` 구현. 플레이어 주변을 회전하는 보호 오브(Orb)의 로직 처리. World query로 접시(`C_DishTag`)와 폭탄(`C_BombProps`, 웨이브+낙하 통합) 충돌을 별도 쿼리로 판정하며, 업그레이드 레벨에 따른 개수/속도/데미지 계산 및 자석(Magnet) 업그레이드와의 시너지(크기 증가)를 관리합니다. 또한 오브가 폭탄을 제거하면 짧은 오버클럭 버프를 발동해 회전 속도를 일시적으로 가속하며, 버프는 스택/지속시간 데이터(`overclockDurationMs`, `overclockSpeedMultiplier`, `overclockMaxStacks`)로 제어됩니다.
 - **`BlackHoleSystem.ts`**: `EntitySystem` 구현. 블랙홀 어빌리티 로직 처리. World query로 접시(`C_DishTag`)와 폭탄(`C_BombProps`, 웨이브+낙하 통합)을 별도 쿼리로 조회하며, 레벨 데이터(`spawnInterval`, `spawnCount`, `radius`, `force`, `damageInterval`, `damage`, `bombConsumeRadiusRatio`, `consumeRadiusGrowthRatio`, `consumeRadiusGrowthFlat`, `consumeDamageGrowth`) 기반으로 주기적 랜덤 블랙홀을 생성/교체하고, 접시·폭탄 흡인, 중심 반경 진입 폭탄의 `byAbility` 제거, 접시/보스 피해 틱을 적용합니다. 각 블랙홀은 폭탄을 흡수하거나 블랙홀 틱 피해로 접시를 처치하면 개별적으로 반경/틱 피해가 증가하며, 다음 스폰 교체 시 기본 수치로 초기화됩니다.
@@ -158,7 +162,7 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
 - **`ModRegistry.ts`**: MOD 라이프사이클 관리자. **스냅샷 diff**로 `registerMod()` 전후 레지스트리 상태를 비교하여 MOD가 등록한 ability/entityType/modSystem/entitySystem/archetype/store를 추적. `unloadMod()` / `unloadAll()` 시 diff 기반 일괄 해제 + ScopedEventBus 구독 정리.
 - **`ScopedEventBusWrapper.ts`**: MOD별 EventBus 구독 추적 래퍼. `on()`/`once()`/`off()` 위임 + 내부 tracking, `removeAll()`로 일괄 해제.
 - **`ModLoader.ts`**: MOD 모듈 해석 + 에러 격리 전담. `ModFactory` → `ModModule` 변환, `load()` (단일), `loadMultiple()` (순차, 실패 건너뜀) 제공.
-- **`builtin/abilities/`**: 내장 어빌리티 플러그인 (CursorSize, CriticalChance, Missile, HealthPack, Magnet, ElectricShock, Orb, BlackHole). `ABILITY_FACTORIES` factory map + `registerBuiltinAbilities(ids)` 패턴으로 `game-config.json`의 `abilities` 배열 기반 동적 등록.
+- **`builtin/abilities/`**: 내장 어빌리티 플러그인 (CursorSize, CriticalChance, Missile, HealthPack, Magnet, ElectricShock, Orb, BlackHole) 및 저주 업그레이드 (GlassCannon, Berserker, Volatility). `ABILITY_FACTORIES` factory map + `registerBuiltinAbilities(ids)` 패턴으로 `game-config.json`의 `abilities` 배열 기반 동적 등록. 저주 업그레이드는 `isCurse: true` 플래그로 구분되며 긍정/부정 효과를 동시에 제공합니다.
 - **`builtin/entities/`**: 내장 엔티티 타입 플러그인 (PlayerEntity, BasicDish, BombEntity, StandardBoss). `ENTITY_TYPE_FACTORIES` factory map + `registerBuiltinEntityTypes(ids)` 패턴으로 `game-config.json`의 `entityTypes` 배열 기반 동적 등록. PlayerEntity는 `singleton` 카테고리로 풀링 없이 단일 인스턴스만 존재. **엔티티 전용 렌더러도 colocate**: `BossRenderer`, `BossShatterEffect`, `LaserRenderer`, `MenuBossRenderer`, `DishRenderer`, `CursorRenderer`, `CursorTrail`.
 - **`builtin/abilities/`** (렌더러 포함): 내장 어빌리티 플러그인과 함께 **어빌리티 전용 렌더러도 colocate**: `OrbRenderer`, `BlackHoleRenderer`, `HealthPackRenderer`, `PlayerAttackRenderer`.
 - **`AbilityManager.ts`** (`src/systems/`): 어빌리티 플러그인의 init/update/clear/destroy 라이프사이클 통합 관리.
@@ -202,7 +206,7 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
   - `hud/DockPauseController`: 도크바 hover 누적 시간(기본 1200ms) 기반으로 게임 일시정지 조건을 계산하는 상태 컨트롤러.
   - `hud/WaveTimerWidget`: 웨이브/생존 시간 텍스트와 피버 상태 렌더링.
   - `hud/WaveTimerVisibilityPolicy`: 웨이브/생존 시간 노출 규칙(업그레이드 페이즈 우선, hover 기반 표시) 판단.
-  - `InGameUpgradeUI`: 웨이브 사이 업그레이드 선택 화면 (3개 선택지, 호버 프로그레스 바, 레어리티 색상, 구조화된 능력치 비교 카드 렌더 호출).
+  - `InGameUpgradeUI`: 웨이브 사이 업그레이드 선택 화면 (3개 선택지, 호버 프로그레스 바, 레어리티 색상, 구조화된 능력치 비교 카드 렌더 호출). 저주 카드는 빨강-핑크 테두리 + 어두운 빨강 배경 + "CURSE" 뱃지로 시각 차별화.
   - `upgrade/UpgradeSelectionRenderer.ts`: 업그레이드 카드 배경/진행바 렌더 및 안전 Y 위치 계산 유틸.
   - `upgrade/UpgradeCardContentRenderer.ts`: 카드 본문 렌더 전담 (`Lv.cur -> Lv.next`, 변경 수치 행 리스트).
   - `DamageText`: 타격 시 데미지 수치 팝업 (오브젝트 풀링, 크리티컬 색상 처리).
@@ -234,6 +238,7 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
   - `combo.json`: 콤보 타임아웃, 마일스톤, 배율 공식, 게이지 보너스.
   - `health-pack.json`: 힐팩 기본 스폰 확률, 이동 속도 등 설정.
   - `falling-bomb.json`: 낙하 폭탄 이동 속도, 스폰 확률, 피해, 최소 등장 웨이브 등 설정.
+  - `boss-attacks.json`: 보스 다중 공격 타입(bulletSpread, shockwave, dangerZone) 밸런스 데이터 SSOT — 경고 지속시간, 투사체 수/속도, 충격파 반경, 위험지대 개수/반경 등.
   - `spawn.json`: 스폰 영역(Area) 및 로직 설정.
   - `weapons.json`: 무기(공격) 기본 데미지 및 관련 데이터.
 
@@ -275,6 +280,7 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
 |                   | `GAUGE_UPDATED`         | 게이지 수치 변경 시            | `GaugeSystem`     | `GameScene`                            |
 |                   | `PLAYER_ATTACK`         | 게이지 완충 후 공격 시         | `GaugeSystem`     | `GameScene`                            |
 | **블랙홀**        | `BLACK_HOLE_CONSUMED`   | 블랙홀이 폭탄/접시 흡수 시     | `BlackHoleSystem` | `GameScene` (피드백 텍스트)            |
+| **저주**          | `CURSE_HP_PENALTY`      | 글래스캐논 업그레이드 적용 시  | `UpgradeSystem`   | `GameSceneEventBinder` (maxHP 감소)    |
 
 ---
 

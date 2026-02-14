@@ -11,60 +11,59 @@ function getWeight(waveNumber: number, type: string): number {
 }
 
 describe('Wave balance config', () => {
-  it('has 14 predefined waves with tempo pattern', () => {
-    expect(Data.waves.waves).toHaveLength(14);
+  it('has 13 predefined waves with tempo pattern', () => {
+    expect(Data.waves.waves).toHaveLength(13);
   });
 
-  it('introduces bomb at wave 8 and crystal at wave 11', () => {
-    for (let w = 1; w <= 7; w++) {
+  it('introduces bomb at wave 7 and crystal at wave 10', () => {
+    for (let w = 1; w <= 6; w++) {
       expect(getWeight(w, 'bomb')).toBe(0);
     }
-    expect(getWeight(8, 'bomb')).toBeGreaterThan(0);
+    expect(getWeight(7, 'bomb')).toBeGreaterThan(0);
 
-    for (let w = 1; w <= 10; w++) {
+    for (let w = 1; w <= 9; w++) {
       expect(getWeight(w, 'crystal')).toBe(0);
     }
-    expect(getWeight(11, 'crystal')).toBeGreaterThan(0);
+    expect(getWeight(10, 'crystal')).toBeGreaterThan(0);
   });
 
   it('uses mini dishes in recovery waves for combo learning', () => {
-    expect(getWeight(1, 'mini')).toBe(0.2);
-    expect(getWeight(4, 'mini')).toBe(0.15);
-    expect(getWeight(7, 'mini')).toBe(0.35);
-    expect(getWeight(10, 'mini')).toBe(0.3);
-    expect(getWeight(13, 'mini')).toBe(0.3);
+    expect(getWeight(3, 'mini')).toBe(0.15);
+    expect(getWeight(6, 'mini')).toBe(0.35);
+    expect(getWeight(9, 'mini')).toBe(0.3);
+    expect(getWeight(12, 'mini')).toBe(0.3);
   });
 
   it('recovery waves have lower dish count and higher golden ratio than adjacent pressure waves', () => {
-    expect(getWave(4).dishCount).toBeLessThan(getWave(3).dishCount);
-    expect(getWeight(4, 'golden')).toBeGreaterThan(getWeight(3, 'golden'));
+    expect(getWave(3).dishCount).toBeLessThan(getWave(4).dishCount);
+    expect(getWeight(3, 'golden')).toBeGreaterThan(getWeight(4, 'golden'));
 
-    expect(getWave(7).dishCount).toBeLessThan(getWave(6).dishCount);
-    expect(getWeight(7, 'golden')).toBeGreaterThan(getWeight(6, 'golden'));
+    expect(getWave(6).dishCount).toBeLessThan(getWave(5).dishCount);
+    expect(getWeight(6, 'golden')).toBeGreaterThan(getWeight(5, 'golden'));
 
-    expect(getWave(10).dishCount).toBeLessThan(getWave(9).dishCount);
-    expect(getWeight(10, 'golden')).toBeGreaterThan(getWeight(9, 'golden'));
+    expect(getWave(9).dishCount).toBeLessThan(getWave(8).dishCount);
+    expect(getWeight(9, 'golden')).toBeGreaterThan(getWeight(8, 'golden'));
 
-    expect(getWave(13).dishCount).toBeLessThan(getWave(12).dishCount);
-    expect(getWeight(13, 'golden')).toBeGreaterThan(getWeight(12, 'golden'));
+    expect(getWave(12).dishCount).toBeLessThan(getWave(11).dishCount);
+    expect(getWeight(12, 'golden')).toBeGreaterThan(getWeight(11, 'golden'));
   });
 
-  it('waves 1-11 have one boss, waves 12-14 have two bosses', () => {
-    for (let w = 1; w <= 11; w++) {
+  it('waves 1-10 have one boss, waves 11-13 have two bosses', () => {
+    for (let w = 1; w <= 10; w++) {
       expect(getWave(w).bosses).toHaveLength(1);
     }
-    for (let w = 12; w <= 14; w++) {
+    for (let w = 11; w <= 13; w++) {
       expect(getWave(w).bosses).toHaveLength(2);
       expect(getWave(w).bosses?.some((boss) => boss.id === 'boss_left')).toBe(true);
       expect(getWave(w).bosses?.some((boss) => boss.id === 'boss_right')).toBe(true);
     }
   });
 
-  it('wave 12 introduces dual laser (maxCount 2)', () => {
-    for (let w = 1; w <= 11; w++) {
+  it('wave 11 introduces dual laser (maxCount 2)', () => {
+    for (let w = 1; w <= 10; w++) {
       expect(getWave(w).laser?.maxCount ?? 0).toBeLessThanOrEqual(1);
     }
-    expect(getWave(12).laser?.maxCount).toBe(2);
+    expect(getWave(11).laser?.maxCount).toBe(2);
   });
 
   it('matches infinite scaling rebalance values', () => {
@@ -108,16 +107,16 @@ describe('Wave balance config', () => {
     }
   });
 
-  it('introduces amber from wave 15 with three full-hp bosses', () => {
+  it('introduces amber from wave 14 with three full-hp bosses', () => {
     const resolver = new WaveConfigResolver();
-    const wave15Config = resolver.resolveWaveConfig(15);
-    const wave15AmberWeight =
-      wave15Config.dishTypes.find((dishType) => dishType.type === 'amber')?.weight ?? 0;
+    const wave14Config = resolver.resolveWaveConfig(14);
+    const wave14AmberWeight =
+      wave14Config.dishTypes.find((dishType) => dishType.type === 'amber')?.weight ?? 0;
 
-    expect(wave15AmberWeight).toBeGreaterThan(0);
-    expect(wave15Config.bosses).toHaveLength(3);
+    expect(wave14AmberWeight).toBeGreaterThan(0);
+    expect(wave14Config.bosses).toHaveLength(3);
 
-    for (let waveNumber = 15; waveNumber <= 30; waveNumber++) {
+    for (let waveNumber = 14; waveNumber <= 30; waveNumber++) {
       const waveConfig = resolver.resolveWaveConfig(waveNumber);
       const totalWeight = waveConfig.dishTypes.reduce((sum, dishType) => sum + dishType.weight, 0);
       const basicWeight =
@@ -129,8 +128,8 @@ describe('Wave balance config', () => {
 
       // each boss gets full bossTotalHp (not divided)
       const perBossHp = waveConfig.bossTotalHp / waveConfig.bosses.length;
-      const baseTotalHp = getWave(14).bossTotalHp ?? 0;
-      const wavesBeyond = waveNumber - 14;
+      const baseTotalHp = getWave(13).bossTotalHp ?? 0;
+      const wavesBeyond = waveNumber - 13;
       const expectedPerBoss = baseTotalHp + wavesBeyond * 150;
       expect(perBossHp).toBe(expectedPerBoss);
     }

@@ -115,7 +115,22 @@
     "upgrade.stat.black_hole_duration_ms": "Duration",
     "upgrade.card.level_transition": "Lv.{0} -> Lv.{1}",
     "upgrade.card.delta_format": "{0} -> {1} ({2})",
-    "pause.resume_hint": "ESC TO RESUME"
+    "pause.resume_hint": "ESC TO RESUME",
+    "upgrade.glass_cannon.name": "Glass Cannon",
+    "upgrade.glass_cannon.desc": "Massive damage boost, but max HP decreases.",
+    "upgrade.glass_cannon.selection_hint": "CURSE: -1 Max HP per level",
+    "upgrade.berserker.name": "Berserker",
+    "upgrade.berserker.desc": "More damage as HP decreases. Healing disabled.",
+    "upgrade.berserker.selection_hint": "CURSE: Healing disabled",
+    "upgrade.volatility.name": "Volatility",
+    "upgrade.volatility.desc": "Crits hit much harder. Non-crits hit weaker.",
+    "upgrade.volatility.selection_hint": "CURSE: Non-crits deal less damage",
+    "upgrade.stat.damage_multiplier_pct": "Damage Bonus",
+    "upgrade.stat.hp_penalty": "HP Penalty",
+    "upgrade.stat.missing_hp_damage_pct": "Missing HP Dmg",
+    "upgrade.stat.crit_multiplier": "Crit Multiplier",
+    "upgrade.stat.non_crit_penalty_pct": "Non-Crit Penalty",
+    "upgrade.curse_label": "CURSE"
   },
   "ko": {
     "fontFamily": "'NeoDunggeunmoPro', 'Black Han Sans', 'Orbitron', sans-serif",
@@ -233,6 +248,21 @@
     "upgrade.stat.black_hole_duration_ms": "유지 시간",
     "upgrade.card.level_transition": "Lv.{0} → Lv.{1}",
     "upgrade.card.delta_format": "{0}→{1} ({2})",
-    "pause.resume_hint": "ESC를 눌러 재개"
+    "pause.resume_hint": "ESC를 눌러 재개",
+    "upgrade.glass_cannon.name": "글래스 캐논",
+    "upgrade.glass_cannon.desc": "전체 데미지 대폭 증가, 최대 체력 감소",
+    "upgrade.glass_cannon.selection_hint": "저주: 레벨당 최대 체력 -1",
+    "upgrade.berserker.name": "광전사",
+    "upgrade.berserker.desc": "잃은 체력에 비례해 데미지 증가. 치유 불가.",
+    "upgrade.berserker.selection_hint": "저주: 치유 불가",
+    "upgrade.volatility.name": "변덕",
+    "upgrade.volatility.desc": "치명타 시 막대한 피해. 비치명타 시 약한 피해.",
+    "upgrade.volatility.selection_hint": "저주: 비치명타 데미지 감소",
+    "upgrade.stat.damage_multiplier_pct": "데미지 보너스",
+    "upgrade.stat.hp_penalty": "체력 감소",
+    "upgrade.stat.missing_hp_damage_pct": "잃은 체력 데미지",
+    "upgrade.stat.crit_multiplier": "치명타 배율",
+    "upgrade.stat.non_crit_penalty_pct": "비치명타 패널티",
+    "upgrade.curse_label": "저주"
   }
 }

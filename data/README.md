@@ -21,6 +21,7 @@
    - [colors.json](#colorsjson)
    - [boss.json](#bossjson)
    - [weapons.json](#weaponsjson)
+   - [boss-attacks.json](#boss-attacksjson)
 
 ---
 
@@ -48,6 +49,9 @@
 | **커서 입력 전환 유예** | `game-config.json` | `player.input.pointerPriorityMs` |
 | **키보드 축 가속 시간** | `game-config.json` | `player.input.keyboardAxisRampUpMs` |
 | **콤보 이펙트 강도** | `feedback.json` | `comboMilestones` |
+| **보스 탄막/충격파/위험지대** | `boss-attacks.json` | `bulletSpread`, `shockwave`, `dangerZone` |
+| **보스 공격 웨이브별 활성화** | `waves.json` | `bosses[].attacks` |
+| **저주 업그레이드 효과** | `upgrades.json` | `system` (isCurse 항목) |
 
 ---
 
@@ -190,9 +194,9 @@ import { COLORS, FONTS } from '../data/constants';
 
 | 필드 | 설명 |
 |------|------|
-| `waves` | 웨이브 1~14 설정 배열 |
+| `waves` | 웨이브 1~13 설정 배열 |
 | `fever` | 피버 타임 설정 |
-| `infiniteScaling` | 웨이브 14 이후 무한 스케일링 공식 |
+| `infiniteScaling` | 웨이브 13 이후 무한 스케일링 공식 |
 
 #### 개별 웨이브 설정
 
@@ -221,7 +225,10 @@ import { COLORS, FONTS } from '../data/constants';
       "id": "boss_right",
       "hpWeight": 1,
       "spawnRange": { "minX": 840, "maxX": 960, "minY": 90, "maxY": 120 },
-      "laser": { "maxCount": 1, "minInterval": 4200, "maxInterval": 7600 }
+      "laser": { "maxCount": 1, "minInterval": 4200, "maxInterval": 7600 },
+      "attacks": {
+        "bulletSpread": { "enabled": true, "minInterval": 8000, "maxInterval": 14000 }
+      }
     }
   ]
 }
@@ -432,6 +439,7 @@ import { COLORS, FONTS } from '../data/constants';
 - `sizeBonus`, `cursorRadiusPx`, `damage`, `missileThicknessBonus`, `criticalChance`
 - `radius`, `force`, `count`, `hpBonus`, `dropChanceBonus`, `speed`, `size`
 - `orbFinalSizeWithMagnet`, `damageInterval`, `spawnInterval`, `spawnCount`
+- `damageMultiplier`, `hpPenalty`, `missingHpDamagePercent`, `critMultiplier`, `nonCritPenalty` (저주용)
 
 **로케일 연동 규칙**:
 - `previewDisplay.stats[].labelKey`는 `data/locales.json`의 `upgrade.stat.*`에 반드시 존재해야 함
@@ -791,6 +799,117 @@ import { COLORS, FONTS } from '../data/constants';
 `hpSegments`를 사용하면 보스 체력에 따라 아머 실루엣 조각 수가 자동 조절됩니다.
 현재 기본값은 **100 HP당 1칸, 나머지 HP가 있으면 1칸 추가(올림)** 규칙입니다.
 현재 슬롯 시각화는 별도 보조 링 없이 **아머 실루엣 조각 자체**로 표현됩니다.
+
+---
+
+### boss-attacks.json
+
+보스 다중 공격 타입의 밸런스 데이터를 관리합니다. 웨이브 6부터 단계적으로 도입됩니다.
+
+#### 공격 타입
+
+| 타입 | 설명 | 도입 웨이브 |
+|------|------|------------|
+| `bulletSpread` | 방사형 탄막 — 보스 중심에서 전방위 탄환 발사 | 6 |
+| `shockwave` | 충격파 — 보스 중심에서 팽창하는 링 | 8 |
+| `dangerZone` | 위험 지대 — 2~3개 원형 영역 경고 후 동시 폭발 | 10 |
+
+#### bulletSpread
+
+```json
+{
+  "warningDuration": 1000,       // 경고(링 펄스) 지속시간 (ms)
+  "projectileCount": 8,          // 탄환 수
+  "projectileSpeed": 280,        // 탄환 속도 (px/sec)
+  "projectileSize": 6,           // 탄환 크기 (px)
+  "spreadAngleDeg": 360,         // 발사 각도 범위 (360 = 전방위)
+  "projectileLifetime": 3000,    // 탄환 생존 시간 (ms)
+  "damage": 1,                   // 플레이어 피해
+  "hitboxRadius": 8,             // 탄환 히트박스 반경 (px)
+  "invincibilityDuration": 300   // 피격 후 무적 시간 (ms)
+}
+```
+
+#### shockwave
+
+```json
+{
+  "warningDuration": 800,        // 경고(깜빡임) 지속시간 (ms)
+  "ringSpeed": 320,              // 링 확장 속도 (px/sec)
+  "ringThickness": 12,           // 링 두께 (px)
+  "maxRadius": 600,              // 링 최대 반경 (px)
+  "damage": 1,                   // 플레이어 피해
+  "hitboxThickness": 20,         // 링 히트박스 두께 (px)
+  "invincibilityDuration": 300   // 피격 후 무적 시간 (ms)
+}
+```
+
+#### dangerZone
+
+```json
+{
+  "warningDuration": 1200,       // 경고(깜빡임) 지속시간 (ms)
+  "zoneCount": { "min": 2, "max": 3 },   // 위험 영역 개수 범위
+  "zoneRadius": { "min": 80, "max": 120 }, // 영역 반경 범위 (px)
+  "explosionDuration": 300,      // 폭발 연출 시간 (ms)
+  "damage": 1,                   // 플레이어 피해
+  "invincibilityDuration": 300,  // 피격 후 무적 시간 (ms)
+  "spawnPadding": 60             // 화면 가장자리 여백 (px)
+}
+```
+
+#### 웨이브 설정 (`waves.json`의 `bosses[].attacks`)
+
+```json
+{
+  "bosses": [{
+    "id": "boss_center",
+    "laser": { ... },
+    "attacks": {
+      "bulletSpread": { "enabled": true, "minInterval": 8000, "maxInterval": 14000 },
+      "shockwave": { "enabled": true, "minInterval": 10000, "maxInterval": 16000 }
+    }
+  }]
+}
+```
+
+- `enabled`: 이 공격 활성화 여부
+- `minInterval`/`maxInterval`: 쿨다운 범위 (ms) — 보스당 동시 1개 공격만 활성(레이저 제외)
+
+---
+
+### 저주 업그레이드 (upgrades.json)
+
+저주 업그레이드는 `isCurse: true` 플래그를 가지며, 긍정 효과와 부정 효과를 동시에 제공합니다.
+
+```json
+{
+  "id": "glass_cannon",
+  "isCurse": true,
+  "rarity": "epic",
+  "levels": [
+    { "damageMultiplier": 0.4, "hpPenalty": 1 }
+  ]
+}
+```
+
+#### 저주 종류
+
+| ID | 이름 | 레어리티 | 긍정 효과 | 부정 효과 |
+|----|------|---------|----------|----------|
+| `glass_cannon` | 글래스 캐논 | epic | +40/60/80% 전체 데미지 | -1 최대 HP/레벨 |
+| `berserker` | 광전사 | rare | 미싱 HP당 +15/25/35% 데미지 | 치유 비활성화 |
+| `volatility` | 변덕 | legendary | 치명타 2.5/3/3.5x 배율 | 비치명타 0.7/0.6/0.5x 배율 |
+
+#### 저주 levels 필드
+
+| 어빌리티 | 필드 | 설명 |
+|----------|------|------|
+| `glass_cannon` | `damageMultiplier` | 전체 데미지 증가 비율 (0.4 = 40%) |
+| | `hpPenalty` | 최대 HP 감소량 |
+| `berserker` | `missingHpDamagePercent` | 미싱 HP당 데미지 증가 비율 (0.15 = 15%) |
+| `volatility` | `critMultiplier` | 치명타 배율 (2.5 = 2.5x) |
+| | `nonCritPenalty` | 비치명타 데미지 감소 비율 (0.3 = 30% 감소) |
 
 ---
 

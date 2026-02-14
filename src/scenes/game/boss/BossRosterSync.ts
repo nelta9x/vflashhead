@@ -28,6 +28,7 @@ interface BossRosterSyncDeps {
   damageService: EntityDamageService;
   world: World;
   statusEffectManager: StatusEffectManager;
+  initBossAttackTimers?: (bossId: string, gameTime: number) => void;
 }
 
 export class BossRosterSync {
@@ -45,6 +46,7 @@ export class BossRosterSync {
   private readonly damageService: EntityDamageService;
   private readonly world: World;
   private readonly statusEffectManager: StatusEffectManager;
+  private readonly initBossAttackTimers?: (bossId: string, gameTime: number) => void;
 
   constructor(deps: BossRosterSyncDeps) {
     this.scene = deps.scene;
@@ -61,6 +63,7 @@ export class BossRosterSync {
     this.damageService = deps.damageService;
     this.world = deps.world;
     this.statusEffectManager = deps.statusEffectManager;
+    this.initBossAttackTimers = deps.initBossAttackTimers;
   }
 
   public syncBossesForCurrentWave(): void {
@@ -120,6 +123,7 @@ export class BossRosterSync {
 
       this.monsterSystem.publishBossHpSnapshot(bossConfig.id);
       this.setNextLaserTime(bossConfig.id, this.getCurrentGameTime());
+      this.initBossAttackTimers?.(bossConfig.id, this.getCurrentGameTime());
     }
 
     if (this.getActiveLasers().length === 0) {

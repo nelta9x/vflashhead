@@ -68,6 +68,7 @@ vi.mock('../src/utils/EventBus', () => ({
     BOMB_DESTROYED: 'bomb:destroyed',
     BOMB_MISSED: 'bomb:missed',
     BLACK_HOLE_CONSUMED: 'blackHole:consumed',
+    CURSE_HP_PENALTY: 'curse:hpPenalty',
   },
 }));
 
@@ -81,6 +82,7 @@ vi.mock('../src/data/constants', () => ({
 vi.mock('../src/data/DataManager', () => ({
   Data: {
     fallingBomb: { playerDamage: 1, resetCombo: true },
+    upgrades: { system: [] },
     t: (key: string) => key,
   },
 }));

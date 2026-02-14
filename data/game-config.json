@@ -278,7 +278,7 @@
   "monsterAttack": {
     "laser": {
       "width": 40,
-      "warningDuration": 1500,
+      "warningDuration": 700,
       "fireDuration": 370,
       "minInterval": 5000,
       "maxInterval": 10000,

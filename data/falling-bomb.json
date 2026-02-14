@@ -5,10 +5,17 @@
   "color": "#ff0044",
   "cooldown": 2000,
   "maxActive": 2,
-  "baseSpawnChance": 0.06,
+  "baseSpawnChance": 0.20,
   "checkInterval": 1000,
   "playerDamage": 1,
   "resetCombo": true,
   "minWave": 1,
-  "spawnMargin": 80
+  "spawnMargin": 80,
+  "scaling": {
+    "maxActiveBase": 3.7,
+    "maxActivePerWave": 1.3,
+    "maxActiveCap": 20,
+    "spawnChanceBase": 0.20,
+    "spawnChancePerWave": 0.01
+  }
 }

@@ -625,6 +625,14 @@ export interface HealthPackConfig {
 }
 
 // ========== 낙하 폭탄 시스템 ==========
+export interface FallingBombScaling {
+  maxActiveBase: number;
+  maxActivePerWave: number;
+  maxActiveCap: number;
+  spawnChanceBase: number;
+  spawnChancePerWave: number;
+}
+
 export interface FallingBombConfig {
   moveSpeed: number;
   visualSize: number;
@@ -638,6 +646,7 @@ export interface FallingBombConfig {
   resetCombo: boolean;
   minWave: number;
   spawnMargin: number;
+  scaling: FallingBombScaling;
 }
 
 // ========== 피드백 효과 ==========

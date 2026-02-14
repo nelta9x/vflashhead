@@ -155,12 +155,24 @@ export class FallingBombSystem implements EntitySystem {
     this.world.destroyEntity(entityId);
   }
 
+  private getWaveMaxActive(): number {
+    const s = Data.fallingBomb.scaling;
+    const wave = this.world.context.currentWave;
+    return Math.min(Math.floor(s.maxActiveBase + wave * s.maxActivePerWave), s.maxActiveCap);
+  }
+
+  private getWaveSpawnChance(): number {
+    const s = Data.fallingBomb.scaling;
+    const wave = this.world.context.currentWave;
+    return s.spawnChanceBase + (wave - 1) * s.spawnChancePerWave;
+  }
+
   private checkSpawning(delta: number, gameTime: number): void {
     if (gameTime < this.lastSpawnTime + FALLING_BOMB.COOLDOWN) {
       return;
     }
 
-    if (this.getActiveCount() >= FALLING_BOMB.MAX_ACTIVE) {
+    if (this.getActiveCount() >= this.getWaveMaxActive()) {
       return;
     }
 
@@ -170,7 +182,7 @@ export class FallingBombSystem implements EntitySystem {
     }
     this.timeSinceLastCheck = 0;
 
-    if (Math.random() < FALLING_BOMB.BASE_SPAWN_CHANCE) {
+    if (Math.random() < this.getWaveSpawnChance()) {
       this.spawnBomb(gameTime);
     }
   }

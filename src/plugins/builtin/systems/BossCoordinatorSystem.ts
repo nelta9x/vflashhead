@@ -1,6 +1,6 @@
-import type { BossCombatCoordinator } from '../../scenes/game/BossCombatCoordinator';
-import type { World } from '../../world';
-import type { EntitySystem } from './EntitySystem';
+import type { BossCombatCoordinator } from '../services/BossCombatCoordinator';
+import type { World } from '../../../world';
+import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 
 export class BossCoordinatorSystem implements EntitySystem {
   readonly id = 'core:boss_coordinator';

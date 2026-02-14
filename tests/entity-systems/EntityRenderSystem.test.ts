@@ -9,7 +9,7 @@ vi.mock('../../src/plugins/builtin/entities/DishRenderer', () => ({
 }));
 
 import { World } from '../../src/world/World';
-import { EntityRenderSystem } from '../../src/systems/entity-systems/EntityRenderSystem';
+import { EntityRenderSystem } from '../../src/plugins/builtin/systems/EntityRenderSystem';
 
 describe('EntityRenderSystem', () => {
   let world: World;

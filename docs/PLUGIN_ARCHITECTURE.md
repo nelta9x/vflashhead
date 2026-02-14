@@ -218,7 +218,7 @@ const ENTITY_TYPE_FACTORIES: Record<string, () => EntityTypePlugin> = {
 
 ### 3.3 새 시스템 추가
 
-1. **EntitySystem 구현**: `src/systems/entity-systems/NewSystem.ts` 작성
+1. **EntitySystem 구현**: 플러그인 구체 렌더러/엔티티에 의존하면 `src/plugins/builtin/systems/NewSystem.ts`, 코어만 참조하면 `src/systems/entity-systems/NewSystem.ts` 작성
 2. **SystemPlugin 래퍼**: `src/plugins/builtin/systems/NewSystemPlugin.ts` 작성
 3. **등록**: `src/plugins/builtin/systems/index.ts`의 `registerBuiltinSystemPlugins()`에 추가
 4. **활성화**: `data/game-config.json`의 `systemPlugins` 배열에 ID 추가
@@ -235,7 +235,9 @@ const ENTITY_TYPE_FACTORIES: Record<string, () => EntityTypePlugin> = {
 
 > 파일별 역할/API 상세는 `docs/CODEMAP.md` §2.6 "플러그인 아키텍처"를 참조한다. 이 섹션은 **배치 규칙**만 정의한다.
 
-**colocate 규칙**: 엔티티/어빌리티 전용 렌더러는 해당 플러그인과 같은 디렉토리에 배치한다. 범용 이펙트(`ParticleManager`, `GridRenderer`, `StarBackground`)만 `src/effects/`에 위치한다.
+**colocate 규칙**:
+- 엔티티/어빌리티 전용 렌더러는 해당 플러그인과 같은 디렉토리에 배치한다. 범용 이펙트(`ParticleManager`, `GridRenderer`, `StarBackground`)만 `src/effects/`에 위치한다.
+- 플러그인 구체 구현(렌더러/엔티티)에 직접 의존하는 EntitySystem은 `src/plugins/builtin/systems/`에 colocate한다. 코어(`src/systems/entity-systems/`)에는 플러그인 구체 타입을 참조하지 않는 시스템만 위치한다.
 
 | 분류 | 위치 | 팩토리 맵 진입점 |
 |------|------|-----------------|
@@ -303,7 +305,36 @@ sequenceDiagram
 
 ---
 
-## 7. 금지 사항
+## 7. 콘텐츠 이벤트 바인딩 패턴
+
+콘텐츠 관련 이벤트(DISH/BOMB/BOSS/PLAYER_ATTACK)는 코어가 아닌 플러그인 레이어에서 라우팅한다.
+
+### 코어/플러그인 경계 원칙
+
+- **코어(`GameSceneEventBinder`)**: 코어 시스템(Health/Combo/Feedback/HUD/Wave)과 Scene 라이프사이클 이벤트만 라우팅.
+- **플러그인(`ContentEventBinder`)**: 보스/디쉬/폭탄/플레이어 공격 이벤트를 콘텐츠 서비스(BCC/DLC/PAC)로 라우팅.
+- **`WAVE_TRANSITION` 이벤트**: 코어(`GameSceneController`)가 emit → 플러그인(`ContentEventBinder`)이 구독하여 BCC/DLC를 정리. 코어가 콘텐츠 서비스를 직접 호출하지 않는다.
+
+### ContentEventBinder 등록
+
+`GameModulesPlugin`의 마지막 서비스 엔트리로 등록. `bind()` 호출로 이벤트 구독 시작, `destroy()` 호출로 구독 해제.
+
+```typescript
+// GameModulesPlugin.ts
+{ key: ContentEventBinder, factory: (r) => { const b = new ContentEventBinder(r); b.bind(); return b; } }
+```
+
+### 콘텐츠 서비스 위치
+
+보스/디쉬 관련 서비스는 `src/plugins/builtin/services/`에 위치:
+- `BossCombatCoordinator.ts` + `boss/` (BossRosterSync, BossLaserController, BossAttackScheduler 등)
+- `DishLifecycleController.ts` + `dish/` (DishSpawnService, DishResolutionService)
+- `PlayerAttackController.ts`
+- `ContentContracts.ts` (보스/디쉬 이벤트 payload 타입)
+
+---
+
+## 8. 금지 사항
 
 > 코어 수정 금지, Scene 직접 호출 금지 등 상위 원칙은 `AGENTS.md` 원칙 3(플러그인 우선)·13(ECS 파이프라인)을 따른다. 아래는 플러그인 작업에 특화된 추가 금지 사항이다.
 
@@ -312,7 +343,7 @@ sequenceDiagram
 
 ---
 
-## 8. 체크리스트: 새 플러그인 추가 시
+## 9. 체크리스트: 새 플러그인 추가 시
 
 - [ ] 플러그인 인터페이스(`AbilityPlugin`/`EntityTypePlugin`/`SystemPlugin`/`ServicePlugin`)를 정확히 구현했는가
 - [ ] 밸런스/연출 데이터를 `data/*.json`에 먼저 정의했는가

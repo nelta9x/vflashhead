@@ -1,16 +1,16 @@
 import Phaser from 'phaser';
-import type { WaveBossConfig } from '../../../data/types/waves';
-import { Entity } from '../../../entities/Entity';
-import { initializeEntitySpawn } from '../../../entities/EntitySpawnInitializer';
-import { deactivateEntity } from '../../../entities/EntityLifecycle';
-import { PluginRegistry } from '../../../plugins/PluginRegistry';
-import type { LaserRenderer } from '../../../plugins/builtin/entities/LaserRenderer';
-import type { MonsterSystem } from '../../../systems/MonsterSystem';
-import type { StatusEffectManager } from '../../../systems/StatusEffectManager';
-import type { WaveSystem } from '../../../systems/WaveSystem';
-import type { EntityDamageService } from '../../../systems/EntityDamageService';
-import type { World } from '../../../world';
-import { INVALID_ENTITY_ID } from '../../../world/EntityId';
+import type { WaveBossConfig } from '../../../../data/types/waves';
+import { Entity } from '../../../../entities/Entity';
+import { initializeEntitySpawn } from '../../../../entities/EntitySpawnInitializer';
+import { deactivateEntity } from '../../../../entities/EntityLifecycle';
+import { PluginRegistry } from '../../../../plugins/PluginRegistry';
+import type { LaserRenderer } from '../../entities/LaserRenderer';
+import type { MonsterSystem } from '../../../../systems/MonsterSystem';
+import type { StatusEffectManager } from '../../../../systems/StatusEffectManager';
+import type { WaveSystem } from '../../../../systems/WaveSystem';
+import type { EntityDamageService } from '../../../../systems/EntityDamageService';
+import type { World } from '../../../../world';
+import { INVALID_ENTITY_ID } from '../../../../world/EntityId';
 import type { ActiveLaser } from './BossCombatTypes';
 
 interface BossRosterSyncDeps {

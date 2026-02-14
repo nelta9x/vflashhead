@@ -1,20 +1,20 @@
 import Phaser from 'phaser';
-import { Data } from '../../data/DataManager';
-import { COLORS, CURSOR_HITBOX } from '../../data/constants';
-import type { ParticleManager } from '../../effects/ParticleManager';
-import type { PlayerAttackRenderer } from '../../plugins/builtin/abilities/PlayerAttackRenderer';
-import type { FeedbackSystem } from '../../systems/FeedbackSystem';
-import type { HealthSystem } from '../../systems/HealthSystem';
-import type { MonsterSystem } from '../../systems/MonsterSystem';
-import type { SoundSystem } from '../../systems/SoundSystem';
-import type { UpgradeSystem } from '../../systems/UpgradeSystem';
-import type { WaveSystem } from '../../systems/WaveSystem';
-import type { EntityDamageService } from '../../systems/EntityDamageService';
-import { C_DishTag, C_DishProps, C_Transform, C_BombProps } from '../../world';
-import type { World } from '../../world';
-import type { EntityId } from '../../world/EntityId';
-import type { BossInteractionGateway } from './GameSceneContracts';
-import type { GameEnvironment } from './GameEnvironment';
+import { Data } from '../../../data/DataManager';
+import { COLORS, CURSOR_HITBOX } from '../../../data/constants';
+import type { ParticleManager } from '../../../effects/ParticleManager';
+import type { PlayerAttackRenderer } from '../abilities/PlayerAttackRenderer';
+import type { FeedbackSystem } from '../../../systems/FeedbackSystem';
+import type { HealthSystem } from '../../../systems/HealthSystem';
+import type { MonsterSystem } from '../../../systems/MonsterSystem';
+import type { SoundSystem } from '../../../systems/SoundSystem';
+import type { UpgradeSystem } from '../../../systems/UpgradeSystem';
+import type { WaveSystem } from '../../../systems/WaveSystem';
+import type { EntityDamageService } from '../../../systems/EntityDamageService';
+import { C_DishTag, C_DishProps, C_Transform, C_BombProps } from '../../../world';
+import type { World } from '../../../world';
+import type { EntityId } from '../../../world/EntityId';
+import type { BossInteractionGateway } from './ContentContracts';
+import type { GameEnvironment } from '../../../scenes/game/GameEnvironment';
 
 interface PlayerAttackControllerDeps {
   scene: Phaser.Scene;

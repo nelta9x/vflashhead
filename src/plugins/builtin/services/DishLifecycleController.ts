@@ -1,25 +1,25 @@
 import Phaser from 'phaser';
-import { Entity } from '../../entities/Entity';
-import { deactivateEntity } from '../../entities/EntityLifecycle';
-import type { DamageText } from '../../ui/DamageText';
-import type { PlayerAttackRenderer } from '../../plugins/builtin/abilities/PlayerAttackRenderer';
-import type { ObjectPool } from '../../utils/ObjectPool';
-import type { ComboSystem } from '../../systems/ComboSystem';
-import type { EntityDamageService } from '../../systems/EntityDamageService';
-import type { FeedbackSystem } from '../../systems/FeedbackSystem';
-import type { HealthSystem } from '../../systems/HealthSystem';
-import type { SoundSystem } from '../../systems/SoundSystem';
-import type { StatusEffectManager } from '../../systems/StatusEffectManager';
-import type { UpgradeSystem } from '../../systems/UpgradeSystem';
-import { C_DishTag, C_BombProps } from '../../world';
-import type { World } from '../../world';
-import type { EntityId } from '../../world/EntityId';
+import { Entity } from '../../../entities/Entity';
+import { deactivateEntity } from '../../../entities/EntityLifecycle';
+import type { DamageText } from '../../../ui/DamageText';
+import type { PlayerAttackRenderer } from '../abilities/PlayerAttackRenderer';
+import type { ObjectPool } from '../../../utils/ObjectPool';
+import type { ComboSystem } from '../../../systems/ComboSystem';
+import type { EntityDamageService } from '../../../systems/EntityDamageService';
+import type { FeedbackSystem } from '../../../systems/FeedbackSystem';
+import type { HealthSystem } from '../../../systems/HealthSystem';
+import type { SoundSystem } from '../../../systems/SoundSystem';
+import type { StatusEffectManager } from '../../../systems/StatusEffectManager';
+import type { UpgradeSystem } from '../../../systems/UpgradeSystem';
+import { C_DishTag, C_BombProps } from '../../../world';
+import type { World } from '../../../world';
+import type { EntityId } from '../../../world/EntityId';
 import type {
   DishDamagedEventPayload,
   DishDestroyedEventPayload,
   DishMissedEventPayload,
-} from './GameSceneContracts';
-import type { GameEnvironment } from './GameEnvironment';
+} from './ContentContracts';
+import type { GameEnvironment } from '../../../scenes/game/GameEnvironment';
 import type { BossCombatCoordinator } from './BossCombatCoordinator';
 import { DishResolutionService } from './dish/DishResolutionService';
 import { DishSpawnService } from './dish/DishSpawnService';

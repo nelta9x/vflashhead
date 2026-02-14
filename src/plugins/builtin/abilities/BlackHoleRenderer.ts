@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS } from '../../../data/constants';
 import { Data } from '../../../data/DataManager';
-import type { BlackHoleSnapshot } from '../../../systems/BlackHoleSystem';
+import type { BlackHoleSnapshot } from '../systems/BlackHoleSystem';
 
 export class BlackHoleRenderer {
   private readonly graphics: Phaser.GameObjects.Graphics;

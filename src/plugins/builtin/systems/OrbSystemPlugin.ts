@@ -1,8 +1,8 @@
-import { OrbSystem } from '../../../systems/OrbSystem';
+import { OrbSystem } from './OrbSystem';
 import { UpgradeSystem } from '../../../systems/UpgradeSystem';
 import { EntityDamageService } from '../../../systems/EntityDamageService';
 import { OrbRenderer } from '../abilities/OrbRenderer';
-import { BossCombatCoordinator } from '../../../scenes/game/BossCombatCoordinator';
+import { BossCombatCoordinator } from '../services/BossCombatCoordinator';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 import type { SystemPlugin, SystemPluginContext } from '../../types/SystemPlugin';
 

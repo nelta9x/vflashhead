@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { PlayerAttackController } from '../src/scenes/game/PlayerAttackController';
+import { PlayerAttackController } from '../src/plugins/builtin/services/PlayerAttackController';
 import {
   createMockWorldStores,
   createMockWorldApi,

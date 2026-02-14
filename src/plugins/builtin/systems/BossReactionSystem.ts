@@ -1,12 +1,13 @@
 import Phaser from 'phaser';
-import { Data } from '../../data/DataManager';
-import { COLORS } from '../../data/constants';
-import { BossRenderer } from '../../plugins/builtin/entities/BossRenderer';
-import { resolveBossHpSegmentState } from '../../entities/bossHpSegments';
-import type { EntitySystem } from './EntitySystem';
-import type { World, BossStateComponent } from '../../world';
-import type { EntityId } from '../../world/EntityId';
-import type { FeedbackSystem } from '../FeedbackSystem';
+import { Data } from '../../../data/DataManager';
+import { COLORS } from '../../../data/constants';
+import { BossRenderer } from '../entities/BossRenderer';
+import { resolveBossHpSegmentState } from '../entities/bossHpSegments';
+import type { IBossRenderer } from '../../types';
+import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
+import type { World, BossStateComponent } from '../../../world';
+import type { EntityId } from '../../../world/EntityId';
+import type { FeedbackSystem } from '../../../systems/FeedbackSystem';
 
 interface BossReactionSystemDeps {
   world: World;
@@ -103,7 +104,8 @@ export class BossReactionSystem implements EntitySystem {
     if (!node) return;
 
     // Hit flash
-    node.bossRenderer?.playHitFlash(reaction.flashDuration);
+    const renderer = node.bossRenderer as IBossRenderer | null;
+    renderer?.playHitFlash(reaction.flashDuration);
 
     if (sourceX === 0 && sourceY === 0) return;
 

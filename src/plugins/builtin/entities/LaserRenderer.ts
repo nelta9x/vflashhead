@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { DEPTHS } from '../../../data/constants';
 import { Data } from '../../../data/DataManager';
+import type { ILaserRenderer } from '../../types/renderers';
 
-export class LaserRenderer {
+export class LaserRenderer implements ILaserRenderer {
   private graphics: Phaser.GameObjects.Graphics;
 
   constructor(scene: Phaser.Scene) {

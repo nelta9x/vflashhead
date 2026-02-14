@@ -66,7 +66,7 @@ describe('PlayerTickSystem', () => {
   let healthSystem: HealthSystem;
 
   // Dynamic import to avoid module-level mock issues
-  let PlayerTickSystem: typeof import('../src/systems/entity-systems/PlayerTickSystem').PlayerTickSystem;
+  let PlayerTickSystem: typeof import('../src/plugins/builtin/systems/PlayerTickSystem').PlayerTickSystem;
 
   beforeEach(async () => {
     vi.resetModules();
@@ -74,7 +74,7 @@ describe('PlayerTickSystem', () => {
       CURSOR_HITBOX: { BASE_RADIUS: 30 },
     }));
 
-    const mod = await import('../src/systems/entity-systems/PlayerTickSystem');
+    const mod = await import('../src/plugins/builtin/systems/PlayerTickSystem');
     PlayerTickSystem = mod.PlayerTickSystem;
 
     world = new World();

@@ -1,9 +1,12 @@
 import type Phaser from 'phaser';
+import type { EntityId } from '../../../world/EntityId';
+import type { World } from '../../../world';
 import type {
   EntityTypePlugin,
   EntityTypeConfig,
   EntityTypeRenderer,
 } from '../../types';
+import { DishRenderer } from './DishRenderer';
 
 /**
  * 폭탄 엔티티 타입 플러그인.
@@ -26,10 +29,19 @@ export class BombEntityPlugin implements EntityTypePlugin {
     _host: Phaser.GameObjects.Container
   ): EntityTypeRenderer {
     return {
-      render: () => {
-        // EntityRenderSystem에서 bombProps 기반으로 DishRenderer.renderDangerDish() 호출
-      },
+      render: () => {},
       destroy: () => {},
     };
+  }
+
+  onSpawn(entityId: EntityId, world: World): void {
+    const pn = world.phaserNode.get(entityId);
+    const bombProps = world.bombProps.get(entityId);
+    if (!pn || !bombProps) return;
+
+    DishRenderer.renderDangerDish(pn.graphics, {
+      size: bombProps.size,
+      blinkPhase: 0,
+    });
   }
 }

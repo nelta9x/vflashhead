@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
-import { Data } from '../../../data/DataManager';
-import type { HealthSystem } from '../../../systems/HealthSystem';
-import type { FeedbackSystem } from '../../../systems/FeedbackSystem';
-import type { SoundSystem } from '../../../systems/SoundSystem';
-import type { CursorSnapshot } from '../GameSceneContracts';
+import { Data } from '../../../../data/DataManager';
+import type { HealthSystem } from '../../../../systems/HealthSystem';
+import type { FeedbackSystem } from '../../../../systems/FeedbackSystem';
+import type { SoundSystem } from '../../../../systems/SoundSystem';
+import type { CursorSnapshot } from '../../../../scenes/game/GameSceneContracts';
 
 interface BossShockwaveControllerDeps {
   scene: Phaser.Scene;

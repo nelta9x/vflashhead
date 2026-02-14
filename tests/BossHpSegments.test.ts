@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveBossHpSegmentState } from '../src/entities/bossHpSegments';
+import { resolveBossHpSegmentState } from '../src/plugins/builtin/entities/bossHpSegments';
 
 const HP_SCALE_100 = {
   minPieces: 1,

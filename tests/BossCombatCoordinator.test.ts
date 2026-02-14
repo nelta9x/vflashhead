@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { BossCombatCoordinator } from '../src/scenes/game/BossCombatCoordinator';
+import { BossCombatCoordinator } from '../src/plugins/builtin/services/BossCombatCoordinator';
 
 vi.mock('phaser', () => {
   class MockContainer {

@@ -1,15 +1,15 @@
 import Phaser from 'phaser';
-import type { UpgradeSystem } from './UpgradeSystem';
-import type { EntityDamageService } from './EntityDamageService';
-import type { OrbRenderer } from '../plugins/builtin/abilities/OrbRenderer';
-import type { SystemUpgradeData } from '../data/types';
-import type { BossRadiusSnapshot } from '../scenes/game/GameSceneContracts';
-import type { BossCombatCoordinator } from '../scenes/game/BossCombatCoordinator';
-import { C_DishTag, C_DishProps, C_Transform, C_BombProps } from '../world';
+import type { UpgradeSystem } from '../../../systems/UpgradeSystem';
+import type { EntityDamageService } from '../../../systems/EntityDamageService';
+import type { OrbRenderer } from '../abilities/OrbRenderer';
+import type { SystemUpgradeData } from '../../../data/types';
+import type { BossRadiusSnapshot } from '../services/ContentContracts';
+import type { BossCombatCoordinator } from '../services/BossCombatCoordinator';
+import { C_DishTag, C_DishProps, C_Transform, C_BombProps } from '../../../world';
 import { FallingBombSystem } from './FallingBombSystem';
-import type { EntitySystem, SystemStartContext } from './entity-systems/EntitySystem';
-import type { World } from '../world';
-import type { EntityId } from '../world/EntityId';
+import type { EntitySystem, SystemStartContext } from '../../../systems/entity-systems/EntitySystem';
+import type { World } from '../../../world';
+import type { EntityId } from '../../../world/EntityId';
 
 export interface OrbPosition {
   x: number;

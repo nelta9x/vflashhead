@@ -18,6 +18,7 @@ import { GaugeSystem } from '../../../systems/GaugeSystem';
 import { CursorRenderer } from '../entities/CursorRenderer';
 import { OrbRenderer } from '../abilities/OrbRenderer';
 import { BlackHoleRenderer } from '../abilities/BlackHoleRenderer';
+import { BossShatterEffect } from '../entities/BossShatterEffect';
 
 export class CoreServicesPlugin implements ServicePlugin {
   readonly id = 'core:services';
@@ -42,7 +43,7 @@ export class CoreServicesPlugin implements ServicePlugin {
     // auto-inject / custom factory (inject = [Phaser.Scene])
     {
       key: ParticleManager,
-      factory: (r) => new ParticleManager(r.get(Phaser.Scene), undefined, r.get(SoundSystem)),
+      factory: (r) => new ParticleManager(r.get(Phaser.Scene), undefined, r.get(SoundSystem), new BossShatterEffect(r.get(Phaser.Scene))),
     },
     ScreenShake,
     DamageText,

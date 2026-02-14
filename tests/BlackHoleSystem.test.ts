@@ -50,7 +50,7 @@ vi.mock('../src/utils/EventBus', () => ({
   },
 }));
 
-import { BlackHoleSystem } from '../src/systems/BlackHoleSystem';
+import { BlackHoleSystem } from '../src/plugins/builtin/systems/BlackHoleSystem';
 import {
   createMockWorldStores,
   createMockWorldApi,

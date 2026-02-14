@@ -1,15 +1,11 @@
 import Phaser from 'phaser';
 import { Data } from '../../../data/DataManager';
 import { COLORS } from '../../../data/constants';
+import type { IBossRenderer, BossRendererState } from '../../types';
 
-export interface BossRendererState {
-  hpRatio: number;
-  timeElapsed: number;
-  armorPieceCount: number;
-  filledArmorPieceCount: number;
-}
+export type { BossRendererState } from '../../types';
 
-export class BossRenderer {
+export class BossRenderer implements IBossRenderer {
   private readonly scene: Phaser.Scene;
   private readonly core: Phaser.GameObjects.Arc;
   private readonly coreLight: Phaser.GameObjects.Arc;

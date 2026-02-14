@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { COLORS, DEPTHS } from '../../../data/constants';
 import { Data } from '../../../data/DataManager';
+import type { IBossShatterEffect } from '../../types';
 
-export class BossShatterEffect {
+export class BossShatterEffect implements IBossShatterEffect {
   private readonly scene: Phaser.Scene;
 
   constructor(scene: Phaser.Scene) {

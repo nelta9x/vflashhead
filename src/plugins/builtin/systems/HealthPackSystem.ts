@@ -1,16 +1,16 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, CURSOR_HITBOX, HEAL_PACK } from '../data/constants';
-import { Data } from '../data/DataManager';
-import type { HealthPackLevelData } from '../data/types';
-import type { Entity } from '../entities/Entity';
-import { HealthPackRenderer } from '../plugins/builtin/abilities/HealthPackRenderer';
-import { EventBus, GameEvents } from '../utils/EventBus';
-import { C_HealthPack, C_Transform } from '../world';
-import type { EntityId } from '../world/EntityId';
-import type { World } from '../world';
-import type { UpgradeSystem } from './UpgradeSystem';
-import type { EntityPoolManager } from './EntityPoolManager';
-import type { EntitySystem } from './entity-systems/EntitySystem';
+import { GAME_WIDTH, CURSOR_HITBOX, HEAL_PACK } from '../../../data/constants';
+import { Data } from '../../../data/DataManager';
+import type { HealthPackLevelData } from '../../../data/types';
+import type { Entity } from '../../../entities/Entity';
+import { HealthPackRenderer } from '../abilities/HealthPackRenderer';
+import { EventBus, GameEvents } from '../../../utils/EventBus';
+import { C_HealthPack, C_Transform } from '../../../world';
+import type { EntityId } from '../../../world/EntityId';
+import type { World } from '../../../world';
+import type { UpgradeSystem } from '../../../systems/UpgradeSystem';
+import type { EntityPoolManager } from '../../../systems/EntityPoolManager';
+import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 
 const OFFSCREEN_MARGIN = 40;
 

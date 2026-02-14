@@ -1,4 +1,4 @@
-import { FallingBombSystem } from '../../../systems/FallingBombSystem';
+import { FallingBombSystem } from './FallingBombSystem';
 import { EntityPoolManager } from '../../../systems/EntityPoolManager';
 import { UpgradeSystem } from '../../../systems/UpgradeSystem';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';

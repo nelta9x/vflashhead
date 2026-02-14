@@ -3,8 +3,8 @@ import {
   EntityTimingSystem,
   EntityMovementSystem,
   EntityVisualSystem,
-  EntityRenderSystem,
 } from '../../../systems/entity-systems';
+import { EntityRenderSystem } from './EntityRenderSystem';
 import { EntityDamageService } from '../../../systems/EntityDamageService';
 import { StatusEffectManager } from '../../../systems/StatusEffectManager';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';

@@ -1,23 +1,23 @@
 import Phaser from 'phaser';
-import { Data } from '../../../data/DataManager';
-import { COLORS, CURSOR_HITBOX } from '../../../data/constants';
-import type { Entity } from '../../../entities/Entity';
-import type { DamageText } from '../../../ui/DamageText';
-import type { ObjectPool } from '../../../utils/ObjectPool';
-import type { ComboSystem } from '../../../systems/ComboSystem';
-import type { EntityDamageService } from '../../../systems/EntityDamageService';
-import type { FeedbackSystem } from '../../../systems/FeedbackSystem';
-import type { HealthSystem } from '../../../systems/HealthSystem';
-import type { SoundSystem } from '../../../systems/SoundSystem';
-import type { UpgradeSystem } from '../../../systems/UpgradeSystem';
-import { C_DishTag, C_DishProps, C_Transform } from '../../../world';
-import type { World } from '../../../world';
-import type { EntityId } from '../../../world/EntityId';
+import { Data } from '../../../../data/DataManager';
+import { COLORS, CURSOR_HITBOX } from '../../../../data/constants';
+import type { Entity } from '../../../../entities/Entity';
+import type { DamageText } from '../../../../ui/DamageText';
+import type { ObjectPool } from '../../../../utils/ObjectPool';
+import type { ComboSystem } from '../../../../systems/ComboSystem';
+import type { EntityDamageService } from '../../../../systems/EntityDamageService';
+import type { FeedbackSystem } from '../../../../systems/FeedbackSystem';
+import type { HealthSystem } from '../../../../systems/HealthSystem';
+import type { SoundSystem } from '../../../../systems/SoundSystem';
+import type { UpgradeSystem } from '../../../../systems/UpgradeSystem';
+import { C_DishTag, C_DishProps, C_Transform } from '../../../../world';
+import type { World } from '../../../../world';
+import type { EntityId } from '../../../../world/EntityId';
 import type {
   DishDamagedEventPayload,
   DishDestroyedEventPayload,
   DishMissedEventPayload,
-} from '../GameSceneContracts';
+} from '../ContentContracts';
 
 interface DishResolutionServiceDeps {
   world: World;

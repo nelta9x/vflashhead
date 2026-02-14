@@ -1,4 +1,3 @@
-import type { BossRenderer } from '../plugins/builtin/entities/BossRenderer';
 import type { DishUpgradeOptions } from '../entities/EntityTypes';
 import type { CursorInteractionType, EntityTypePlugin } from '../plugins/types';
 import type { CursorSmoothingConfig } from '../data/types';
@@ -122,7 +121,7 @@ export interface PhaserNodeComponent {
   graphics: Phaser.GameObjects.Graphics;
   body: Phaser.Physics.Arcade.Body | null;
   spawnTween: Phaser.Tweens.Tween | null;
-  bossRenderer: BossRenderer | null;
+  bossRenderer: unknown;
   typePlugin: EntityTypePlugin | null;
 }
 export const C_PhaserNode = defineComponent<PhaserNodeComponent>('phaserNode');

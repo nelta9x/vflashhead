@@ -1,11 +1,14 @@
-import type Phaser from 'phaser';
+import Phaser from 'phaser';
+import { resolveBossHpSegmentState } from './bossHpSegments';
+import { BossRenderer } from './BossRenderer';
+import { Data } from '../../../data/DataManager';
 import type { EntityId } from '../../../world/EntityId';
 import type {
   EntityTypePlugin,
   EntityTypeConfig,
   EntityTypeRenderer,
 } from '../../types';
-import type { MovementComponent } from '../../../world';
+import type { MovementComponent, World } from '../../../world';
 
 interface BossMovementConfig {
   type: string;
@@ -51,6 +54,37 @@ export class StandardBossPlugin implements EntityTypePlugin {
       render: () => {},
       destroy: () => {},
     };
+  }
+
+  onSpawn(entityId: EntityId, world: World): void {
+    const pn = world.phaserNode.get(entityId);
+    const bs = world.bossState.get(entityId);
+    const health = world.health.get(entityId);
+    if (!pn || !bs || !health) return;
+
+    // Segment calculation
+    const bossConfig = Data.boss.visual;
+    const segmentState = resolveBossHpSegmentState(health.currentHp, health.maxHp, {
+      defaultPieces: bs.defaultArmorPieces,
+      hpScale: bossConfig.armor.hpSegments,
+    });
+
+    bs.armorPieceCount = Math.max(1, segmentState.pieceCount);
+    bs.currentArmorCount = Phaser.Math.Clamp(segmentState.filledPieces, 0, bs.armorPieceCount);
+    bs.filledHpSlotCount = segmentState.filledPieces;
+
+    // Renderer creation + depth
+    pn.container.setDepth(Data.boss.depth);
+    const renderer = new BossRenderer(pn.container.scene, pn.container);
+    pn.bossRenderer = renderer;
+
+    // Initial render
+    renderer.render({
+      hpRatio: 1,
+      timeElapsed: 0,
+      armorPieceCount: bs.armorPieceCount,
+      filledArmorPieceCount: bs.currentArmorCount,
+    });
   }
 
   createMovementData(entityId: EntityId, homeX: number, homeY: number): MovementComponent {

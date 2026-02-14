@@ -1,16 +1,16 @@
 import Phaser from 'phaser';
-import { GAME_HEIGHT, GAME_WIDTH } from '../data/constants';
-import { Data } from '../data/DataManager';
-import type { BlackHoleLevelData } from '../data/types';
-import { EventBus, GameEvents } from '../utils/EventBus';
-import type { EntityDamageService } from './EntityDamageService';
+import { GAME_HEIGHT, GAME_WIDTH } from '../../../data/constants';
+import { Data } from '../../../data/DataManager';
+import type { BlackHoleLevelData } from '../../../data/types';
+import { EventBus, GameEvents } from '../../../utils/EventBus';
+import type { EntityDamageService } from '../../../systems/EntityDamageService';
 import { FallingBombSystem } from './FallingBombSystem';
-import type { UpgradeSystem } from './UpgradeSystem';
-import type { BlackHoleRenderer } from '../plugins/builtin/abilities/BlackHoleRenderer';
-import type { BossCombatCoordinator } from '../scenes/game/BossCombatCoordinator';
-import { C_DishTag, C_DishProps, C_Transform, C_BombProps } from '../world';
-import type { EntitySystem, SystemStartContext } from './entity-systems/EntitySystem';
-import type { World } from '../world';
+import type { UpgradeSystem } from '../../../systems/UpgradeSystem';
+import type { BlackHoleRenderer } from '../abilities/BlackHoleRenderer';
+import type { BossCombatCoordinator } from '../services/BossCombatCoordinator';
+import { C_DishTag, C_DishProps, C_Transform, C_BombProps } from '../../../world';
+import type { EntitySystem, SystemStartContext } from '../../../systems/entity-systems/EntitySystem';
+import type { World } from '../../../world';
 
 export interface BlackHoleSnapshot {
   x: number;

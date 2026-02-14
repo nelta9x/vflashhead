@@ -3,25 +3,14 @@ import { Data } from '../../data/DataManager';
 import { FeedbackSystem } from '../../systems/FeedbackSystem';
 import { HealthSystem } from '../../systems/HealthSystem';
 import { MonsterSystem } from '../../systems/MonsterSystem';
-import { ComboSystem } from '../../systems/ComboSystem';
 import { UpgradeSystem } from '../../systems/UpgradeSystem';
 import { WaveSystem } from '../../systems/WaveSystem';
 import { DamageText } from '../../ui/DamageText';
 import { HUD } from '../../ui/HUD';
 import { WaveCountdownUI } from '../../ui/WaveCountdownUI';
 import { World } from '../../world';
-import { PlayerAttackController } from './PlayerAttackController';
-import { BossCombatCoordinator } from './BossCombatCoordinator';
-import { DishLifecycleController } from './DishLifecycleController';
 import { EventBus, GameEvents } from '../../utils/EventBus';
 import type { ServiceRegistry } from '../../plugins/ServiceRegistry';
-import type {
-  DishDamagedEventPayload,
-  DishDestroyedEventPayload,
-  DishMissedEventPayload,
-  BombDestroyedEventPayload,
-  BombMissedEventPayload,
-} from './GameSceneContracts';
 
 interface BlackHoleConsumedPayload {
   x: number;
@@ -61,30 +50,15 @@ export class GameSceneEventBinder {
     if (this.isBound) return;
     const s = this.services;
 
-    // ── Pure delegations (resolved from ServiceRegistry) ──
-    this.on(GameEvents.DISH_DESTROYED, (payload: DishDestroyedEventPayload) => {
-      s.get(DishLifecycleController).onDishDestroyed(payload);
-    });
-    this.on(GameEvents.DISH_DAMAGED, (payload: DishDamagedEventPayload) => {
-      s.get(DishLifecycleController).onDishDamaged(payload);
-    });
-    this.on(GameEvents.DISH_MISSED, (payload: DishMissedEventPayload) => {
-      s.get(DishLifecycleController).onDishMissed(payload);
-    });
+    // ── Core system delegations (no content knowledge) ──
     this.on(GameEvents.COMBO_MILESTONE, (milestone: number) => {
       s.get(FeedbackSystem).onComboMilestone(milestone);
-    });
-    this.on(GameEvents.WAVE_STARTED, (_waveNumber: number) => {
-      s.get(BossCombatCoordinator).syncBossesForCurrentWave();
     });
     this.on(GameEvents.WAVE_COUNTDOWN_TICK, (seconds: number) => {
       s.get(WaveCountdownUI).updateCountdown(seconds);
     });
     this.on(GameEvents.WAVE_READY, () => {
       s.get(WaveCountdownUI).hide();
-    });
-    this.on(GameEvents.PLAYER_ATTACK, () => {
-      s.get(PlayerAttackController).performPlayerAttack();
     });
     this.on(GameEvents.MONSTER_DIED, () => {
       if (s.get(MonsterSystem).areAllDead()) {
@@ -129,34 +103,9 @@ export class GameSceneEventBinder {
       const pr = world.playerRender.get(world.context.playerId);
       if (pr) pr.gaugeRatio = payload.ratio;
     });
-    this.on(GameEvents.BOMB_DESTROYED, (payload: BombDestroyedEventPayload) => {
-      if (!payload.byAbility) {
-        s.get(HealthSystem).takeDamage(payload.playerDamage);
-        if (payload.resetCombo) {
-          s.get(ComboSystem).reset();
-        }
-      } else {
-        s.get(DamageText).showText(payload.x, payload.y - 40, Data.t('feedback.bomb_removed'), COLORS.CYAN);
-      }
-      s.get(FeedbackSystem).onBombExploded(payload.x, payload.y, !!payload.byAbility);
-      // 웨이브 폭탄만 풀 해제 (낙하 폭탄은 FallingBombSystem이 자체 해제)
-      if (!s.get(World).fallingBomb.has(payload.entityId)) {
-        s.get(DishLifecycleController).removeEntityFromPool(payload.entityId);
-      }
-    });
-    this.on(GameEvents.BOMB_MISSED, (payload: BombMissedEventPayload) => {
-      // 웨이브 폭탄만 풀 해제 (낙하 폭탄은 자체 해제)
-      if (!s.get(World).fallingBomb.has(payload.entityId)) {
-        s.get(DishLifecycleController).removeEntityFromPool(payload.entityId);
-      }
-    });
     this.on(GameEvents.BLACK_HOLE_CONSUMED, (payload: BlackHoleConsumedPayload) => {
       s.get(DamageText).showText(payload.x, payload.y - 40, Data.t('feedback.black_hole_consumed'), COLORS.CYAN);
     });
-    this.on(GameEvents.MONSTER_HP_CHANGED, () => {
-      // 보스 엔티티가 내부적으로 MONSTER_HP_CHANGED 이벤트를 직접 구독한다.
-    });
-
     // ── Scene lifecycle (only GameScene can handle) ──
     this.on(GameEvents.WAVE_COMPLETED, (waveNumber: number) => {
       this.scene.onWaveCompleted(waveNumber);

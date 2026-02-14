@@ -1,12 +1,12 @@
-import { CURSOR_HITBOX } from '../../data/constants';
-import type { World } from '../../world';
-import type { EntityId } from '../../world/EntityId';
-import type { CursorRenderer } from '../../plugins/builtin/entities/CursorRenderer';
-import type { CursorTrail } from '../../plugins/builtin/entities/CursorTrail';
-import type { UpgradeSystem } from '../UpgradeSystem';
-import type { HealthSystem } from '../HealthSystem';
-import type { EntitySystem } from './EntitySystem';
-import { computeCursorSmoothing } from '../../utils/cursorSmoothing';
+import { CURSOR_HITBOX } from '../../../data/constants';
+import type { World } from '../../../world';
+import type { EntityId } from '../../../world/EntityId';
+import type { CursorRenderer } from '../entities/CursorRenderer';
+import type { CursorTrail } from '../entities/CursorTrail';
+import type { UpgradeSystem } from '../../../systems/UpgradeSystem';
+import type { HealthSystem } from '../../../systems/HealthSystem';
+import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
+import { computeCursorSmoothing } from '../../../utils/cursorSmoothing';
 
 /**
  * PlayerTickSystem: Player entity의 위치 보간, 커서 트레일, 커서 렌더링을 처리.

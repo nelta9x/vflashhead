@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { InitialEntitySpawnSystem } from '../src/systems/entity-systems/InitialEntitySpawnSystem';
+import { InitialEntitySpawnSystem } from '../src/plugins/builtin/systems/InitialEntitySpawnSystem';
 import { PluginRegistry } from '../src/plugins/PluginRegistry';
 import type { EntityTypePlugin } from '../src/plugins/types/EntityTypePlugin';
 import type { World } from '../src/world';

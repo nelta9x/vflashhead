@@ -1,9 +1,12 @@
 import type Phaser from 'phaser';
+import type { EntityId } from '../../../world/EntityId';
+import type { World } from '../../../world';
 import type {
   EntityTypePlugin,
   EntityTypeConfig,
   EntityTypeRenderer,
 } from '../../types';
+import { DishRenderer } from './DishRenderer';
 
 /**
  * 기본 접시 타입 플러그인.
@@ -29,14 +32,30 @@ export class BasicDishPlugin implements EntityTypePlugin {
     _scene: Phaser.Scene,
     _host: Phaser.GameObjects.Container
   ): EntityTypeRenderer {
-    // DishRenderer는 기존 정적 메서드를 래핑
-    // Phase 4 통합 시 EntityTypeRenderer 어댑터로 교체됨
     return {
-      render: () => {
-        // Entity.update()에서 직접 DishRenderer.renderDish() 호출
-      },
+      render: () => {},
       destroy: () => {},
     };
   }
 
+  onSpawn(entityId: EntityId, world: World): void {
+    const pn = world.phaserNode.get(entityId);
+    const dishProps = world.dishProps.get(entityId);
+    const health = world.health.get(entityId);
+    if (!pn || !dishProps || !health) return;
+
+    DishRenderer.renderDish(pn.graphics, {
+      size: dishProps.size,
+      baseColor: dishProps.color,
+      currentHp: health.currentHp,
+      maxHp: health.maxHp,
+      isHovered: false,
+      isBeingPulled: false,
+      pullPhase: 0,
+      hitFlashPhase: 0,
+      isFrozen: false,
+      wobblePhase: 0,
+      blinkPhase: 0,
+    });
+  }
 }

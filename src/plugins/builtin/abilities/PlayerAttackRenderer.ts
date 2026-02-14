@@ -1,69 +1,21 @@
 import Phaser from 'phaser';
 import { COLORS, DEPTHS } from '../../../data/constants';
+import type {
+  IPlayerAttackRenderer,
+  ChargeVisualConfig,
+  ChargeVisualHandle,
+  MissileTrailConfig,
+  PreFireCursorGlowConfig,
+  BombWarningConfig,
+} from '../../types/renderers';
 
-export interface ChargeVisualConfig {
-  initialRadius: number;
-  maxScale: number;
-  glowInitialAlpha: number;
-  glowMaxAlpha: number;
-  glowInitialRadius: number;
-  glowMaxRadius: number;
-  lightningChanceBase: number;
-  lightningChanceP: number;
-  lightningSegments: number;
-  particleFrequency: number;
-  energyConverge: {
-    color: string;
-    particleCount: number;
-    outerRadiusMultiplier: number;
-    outerRadiusPadding: number;
-    innerRadius: number;
-    minParticleRadius: number;
-    maxParticleRadius: number;
-    swirlTurns: number;
-    alphaMin: number;
-    alphaMax: number;
-    wobbleRadius: number;
-    angleJitter: number;
-    radiusJitter: number;
-    alphaFlicker: number;
-    chaosRateMin: number;
-    chaosRateMax: number;
-  };
-}
-
-export interface ChargeVisualHandle {
-  update(progress: number, x: number, y: number, cursorRadius: number): void;
-  destroy(): void;
-}
-
-export interface MissileTrailConfig {
-  fromX: number;
-  fromY: number;
-  toX: number;
-  toY: number;
-  trailWidth: number;
-  mainColor: number;
-  innerColor: number;
-  trailAlpha: number;
-  trailLifespan: number;
-}
-
-export interface BombWarningConfig {
-  duration: number;
-  radius: number;
-  blinkInterval: number;
-}
-
-export interface PreFireCursorGlowConfig {
-  duration: number;
-  outerRadiusMultiplier: number;
-  outerRadiusPadding: number;
-  maxScale: number;
-  alpha: number;
-  ringWidth: number;
-  ringAlpha: number;
-}
+export type {
+  ChargeVisualConfig,
+  ChargeVisualHandle,
+  MissileTrailConfig,
+  BombWarningConfig,
+  PreFireCursorGlowConfig,
+} from '../../types/renderers';
 
 interface EnergyConvergeParticleSeed {
   angle: number;
@@ -77,7 +29,7 @@ interface EnergyConvergeParticleSeed {
   noiseWeight: number;
 }
 
-export class PlayerAttackRenderer {
+export class PlayerAttackRenderer implements IPlayerAttackRenderer {
   private readonly scene: Phaser.Scene;
   private readonly activeGraphics = new Set<Phaser.GameObjects.Graphics>();
   private readonly activeProjectiles = new Set<Phaser.GameObjects.Arc>();

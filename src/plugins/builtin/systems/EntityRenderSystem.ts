@@ -1,6 +1,7 @@
-import type { EntitySystem } from './EntitySystem';
-import type { World } from '../../world';
-import { DishRenderer } from '../../plugins/builtin/entities/DishRenderer';
+import type { IBossRenderer } from '../../types';
+import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
+import type { World } from '../../../world';
+import { DishRenderer } from '../entities/DishRenderer';
 
 export class EntityRenderSystem implements EntitySystem {
   readonly id = 'core:entity_render';
@@ -49,7 +50,7 @@ export class EntityRenderSystem implements EntitySystem {
 
       if (identity?.isGatekeeper && bossState && node.bossRenderer) {
         const hpRatio = health && health.maxHp > 0 ? health.currentHp / health.maxHp : 1;
-        node.bossRenderer.render({
+        (node.bossRenderer as IBossRenderer).render({
           hpRatio,
           timeElapsed: lifetime?.movementTime ?? 0,
           armorPieceCount: bossState.armorPieceCount,

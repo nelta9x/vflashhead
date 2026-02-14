@@ -21,7 +21,7 @@ vi.mock('phaser', () => {
   };
 });
 
-import { FallingBombSystem } from '../src/systems/FallingBombSystem';
+import { FallingBombSystem } from '../src/plugins/builtin/systems/FallingBombSystem';
 import { GameEvents } from '../src/utils/EventBus';
 
 vi.mock('../src/data/constants', () => ({

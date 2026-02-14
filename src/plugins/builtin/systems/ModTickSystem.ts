@@ -1,5 +1,5 @@
-import type { ModSystemRegistry, ModSystemContext } from '../../plugins/ModSystemRegistry';
-import type { EntitySystem } from './EntitySystem';
+import type { ModSystemRegistry, ModSystemContext } from '../../ModSystemRegistry';
+import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 
 export class ModTickSystem implements EntitySystem {
   readonly id = 'core:mod_tick';

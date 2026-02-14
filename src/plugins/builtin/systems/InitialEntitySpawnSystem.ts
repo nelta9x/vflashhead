@@ -1,6 +1,6 @@
-import { PluginRegistry } from '../../plugins/PluginRegistry';
-import type { World } from '../../world';
-import type { EntitySystem } from './EntitySystem';
+import { PluginRegistry } from '../../PluginRegistry';
+import type { World } from '../../../world';
+import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 
 /**
  * Data-driven initial entity spawn system.

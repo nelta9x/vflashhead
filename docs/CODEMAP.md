@@ -28,7 +28,7 @@
 - **보스 HP 표시**
   - 렌더링 위치: `src/plugins/builtin/entities/BossRenderer.ts` (호출 지점: `EntityRenderSystem` → `BossRenderer`)
   - 데이터 소스: `MonsterSystem`가 발행하는 `MONSTER_HP_CHANGED` (`bossId`, `current`, `max`, `ratio`)
-  - 세그먼트 계산: `src/entities/bossHpSegments.ts`의 `resolveBossHpSegmentState()`
+  - 세그먼트 계산: `src/plugins/builtin/entities/bossHpSegments.ts`의 `resolveBossHpSegmentState()`
   - 설정 파일: `data/boss.json`의 `visual.armor`, `visual.armor.hpSegments`
   - 동작 원칙: **아머 실루엣 조각 개수 자체가 HP 슬롯 수**를 표현하며, 규칙은 **100 HP = 1 슬롯(올림)** 입니다.
 - **주의**
@@ -50,18 +50,9 @@
 
 ### 1.5 GameScene 보조 모듈 (`src/scenes/game/`)
 
-- **`BossCombatCoordinator.ts`**: 멀티 보스 동기화, 보스 스폰 배치, 레이저 스케줄/취소/충돌, 보스 접촉 데미지, 다중 공격 스케줄링, 보스 스냅샷 제공. `forEachBoss(cb)` 로 활성 보스 엔티티를 외부에 노출 (ECS 시스템 순회용).
-  - 내부 분해: `boss/BossRosterSync.ts`, `boss/BossLaserController.ts`, `boss/BossContactDamageController.ts`, `boss/BossAttackScheduler.ts`
-  - **`boss/BossAttackScheduler.ts`**: 보스별 다중 공격(bulletSpread, shockwave, dangerZone) 쿨다운 스케줄링. 보스당 동시 1개 공격 제한(레이저 제외). 각 공격은 전용 컨트롤러에 위임.
-    - `boss/BossBulletSpreadController.ts`: 방사형 탄막 — 경고 링 펄스 → 탄환 발사 → 충돌 판정
-    - `boss/BossShockwaveController.ts`: 충격파 — 보스 중심 팽창 링 → 링 충돌 판정
-    - `boss/BossDangerZoneController.ts`: 위험 지대 — 2~3 원형 영역 경고 → 동시 폭발 충돌 판정
-- **`PlayerAttackController.ts`**: 게이지 공격(차지/순차 미사일/재타겟), 미사일 경로 접시 제거, 치명타 시 레이저 취소 처리.
-- **`DishLifecycleController.ts`**: **접시 이벤트 처리 및 스폰 전담**. `DISH_DESTROYED/DISH_DAMAGED/DISH_MISSED` 처리, 접시/폭탄 스폰(폭탄 경고 포함), 전기 충격(직접 커서 히트 기반)/자기장/커서 범위 판정, `removeEntityFromPool()` 풀 해제.
-  - 내부 분해: `dish/DishSpawnService.ts`, `dish/DishResolutionService.ts`, `dish/DishFieldEffectService.ts`
-- **`GameSceneEventBinder.ts`**: **이벤트 라우팅 전담**. `EventBus` 구독/해제 일원화 및 payload 라우팅. 폭탄 이벤트(`BOMB_DESTROYED`/`BOMB_MISSED`)의 HP 감소·콤보 리셋·풀 해제를 여기서 직접 처리 (웨이브 폭탄만 `DishLifecycleController.removeEntityFromPool()` 호출, 낙하 폭탄은 `FallingBombSystem`이 자체 해제).
+- **`GameSceneEventBinder.ts`**: **코어 이벤트 라우팅 전담**. `EventBus` 구독/해제 일원화. 코어 시스템(Combo/Wave/Health/Feedback/HUD)과 Scene 라이프사이클(WAVE_COMPLETED/UPGRADE_SELECTED/GAME_OVER) 이벤트만 라우팅. 콘텐츠 이벤트(DISH/BOMB/PLAYER_ATTACK 등)는 `ContentEventBinder`로 분리됨.
 - **`SceneInputAdapter.ts`**: pointer/ESC/blur/visibility/gameout 입력 리스너 등록·해제 전담.
-- **`GameSceneContracts.ts`**: 모듈 간 공유 타입 및 최소 게이트웨이 인터페이스(`BossInteractionGateway`, `DishSpawnDelegate`) 정의.
+- **`GameSceneContracts.ts`**: 코어 모듈 간 최소 공유 타입(`CursorSnapshot`, `DishSpawnDelegate`) 정의.
 - **`CursorPositionProvider.ts`**: Scene/포인터/명시 provider 우선순위로 커서 좌표를 해석하는 공용 유틸.
 - **`src/scenes/menu/`**:
   - `LanguageSelectorWidget.ts`: 언어 토글 UI + safe area 판정
@@ -102,28 +93,28 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
 - **`StatusEffectManager.ts`** (`src/systems/`): 엔티티별 상태효과 관리. `applyEffect(entityId, effect)`, `removeEffect(entityId, effectId)`, `tick(delta)` (만료 자동 제거 + `onExpire` 콜백), `clearEntity(entityId)` (엔티티 비활성화 시 전체 제거). **내장 효과**: `freeze` (Infinity 지속, 수동 제거), `slow` (유한 지속, factor 데이터). MOD가 커스텀 `StatusEffect` 구현체를 등록하여 새로운 상태효과를 추가할 수 있다.
 - **`EntityQueryService.ts`** (`src/systems/`): dishPool(`ObjectPool<Entity>`)을 감싸는 읽기 전용 쿼리 파사드. `getActiveEntities()`, `forEachActive(cb)`, `getEntitiesInRadius(x, y, r)`, `getEntitiesWithCondition(pred)`. `setBossProvider(provider)` 호출 시 보스 엔티티도 포함하여 조회. MOD에 엔티티 접근을 제공한다.
 - **`ModSystemRegistry.ts`** (`src/plugins/`): MOD 커스텀 시스템 등록/실행 레지스트리. `registerSystem(id, tickFn, priority?)` → `runAll(delta, context)`. context로 `{ entities: EntityQueryService, statusEffectManager, eventBus }` 제공. GameScene.update() 끝에서 호출.
-- **`entity-systems/`** (`src/systems/entity-systems/`): 14개 독립 ECS 시스템으로 분리. 각 시스템은 `EntitySystem` 인터페이스(`id`, `enabled`, `tick(delta)`)를 구현하며 World 스토어를 직접 쿼리하여 단일 관심사만 처리.
+- **`entity-systems/`** (`src/systems/entity-systems/`): 코어 ECS 시스템. 각 시스템은 `EntitySystem` 인터페이스(`id`, `enabled`, `tick(delta)`)를 구현하며 World 스토어를 직접 쿼리하여 단일 관심사만 처리. 플러그인 구체 구현에 의존하는 시스템은 `plugins/builtin/systems/`에 colocate.
   - `EntitySystem.ts`: 공통 인터페이스 (`id: string`, `enabled: boolean`, `tick(delta): void`)
-  - `InitialEntitySpawnSystem` (`core:initial_spawn`): data-driven 초기 엔티티 스폰. `game-config.json`의 `initialEntities` 배열 순서대로 `EntityTypePlugin.spawn()` 호출. `start()`만 사용, `tick()`은 no-op.
   - `EntityStatusSystem` (`core:entity_status`): SEM → freeze/slow 캐시 파생
   - `EntityTimingSystem` (`core:entity_timing`): effectiveDelta, 시간 누적, lifetime 만료
-  - **`PlayerTickSystem` (`core:player`)**: Player entity의 위치 보간(smoothing), 커서 트레일, 커서 렌더링 처리. World store에서 읽고 CursorRenderer/CursorTrail에 위임. `renderOnly(delta)` 메서드로 pause 시 visual만 실행.
   - `EntityMovementSystem` (`core:entity_movement`): 이동 전략 실행 + 보스 오프셋 / wobble
-  - `BossReactionSystem` (`core:boss_reaction`): `BossStateComponent` 기반 보스 피격/사망 리액션 트윈
   - `MagnetSystem` (`core:magnet`): 자석 어빌리티 접시 흡인 로직 (World query 기반)
   - `CursorAttackSystem` (`core:cursor_attack`): 커서 DPS/접촉/폭발 상호작용 (World query 기반)
   - `EntityVisualSystem` (`core:entity_visual`): pull/hitFlash/blink/dangerVibration
-  - `EntityRenderSystem` (`core:entity_render`): World → Phaser Container 동기화 + DishRenderer/BossRenderer 렌더 + typePlugin.onUpdate
-- **`src/systems/`의 EntitySystem 구현들**: 파이프라인에 참여하는 4개 시스템이 root systems에 위치.
-  - `BlackHoleSystem` (`core:black_hole`): World query로 접시/폭탄 흡인 + 피해 + 렌더링
-  - `OrbSystem` (`core:orb`): World query로 접시/폭탄 충돌 판정 + 렌더링
-  - `FallingBombSystem` (`core:falling_bomb`): World query로 낙하 폭탄 스폰/이동/충돌 + 커서 충돌 체크
-  - `HealthPackSystem` (`core:health_pack`): World query로 힐팩 스폰/이동/충돌 + 수집 체크
 - **게임 레벨 래퍼 시스템들** (`src/systems/entity-systems/`): 기존 게임 레벨 로직을 EntitySystem 인터페이스로 감싸 파이프라인에 통합.
   - `WaveTickSystem` (`core:wave`): WaveSystem.update() + currentWave 동기화
   - `ComboTickSystem` (`core:combo`): ComboSystem.setWave() + update()
   - `StatusEffectTickSystem` (`core:status_effect_tick`): StatusEffectManager.tick()
-  - `BossCoordinatorSystem` (`core:boss_coordinator`): BossCombatCoordinator.update()
+- **플러그인 colocate 시스템들** (`src/plugins/builtin/systems/`): 플러그인 구체 렌더러/엔티티를 직접 참조하는 시스템. SystemPlugin과 같은 디렉토리에 colocate.
+  - `BossCoordinatorSystem` (`core:boss_coordinator`): BossCombatCoordinator.update() 위임
+  - `InitialEntitySpawnSystem` (`core:initial_spawn`): data-driven 초기 엔티티 스폰. `game-config.json`의 `initialEntities` 배열 순서대로 `EntityTypePlugin.spawn()` 호출. `start()`만 사용, `tick()`은 no-op.
+  - **`PlayerTickSystem` (`core:player`)**: Player entity의 위치 보간(smoothing), 커서 트레일, 커서 렌더링 처리. World store에서 읽고 CursorRenderer/CursorTrail에 위임. `renderOnly(delta)` 메서드로 pause 시 visual만 실행.
+  - `BossReactionSystem` (`core:boss_reaction`): `BossStateComponent` 기반 보스 피격/사망 리액션 트윈
+  - `EntityRenderSystem` (`core:entity_render`): World → Phaser Container 동기화 + DishRenderer/BossRenderer 렌더 + typePlugin.onUpdate
+  - `BlackHoleSystem` (`core:black_hole`): World query로 접시/폭탄 흡인 + 피해 + 렌더링
+  - `OrbSystem` (`core:orb`): World query로 접시/폭탄 충돌 판정 + 렌더링
+  - `FallingBombSystem` (`core:falling_bomb`): World query로 낙하 폭탄 스폰/이동/충돌 + 커서 충돌 체크
+  - `HealthPackSystem` (`core:health_pack`): World query로 힐팩 스폰/이동/충돌 + 수집 체크
   - `ModTickSystem` (`core:mod_tick`): ModSystemRegistry.runAll()
 - **`EntitySystemPipeline.ts`** (`src/systems/`): data-driven 엔티티 시스템 실행 파이프라인. `game-config.json`의 `entityPipeline` 배열이 실행 순서의 SSOT (19개 시스템). `register(system)`, `unregister(id)`, `setEnabled(id, enabled)`, `run(delta)`. config 순서대로 배치 → config에 없는 등록 시스템은 끝에 추가. `getMissingSystems()`, `getUnmappedSystems()`, `getRegisteredIds()` 진단 메서드 제공.
   - GameScene 호출 순서: `syncWorldContext()` → `entitySystemPipeline.run(delta)` (19개 시스템 순차, 모든 tick 로직 포함)
@@ -154,16 +145,26 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
 `src/plugins/` 디렉토리에는 확장 가능한 플러그인 시스템이 위치합니다. 코어 코드 수정 없이 새 콘텐츠를 추가할 수 있도록 설계되었습니다. 플러그인 추가 절차/인터페이스 계약/금지 사항은 `docs/PLUGIN_ARCHITECTURE.md`를 참조하세요.
 
 - **`PluginRegistry.ts`**: 어빌리티 및 엔티티 타입 플러그인을 등록/조회하는 싱글톤. `unregisterAbility(id)` / `unregisterEntityType(typeId)` 메서드로 MOD teardown 시 등록 해제 지원.
-- **`types/`**: 플러그인 인터페이스 정의.
+- **`types/`**: 플러그인 인터페이스 정의. 코어 코드에서 import 허용되는 계약 계층.
   - `AbilityPlugin.ts`: 어빌리티 플러그인 인터페이스, `UpgradeSystemCore`, `AbilityContext`, `DerivedStatEntry`.
   - `EntityTypePlugin.ts`: 엔티티 타입 플러그인 인터페이스, `EntityTypeRenderer`, `DamageSource`.
   - `AttackPattern.ts`: 공격 패턴 인터페이스 (LaserAttackPattern 등).
+  - `renderers.ts`: 렌더러 추상 인터페이스 (`IBossRenderer`, `IBossShatterEffect` 등). 코어의 `components.ts`는 `bossRenderer: unknown`으로 보유하고, 플러그인 시스템에서 `IBossRenderer`로 캐스팅하여 사용. `ILaserRenderer`/`IPlayerAttackRenderer`는 플러그인 내부에서만 참조.
   - `ModTypes.ts`: MOD 계약 인터페이스. `ModModule` (MOD 진입점), `ModContext` (레지스트리 + `world` + `archetypeRegistry` 전달), `ModFactory` (지연 생성), `ScopedEventBus` (구독 추적 인터페이스).
 - **`ModRegistry.ts`**: MOD 라이프사이클 관리자. **스냅샷 diff**로 `registerMod()` 전후 레지스트리 상태를 비교하여 MOD가 등록한 ability/entityType/modSystem/entitySystem/archetype/store를 추적. `unloadMod()` / `unloadAll()` 시 diff 기반 일괄 해제 + ScopedEventBus 구독 정리.
 - **`ScopedEventBusWrapper.ts`**: MOD별 EventBus 구독 추적 래퍼. `on()`/`once()`/`off()` 위임 + 내부 tracking, `removeAll()`로 일괄 해제.
 - **`ModLoader.ts`**: MOD 모듈 해석 + 에러 격리 전담. `ModFactory` → `ModModule` 변환, `load()` (단일), `loadMultiple()` (순차, 실패 건너뜀) 제공.
 - **`builtin/abilities/`**: 내장 어빌리티 플러그인 (CursorSize, CriticalChance, Missile, HealthPack, Magnet, ElectricShock, Orb, BlackHole) 및 저주 업그레이드 (GlassCannon, Berserker, Volatility). `ABILITY_FACTORIES` factory map + `registerBuiltinAbilities(ids)` 패턴으로 `game-config.json`의 `abilities` 배열 기반 동적 등록. 저주 업그레이드는 `isCurse: true` 플래그로 구분되며 긍정/부정 효과를 동시에 제공합니다.
 - **`builtin/entities/`**: 내장 엔티티 타입 플러그인 (PlayerEntity, BasicDish, BombEntity, StandardBoss). `ENTITY_TYPE_FACTORIES` factory map + `registerBuiltinEntityTypes(ids)` 패턴으로 `game-config.json`의 `entityTypes` 배열 기반 동적 등록. PlayerEntity는 `singleton` 카테고리로 풀링 없이 단일 인스턴스만 존재. **엔티티 전용 렌더러도 colocate**: `BossRenderer`, `BossShatterEffect`, `LaserRenderer`, `MenuBossRenderer`, `DishRenderer`, `CursorRenderer`, `CursorTrail`.
+- **`builtin/systems/`**: 플러그인 구체 구현(렌더러/엔티티)에 직접 의존하는 EntitySystem 구현들을 SystemPlugin과 함께 colocate. 코어(`src/systems/`)가 플러그인 구체 타입을 모르는 의존성 역전 원칙을 유지.
+- **`builtin/services/`**: 보스/디쉬 콘텐츠 서비스. 코어가 보스/디쉬 구체 지식을 갖지 않도록 플러그인 레이어에 위치.
+  - **`BossCombatCoordinator.ts`**: 멀티 보스 동기화, 보스 스폰 배치, 레이저 스케줄/취소/충돌, 보스 접촉 데미지, 다중 공격 스케줄링, 보스 스냅샷 제공.
+    - `boss/BossRosterSync.ts`, `boss/BossLaserController.ts`, `boss/BossContactDamageController.ts`, `boss/BossAttackScheduler.ts`
+    - `boss/BossBulletSpreadController.ts`, `boss/BossShockwaveController.ts`, `boss/BossDangerZoneController.ts`
+  - **`DishLifecycleController.ts`**: 접시 이벤트 처리 및 스폰 전담. `dish/DishSpawnService.ts`, `dish/DishResolutionService.ts`.
+  - **`PlayerAttackController.ts`**: 게이지 공격(차지/순차 미사일/재타겟), 미사일 경로 접시 제거.
+  - **`ContentEventBinder.ts`**: 콘텐츠 이벤트 라우팅 허브. `DISH_DESTROYED`/`DISH_DAMAGED`/`DISH_MISSED`/`BOMB_DESTROYED`/`BOMB_MISSED`/`PLAYER_ATTACK`/`WAVE_STARTED`/`WAVE_TRANSITION` 이벤트를 BCC/DLC/PAC로 라우팅. 코어의 `GameSceneEventBinder`에서 콘텐츠 관련 바인딩을 분리한 플러그인 레이어 이벤트 허브.
+  - **`ContentContracts.ts`**: 콘텐츠 타입 정의 (`BossTargetSnapshot`, `BossRadiusSnapshot`, `BossVisibilitySnapshot`, `DishDestroyedEventPayload`, `BombDestroyedEventPayload` 등).
 - **`builtin/abilities/`** (렌더러 포함): 내장 어빌리티 플러그인과 함께 **어빌리티 전용 렌더러도 colocate**: `OrbRenderer`, `BlackHoleRenderer`, `HealthPackRenderer`, `PlayerAttackRenderer`.
 - **`AbilityManager.ts`** (`src/systems/`): 어빌리티 플러그인의 init/update/clear/destroy 라이프사이클 통합 관리.
 
@@ -175,7 +176,7 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
 - **`EntitySpawnInitializer.ts`**: Entity spawn 시 World 컴포넌트 초기화를 담당하는 순수 함수.
 - **`EntitySnapshot.ts`**: 이벤트 payload에 사용되는 엔티티 값 스냅샷 타입. 객체 참조 대신 좌표/수치를 복사하여 전달.
 - **`EntityTypes.ts`**: `DishUpgradeOptions` 인터페이스 정의.
-- **`bossHpSegments.ts`**: 보스 HP 세그먼트 상태 계산 유틸리티.
+- **`bossHpSegments.ts`**: 보스 HP 세그먼트 상태 계산 유틸리티. (`src/plugins/builtin/entities/`에 colocate)
 
 ### 4. 시각 효과 및 UI (Effects & UI)
 
@@ -272,15 +273,15 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
 |                   | `HEALTH_PACK_PASSING`   | 힐팩 상단 이탈 직전            | `HealthPack`      | `GameScene` (피드백 텍스트)            |
 |                   | `HEALTH_PACK_COLLECTED` | 힐팩 획득 시                   | `HealthPack`      | `HealthPackSystem`, `GameScene`        |
 |                   | `HEALTH_PACK_MISSED`    | 힐팩 놓쳤을 때                 | `HealthPack`      | `HealthPackSystem`                     |
-| **폭탄 (통합)**   | `BOMB_DESTROYED`        | 웨이브/낙하 폭탄 제거 시       | `EntityDamageService`, `FallingBombSystem` | `GameSceneEventBinder`          |
-|                   | `BOMB_MISSED`           | 웨이브/낙하 폭탄 시간 초과 시  | `EntityDamageService`, `FallingBombSystem` | `GameSceneEventBinder`          |
+| **폭탄 (통합)**   | `BOMB_DESTROYED`        | 웨이브/낙하 폭탄 제거 시       | `EntityDamageService`, `FallingBombSystem` | `ContentEventBinder`          |
+|                   | `BOMB_MISSED`           | 웨이브/낙하 폭탄 시간 초과 시  | `EntityDamageService`, `FallingBombSystem` | `ContentEventBinder`          |
 | **낙하 폭탄**     | `FALLING_BOMB_SPAWNED`  | 낙하 폭탄 스폰 시             | `FallingBomb`     | —                                      |
 | **보스 & 게이지** | `MONSTER_HP_CHANGED`    | `bossId`별 보스 HP 변화 시     | `MonsterSystem`   | `Boss`, `GameScene`                    |
 |                   | `MONSTER_DIED`          | `bossId`별 보스 사망 시        | `MonsterSystem`   | `Boss`, `GameScene`                    |
 |                   | `GAUGE_UPDATED`         | 게이지 수치 변경 시            | `GaugeSystem`     | `GameScene`                            |
 |                   | `PLAYER_ATTACK`         | 게이지 완충 후 공격 시         | `GaugeSystem`     | `GameScene`                            |
 | **블랙홀**        | `BLACK_HOLE_CONSUMED`   | 블랙홀이 폭탄/접시 흡수 시     | `BlackHoleSystem` | `GameScene` (피드백 텍스트)            |
-| **저주**          | `CURSE_HP_PENALTY`      | 글래스캐논 업그레이드 적용 시  | `UpgradeSystem`   | `GameSceneEventBinder` (maxHP 감소)    |
+| **저주**          | `CURSE_HP_PENALTY`      | 글래스캐논 업그레이드 적용 시  | `UpgradeSystem`   | `ContentEventBinder` (maxHP 감소)    |
 
 ---
 

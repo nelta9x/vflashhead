@@ -3,9 +3,6 @@ import { Data } from '../data/DataManager';
 import { CURSOR_HITBOX } from '../data/constants';
 import { INVALID_ENTITY_ID } from '../world/EntityId';
 import { EventBus, GameEvents } from '../utils/EventBus';
-import { DishRenderer } from '../plugins/builtin/entities/DishRenderer';
-import { BossRenderer } from '../plugins/builtin/entities/BossRenderer';
-import { resolveBossHpSegmentState } from './bossHpSegments';
 import type { EntityId } from '../world/EntityId';
 import type { Entity } from './Entity';
 import type { EntitySpawnConfig } from './EntitySpawnConfig';
@@ -63,27 +60,17 @@ export function initializeEntitySpawn(
   );
 
   // 5. Boss state initialization (pure data)
-  let bossRenderer: BossRenderer | null = null;
   let bossState: BossStateComponent | null = null;
   const finalSize = config.isGatekeeper ? Data.boss.visual.armor.radius : size;
 
   if (config.isGatekeeper) {
-    bossRenderer = new BossRenderer(entity.scene, entity);
-    entity.setDepth(Data.boss.depth);
-
-    const bossConfig = Data.boss.visual;
-    const defaultArmorPieces = Math.max(1, Math.floor(bossConfig.armor.maxPieces));
-
-    const segmentState = resolveBossHpSegmentState(config.hp, config.hp, {
-      defaultPieces: defaultArmorPieces,
-      hpScale: bossConfig.armor.hpSegments,
-    });
+    const defaultArmorPieces = Math.max(1, Math.floor(Data.boss.visual.armor.maxPieces));
 
     bossState = {
       defaultArmorPieces,
-      armorPieceCount: Math.max(1, segmentState.pieceCount),
-      currentArmorCount: Phaser.Math.Clamp(segmentState.filledPieces, 0, Math.max(1, segmentState.pieceCount)),
-      filledHpSlotCount: segmentState.filledPieces,
+      armorPieceCount: defaultArmorPieces,
+      currentArmorCount: defaultArmorPieces,
+      filledHpSlotCount: defaultArmorPieces,
       shakeOffsetX: 0,
       shakeOffsetY: 0,
       pushOffsetX: 0,
@@ -199,7 +186,7 @@ export function initializeEntitySpawn(
       container: entity, graphics: entity.getGraphics(),
       body: entity.body as Phaser.Physics.Arcade.Body | null,
       spawnTween,
-      bossRenderer,
+      bossRenderer: null,
       typePlugin: plugin,
     },
   };
@@ -234,28 +221,10 @@ export function initializeEntitySpawn(
     setupBossEventListeners(assignedEntityId, config.bossDataId);
   }
 
-  // 12. Initial render
-  if (config.isGatekeeper && bossRenderer && bossState) {
-    bossRenderer.render({
-      hpRatio: 1,
-      timeElapsed: 0,
-      armorPieceCount: bossState.armorPieceCount,
-      filledArmorPieceCount: bossState.currentArmorCount,
-    });
-  } else if (isBomb) {
-    DishRenderer.renderDangerDish(entity.getGraphics(), { size: finalSize, blinkPhase: 0 });
-  } else {
-    DishRenderer.renderDish(entity.getGraphics(), {
-      size: finalSize, baseColor: color,
-      currentHp: config.hp, maxHp: config.hp,
-      isHovered: false, isBeingPulled: false,
-      pullPhase: 0, hitFlashPhase: 0,
-      isFrozen: false, wobblePhase: 0, blinkPhase: 0,
-    });
-  }
-
-  // 13. Plugin callback + event
+  // 12. Plugin callback (before render — onSpawn may refine bossState segments)
   plugin.onSpawn?.(assignedEntityId, world);
+
+  // 13. Event (initial render is now done by plugin.onSpawn)
   EventBus.getInstance().emit(GameEvents.DISH_SPAWNED, { x, y });
 
   return assignedEntityId;

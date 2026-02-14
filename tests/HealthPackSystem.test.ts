@@ -22,7 +22,7 @@ vi.mock('phaser', () => {
   };
 });
 
-import { HealthPackSystem } from '../src/systems/HealthPackSystem';
+import { HealthPackSystem } from '../src/plugins/builtin/systems/HealthPackSystem';
 import { GameEvents } from '../src/utils/EventBus';
 import type { UpgradeSystem } from '../src/systems/UpgradeSystem';
 

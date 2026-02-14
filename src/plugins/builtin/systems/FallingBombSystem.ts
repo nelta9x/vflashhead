@@ -1,15 +1,15 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, CURSOR_HITBOX, FALLING_BOMB } from '../data/constants';
-import { Data } from '../data/DataManager';
-import type { Entity } from '../entities/Entity';
-import { DishRenderer } from '../plugins/builtin/entities/DishRenderer';
-import { EventBus, GameEvents } from '../utils/EventBus';
-import { C_FallingBomb, C_Transform } from '../world';
-import type { EntityId } from '../world/EntityId';
-import type { World } from '../world';
-import type { EntityPoolManager } from './EntityPoolManager';
-import type { UpgradeSystem } from './UpgradeSystem';
-import type { EntitySystem } from './entity-systems/EntitySystem';
+import { GAME_WIDTH, CURSOR_HITBOX, FALLING_BOMB } from '../../../data/constants';
+import { Data } from '../../../data/DataManager';
+import type { Entity } from '../../../entities/Entity';
+import { DishRenderer } from '../entities/DishRenderer';
+import { EventBus, GameEvents } from '../../../utils/EventBus';
+import { C_FallingBomb, C_Transform } from '../../../world';
+import type { EntityId } from '../../../world/EntityId';
+import type { World } from '../../../world';
+import type { EntityPoolManager } from '../../../systems/EntityPoolManager';
+import type { UpgradeSystem } from '../../../systems/UpgradeSystem';
+import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 
 const OFFSCREEN_MARGIN = 40;
 

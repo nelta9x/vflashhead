@@ -1,4 +1,4 @@
-import { HealthPackSystem } from '../../../systems/HealthPackSystem';
+import { HealthPackSystem } from './HealthPackSystem';
 import { UpgradeSystem } from '../../../systems/UpgradeSystem';
 import { EntityPoolManager } from '../../../systems/EntityPoolManager';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';

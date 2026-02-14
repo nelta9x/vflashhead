@@ -6,20 +6,20 @@ import {
   CursorPositionProvider,
   resolveCursorPosition,
 } from '../scenes/game/CursorPositionProvider';
-import { BossShatterEffect } from '../plugins/builtin/entities/BossShatterEffect';
+import type { IBossShatterEffect } from '../plugins/types';
 import { UpgradeAbsorptionEffect } from './UpgradeAbsorptionEffect';
 
 export class ParticleManager {
   private scene: Phaser.Scene;
   private emitters: Map<string, Phaser.GameObjects.Particles.ParticleEmitter> = new Map();
   private readonly cursorProvider?: CursorPositionProvider;
-  private readonly bossShatter: BossShatterEffect;
+  private readonly bossShatter: IBossShatterEffect | null;
   private readonly upgradeAbsorption: UpgradeAbsorptionEffect;
 
-  constructor(scene: Phaser.Scene, cursorProvider?: CursorPositionProvider, soundSystem?: SoundSystem) {
+  constructor(scene: Phaser.Scene, cursorProvider?: CursorPositionProvider, soundSystem?: SoundSystem, bossShatterEffect?: IBossShatterEffect) {
     this.scene = scene;
     this.cursorProvider = cursorProvider;
-    this.bossShatter = new BossShatterEffect(scene);
+    this.bossShatter = bossShatterEffect ?? null;
     this.upgradeAbsorption = new UpgradeAbsorptionEffect(
       scene,
       () => this.getCursorPosition(),
@@ -560,6 +560,6 @@ export class ParticleManager {
     outerRadius: number,
     bodyColor: number
   ): void {
-    this.bossShatter.createBossGaugeShatter(x, y, innerRadius, outerRadius, bodyColor);
+    this.bossShatter?.createBossGaugeShatter(x, y, innerRadius, outerRadius, bodyColor);
   }
 }

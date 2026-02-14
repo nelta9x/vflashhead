@@ -25,3 +25,8 @@ export type {
   SystemPluginContext,
   SystemPlugin,
 } from './SystemPlugin';
+export type {
+  BossRendererState,
+  IBossRenderer,
+  IBossShatterEffect,
+} from './renderers';

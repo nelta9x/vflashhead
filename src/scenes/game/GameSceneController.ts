@@ -9,8 +9,7 @@ import { InGameUpgradeUI } from '../../ui/InGameUpgradeUI';
 import { WaveCountdownUI } from '../../ui/WaveCountdownUI';
 import { StarBackground } from '../../effects/StarBackground';
 import { World } from '../../world';
-import { BossCombatCoordinator } from './BossCombatCoordinator';
-import { DishLifecycleController } from './DishLifecycleController';
+import { EventBus, GameEvents } from '../../utils/EventBus';
 import { GameEnvironment } from './GameEnvironment';
 import type { CursorSnapshot } from './GameSceneContracts';
 import type { HudFrameContext, HudInteractionState } from '../../ui/hud/types';
@@ -25,10 +24,8 @@ export class GameSceneController {
   private readonly starBackground: StarBackground;
   private readonly inputController: PlayerCursorInputController;
   private readonly waveSystem: WaveSystem;
-  private readonly bcc: BossCombatCoordinator;
   private readonly comboSystem: ComboSystem;
   private readonly waveCountdownUI: WaveCountdownUI;
-  private readonly dishLifecycleController: DishLifecycleController;
 
   constructor(scene: Phaser.Scene, services: ServiceRegistry) {
     this.scene = scene;
@@ -39,10 +36,8 @@ export class GameSceneController {
     this.starBackground = services.get(StarBackground);
     this.inputController = services.get(PlayerCursorInputController);
     this.waveSystem = services.get(WaveSystem);
-    this.bcc = services.get(BossCombatCoordinator);
     this.comboSystem = services.get(ComboSystem);
     this.waveCountdownUI = services.get(WaveCountdownUI);
-    this.dishLifecycleController = services.get(DishLifecycleController);
   }
 
   // === Game flow ===
@@ -53,8 +48,7 @@ export class GameSceneController {
 
   onWaveCompleted(waveNumber: number): void {
     this.hud.showWaveComplete(waveNumber);
-    this.dishLifecycleController.clearAll();
-    this.bcc.clearForWaveTransition();
+    EventBus.getInstance().emit(GameEvents.WAVE_TRANSITION);
     const expectedWave = waveNumber + 1;
     this.gameEnv.pendingWaveNumber = expectedWave;
     this.scene.time.delayedCall(500, () => {

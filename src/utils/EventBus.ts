@@ -107,6 +107,7 @@ export const GameEvents = {
   // 웨이브 관련
   WAVE_STARTED: 'wave:started',
   WAVE_COMPLETED: 'wave:completed',
+  WAVE_TRANSITION: 'wave:transition',
   WAVE_COUNTDOWN_START: 'wave:countdownStart',
   WAVE_COUNTDOWN_TICK: 'wave:countdownTick',
   WAVE_READY: 'wave:ready',

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { DishLifecycleController } from '../src/scenes/game/DishLifecycleController';
+import { DishLifecycleController } from '../src/plugins/builtin/services/DishLifecycleController';
 import type { EntitySnapshot } from '../src/entities/EntitySnapshot';
 
 vi.mock('phaser', () => ({

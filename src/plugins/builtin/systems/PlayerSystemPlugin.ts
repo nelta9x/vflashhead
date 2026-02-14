@@ -1,4 +1,4 @@
-import { PlayerTickSystem } from '../../../systems/entity-systems';
+import { PlayerTickSystem } from './PlayerTickSystem';
 import { CursorRenderer } from '../entities/CursorRenderer';
 import { CursorTrail } from '../entities/CursorTrail';
 import { UpgradeSystem } from '../../../systems/UpgradeSystem';

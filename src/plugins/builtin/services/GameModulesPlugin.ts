@@ -13,9 +13,10 @@ import { InGameUpgradeUI } from '../../../ui/InGameUpgradeUI';
 import { HUD } from '../../../ui/HUD';
 import { WaveCountdownUI } from '../../../ui/WaveCountdownUI';
 import { WaveSystem } from '../../../systems/WaveSystem';
-import { BossCombatCoordinator } from '../../../scenes/game/BossCombatCoordinator';
-import { DishLifecycleController } from '../../../scenes/game/DishLifecycleController';
-import { PlayerAttackController } from '../../../scenes/game/PlayerAttackController';
+import { BossCombatCoordinator } from './BossCombatCoordinator';
+import { DishLifecycleController } from './DishLifecycleController';
+import { PlayerAttackController } from './PlayerAttackController';
+import { ContentEventBinder } from './ContentEventBinder';
 import { GameEnvironment } from '../../../scenes/game/GameEnvironment';
 import { EntityPoolManager } from '../../../systems/EntityPoolManager';
 import { MonsterSystem } from '../../../systems/MonsterSystem';
@@ -234,6 +235,16 @@ export class GameModulesPlugin implements ServicePlugin {
           getPlayerAttackRenderer: () => r.get(PlayerAttackRenderer),
           bossGateway: r.get(BossCombatCoordinator),
         }),
+    },
+
+    // 14. ContentEventBinder (must be last — binds events to all above services)
+    {
+      key: ContentEventBinder,
+      factory: (r) => {
+        const binder = new ContentEventBinder(r);
+        binder.bind();
+        return binder;
+      },
     },
   ];
 }

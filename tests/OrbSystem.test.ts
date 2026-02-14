@@ -31,7 +31,7 @@ vi.mock('../src/utils/EventBus', async () => {
   };
 });
 
-import { OrbSystem } from '../src/systems/OrbSystem';
+import { OrbSystem } from '../src/plugins/builtin/systems/OrbSystem';
 import {
   createMockWorldStores,
   createMockWorldApi,

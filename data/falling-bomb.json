@@ -6,9 +6,9 @@
   "cooldown": 12000,
   "maxActive": 2,
   "baseSpawnChance": 0.06,
-  "checkInterval": 4000,
+  "checkInterval": 1000,
   "playerDamage": 1,
   "resetCombo": true,
-  "minWave": 4,
+  "minWave": 2,
   "spawnMargin": 80
 }

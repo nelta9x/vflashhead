@@ -32,6 +32,11 @@ export class DishSpawnService {
   private readonly getPlayerAttackRenderer: () => PlayerAttackRenderer;
   private readonly isGameOver: () => boolean;
 
+  private cachedWave = -1;
+  private cachedCursorSizeBonus = 0;
+  private cachedDamageBonus = 0;
+  private cachedCriticalChance = 0;
+
   constructor(deps: DishSpawnServiceDeps) {
     this.dishPool = deps.dishPool;
     this.dishes = deps.dishes;
@@ -68,19 +73,11 @@ export class DishSpawnService {
 
     const bombData = Data.getBombData(type);
     const dishData = bombData ? undefined : Data.getDishData(type);
+    this.ensureEffectCache();
     const options = {
-      cursorSizeBonus: this.abilityRuntimeQuery.getEffectValueOrThrow(
-        ABILITY_IDS.CURSOR_SIZE,
-        CURSOR_SIZE_EFFECT_KEYS.SIZE_BONUS,
-      ),
-      damageBonus: this.abilityRuntimeQuery.getEffectValueOrThrow(
-        ABILITY_IDS.CURSOR_SIZE,
-        CURSOR_SIZE_EFFECT_KEYS.DAMAGE,
-      ),
-      criticalChance: this.abilityRuntimeQuery.getEffectValueOrThrow(
-        ABILITY_IDS.CRITICAL_CHANCE,
-        CRITICAL_CHANCE_EFFECT_KEYS.CRITICAL_CHANCE,
-      ),
+      cursorSizeBonus: this.cachedCursorSizeBonus,
+      damageBonus: this.cachedDamageBonus,
+      criticalChance: this.cachedCriticalChance,
     };
 
     const config = {
@@ -97,6 +94,24 @@ export class DishSpawnService {
     initializeEntitySpawn(entity, this.world, config, plugin, x, y);
 
     this.dishes.add(entity);
+  }
+
+  private ensureEffectCache(): void {
+    const wave = this.world.context.currentWave;
+    if (this.cachedWave === wave) return;
+    this.cachedWave = wave;
+    this.cachedCursorSizeBonus = this.abilityRuntimeQuery.getEffectValueOrThrow(
+      ABILITY_IDS.CURSOR_SIZE,
+      CURSOR_SIZE_EFFECT_KEYS.SIZE_BONUS,
+    );
+    this.cachedDamageBonus = this.abilityRuntimeQuery.getEffectValueOrThrow(
+      ABILITY_IDS.CURSOR_SIZE,
+      CURSOR_SIZE_EFFECT_KEYS.DAMAGE,
+    );
+    this.cachedCriticalChance = this.abilityRuntimeQuery.getEffectValueOrThrow(
+      ABILITY_IDS.CRITICAL_CHANCE,
+      CRITICAL_CHANCE_EFFECT_KEYS.CRITICAL_CHANCE,
+    );
   }
 
   private showBombWarningAndSpawn(

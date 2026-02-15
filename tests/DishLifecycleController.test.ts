@@ -109,6 +109,7 @@ describe('DishLifecycleController', () => {
   const activeEntities = new Set<number>();
 
   const world = {
+    context: { currentWave: 0 },
     phaserNode: {
       get: (id: number) => phaserNodeStore.get(id),
     },

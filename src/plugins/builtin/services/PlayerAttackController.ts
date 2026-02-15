@@ -59,6 +59,7 @@ export class PlayerAttackController {
   private readonly gameEnv: GameEnvironment;
   private readonly getPlayerAttackRenderer: () => PlayerAttackRenderer;
   private readonly bossGateway: BossInteractionGateway;
+  private readonly hitCandidatesBuffer: EntityId[] = [];
 
   constructor(deps: PlayerAttackControllerDeps) {
     this.scene = deps.scene;
@@ -351,7 +352,8 @@ export class PlayerAttackController {
     toY: number,
     pathRadius: number
   ): void {
-    const hitCandidates: EntityId[] = [];
+    const hitCandidates = this.hitCandidatesBuffer;
+    hitCandidates.length = 0;
 
     // 접시 충돌
     for (const [entityId, , dp, t] of this.world.query(C_DishTag, C_DishProps, C_Transform)) {

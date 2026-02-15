@@ -55,6 +55,12 @@ export class DishResolutionService {
   private readonly damageService: EntityDamageService;
   private readonly isAnyLaserFiring: () => boolean;
 
+  private cachedWave = -1;
+  private cachedCursorSizeBonus = 0;
+  private cachedElectricRadius = 0;
+  private cachedElectricDamage = 0;
+  private cachedCriticalChance = 0;
+
   constructor(deps: DishResolutionServiceDeps) {
     this.world = deps.world;
     this.dishPool = deps.dishPool;
@@ -105,11 +111,8 @@ export class DishResolutionService {
 
     const electricLevel = this.abilityProgression.getAbilityLevel(ABILITY_IDS.ELECTRIC_SHOCK);
     if (!isAbilityDamage && electricLevel > 0) {
-      const electricRadius = this.abilityRuntimeQuery.getEffectValueOrThrow(
-        ABILITY_IDS.ELECTRIC_SHOCK,
-        ELECTRIC_SHOCK_EFFECT_KEYS.RADIUS,
-      );
-      this.applyElectricShock(x, y, snapshot.entityId, electricRadius);
+      this.ensureEffectCache();
+      this.applyElectricShock(x, y, snapshot.entityId, this.cachedElectricRadius);
     }
 
     if (isCritical) {
@@ -133,14 +136,9 @@ export class DishResolutionService {
 
   private applyElectricShock(x: number, y: number, excludeEntityId: EntityId, radius: number): void {
     const targets: { x: number; y: number }[] = [];
-    const damage = this.abilityRuntimeQuery.getEffectValueOrThrow(
-      ABILITY_IDS.ELECTRIC_SHOCK,
-      ELECTRIC_SHOCK_EFFECT_KEYS.DAMAGE,
-    );
-    const criticalChanceBonus = this.abilityRuntimeQuery.getEffectValueOrThrow(
-      ABILITY_IDS.CRITICAL_CHANCE,
-      CRITICAL_CHANCE_EFFECT_KEYS.CRITICAL_CHANCE,
-    );
+    this.ensureEffectCache();
+    const damage = this.cachedElectricDamage;
+    const criticalChanceBonus = this.cachedCriticalChance;
 
     for (const [entityId, , , t] of this.world.query(C_DishTag, C_DishProps, C_Transform)) {
       if (entityId === excludeEntityId) continue;
@@ -165,11 +163,30 @@ export class DishResolutionService {
     }
   }
 
-  private getCursorRadius(): number {
-    const cursorSizeBonus = this.abilityRuntimeQuery.getEffectValueOrThrow(
+  private ensureEffectCache(): void {
+    const wave = this.world.context.currentWave;
+    if (this.cachedWave === wave) return;
+    this.cachedWave = wave;
+    this.cachedCursorSizeBonus = this.abilityRuntimeQuery.getEffectValueOrThrow(
       ABILITY_IDS.CURSOR_SIZE,
       CURSOR_SIZE_EFFECT_KEYS.SIZE_BONUS,
     );
-    return CURSOR_HITBOX.BASE_RADIUS * (1 + cursorSizeBonus);
+    this.cachedElectricRadius = this.abilityRuntimeQuery.getEffectValueOrThrow(
+      ABILITY_IDS.ELECTRIC_SHOCK,
+      ELECTRIC_SHOCK_EFFECT_KEYS.RADIUS,
+    );
+    this.cachedElectricDamage = this.abilityRuntimeQuery.getEffectValueOrThrow(
+      ABILITY_IDS.ELECTRIC_SHOCK,
+      ELECTRIC_SHOCK_EFFECT_KEYS.DAMAGE,
+    );
+    this.cachedCriticalChance = this.abilityRuntimeQuery.getEffectValueOrThrow(
+      ABILITY_IDS.CRITICAL_CHANCE,
+      CRITICAL_CHANCE_EFFECT_KEYS.CRITICAL_CHANCE,
+    );
+  }
+
+  private getCursorRadius(): number {
+    this.ensureEffectCache();
+    return CURSOR_HITBOX.BASE_RADIUS * (1 + this.cachedCursorSizeBonus);
   }
 }

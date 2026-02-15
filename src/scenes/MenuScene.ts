@@ -77,6 +77,10 @@ export class MenuScene extends Phaser.Scene {
     });
     this.inputController.setup();
 
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.cleanupMenuResources();
+    });
+
     this.add.text(GAME_WIDTH - 8, GAME_HEIGHT - 8, 'v0.0.2', {
       fontFamily: FONTS.MAIN,
       fontSize: '12px',
@@ -188,6 +192,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private cleanupMenuResources(): void {
+    this.languageSelector?.destroy();
     this.starBackground?.destroy();
     this.bossRenderer?.destroy();
     this.gridRenderer?.destroy();

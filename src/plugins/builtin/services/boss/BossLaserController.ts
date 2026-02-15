@@ -56,6 +56,7 @@ export class BossLaserController {
   private readonly damageService: EntityDamageService;
   private readonly getLastLaserHitTime: () => number;
   private readonly setLastLaserHitTime: (time: number) => void;
+  private readonly pendingTimers = new Set<Phaser.Time.TimerEvent>();
 
   constructor(deps: BossLaserControllerDeps) {
     this.scene = deps.scene;
@@ -237,7 +238,9 @@ export class BossLaserController {
 
     this.soundSystem.playBossChargeSound();
 
-    this.scene.time.delayedCall(config.warningDuration, () => {
+    const warningTimer = this.scene.time.delayedCall(config.warningDuration, () => {
+      this.pendingTimers.delete(warningTimer);
+
       if (this.isGameOver() || this.waveSystem.getCurrentWave() !== laserWave) {
         this.removeLaserAndUnfreeze(laser, bossId);
         return;
@@ -254,7 +257,9 @@ export class BossLaserController {
       this.soundSystem.playBossFireSound();
       this.scene.cameras.main.shake(200, 0.005);
 
-      this.scene.time.delayedCall(config.fireDuration, () => {
+      const fireTimer = this.scene.time.delayedCall(config.fireDuration, () => {
+        this.pendingTimers.delete(fireTimer);
+
         if (this.isGameOver()) return;
 
         const activeLasers = this.getActiveLasers();
@@ -269,7 +274,9 @@ export class BossLaserController {
         const ownerBoss = this.bosses.get(bossId);
         if (ownerBoss) this.damageService.unfreeze(ownerBoss.getEntityId());
       });
+      this.pendingTimers.add(fireTimer);
     });
+    this.pendingTimers.add(warningTimer);
   }
 
   private removeLaserAndUnfreeze(laser: ActiveLaser, bossId: string): void {
@@ -340,6 +347,13 @@ export class BossLaserController {
       .find((candidate) => candidate.id === bossId);
     if (!bossConfig) return null;
     return bossConfig.laser;
+  }
+
+  public destroy(): void {
+    for (const timer of this.pendingTimers) {
+      timer.destroy();
+    }
+    this.pendingTimers.clear();
   }
 
   private handleLaserHit(gameTime: number): void {

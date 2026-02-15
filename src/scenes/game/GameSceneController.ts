@@ -26,6 +26,7 @@ export class GameSceneController {
   private readonly waveSystem: WaveSystem;
   private readonly comboSystem: ComboSystem;
   private readonly waveCountdownUI: WaveCountdownUI;
+  private destroyed = false;
 
   constructor(scene: Phaser.Scene, services: ServiceRegistry) {
     this.scene = scene;
@@ -52,6 +53,7 @@ export class GameSceneController {
     const expectedWave = waveNumber + 1;
     this.gameEnv.pendingWaveNumber = expectedWave;
     this.scene.time.delayedCall(500, () => {
+      if (this.destroyed) return;
       if (this.gameEnv.isGameOver) return;
       if (this.gameEnv.pendingWaveNumber !== expectedWave) return;
       this.gameEnv.isUpgrading = true;
@@ -64,6 +66,7 @@ export class GameSceneController {
     this.gameEnv.isUpgrading = false;
     const pendingWave = this.gameEnv.pendingWaveNumber;
     this.scene.time.delayedCall(300, () => {
+      if (this.destroyed) return;
       if (this.gameEnv.isGameOver) return;
       if (this.gameEnv.pendingWaveNumber !== pendingWave) return;
       this.waveSystem.startCountdown(pendingWave);
@@ -188,6 +191,10 @@ export class GameSceneController {
   }
 
   // === Private ===
+
+  destroy(): void {
+    this.destroyed = true;
+  }
 
   private getHudFrameContext(): HudFrameContext {
     const t = this.world.transform.getRequired(this.world.context.playerId);

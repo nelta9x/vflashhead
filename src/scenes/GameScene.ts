@@ -236,6 +236,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private cleanup(): void {
+    this.controller?.destroy();
     this.controller.resetMovementInput(this.getInputTimestamp());
     this.eventBinder?.unbind();
     this.inputAdapter?.teardown();

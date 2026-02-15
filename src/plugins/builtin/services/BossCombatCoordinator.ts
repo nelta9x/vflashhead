@@ -274,6 +274,7 @@ export class BossCombatCoordinator implements BossInteractionGateway {
 
   public destroy(): void {
     this.clearForWaveTransition();
+    this.bossLaserController.destroy();
     this.bossAttackScheduler.destroy();
     this.bosses.forEach((boss) => boss.destroy());
     this.bosses.clear();

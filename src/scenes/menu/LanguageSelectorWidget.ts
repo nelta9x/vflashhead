@@ -106,6 +106,10 @@ export class LanguageSelectorWidget {
     return container;
   }
 
+  public destroy(): void {
+    this.container.destroy();
+  }
+
   private updateSafeArea(): void {
     const config = Data.mainMenu.languageUI;
     const bounds = this.container.getBounds();

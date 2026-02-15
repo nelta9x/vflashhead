@@ -151,6 +151,7 @@ export class BossReactionSystem implements EntitySystem {
         repeat: Math.floor(reaction.shakeDuration / reaction.shakeFrequency),
         onComplete: () => {
           if (!this.scene) return;
+          if (!this.world.isActive(entityId)) return;
           bs.shakeOffsetX = 0;
           bs.shakeOffsetY = 0;
           // Return tween
@@ -162,6 +163,7 @@ export class BossReactionSystem implements EntitySystem {
               duration: reaction.returnDuration,
               ease: reaction.returnEase,
               onComplete: () => {
+                if (!this.world.isActive(entityId)) return;
                 bs.isHitStunned = false;
               },
             })

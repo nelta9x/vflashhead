@@ -317,6 +317,13 @@ export class OrbSystem implements EntitySystem {
     this.overclockExpireAt = 0;
   }
 
+  destroy(): void {
+    this.lastHitTimes.clear();
+    this.bossLastHitTimes.clear();
+    this.orbPositions = [];
+    this.resetOverclock();
+  }
+
   public getOrbs(): OrbPosition[] {
     return this.orbPositions;
   }

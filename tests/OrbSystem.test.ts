@@ -509,4 +509,23 @@ describe('OrbSystem', () => {
     system.update(100, 1000, 0, 0);
     expect(mockDamageService.forceDestroy).not.toHaveBeenCalled();
   });
+
+  it('should clear all state on destroy', () => {
+    mockUpgradeSystem.getOrbitingOrbLevel.mockReturnValue(1);
+    mockUpgradeSystem.getOrbitingOrbData.mockReturnValue({
+      count: 1,
+      damage: 10,
+      speed: 0,
+      radius: 100,
+      size: 10,
+    });
+
+    addDishToWorld(100, 0);
+    system.update(100, 1000, 0, 0);
+    expect(system.getOrbs()).toHaveLength(1);
+
+    (system as unknown as { destroy: () => void }).destroy();
+
+    expect(system.getOrbs()).toHaveLength(0);
+  });
 });

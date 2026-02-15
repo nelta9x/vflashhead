@@ -1,5 +1,5 @@
 import { HealthPackSystem } from './HealthPackSystem';
-import { UpgradeSystem } from '../../../systems/UpgradeSystem';
+import { UpgradeSystem } from '../services/UpgradeSystem';
 import { EntityPoolManager } from '../../../systems/EntityPoolManager';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 import type { SystemPlugin, SystemPluginContext } from '../../types/SystemPlugin';

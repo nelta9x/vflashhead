@@ -1,5 +1,5 @@
-import { Data } from '../../data/DataManager';
-import type { SystemUpgradeLevelData } from '../../data/types/upgrades';
+import { Data } from '../../../../data/DataManager';
+import type { SystemUpgradeLevelData } from '../../../../data/types/upgrades';
 
 export class UpgradeDescriptionFormatter {
   private readonly getUpgradeStack: (upgradeId: string) => number;

@@ -1,5 +1,5 @@
-import { Data } from '../data/DataManager';
-import type { WaveBossConfig, WaveData, WaveLaserConfig } from '../data/types';
+import { Data } from '../../../data/DataManager';
+import type { WaveBossConfig, WaveData, WaveLaserConfig } from '../../../data/types';
 
 export interface ResolvedWaveBossConfig {
   waveNumber: number;

@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
-import { MIN_BOSS_DISTANCE, MIN_DISH_DISTANCE, SPAWN_AREA } from '../../data/constants';
-import type { DishTypeWeight } from '../../data/types/waves';
-import type { Entity } from '../../entities/Entity';
-import type { ObjectPool } from '../../utils/ObjectPool';
+import { MIN_BOSS_DISTANCE, MIN_DISH_DISTANCE, SPAWN_AREA } from '../../../../data/constants';
+import type { DishTypeWeight } from '../../../../data/types/waves';
+import type { Entity } from '../../../../entities/Entity';
+import type { ObjectPool } from '../../../../utils/ObjectPool';
 import type { WaveRuntimeConfig } from './WaveConfigResolver';
 
 interface BossPositionSnapshot {

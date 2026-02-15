@@ -226,7 +226,7 @@ const ENTITY_TYPE_FACTORIES: Record<string, () => EntityTypePlugin> = {
 
 ### 3.4 새 서비스 추가
 
-1. **서비스 클래스**: `src/systems/` 또는 적절한 위치에 작성
+1. **서비스 클래스**: 콘텐츠 서비스는 `src/plugins/builtin/services/`, 코어 인프라는 `src/systems/`에 작성
 2. **ServicePlugin에 등록**: 기존 `CoreServicesPlugin`/`EcsFoundationPlugin`/`GameModulesPlugin` 중 적절한 곳의 `services` 배열에 추가. 필요 시 새 ServicePlugin 작성.
 
 ---
@@ -244,7 +244,7 @@ const ENTITY_TYPE_FACTORIES: Record<string, () => EntityTypePlugin> = {
 | 어빌리티 플러그인 + 렌더러 | `src/plugins/builtin/abilities/` | `ABILITY_FACTORIES` (`index.ts`) |
 | 엔티티 타입 플러그인 + 렌더러 | `src/plugins/builtin/entities/` | `ENTITY_TYPE_FACTORIES` (`index.ts`) |
 | 시스템 플러그인 | `src/plugins/builtin/systems/` | `registerBuiltinSystemPlugins()` (`index.ts`) |
-| 서비스 플러그인 | `src/plugins/builtin/services/` | `registerBuiltinServicePlugins()` (`index.ts`) |
+| 서비스 플러그인 + 콘텐츠 서비스 | `src/plugins/builtin/services/` (+ `wave/`, `upgrades/`, `boss/`, `dish/`) | `registerBuiltinServicePlugins()` (`index.ts`) |
 | 인터페이스 정의 | `src/plugins/types/` | — |
 | 코어 레지스트리/MOD 인프라 | `src/plugins/` (root) | — |
 
@@ -311,8 +311,8 @@ sequenceDiagram
 
 ### 코어/플러그인 경계 원칙
 
-- **코어(`GameSceneEventBinder`)**: 코어 시스템(Health/Combo/Feedback/HUD/Wave)과 Scene 라이프사이클 이벤트만 라우팅.
-- **플러그인(`ContentEventBinder`)**: 보스/디쉬/폭탄/플레이어 공격 이벤트를 콘텐츠 서비스(BCC/DLC/PAC)로 라우팅.
+- **코어(`GameSceneEventBinder`)**: 코어 UI(WaveCountdownUI/HUD), 코어 시스템(HealthSystem.reset), Scene 라이프사이클(WAVE_COMPLETED/UPGRADE_SELECTED/GAME_OVER) 이벤트만 라우팅.
+- **플러그인(`ContentEventBinder`)**: 보스/디쉬/폭탄/플레이어 공격 + 콘텐츠 피드백(COMBO_MILESTONE/MONSTER_DIED/HEALTH_PACK/CURSE_HP_PENALTY/HP_CHANGED피드백/BLACK_HOLE_CONSUMED) 이벤트를 콘텐츠 서비스(BCC/DLC/PAC/FeedbackSystem/MonsterSystem/WaveSystem/UpgradeSystem)로 라우팅.
 - **`WAVE_TRANSITION` 이벤트**: 코어(`GameSceneController`)가 emit → 플러그인(`ContentEventBinder`)이 구독하여 BCC/DLC를 정리. 코어가 콘텐츠 서비스를 직접 호출하지 않는다.
 
 ### ContentEventBinder 등록
@@ -326,7 +326,12 @@ sequenceDiagram
 
 ### 콘텐츠 서비스 위치
 
-보스/디쉬 관련 서비스는 `src/plugins/builtin/services/`에 위치:
+모든 콘텐츠 레벨 서비스는 `src/plugins/builtin/services/`에 위치:
+- `WaveSystem.ts` + `wave/` (WaveConfigResolver, WavePhaseController, WaveSpawnPlanner)
+- `ComboSystem.ts`, `GaugeSystem.ts`, `ScoreSystem.ts`, `MonsterSystem.ts`
+- `UpgradeSystem.ts` + `upgrades/` (UpgradeDescriptionFormatter, UpgradePreviewModelBuilder)
+- `SoundSystem.ts`, `FeedbackSystem.ts`
+- `EntityDamageService.ts`, `DishDamageResolver.ts`, `DishEventPayloadFactory.ts`, `waveBossConfig.ts`
 - `BossCombatCoordinator.ts` + `boss/` (BossRosterSync, BossLaserController, BossAttackScheduler 등)
 - `DishLifecycleController.ts` + `dish/` (DishSpawnService, DishResolutionService)
 - `PlayerAttackController.ts`

@@ -3,7 +3,7 @@ import type { World } from '../../../world';
 import type { EntityId } from '../../../world/EntityId';
 import type { CursorRenderer } from '../entities/CursorRenderer';
 import type { CursorTrail } from '../entities/CursorTrail';
-import type { UpgradeSystem } from '../../../systems/UpgradeSystem';
+import type { UpgradeSystem } from '../services/UpgradeSystem';
 import type { HealthSystem } from '../../../systems/HealthSystem';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 import { computeCursorSmoothing } from '../../../utils/cursorSmoothing';

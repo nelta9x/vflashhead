@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { UpgradeSystem } from '../src/systems/UpgradeSystem';
+import type { UpgradeSystem } from '../src/plugins/builtin/services/UpgradeSystem';
 import type { BlackHoleLevelData } from '../src/data/types';
 
 const { mockFloatBetween } = vi.hoisted(() => ({

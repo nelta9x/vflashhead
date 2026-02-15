@@ -1,5 +1,5 @@
-import { Data } from '../data/DataManager';
-import { EventBus, GameEvents } from '../utils/EventBus';
+import { Data } from '../../../data/DataManager';
+import { EventBus, GameEvents } from '../../../utils/EventBus';
 
 export class ComboSystem {
   private combo: number = 0;

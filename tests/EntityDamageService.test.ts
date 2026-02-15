@@ -47,7 +47,7 @@ vi.mock('../src/systems/DishEventPayloadFactory', () => ({
 }));
 
 import { World } from '../src/world/World';
-import { EntityDamageService } from '../src/systems/EntityDamageService';
+import { EntityDamageService } from '../src/plugins/builtin/services/EntityDamageService';
 import { EventBus, GameEvents } from '../src/utils/EventBus';
 
 interface MockEntity {

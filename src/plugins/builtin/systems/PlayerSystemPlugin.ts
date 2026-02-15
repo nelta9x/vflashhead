@@ -1,7 +1,7 @@
 import { PlayerTickSystem } from './PlayerTickSystem';
 import { CursorRenderer } from '../entities/CursorRenderer';
 import { CursorTrail } from '../entities/CursorTrail';
-import { UpgradeSystem } from '../../../systems/UpgradeSystem';
+import { UpgradeSystem } from '../services/UpgradeSystem';
 import { HealthSystem } from '../../../systems/HealthSystem';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 import type { SystemPlugin, SystemPluginContext } from '../../types/SystemPlugin';

@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS, COLORS_HEX, FONTS } from '../data/constants';
 import { Data } from '../data/DataManager';
-import { SoundSystem } from '../systems/SoundSystem';
+import { SoundSystem } from '../plugins/builtin/services/SoundSystem';
 
 interface GameStats {
   maxCombo: number;

@@ -1,6 +1,6 @@
-import { CursorAttackSystem } from '../../../systems/entity-systems';
-import { EntityDamageService } from '../../../systems/EntityDamageService';
-import { UpgradeSystem } from '../../../systems/UpgradeSystem';
+import { CursorAttackSystem } from './CursorAttackSystem';
+import { EntityDamageService } from '../services/EntityDamageService';
+import { UpgradeSystem } from '../services/UpgradeSystem';
 import { GameEnvironment } from '../../../scenes/game/GameEnvironment';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 import type { SystemPlugin, SystemPluginContext } from '../../types/SystemPlugin';

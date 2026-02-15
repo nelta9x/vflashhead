@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS, COLORS_HEX, UPGRADE_UI, FONTS, DEPTHS } from '../data/constants';
 import { Data } from '../data/DataManager';
-import { UpgradeSystem, Upgrade } from '../systems/UpgradeSystem';
+import { UpgradeSystem, Upgrade } from '../plugins/builtin/services/UpgradeSystem';
 import { EventBus, GameEvents } from '../utils/EventBus';
 
 import { ParticleManager } from '../effects/ParticleManager';

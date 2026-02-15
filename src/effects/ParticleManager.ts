@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS, DEPTHS, RAINBOW_COLORS } from '../data/constants';
 import { Data } from '../data/DataManager';
-import type { SoundSystem } from '../systems/SoundSystem';
+import type { SoundSystem } from '../plugins/builtin/services/SoundSystem';
 import {
   CursorPositionProvider,
   resolveCursorPosition,

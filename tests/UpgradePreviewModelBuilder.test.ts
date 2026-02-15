@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 describe('UpgradePreviewModelBuilder', () => {
   it('미변경 항목은 제외하고 실제 변경 수치만 프리뷰에 남겨야 함', async () => {
-    const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+    const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
     const upgrade = new UpgradeSystem();
     const missileUpgrade = UPGRADES.find((u) => u.id === 'missile')!;
 
@@ -15,7 +15,7 @@ describe('UpgradePreviewModelBuilder', () => {
   });
 
   it('커서 반경 derived 스탯이 현재/다음 값을 정확히 계산해야 함', async () => {
-    const { UpgradeSystem } = await import('../src/systems/UpgradeSystem');
+    const { UpgradeSystem } = await import('../src/plugins/builtin/services/UpgradeSystem');
     const upgrade = new UpgradeSystem();
 
     const preview = upgrade.getPreviewCardModel('cursor_size');
@@ -28,7 +28,7 @@ describe('UpgradePreviewModelBuilder', () => {
   });
 
   it('interval 계열은 값 감소가 개선으로 판정되어야 함', async () => {
-    const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+    const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
     const upgrade = new UpgradeSystem();
     const blackHoleUpgrade = UPGRADES.find((u) => u.id === 'black_hole')!;
 
@@ -48,7 +48,7 @@ describe('UpgradePreviewModelBuilder', () => {
   });
 
   it('직접+간접 상승: 자기장 프리뷰에 구슬 시너지 크기 상승이 반영되어야 함', async () => {
-    const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+    const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
     const upgrade = new UpgradeSystem();
     const orbUpgrade = UPGRADES.find((u) => u.id === 'orbiting_orb')!;
 

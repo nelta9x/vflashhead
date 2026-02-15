@@ -4,11 +4,11 @@ import type { ServiceEntry } from '../../ServiceRegistry';
 import { World } from '../../../world';
 import { Entity } from '../../../entities/Entity';
 import { EntityPoolManager } from '../../../systems/EntityPoolManager';
-import { EntityDamageService } from '../../../systems/EntityDamageService';
+import { EntityDamageService } from './EntityDamageService';
 import { EntityQueryService } from '../../../systems/EntityQueryService';
 import { HealthSystem } from '../../../systems/HealthSystem';
 import { StatusEffectManager } from '../../../systems/StatusEffectManager';
-import { UpgradeSystem } from '../../../systems/UpgradeSystem';
+import { UpgradeSystem } from './UpgradeSystem';
 import { setSpawnDamageServiceGetter } from '../../../entities/EntitySpawnInitializer';
 
 export class EcsFoundationPlugin implements ServicePlugin {

@@ -1,6 +1,6 @@
-import type { ComboSystem } from '../ComboSystem';
-import type { World } from '../../world';
-import type { EntitySystem } from './EntitySystem';
+import type { ComboSystem } from '../services/ComboSystem';
+import type { World } from '../../../world';
+import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 
 export class ComboTickSystem implements EntitySystem {
   readonly id = 'core:combo';

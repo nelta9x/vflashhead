@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { MonsterSystem } from '../src/systems/MonsterSystem';
+import { MonsterSystem } from '../src/plugins/builtin/services/MonsterSystem';
 import { GameEvents } from '../src/utils/EventBus';
 
 const mockEmit = vi.fn();

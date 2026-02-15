@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, FONTS, DEPTHS } from '../../data/constants';
 import { Data } from '../../data/DataManager';
-import { UpgradeSystem } from '../../systems/UpgradeSystem';
+import { UpgradeSystem } from '../../plugins/builtin/services/UpgradeSystem';
 import { HoverArea } from './WaveTimerVisibilityPolicy';
 import { getUpgradeFallbackSymbol } from '../upgrade/UpgradeIconCatalog';
 import { renderAbilityDockOverlay, renderAbilityDockPauseGauge } from './AbilityDockRenderer';

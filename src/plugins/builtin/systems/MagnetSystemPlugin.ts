@@ -1,6 +1,6 @@
-import { MagnetSystem } from '../../../systems/entity-systems';
-import { EntityDamageService } from '../../../systems/EntityDamageService';
-import { UpgradeSystem } from '../../../systems/UpgradeSystem';
+import { MagnetSystem } from './MagnetSystem';
+import { EntityDamageService } from '../services/EntityDamageService';
+import { UpgradeSystem } from '../services/UpgradeSystem';
 import { ParticleManager } from '../../../effects/ParticleManager';
 import { GameEnvironment } from '../../../scenes/game/GameEnvironment';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';

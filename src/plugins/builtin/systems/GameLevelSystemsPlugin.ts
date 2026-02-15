@@ -1,6 +1,6 @@
-import { ComboSystem } from '../../../systems/ComboSystem';
+import { ComboSystem } from '../services/ComboSystem';
 import { StatusEffectManager } from '../../../systems/StatusEffectManager';
-import { ComboTickSystem } from '../../../systems/entity-systems/ComboTickSystem';
+import { ComboTickSystem } from './ComboTickSystem';
 import { StatusEffectTickSystem } from '../../../systems/entity-systems/StatusEffectTickSystem';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 import type { SystemPlugin, SystemPluginContext } from '../../types/SystemPlugin';

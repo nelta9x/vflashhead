@@ -4,12 +4,12 @@ import { CURSOR_HITBOX, GAME_HEIGHT, GAME_WIDTH } from '../../../data/constants'
 import { Entity } from '../../../entities/Entity';
 import { LaserRenderer } from '../entities/LaserRenderer';
 import type { DamageText } from '../../../ui/DamageText';
-import type { FeedbackSystem } from '../../../systems/FeedbackSystem';
+import type { FeedbackSystem } from './FeedbackSystem';
 import type { HealthSystem } from '../../../systems/HealthSystem';
-import type { MonsterSystem } from '../../../systems/MonsterSystem';
-import type { SoundSystem } from '../../../systems/SoundSystem';
-import type { UpgradeSystem } from '../../../systems/UpgradeSystem';
-import type { WaveSystem } from '../../../systems/WaveSystem';
+import type { MonsterSystem } from './MonsterSystem';
+import type { SoundSystem } from './SoundSystem';
+import type { UpgradeSystem } from './UpgradeSystem';
+import type { WaveSystem } from './WaveSystem';
 import type { CursorSnapshot } from '../../../scenes/game/GameSceneContracts';
 import type {
   BossInteractionGateway,
@@ -17,7 +17,7 @@ import type {
   BossTargetSnapshot,
   BossVisibilitySnapshot,
 } from './ContentContracts';
-import type { EntityDamageService } from '../../../systems/EntityDamageService';
+import type { EntityDamageService } from './EntityDamageService';
 import type { StatusEffectManager } from '../../../systems/StatusEffectManager';
 import type { World } from '../../../world';
 import type { GameEnvironment } from '../../../scenes/game/GameEnvironment';

@@ -5,7 +5,7 @@ import {
   EntityVisualSystem,
 } from '../../../systems/entity-systems';
 import { EntityRenderSystem } from './EntityRenderSystem';
-import { EntityDamageService } from '../../../systems/EntityDamageService';
+import { EntityDamageService } from '../services/EntityDamageService';
 import { StatusEffectManager } from '../../../systems/StatusEffectManager';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 import type { SystemPlugin, SystemPluginContext } from '../../types/SystemPlugin';

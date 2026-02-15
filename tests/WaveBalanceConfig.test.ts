@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Data } from '../src/data/DataManager';
-import { WaveConfigResolver } from '../src/systems/wave/WaveConfigResolver';
+import { WaveConfigResolver } from '../src/plugins/builtin/services/wave/WaveConfigResolver';
 
 function getWave(waveNumber: number) {
   return Data.waves.waves[waveNumber - 1];

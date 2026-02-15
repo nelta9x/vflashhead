@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS, COLORS_HEX, GAME_WIDTH, GAME_HEIGHT, FONTS, DEPTHS } from '../data/constants';
 import { Data } from '../data/DataManager';
-import { SoundSystem } from '../systems/SoundSystem';
+import { SoundSystem } from '../plugins/builtin/services/SoundSystem';
 import { CursorTrail } from '../plugins/builtin/entities/CursorTrail';
 import { ParticleManager } from '../effects/ParticleManager';
 import { StarBackground } from '../effects/StarBackground';

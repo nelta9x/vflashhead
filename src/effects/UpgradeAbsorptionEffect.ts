@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { DEPTHS } from '../data/constants';
 import { Data } from '../data/DataManager';
-import type { SoundSystem } from '../systems/SoundSystem';
+import type { SoundSystem } from '../plugins/builtin/services/SoundSystem';
 
 export class UpgradeAbsorptionEffect {
   private readonly scene: Phaser.Scene;

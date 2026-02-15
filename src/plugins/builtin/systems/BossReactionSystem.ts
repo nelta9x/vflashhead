@@ -7,7 +7,7 @@ import type { IBossRenderer } from '../../types';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 import type { World, BossStateComponent } from '../../../world';
 import type { EntityId } from '../../../world/EntityId';
-import type { FeedbackSystem } from '../../../systems/FeedbackSystem';
+import type { FeedbackSystem } from '../services/FeedbackSystem';
 
 interface BossReactionSystemDeps {
   world: World;

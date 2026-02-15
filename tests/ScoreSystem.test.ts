@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { ScoreSystem } from '../src/systems/ScoreSystem';
+import { ScoreSystem } from '../src/plugins/builtin/services/ScoreSystem';
 import { EventBus, GameEvents } from '../src/utils/EventBus';
 
 describe('ScoreSystem', () => {

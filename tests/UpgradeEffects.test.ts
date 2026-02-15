@@ -41,7 +41,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
   describe('레벨 0 (미적용 상태)', () => {
     it('모든 getter가 0을 반환해야 함', async () => {
-      const { UpgradeSystem } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
 
       expect(upgrade.getCursorSizeBonus()).toBe(0);
@@ -65,14 +65,14 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
   describe('확률/데이터 연동 검증', () => {
     it('orbiting_orb hitInterval should be loaded from data', async () => {
-      const { UpgradeSystem } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
 
       expect(upgrade.getSystemUpgrade('orbiting_orb')?.hitInterval).toBe(900);
     });
 
     it('orbiting_orb overclock config should be loaded from data', async () => {
-      const { UpgradeSystem } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const orbUpgrade = upgrade.getSystemUpgrade('orbiting_orb');
 
@@ -82,7 +82,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
     });
 
     it('health_pack 스택은 희귀도 진행 카운트에서 제외되어야 함', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const { Data } = await import('../src/data/DataManager');
       const upgrade = new UpgradeSystem();
 
@@ -107,7 +107,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
   describe('커서 크기 (cursor_size)', () => {
     it('레벨 1 수치 확인', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const cursorUpgrade = UPGRADES.find((u) => u.id === 'cursor_size')!;
 
@@ -119,7 +119,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
     });
 
     it('레벨 3 (맥스) 수치 확인', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const cursorUpgrade = UPGRADES.find((u) => u.id === 'cursor_size')!;
 
@@ -133,7 +133,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
   describe('치명타 확률 (critical_chance)', () => {
     it('레벨 1 수치 확인', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const criticalUpgrade = UPGRADES.find((u) => u.id === 'critical_chance')!;
 
@@ -143,7 +143,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
     });
 
     it('레벨 5 수치 확인', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const criticalUpgrade = UPGRADES.find((u) => u.id === 'critical_chance')!;
 
@@ -155,7 +155,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
   describe('전기 충격 (electric_shock)', () => {
     it('레벨 1 수치 확인', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const electricUpgrade = UPGRADES.find((u) => u.id === 'electric_shock')!;
 
@@ -166,7 +166,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
     });
 
     it('레벨 3 수치 확인', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const electricUpgrade = UPGRADES.find((u) => u.id === 'electric_shock')!;
 
@@ -176,7 +176,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
     });
 
     it('레벨 5 수치 확인', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const electricUpgrade = UPGRADES.find((u) => u.id === 'electric_shock')!;
 
@@ -188,7 +188,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
   describe('자기장 (magnet)', () => {
     it('레벨 1 수치 확인', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const magnetUpgrade = UPGRADES.find((u) => u.id === 'magnet')!;
 
@@ -199,7 +199,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
     });
 
     it('레벨 5 수치 확인', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const magnetUpgrade = UPGRADES.find((u) => u.id === 'magnet')!;
 
@@ -211,7 +211,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
   describe('미사일 (missile)', () => {
     it('레벨 1 수치 확인', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const missileUpgrade = UPGRADES.find((u) => u.id === 'missile')!;
 
@@ -222,7 +222,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
     });
 
     it('레벨 3 수치 확인', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const missileUpgrade = UPGRADES.find((u) => u.id === 'missile')!;
 
@@ -232,7 +232,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
     });
 
     it('레벨 2~5 수치 진행 확인', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const missileUpgrade = UPGRADES.find((u) => u.id === 'missile')!;
 
@@ -258,7 +258,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
     });
 
     it('강한 강화 구간이 L2->L3, L4->L5에 존재해야 함', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const missileUpgrade = UPGRADES.find((u) => u.id === 'missile')!;
 
@@ -275,7 +275,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
     });
 
     it('최대 레벨이 5에서 캡되어야 함', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const missileUpgrade = UPGRADES.find((u) => u.id === 'missile')!;
 
@@ -288,7 +288,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
   describe('블랙홀 (black_hole)', () => {
     it('레벨 1 수치 확인', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const blackHoleUpgrade = UPGRADES.find((u) => u.id === 'black_hole')!;
 
@@ -311,7 +311,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
     });
 
     it('레벨 5 수치 확인', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const blackHoleUpgrade = UPGRADES.find((u) => u.id === 'black_hole')!;
 
@@ -337,7 +337,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
   describe('헬스팩 (health_pack)', () => {
     it('레벨 1 수치 확인 및 이벤트 발생', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const hpUpgrade = UPGRADES.find((u) => u.id === 'health_pack')!;
 
@@ -350,7 +350,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
     });
 
     it('레벨 3 수치 확인', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const hpUpgrade = UPGRADES.find((u) => u.id === 'health_pack')!;
 
@@ -365,7 +365,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
   describe('스택 제한', () => {
     it('7회 적용해도 levels.length(3)에서 캡', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
       const cursorUpgrade = UPGRADES.find((u) => u.id === 'cursor_size')!;
 
@@ -377,7 +377,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
     });
 
     it('모든 어빌리티 maxStack이 데이터의 levels.length와 일치', async () => {
-      const { UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const { Data } = await import('../src/data/DataManager');
 
       const levelUpgrades = UPGRADES.filter((u) => u.id !== 'health_pack');
@@ -391,7 +391,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
 
   describe('리셋', () => {
     it('reset() 후 모든 스택 0, 모든 getter 0', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const upgrade = new UpgradeSystem();
 
       // 모든 어빌리티 적용
@@ -467,7 +467,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
     });
 
     it('모든 단계에서 설명(getFormattedDescription)에 미치환 태그가 없어야 함', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const { Data } = await import('../src/data/DataManager');
       const languages: ('en' | 'ko')[] = ['en', 'ko'];
 
@@ -495,7 +495,7 @@ describe('UpgradeSystem - 레벨 배열 기반 시스템', () => {
     });
 
     it('모든 단계에서 미리보기(getPreviewCardModel) 구조가 유효해야 함', async () => {
-      const { UpgradeSystem, UPGRADES } = await import('../src/systems/UpgradeSystem');
+      const { UpgradeSystem, UPGRADES } = await import('../src/plugins/builtin/services/UpgradeSystem');
       const { Data } = await import('../src/data/DataManager');
       const languages: ('en' | 'ko')[] = ['en', 'ko'];
 

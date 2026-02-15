@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
-import { WaveSystem } from '../systems/WaveSystem';
+import { WaveSystem } from '../plugins/builtin/services/WaveSystem';
 import { HealthSystem } from '../systems/HealthSystem';
-import { UpgradeSystem } from '../systems/UpgradeSystem';
+import { UpgradeSystem } from '../plugins/builtin/services/UpgradeSystem';
 import { AbilitySummaryWidget } from './hud/AbilitySummaryWidget';
 import { DockPauseController } from './hud/DockPauseController';
 import { WaveTimerVisibilityPolicy } from './hud/WaveTimerVisibilityPolicy';

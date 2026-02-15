@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS_HEX, FONTS } from '../../data/constants';
 import { Data } from '../../data/DataManager';
-import { WaveSystem } from '../../systems/WaveSystem';
+import { WaveSystem } from '../../plugins/builtin/services/WaveSystem';
 
 export class WaveTimerWidget {
   private readonly scene: Phaser.Scene;

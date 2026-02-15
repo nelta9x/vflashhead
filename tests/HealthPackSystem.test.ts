@@ -24,7 +24,7 @@ vi.mock('phaser', () => {
 
 import { HealthPackSystem } from '../src/plugins/builtin/systems/HealthPackSystem';
 import { GameEvents } from '../src/utils/EventBus';
-import type { UpgradeSystem } from '../src/systems/UpgradeSystem';
+import type { UpgradeSystem } from '../src/plugins/builtin/services/UpgradeSystem';
 
 vi.mock('../src/data/constants', () => ({
   GAME_WIDTH: 800,

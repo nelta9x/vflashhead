@@ -7,7 +7,7 @@ import {
 } from '../data/constants';
 import { Data } from '../data/DataManager';
 import { EventBus } from '../utils/EventBus';
-import { UpgradeSystem } from '../systems/UpgradeSystem';
+import { UpgradeSystem } from '../plugins/builtin/services/UpgradeSystem';
 import { StatusEffectManager } from '../systems/StatusEffectManager';
 import { PlayerCursorInputController } from '../systems/PlayerCursorInputController';
 import { GridRenderer } from '../effects/GridRenderer';

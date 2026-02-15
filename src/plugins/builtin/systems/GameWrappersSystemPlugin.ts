@@ -1,10 +1,10 @@
 import { EventBus } from '../../../utils/EventBus';
-import { WaveSystem } from '../../../systems/WaveSystem';
+import { WaveSystem } from '../services/WaveSystem';
 import { EntityQueryService } from '../../../systems/EntityQueryService';
 import { StatusEffectManager } from '../../../systems/StatusEffectManager';
 import { BossCombatCoordinator } from '../services/BossCombatCoordinator';
 import { ModSystemRegistry } from '../../ModSystemRegistry';
-import { WaveTickSystem } from '../../../systems/entity-systems';
+import { WaveTickSystem } from './WaveTickSystem';
 import { BossCoordinatorSystem } from './BossCoordinatorSystem';
 import { ModTickSystem } from './ModTickSystem';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';

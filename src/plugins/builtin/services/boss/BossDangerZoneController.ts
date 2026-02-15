@@ -2,8 +2,8 @@ import Phaser from 'phaser';
 import { Data } from '../../../../data/DataManager';
 import { GAME_WIDTH, GAME_HEIGHT } from '../../../../data/constants';
 import type { HealthSystem } from '../../../../systems/HealthSystem';
-import type { FeedbackSystem } from '../../../../systems/FeedbackSystem';
-import type { SoundSystem } from '../../../../systems/SoundSystem';
+import type { FeedbackSystem } from '../FeedbackSystem';
+import type { SoundSystem } from '../SoundSystem';
 import type { CursorSnapshot } from '../../../../scenes/game/GameSceneContracts';
 
 interface BossDangerZoneControllerDeps {

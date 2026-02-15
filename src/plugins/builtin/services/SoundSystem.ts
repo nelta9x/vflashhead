@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { Data } from '../data/DataManager';
-import type { AudioConfig } from '../data/types';
+import { Data } from '../../../data/DataManager';
+import type { AudioConfig } from '../../../data/types';
 
 /**
  * Web Audio API 기반 프로그래매틱 사운드 시스템

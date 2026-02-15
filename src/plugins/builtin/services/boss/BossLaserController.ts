@@ -4,13 +4,13 @@ import { COLORS, CURSOR_HITBOX, GAME_HEIGHT, GAME_WIDTH } from '../../../../data
 import type { Entity } from '../../../../entities/Entity';
 import type { LaserRenderer } from '../../entities/LaserRenderer';
 import type { DamageText } from '../../../../ui/DamageText';
-import type { FeedbackSystem } from '../../../../systems/FeedbackSystem';
+import type { FeedbackSystem } from '../FeedbackSystem';
 import type { HealthSystem } from '../../../../systems/HealthSystem';
-import type { MonsterSystem } from '../../../../systems/MonsterSystem';
-import type { SoundSystem } from '../../../../systems/SoundSystem';
-import type { UpgradeSystem } from '../../../../systems/UpgradeSystem';
-import type { WaveSystem } from '../../../../systems/WaveSystem';
-import type { EntityDamageService } from '../../../../systems/EntityDamageService';
+import type { MonsterSystem } from '../MonsterSystem';
+import type { SoundSystem } from '../SoundSystem';
+import type { UpgradeSystem } from '../UpgradeSystem';
+import type { WaveSystem } from '../WaveSystem';
+import type { EntityDamageService } from '../EntityDamageService';
 import type { CursorSnapshot } from '../../../../scenes/game/GameSceneContracts';
 import type { ActiveLaser } from './BossCombatTypes';
 

@@ -198,7 +198,7 @@ function createMockContainer() {
 
 import { HUD } from '../src/ui/HUD';
 import { HealthSystem } from '../src/systems/HealthSystem';
-import { WaveSystem } from '../src/systems/WaveSystem';
+import { WaveSystem } from '../src/plugins/builtin/services/WaveSystem';
 
 type HudTestSceneStub = {
   add: {

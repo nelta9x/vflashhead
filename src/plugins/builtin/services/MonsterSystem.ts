@@ -1,4 +1,4 @@
-import { EventBus, GameEvents } from '../utils/EventBus';
+import { EventBus, GameEvents } from '../../../utils/EventBus';
 import { resolveWaveBossConfig, splitBossTotalHpByWeight } from './waveBossConfig';
 
 interface BossState {

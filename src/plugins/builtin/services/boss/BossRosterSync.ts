@@ -5,10 +5,10 @@ import { initializeEntitySpawn } from '../../../../entities/EntitySpawnInitializ
 import { deactivateEntity } from '../../../../entities/EntityLifecycle';
 import { PluginRegistry } from '../../../../plugins/PluginRegistry';
 import type { LaserRenderer } from '../../entities/LaserRenderer';
-import type { MonsterSystem } from '../../../../systems/MonsterSystem';
+import type { MonsterSystem } from '../MonsterSystem';
 import type { StatusEffectManager } from '../../../../systems/StatusEffectManager';
-import type { WaveSystem } from '../../../../systems/WaveSystem';
-import type { EntityDamageService } from '../../../../systems/EntityDamageService';
+import type { WaveSystem } from '../WaveSystem';
+import type { EntityDamageService } from '../EntityDamageService';
 import type { World } from '../../../../world';
 import { INVALID_ENTITY_ID } from '../../../../world/EntityId';
 import type { ActiveLaser } from './BossCombatTypes';

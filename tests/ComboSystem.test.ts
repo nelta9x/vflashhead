@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
 // Import EventBus first to avoid Phaser dependency issues
 import { EventBus, GameEvents } from '../src/utils/EventBus';
-import { ComboSystem } from '../src/systems/ComboSystem';
+import { ComboSystem } from '../src/plugins/builtin/services/ComboSystem';
 
 describe('ComboSystem', () => {
   let comboSystem: ComboSystem;

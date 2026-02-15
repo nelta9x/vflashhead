@@ -5,7 +5,7 @@ import type { Entity } from '../../../../entities/Entity';
 import { initializeEntitySpawn } from '../../../../entities/EntitySpawnInitializer';
 import type { PlayerAttackRenderer } from '../../abilities/PlayerAttackRenderer';
 import type { ObjectPool } from '../../../../utils/ObjectPool';
-import type { UpgradeSystem } from '../../../../systems/UpgradeSystem';
+import type { UpgradeSystem } from '../UpgradeSystem';
 import type { World } from '../../../../world';
 import { INVALID_ENTITY_ID } from '../../../../world/EntityId';
 import { PluginRegistry } from '../../../../plugins/PluginRegistry';

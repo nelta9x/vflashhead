@@ -8,7 +8,7 @@ import { EventBus, GameEvents } from '../../../utils/EventBus';
 import { C_HealthPack, C_Transform } from '../../../world';
 import type { EntityId } from '../../../world/EntityId';
 import type { World } from '../../../world';
-import type { UpgradeSystem } from '../../../systems/UpgradeSystem';
+import type { UpgradeSystem } from '../services/UpgradeSystem';
 import type { EntityPoolManager } from '../../../systems/EntityPoolManager';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 

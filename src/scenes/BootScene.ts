@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { COLORS, GAME_WIDTH, GAME_HEIGHT, FONTS } from '../data/constants';
-import { SoundSystem } from '../systems/SoundSystem';
+import { SoundSystem } from '../plugins/builtin/services/SoundSystem';
 import { Data } from '../data/DataManager';
 
 export class BootScene extends Phaser.Scene {

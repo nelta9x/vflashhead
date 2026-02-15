@@ -50,7 +50,7 @@
 
 ### 1.5 GameScene 보조 모듈 (`src/scenes/game/`)
 
-- **`GameSceneEventBinder.ts`**: **코어 이벤트 라우팅 전담**. `EventBus` 구독/해제 일원화. 코어 시스템(Combo/Wave/Health/Feedback/HUD)과 Scene 라이프사이클(WAVE_COMPLETED/UPGRADE_SELECTED/GAME_OVER) 이벤트만 라우팅. 콘텐츠 이벤트(DISH/BOMB/PLAYER_ATTACK 등)는 `ContentEventBinder`로 분리됨.
+- **`GameSceneEventBinder.ts`**: **코어 UI/Scene 이벤트 라우팅 전담**. `EventBus` 구독/해제 일원화. 코어 UI(WaveCountdownUI/HUD), 코어 시스템(HealthSystem.reset), Scene 라이프사이클(WAVE_COMPLETED/UPGRADE_SELECTED/GAME_OVER) 이벤트만 라우팅. 콘텐츠 피드백(COMBO_MILESTONE/MONSTER_DIED/HEALTH_PACK/BLACK_HOLE 등)과 콘텐츠 이벤트(DISH/BOMB/PLAYER_ATTACK)는 모두 `ContentEventBinder`로 분리됨.
 - **`SceneInputAdapter.ts`**: pointer/ESC/blur/visibility/gameout 입력 리스너 등록·해제 전담.
 - **`GameSceneContracts.ts`**: 코어 모듈 간 최소 공유 타입(`CursorSnapshot`, `DishSpawnDelegate`) 정의.
 - **`CursorPositionProvider.ts`**: Scene/포인터/명시 provider 우선순위로 커서 좌표를 해석하는 공용 유틸.
@@ -61,30 +61,12 @@
 
 ### 2. 핵심 게임 로직 (Systems)
 
-`src/systems/` 디렉토리에는 특정 기능을 담당하는 독립적인 클래스들이 위치합니다.
+`src/systems/` 디렉토리에는 **코어 인프라 시스템**이 위치합니다. 콘텐츠 레벨 시스템(WaveSystem, ComboSystem, UpgradeSystem, MonsterSystem, SoundSystem, FeedbackSystem, GaugeSystem, ScoreSystem, EntityDamageService 등)은 `plugins/builtin/services/`로 이동되었습니다 (→ §2.6 참조).
 
-- **`WaveSystem.ts`**: 웨이브 오케스트레이터. 내부 계산은 `systems/wave/*` 모듈에 위임합니다.
-  - `wave/WaveConfigResolver.ts`: 웨이브/무한/피버 구성 계산 (`infiniteScaling`의 amber 도입 램프와 dish weight 정규화 포함)
-  - `wave/WavePhaseController.ts`: waiting/countdown/spawning 상태와 카운트다운 이벤트 틱
-  - `wave/WaveSpawnPlanner.ts`: 접시 타입 롤 + 스폰 위치 제약 검증(보스/접시 거리)
-- **`waveBossConfig.ts`**: 웨이브별 보스 구성 해석 유틸리티. `bossTotalHp`/`hpWeight` 분배, 무한 웨이브 보스 수/총 HP 스케일링(`bossTotalHpIncrease`, `infiniteBossCount`)을 공용 계산합니다.
-- **`ComboSystem.ts`**: 콤보 증가, 타임아웃 처리, 마일스톤 관리. 콤보 수치에 따라 `COMBO_MILESTONE` 이벤트를 발생시켜 연출을 트리거합니다.
-- **`UpgradeSystem.ts`**: 업그레이드 파사드. 내부 상태/선택/설명/카드 프리뷰 모델 생성을 분리 모듈로 위임합니다. 저주 업그레이드(`isCurse`) 쿼리 메서드 제공: `getGlassCannonDamageMultiplier()`, `isHealDisabled()`, `getBerserkerMissingHpDamagePercent()`, `getVolatilityCritMultiplier()`, `getVolatilityNonCritPenalty()`, `getGlobalDamageMultiplier()`.
-  - `upgrades/UpgradeStateStore.ts`: 스택 상태 저장
-  - `upgrades/UpgradeRarityRoller.ts`: 희귀도 가중치 기반 선택
-  - `upgrades/UpgradeDescriptionFormatter.ts`: 로케일 템플릿 기반 설명 문자열 생성
-  - `upgrades/UpgradePreviewModelBuilder.ts`: `previewDisplay` 스키마 기반 카드 프리뷰 모델(`현재 -> 다음`, 델타/직접+간접 수치) 생성
 - **`HealthSystem.ts`**: 플레이어 HP 관리. 데미지 수신 시 `HP_CHANGED` 이벤트를 발행하며, 현재 HP는 `GameScene -> CursorRenderer` 경로로 커서 통합형 링에 반영됩니다. HP가 0이 되면 `GAME_OVER` 발생. `adjustMaxHp(delta)` — 저주(글래스캐논) HP 패널티 적용. `isHealDisabled()` — 광전사 저주 활성 시 헬스팩 획득 차단.
-- **`MonsterSystem.ts`**: 보스 몬스터 HP/사망 상태를 `bossId`별 `Map`으로 관리합니다. 웨이브 시작 시 `bossTotalHp`를 가중치(`hpWeight`) 기반으로 분배하고, `MONSTER_HP_CHANGED`/`MONSTER_DIED`를 `bossId` 스냅샷 payload로 발행합니다. `destroy()` 메서드로 EventBus 리스너 해제.
-- **`OrbSystem.ts`**: `EntitySystem` 구현. 플레이어 주변을 회전하는 보호 오브(Orb)의 로직 처리. World query로 접시(`C_DishTag`)와 폭탄(`C_BombProps`, 웨이브+낙하 통합) 충돌을 별도 쿼리로 판정하며, 업그레이드 레벨에 따른 개수/속도/데미지 계산 및 자석(Magnet) 업그레이드와의 시너지(크기 증가)를 관리합니다. 또한 오브가 폭탄을 제거하면 짧은 오버클럭 버프를 발동해 회전 속도를 일시적으로 가속하며, 버프는 스택/지속시간 데이터(`overclockDurationMs`, `overclockSpeedMultiplier`, `overclockMaxStacks`)로 제어됩니다.
-- **`BlackHoleSystem.ts`**: `EntitySystem` 구현. 블랙홀 어빌리티 로직 처리. World query로 접시(`C_DishTag`)와 폭탄(`C_BombProps`, 웨이브+낙하 통합)을 별도 쿼리로 조회하며, 레벨 데이터(`spawnInterval`, `spawnCount`, `radius`, `force`, `damageInterval`, `damage`, `bombConsumeRadiusRatio`, `consumeRadiusGrowthRatio`, `consumeRadiusGrowthFlat`, `consumeDamageGrowth`) 기반으로 주기적 랜덤 블랙홀을 생성/교체하고, 접시·폭탄 흡인, 중심 반경 진입 폭탄의 `byAbility` 제거, 접시/보스 피해 틱을 적용합니다. 각 블랙홀은 폭탄을 흡수하거나 블랙홀 틱 피해로 접시를 처치하면 개별적으로 반경/틱 피해가 증가하며, 다음 스폰 교체 시 기본 수치로 초기화됩니다.
 - **`PlayerCursorInputController.ts`**: `GameScene` 전용 입력 컨트롤러. 디지털 키 입력을 축(axis)으로 변환하고, 키다운 시 축 가속(0→1), 포인터 최신 입력 우선 유예, 입력 리셋/리스너 해제를 단일 책임으로 관리합니다.
-- **`GaugeSystem.ts`**: 콤보 수치에 따라 공격 게이지를 충전합니다. 게이지가 100%가 되면 `PLAYER_ATTACK` 이벤트를 발생시킵니다.
-- **`ScoreSystem.ts`**: 접시 파괴 시 점수 계산 및 콤보 배율 적용.
-- **`SoundSystem.ts`**: Phaser Sound API 및 Web Audio API 기반 사운드 시스템. 오디오 파일 재생을 우선하며, 부재 시 코드로 사운드를 합성(Fallback)합니다. 마스터 볼륨 제어, 일시정지 상태 복구 지원.
-- **`FeedbackSystem.ts`**: 시각적/청각적 피드백을 조율. `ParticleManager`, `ScreenShake`, `DamageText`를 통합 제어하여 타격감을 생성합니다. 보스 아머 파괴 및 플레이어 필살기 연출을 총괄합니다.
-- **`HealthPackSystem.ts`**: `EntitySystem` 구현. World query(`C_HealthPack`, `C_Transform`)로 힐팩 엔티티를 관리합니다. 기본 확률과 업그레이드 보너스를 기반으로 힐팩을 스폰하며, Phaser Container를 직접 생성하고 World에 컴포넌트로 등록합니다.
-- **`FallingBombSystem.ts`**: `EntitySystem` 구현. World query(`C_FallingBomb`, `C_Transform`)로 낙하 폭탄 엔티티를 관리합니다. 특정 웨이브(`minWave`) 이후부터 화면 위에서 아래로 떨어지는 낙하 폭탄을 확률 기반으로 스폰합니다. 커서 접촉 시 데미지를 주며, 금구슬(`OrbSystem`)와 블랙홀(`BlackHoleSystem`)에 의해 제거될 수 있습니다. 통합 이벤트(`BOMB_DESTROYED`/`BOMB_MISSED`)를 발행합니다.
+- **`upgrades/UpgradeStateStore.ts`**: 업그레이드 스택 상태 저장 (범용 알고리즘, 코어에 잔류).
+- **`upgrades/UpgradeRarityRoller.ts`**: 희귀도 가중치 기반 선택 (범용 알고리즘, 코어에 잔류).
 
 ### 2.5 MOD 인프라
 
@@ -98,14 +80,13 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
   - `EntityStatusSystem` (`core:entity_status`): SEM → freeze/slow 캐시 파생
   - `EntityTimingSystem` (`core:entity_timing`): effectiveDelta, 시간 누적, lifetime 만료
   - `EntityMovementSystem` (`core:entity_movement`): 이동 전략 실행 + 보스 오프셋 / wobble
+  - `EntityVisualSystem` (`core:entity_visual`): pull/hitFlash/blink/dangerVibration
+  - `StatusEffectTickSystem` (`core:status_effect_tick`): StatusEffectManager.tick()
+- **플러그인 colocate 시스템들** (`src/plugins/builtin/systems/`): 플러그인 구체 렌더러/엔티티를 직접 참조하거나 콘텐츠 서비스에 의존하는 시스템. SystemPlugin과 같은 디렉토리에 colocate.
   - `MagnetSystem` (`core:magnet`): 자석 어빌리티 접시 흡인 로직 (World query 기반)
   - `CursorAttackSystem` (`core:cursor_attack`): 커서 DPS/접촉/폭발 상호작용 (World query 기반)
-  - `EntityVisualSystem` (`core:entity_visual`): pull/hitFlash/blink/dangerVibration
-- **게임 레벨 래퍼 시스템들** (`src/systems/entity-systems/`): 기존 게임 레벨 로직을 EntitySystem 인터페이스로 감싸 파이프라인에 통합.
   - `WaveTickSystem` (`core:wave`): WaveSystem.update() + currentWave 동기화
   - `ComboTickSystem` (`core:combo`): ComboSystem.setWave() + update()
-  - `StatusEffectTickSystem` (`core:status_effect_tick`): StatusEffectManager.tick()
-- **플러그인 colocate 시스템들** (`src/plugins/builtin/systems/`): 플러그인 구체 렌더러/엔티티를 직접 참조하는 시스템. SystemPlugin과 같은 디렉토리에 colocate.
   - `BossCoordinatorSystem` (`core:boss_coordinator`): BossCombatCoordinator.update() 위임
   - `InitialEntitySpawnSystem` (`core:initial_spawn`): data-driven 초기 엔티티 스폰. `game-config.json`의 `initialEntities` 배열 순서대로 `EntityTypePlugin.spawn()` 호출. `start()`만 사용, `tick()`은 no-op.
   - **`PlayerTickSystem` (`core:player`)**: Player entity의 위치 보간(smoothing), 커서 트레일, 커서 렌더링 처리. World store에서 읽고 CursorRenderer/CursorTrail에 위임. `renderOnly(delta)` 메서드로 pause 시 visual만 실행.
@@ -119,7 +100,7 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
 - **`EntitySystemPipeline.ts`** (`src/systems/`): data-driven 엔티티 시스템 실행 파이프라인. `game-config.json`의 `entityPipeline` 배열이 실행 순서의 SSOT (19개 시스템). `register(system)`, `unregister(id)`, `setEnabled(id, enabled)`, `run(delta)`. config 순서대로 배치 → config에 없는 등록 시스템은 끝에 추가. `getMissingSystems()`, `getUnmappedSystems()`, `getRegisteredIds()` 진단 메서드 제공.
   - GameScene 호출 순서: `syncWorldContext()` → `entitySystemPipeline.run(delta)` (19개 시스템 순차, 모든 tick 로직 포함)
   - 파이프라인 순서: initial_spawn → wave → combo → status_effect_tick → entity_status → entity_timing → player → entity_movement → boss_reaction → boss_coordinator → magnet → cursor_attack → black_hole → orb → falling_bomb → health_pack → entity_visual → entity_render → mod_tick
-- **`builtin/systems/GameLevelSystemsPlugin.ts`**: ComboTickSystem + StatusEffectTickSystem을 파이프라인에 등록하는 SystemPlugin.
+- **`builtin/systems/GameLevelSystemsPlugin.ts`**: ComboTickSystem(colocate) + StatusEffectTickSystem을 파이프라인에 등록하는 SystemPlugin.
 - **`Entity.ts` 연동**: 경량 Phaser wrapper (~182줄). `deactivate()` 시 `StatusEffectManager.clearEntity()` 및 `World.destroyEntity()` 자동 호출로 풀 반환 시 잔류 효과/컴포넌트 방지. `spawn()` 시 `EntitySpawnInitializer`를 통해 World 컴포넌트를 초기화. freeze/slow는 StatusEffectManager로 위임. 모든 tick 로직은 외부 ECS 시스템이 World 스토어를 직접 읽어 처리.
 
 ### 2.7 ECS World & 컴포넌트 (Phase 4~5)
@@ -157,13 +138,29 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
 - **`builtin/abilities/`**: 내장 어빌리티 플러그인 (CursorSize, CriticalChance, Missile, HealthPack, Magnet, ElectricShock, Orb, BlackHole) 및 저주 업그레이드 (GlassCannon, Berserker, Volatility). `ABILITY_FACTORIES` factory map + `registerBuiltinAbilities(ids)` 패턴으로 `game-config.json`의 `abilities` 배열 기반 동적 등록. 저주 업그레이드는 `isCurse: true` 플래그로 구분되며 긍정/부정 효과를 동시에 제공합니다.
 - **`builtin/entities/`**: 내장 엔티티 타입 플러그인 (PlayerEntity, BasicDish, BombEntity, StandardBoss). `ENTITY_TYPE_FACTORIES` factory map + `registerBuiltinEntityTypes(ids)` 패턴으로 `game-config.json`의 `entityTypes` 배열 기반 동적 등록. PlayerEntity는 `singleton` 카테고리로 풀링 없이 단일 인스턴스만 존재. **엔티티 전용 렌더러도 colocate**: `BossRenderer`, `BossShatterEffect`, `LaserRenderer`, `MenuBossRenderer`, `DishRenderer`, `CursorRenderer`, `CursorTrail`.
 - **`builtin/systems/`**: 플러그인 구체 구현(렌더러/엔티티)에 직접 의존하는 EntitySystem 구현들을 SystemPlugin과 함께 colocate. 코어(`src/systems/`)가 플러그인 구체 타입을 모르는 의존성 역전 원칙을 유지.
-- **`builtin/services/`**: 보스/디쉬 콘텐츠 서비스. 코어가 보스/디쉬 구체 지식을 갖지 않도록 플러그인 레이어에 위치.
+- **`builtin/services/`**: 콘텐츠 레벨 서비스 전체가 위치. 코어가 콘텐츠 구체 지식을 갖지 않도록 플러그인 레이어에 배치.
+  - **`WaveSystem.ts`**: 웨이브 오케스트레이터. 내부 계산은 `wave/*` 모듈에 위임.
+    - `wave/WaveConfigResolver.ts`: 웨이브/무한/피버 구성 계산
+    - `wave/WavePhaseController.ts`: waiting/countdown/spawning 상태와 카운트다운 이벤트 틱
+    - `wave/WaveSpawnPlanner.ts`: 접시 타입 롤 + 스폰 위치 제약 검증(보스/접시 거리)
+  - **`waveBossConfig.ts`**: 웨이브별 보스 구성 해석 유틸리티. `bossTotalHp`/`hpWeight` 분배, 무한 웨이브 보스 수/총 HP 스케일링.
+  - **`ComboSystem.ts`**: 콤보 증가, 타임아웃 처리, 마일스톤 관리. `COMBO_MILESTONE` 이벤트 발행.
+  - **`UpgradeSystem.ts`**: 업그레이드 파사드. 저주 업그레이드 쿼리 메서드 제공.
+    - `upgrades/UpgradeDescriptionFormatter.ts`: 로케일 템플릿 기반 설명 문자열 생성
+    - `upgrades/UpgradePreviewModelBuilder.ts`: 카드 프리뷰 모델 생성
+  - **`MonsterSystem.ts`**: 보스 몬스터 HP/사망 상태를 `bossId`별 `Map`으로 관리. `MONSTER_HP_CHANGED`/`MONSTER_DIED` 발행.
+  - **`GaugeSystem.ts`**: 콤보 수치에 따라 공격 게이지를 충전. 게이지 100%시 `PLAYER_ATTACK` 이벤트 발생.
+  - **`ScoreSystem.ts`**: 접시 파괴 시 점수 계산 및 콤보 배율 적용.
+  - **`SoundSystem.ts`**: Phaser Sound API 및 Web Audio API 기반 사운드 시스템. 오디오 재생 우선, 부재 시 합성.
+  - **`FeedbackSystem.ts`**: 시각적/청각적 피드백 조율. `ParticleManager`, `ScreenShake`, `DamageText` 통합 제어.
+  - **`EntityDamageService.ts`**: 엔티티 데미지 처리/해석 서비스.
+  - **`DishDamageResolver.ts`**, **`DishEventPayloadFactory.ts`**: 접시 데미지 로직 및 이벤트 payload 생성.
   - **`BossCombatCoordinator.ts`**: 멀티 보스 동기화, 보스 스폰 배치, 레이저 스케줄/취소/충돌, 보스 접촉 데미지, 다중 공격 스케줄링, 보스 스냅샷 제공.
     - `boss/BossRosterSync.ts`, `boss/BossLaserController.ts`, `boss/BossContactDamageController.ts`, `boss/BossAttackScheduler.ts`
     - `boss/BossBulletSpreadController.ts`, `boss/BossShockwaveController.ts`, `boss/BossDangerZoneController.ts`
   - **`DishLifecycleController.ts`**: 접시 이벤트 처리 및 스폰 전담. `dish/DishSpawnService.ts`, `dish/DishResolutionService.ts`.
   - **`PlayerAttackController.ts`**: 게이지 공격(차지/순차 미사일/재타겟), 미사일 경로 접시 제거.
-  - **`ContentEventBinder.ts`**: 콘텐츠 이벤트 라우팅 허브. `DISH_DESTROYED`/`DISH_DAMAGED`/`DISH_MISSED`/`BOMB_DESTROYED`/`BOMB_MISSED`/`PLAYER_ATTACK`/`WAVE_STARTED`/`WAVE_TRANSITION` 이벤트를 BCC/DLC/PAC로 라우팅. 코어의 `GameSceneEventBinder`에서 콘텐츠 관련 바인딩을 분리한 플러그인 레이어 이벤트 허브.
+  - **`ContentEventBinder.ts`**: 콘텐츠 이벤트 라우팅 허브. DISH/BOMB/PLAYER_ATTACK/WAVE_STARTED/WAVE_TRANSITION + COMBO_MILESTONE/MONSTER_DIED/HEALTH_PACK(UPGRADED/PASSING/COLLECTED)/CURSE_HP_PENALTY/HP_CHANGED(피드백)/BLACK_HOLE_CONSUMED 이벤트를 콘텐츠 서비스(BCC/DLC/PAC/FeedbackSystem/MonsterSystem/WaveSystem 등)로 라우팅. 코어의 `GameSceneEventBinder`에서 콘텐츠 관련 바인딩을 분리한 플러그인 레이어 이벤트 허브.
   - **`ContentContracts.ts`**: 콘텐츠 타입 정의 (`BossTargetSnapshot`, `BossRadiusSnapshot`, `BossVisibilitySnapshot`, `DishDestroyedEventPayload`, `BombDestroyedEventPayload` 등).
 - **`builtin/abilities/`** (렌더러 포함): 내장 어빌리티 플러그인과 함께 **어빌리티 전용 렌더러도 colocate**: `OrbRenderer`, `BlackHoleRenderer`, `HealthPackRenderer`, `PlayerAttackRenderer`.
 - **`AbilityManager.ts`** (`src/systems/`): 어빌리티 플러그인의 init/update/clear/destroy 라이프사이클 통합 관리.
@@ -258,7 +255,7 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
 |                   | `DISH_MISSED`           | 접시가 놓쳤을 때 (수명 만료)   | `Dish`            | `GameScene`                            |
 | **콤보**          | `COMBO_INCREASED`       | 콤보 증가 시                   | `ComboSystem`     | —                                      |
 |                   | `COMBO_RESET`           | 콤보 리셋 시                   | `ComboSystem`     | —                                      |
-|                   | `COMBO_MILESTONE`       | 특정 콤보 수 도달 시           | `ComboSystem`     | `GameScene`                            |
+|                   | `COMBO_MILESTONE`       | 특정 콤보 수 도달 시           | `ComboSystem`     | `ContentEventBinder`                   |
 | **웨이브**        | `WAVE_STARTED`          | 웨이브 정식 시작 시            | `WaveSystem`      | `GameScene`, `MonsterSystem`, `GaugeSystem` |
 |                   | `WAVE_COMPLETED`        | 모든 접시 처리 시              | `WaveSystem`      | `GameScene`                            |
 |                   | `WAVE_COUNTDOWN_START`  | 카운트다운 시작 시             | `WaveSystem`      | —                                      |
@@ -266,21 +263,21 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
 |                   | `WAVE_READY`            | 카운트다운 완료, 웨이브 준비됨 | `WaveSystem`      | `GameScene`                            |
 | **업그레이드**    | `UPGRADE_SELECTED`      | 업그레이드 선택 시             | `InGameUpgradeUI` | `GameScene`                            |
 | **점수**          | `SCORE_CHANGED`         | 점수 갱신 시                   | `ScoreSystem`     | —                                      |
-| **플레이어 상태** | `HP_CHANGED`            | 데미지/회복 발생 시            | `HealthSystem`    | `HealthPackSystem`, `GameScene`        |
+| **플레이어 상태** | `HP_CHANGED`            | 데미지/회복 발생 시            | `HealthSystem`    | `GSEB`(코어UI), `ContentEventBinder`(피드백) |
 |                   | `GAME_OVER`             | HP가 0이 될 때                 | `HealthSystem`    | `GameScene`                            |
-|                   | `HEALTH_PACK_UPGRADED`  | 힐팩 업그레이드 적용 시        | `UpgradeSystem`   | `GameScene` (최대 HP 증가 로직)        |
+|                   | `HEALTH_PACK_UPGRADED`  | 힐팩 업그레이드 적용 시        | `UpgradeSystem`   | `ContentEventBinder` (최대 HP 증가)    |
 | **힐팩**          | `HEALTH_PACK_SPAWNED`   | 힐팩 스폰 시                   | `HealthPack`      | —                                      |
-|                   | `HEALTH_PACK_PASSING`   | 힐팩 상단 이탈 직전            | `HealthPack`      | `GameScene` (피드백 텍스트)            |
-|                   | `HEALTH_PACK_COLLECTED` | 힐팩 획득 시                   | `HealthPack`      | `HealthPackSystem`, `GameScene`        |
+|                   | `HEALTH_PACK_PASSING`   | 힐팩 상단 이탈 직전            | `HealthPack`      | `ContentEventBinder` (피드백 텍스트)   |
+|                   | `HEALTH_PACK_COLLECTED` | 힐팩 획득 시                   | `HealthPack`      | `HealthPackSystem`, `ContentEventBinder` |
 |                   | `HEALTH_PACK_MISSED`    | 힐팩 놓쳤을 때                 | `HealthPack`      | `HealthPackSystem`                     |
 | **폭탄 (통합)**   | `BOMB_DESTROYED`        | 웨이브/낙하 폭탄 제거 시       | `EntityDamageService`, `FallingBombSystem` | `ContentEventBinder`          |
 |                   | `BOMB_MISSED`           | 웨이브/낙하 폭탄 시간 초과 시  | `EntityDamageService`, `FallingBombSystem` | `ContentEventBinder`          |
 | **낙하 폭탄**     | `FALLING_BOMB_SPAWNED`  | 낙하 폭탄 스폰 시             | `FallingBomb`     | —                                      |
 | **보스 & 게이지** | `MONSTER_HP_CHANGED`    | `bossId`별 보스 HP 변화 시     | `MonsterSystem`   | `Boss`, `GameScene`                    |
-|                   | `MONSTER_DIED`          | `bossId`별 보스 사망 시        | `MonsterSystem`   | `Boss`, `GameScene`                    |
+|                   | `MONSTER_DIED`          | `bossId`별 보스 사망 시        | `MonsterSystem`   | `Boss`, `ContentEventBinder`           |
 |                   | `GAUGE_UPDATED`         | 게이지 수치 변경 시            | `GaugeSystem`     | `GameScene`                            |
 |                   | `PLAYER_ATTACK`         | 게이지 완충 후 공격 시         | `GaugeSystem`     | `GameScene`                            |
-| **블랙홀**        | `BLACK_HOLE_CONSUMED`   | 블랙홀이 폭탄/접시 흡수 시     | `BlackHoleSystem` | `GameScene` (피드백 텍스트)            |
+| **블랙홀**        | `BLACK_HOLE_CONSUMED`   | 블랙홀이 폭탄/접시 흡수 시     | `BlackHoleSystem` | `ContentEventBinder` (피드백 텍스트)   |
 | **저주**          | `CURSE_HP_PENALTY`      | 글래스캐논 업그레이드 적용 시  | `UpgradeSystem`   | `ContentEventBinder` (maxHP 감소)    |
 
 ---

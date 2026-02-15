@@ -1,11 +1,11 @@
-import { Data } from '../../data/DataManager';
+import { Data } from '../../../../data/DataManager';
 import type {
   SystemUpgradeData,
   SystemUpgradeLevelData,
   UpgradePreviewCardModel,
   UpgradePreviewRowModel,
   UpgradePreviewStatId,
-} from '../../data/types/upgrades';
+} from '../../../../data/types/upgrades';
 
 interface UpgradePreviewModelBuilderDeps {
   getUpgradeStack: (upgradeId: string) => number;

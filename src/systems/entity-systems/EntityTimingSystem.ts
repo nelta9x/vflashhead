@@ -1,6 +1,6 @@
 import type { EntitySystem } from './EntitySystem';
 import type { World } from '../../world';
-import type { EntityDamageService } from '../EntityDamageService';
+import type { EntityDamageService } from '../../plugins/builtin/services/EntityDamageService';
 
 export class EntityTimingSystem implements EntitySystem {
   readonly id = 'core:entity_timing';

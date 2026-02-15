@@ -1,5 +1,5 @@
-import { WAVE_TRANSITION } from '../../data/constants';
-import { EventBus, GameEvents } from '../../utils/EventBus';
+import { WAVE_TRANSITION } from '../../../../data/constants';
+import { EventBus, GameEvents } from '../../../../utils/EventBus';
 
 export type WavePhase = 'waiting' | 'countdown' | 'spawning';
 

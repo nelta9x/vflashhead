@@ -1,5 +1,5 @@
-import { Data } from '../../data/DataManager';
-import type { DishTypeWeight, WaveBossConfig, WaveLaserConfig } from '../../data/types/waves';
+import { Data } from '../../../../data/DataManager';
+import type { DishTypeWeight, WaveBossConfig, WaveLaserConfig } from '../../../../data/types/waves';
 import { resolveWaveBossConfig } from '../waveBossConfig';
 
 export interface WaveRuntimeConfig {

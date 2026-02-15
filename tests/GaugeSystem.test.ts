@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EventBus, GameEvents } from '../src/utils/EventBus';
-import { GaugeSystem } from '../src/systems/GaugeSystem';
-import { ComboSystem } from '../src/systems/ComboSystem';
+import { GaugeSystem } from '../src/plugins/builtin/services/GaugeSystem';
+import { ComboSystem } from '../src/plugins/builtin/services/ComboSystem';
 
 describe('GaugeSystem', () => {
   let gaugeSystem: GaugeSystem;

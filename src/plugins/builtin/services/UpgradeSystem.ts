@@ -1,4 +1,4 @@
-import { Data } from '../data/DataManager';
+import { Data } from '../../../data/DataManager';
 import type {
   BerserkerLevelData,
   BlackHoleLevelData,
@@ -14,13 +14,13 @@ import type {
   UpgradePreviewCardModel,
   SystemUpgradeData,
   VolatilityLevelData,
-} from '../data/types/upgrades';
-import type { UpgradeSystemCore } from '../plugins/types';
-import { EventBus, GameEvents } from '../utils/EventBus';
+} from '../../../data/types/upgrades';
+import type { UpgradeSystemCore } from '../../types';
+import { EventBus, GameEvents } from '../../../utils/EventBus';
 import { UpgradeDescriptionFormatter } from './upgrades/UpgradeDescriptionFormatter';
 import { UpgradePreviewModelBuilder } from './upgrades/UpgradePreviewModelBuilder';
-import { UpgradeRarityRoller } from './upgrades/UpgradeRarityRoller';
-import { UpgradeStateStore } from './upgrades/UpgradeStateStore';
+import { UpgradeRarityRoller } from '../../../systems/upgrades/UpgradeRarityRoller';
+import { UpgradeStateStore } from '../../../systems/upgrades/UpgradeStateStore';
 
 export interface Upgrade {
   id: string;

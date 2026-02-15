@@ -1,14 +1,14 @@
 import Phaser from 'phaser';
-import { MIN_BOSS_DISTANCE, SPAWN_AREA } from '../data/constants';
-import { Data } from '../data/DataManager';
-import { WaveBossConfig } from '../data/types/waves';
-import { EventBus, GameEvents } from '../utils/EventBus';
-import { ObjectPool } from '../utils/ObjectPool';
-import { Entity } from '../entities/Entity';
+import { MIN_BOSS_DISTANCE, SPAWN_AREA } from '../../../data/constants';
+import { Data } from '../../../data/DataManager';
+import { WaveBossConfig } from '../../../data/types/waves';
+import { EventBus, GameEvents } from '../../../utils/EventBus';
+import { ObjectPool } from '../../../utils/ObjectPool';
+import { Entity } from '../../../entities/Entity';
 import { WaveConfigResolver, WaveRuntimeConfig } from './wave/WaveConfigResolver';
 import { WavePhase, WavePhaseController } from './wave/WavePhaseController';
 import { WaveSpawnPlanner } from './wave/WaveSpawnPlanner';
-import type { DishSpawnDelegate } from '../scenes/game/GameSceneContracts';
+import type { DishSpawnDelegate } from '../../../scenes/game/GameSceneContracts';
 
 export class WaveSystem {
   private readonly dishSpawnDelegate: DishSpawnDelegate;

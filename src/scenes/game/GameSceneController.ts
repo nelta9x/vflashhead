@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../../data/constants';
 import { Data } from '../../data/DataManager';
-import { ComboSystem } from '../../systems/ComboSystem';
+import { ComboSystem } from '../../plugins/builtin/services/ComboSystem';
 import { PlayerCursorInputController } from '../../systems/PlayerCursorInputController';
-import { WaveSystem } from '../../systems/WaveSystem';
+import { WaveSystem } from '../../plugins/builtin/services/WaveSystem';
 import { HUD } from '../../ui/HUD';
 import { InGameUpgradeUI } from '../../ui/InGameUpgradeUI';
 import { WaveCountdownUI } from '../../ui/WaveCountdownUI';

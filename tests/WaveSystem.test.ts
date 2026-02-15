@@ -15,7 +15,7 @@ vi.mock('phaser', () => {
   };
 });
 
-import { WaveSystem } from '../src/systems/WaveSystem';
+import { WaveSystem } from '../src/plugins/builtin/services/WaveSystem';
 import { GameEvents } from '../src/utils/EventBus';
 import Phaser from 'phaser'; // Import mocked Phaser to manipulate mocks
 import type { ObjectPool } from '../src/utils/ObjectPool';

@@ -1,8 +1,11 @@
-import { COLORS } from '../../../data/constants';
+import { COLORS, INITIAL_HP, GAME_WIDTH, GAME_HEIGHT } from '../../../data/constants';
 import { Data } from '../../../data/DataManager';
-import { ComboSystem } from '../../../systems/ComboSystem';
-import { FeedbackSystem } from '../../../systems/FeedbackSystem';
+import { ComboSystem } from './ComboSystem';
+import { FeedbackSystem } from './FeedbackSystem';
 import { HealthSystem } from '../../../systems/HealthSystem';
+import { MonsterSystem } from './MonsterSystem';
+import { UpgradeSystem } from './UpgradeSystem';
+import { WaveSystem } from './WaveSystem';
 import { DamageText } from '../../../ui/DamageText';
 import { World } from '../../../world';
 import { EventBus, GameEvents } from '../../../utils/EventBus';
@@ -82,6 +85,50 @@ export class ContentEventBinder {
     // Player attack
     this.on(GameEvents.PLAYER_ATTACK, () => {
       s.get(PlayerAttackController).performPlayerAttack();
+    });
+
+    // ── Content feedback events ──
+    this.on(GameEvents.COMBO_MILESTONE, (milestone: number) => {
+      s.get(FeedbackSystem).onComboMilestone(milestone);
+    });
+    this.on(GameEvents.MONSTER_DIED, () => {
+      if (s.get(MonsterSystem).areAllDead()) {
+        s.get(WaveSystem).forceCompleteWave();
+      }
+    });
+    this.on(GameEvents.HEALTH_PACK_UPGRADED, (payload: { hpBonus: number }) => {
+      const hs = s.get(HealthSystem);
+      hs.setMaxHp(INITIAL_HP + payload.hpBonus);
+      hs.heal(payload.hpBonus);
+    });
+    this.on(GameEvents.CURSE_HP_PENALTY, (payload: { hpPenalty: number }) => {
+      const hs = s.get(HealthSystem);
+      const newMax = Math.max(1, hs.getMaxHp() - payload.hpPenalty);
+      hs.setMaxHp(newMax);
+      if (hs.getHp() > newMax) {
+        hs.takeDamage(hs.getHp() - newMax);
+      }
+    });
+    this.on(GameEvents.HP_CHANGED, (data: { delta: number; isFullHeal?: boolean }) => {
+      if (data.isFullHeal) {
+        s.get(FeedbackSystem).onHealthPackCollected(GAME_WIDTH / 2, GAME_HEIGHT / 2);
+        return;
+      }
+      if (data.delta < 0) {
+        s.get(FeedbackSystem).onHpLost();
+      }
+    });
+    this.on(GameEvents.HEALTH_PACK_PASSING, (payload: { x: number; y: number }) => {
+      s.get(FeedbackSystem).onHealthPackPassing(payload.x, payload.y);
+    });
+    this.on(GameEvents.HEALTH_PACK_COLLECTED, (payload: { x: number; y: number }) => {
+      if (!s.get(UpgradeSystem).isHealDisabled()) {
+        s.get(HealthSystem).heal(1);
+      }
+      s.get(FeedbackSystem).onHealthPackCollected(payload.x, payload.y);
+    });
+    this.on(GameEvents.BLACK_HOLE_CONSUMED, (payload: { x: number; y: number }) => {
+      s.get(DamageText).showText(payload.x, payload.y - 40, Data.t('feedback.black_hole_consumed'), COLORS.CYAN);
     });
 
     this.isBound = true;

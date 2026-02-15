@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { UpgradeSystem } from '../src/systems/UpgradeSystem';
+import type { UpgradeSystem } from '../src/plugins/builtin/services/UpgradeSystem';
 
 // Mock Phaser
 vi.mock('phaser', () => {

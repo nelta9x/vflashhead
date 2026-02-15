@@ -1,14 +1,14 @@
-import { Data } from '../data/DataManager';
-import { EventBus, GameEvents } from '../utils/EventBus';
+import { Data } from '../../../data/DataManager';
+import { EventBus, GameEvents } from '../../../utils/EventBus';
 import { DishDamageResolver } from './DishDamageResolver';
 import type { CurseModifiers } from './DishDamageResolver';
 import { DishEventPayloadFactory } from './DishEventPayloadFactory';
-import { createEntitySnapshot } from '../entities/EntitySnapshot';
-import { deactivateEntity } from '../entities/EntityLifecycle';
-import type { EntityId } from '../world/EntityId';
-import type { Entity } from '../entities/Entity';
-import type { World } from '../world';
-import type { StatusEffectManager } from './StatusEffectManager';
+import { createEntitySnapshot } from '../../../entities/EntitySnapshot';
+import { deactivateEntity } from '../../../entities/EntityLifecycle';
+import type { EntityId } from '../../../world/EntityId';
+import type { Entity } from '../../../entities/Entity';
+import type { World } from '../../../world';
+import type { StatusEffectManager } from '../../../systems/StatusEffectManager';
 
 /**
  * EntityDamageService: 데미지 계산, 이벤트 발행, 상태효과를 Entity에서 분리.
@@ -371,7 +371,7 @@ export class EntityDamageService {
 
   private invokePluginOnDamaged(entityId: EntityId, damage: number, source: string): void {
     const plugin = this.getTypePlugin(entityId);
-    plugin?.onDamaged?.(entityId, this.world, damage, source as import('../plugins/types').DamageSource);
+    plugin?.onDamaged?.(entityId, this.world, damage, source as import('../../types').DamageSource);
   }
 
   private invokePluginOnDestroyed(entityId: EntityId): void {

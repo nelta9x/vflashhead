@@ -1,6 +1,6 @@
-import type { WaveSystem } from '../WaveSystem';
-import type { World } from '../../world';
-import type { EntitySystem } from './EntitySystem';
+import type { WaveSystem } from '../services/WaveSystem';
+import type { World } from '../../../world';
+import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 
 export class WaveTickSystem implements EntitySystem {
   readonly id = 'core:wave';

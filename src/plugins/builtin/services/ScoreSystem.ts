@@ -1,4 +1,4 @@
-import { EventBus, GameEvents } from '../utils/EventBus';
+import { EventBus, GameEvents } from '../../../utils/EventBus';
 
 export class ScoreSystem {
   private score: number = 0;

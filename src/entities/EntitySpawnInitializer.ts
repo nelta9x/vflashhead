@@ -242,10 +242,10 @@ function resolveMovementData(
 }
 
 /** Stored damage service getter — set during spawn via entity lookup */
-let _damageServiceGetter: (() => import('../systems/EntityDamageService').EntityDamageService | null) | null = null;
+let _damageServiceGetter: (() => import('../plugins/builtin/services/EntityDamageService').EntityDamageService | null) | null = null;
 
 /** Called once from initializeEntitySpawn to set the damage service accessor */
-export function setSpawnDamageServiceGetter(getter: () => import('../systems/EntityDamageService').EntityDamageService | null): void {
+export function setSpawnDamageServiceGetter(getter: () => import('../plugins/builtin/services/EntityDamageService').EntityDamageService | null): void {
   _damageServiceGetter = getter;
 }
 

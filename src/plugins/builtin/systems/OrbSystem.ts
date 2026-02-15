@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import type { UpgradeSystem } from '../../../systems/UpgradeSystem';
-import type { EntityDamageService } from '../../../systems/EntityDamageService';
+import type { UpgradeSystem } from '../services/UpgradeSystem';
+import type { EntityDamageService } from '../services/EntityDamageService';
 import type { OrbRenderer } from '../abilities/OrbRenderer';
 import type { SystemUpgradeData } from '../../../data/types';
 import type { BossRadiusSnapshot } from '../services/ContentContracts';

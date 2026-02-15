@@ -1,12 +1,12 @@
 import Phaser from 'phaser';
-import { MAGNET } from '../../data/constants';
-import { C_DishTag, C_DishProps, C_Transform } from '../../world';
-import type { EntitySystem } from './EntitySystem';
-import type { World } from '../../world';
-import type { EntityDamageService } from '../EntityDamageService';
-import type { UpgradeSystem } from '../UpgradeSystem';
-import type { ParticleManager } from '../../effects/ParticleManager';
-import type { GameEnvironment } from '../../scenes/game/GameEnvironment';
+import { MAGNET } from '../../../data/constants';
+import { C_DishTag, C_DishProps, C_Transform } from '../../../world';
+import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
+import type { World } from '../../../world';
+import type { EntityDamageService } from '../services/EntityDamageService';
+import type { UpgradeSystem } from '../services/UpgradeSystem';
+import type { ParticleManager } from '../../../effects/ParticleManager';
+import type { GameEnvironment } from '../../../scenes/game/GameEnvironment';
 
 interface MagnetSystemDeps {
   world: World;

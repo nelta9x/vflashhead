@@ -47,28 +47,13 @@ vi.mock('../src/utils/EventBus', () => ({
     }),
   },
   GameEvents: {
-    DISH_DESTROYED: 'dish:destroyed',
-    DISH_DAMAGED: 'dish:damaged',
-    COMBO_MILESTONE: 'combo:milestone',
-    WAVE_STARTED: 'wave:started',
-    WAVE_COMPLETED: 'wave:completed',
-    UPGRADE_SELECTED: 'upgrade:selected',
     WAVE_COUNTDOWN_TICK: 'wave:countdownTick',
     WAVE_READY: 'wave:ready',
-    GAME_OVER: 'game:over',
-    DISH_MISSED: 'dish:missed',
-    HEALTH_PACK_UPGRADED: 'healthPack:upgraded',
     HP_CHANGED: 'hp:changed',
-    HEALTH_PACK_PASSING: 'healthPack:passing',
-    HEALTH_PACK_COLLECTED: 'healthPack:collected',
-    MONSTER_HP_CHANGED: 'monster:hpChanged',
     GAUGE_UPDATED: 'gauge:updated',
-    PLAYER_ATTACK: 'player:attack',
-    MONSTER_DIED: 'monster:died',
-    BOMB_DESTROYED: 'bomb:destroyed',
-    BOMB_MISSED: 'bomb:missed',
-    BLACK_HOLE_CONSUMED: 'blackHole:consumed',
-    CURSE_HP_PENALTY: 'curse:hpPenalty',
+    WAVE_COMPLETED: 'wave:completed',
+    UPGRADE_SELECTED: 'upgrade:selected',
+    GAME_OVER: 'game:over',
   },
 }));
 
@@ -95,7 +80,6 @@ function createMockServiceRegistry() {
       if (!stubs.has(key)) {
         const keyName = typeof key === 'function' ? (key as { name?: string }).name : '';
         if (keyName === 'World') {
-          // World needs fallingBomb.has() to work
           stubs.set(key, {
             fallingBomb: { has: vi.fn(() => false) },
             playerRender: { get: vi.fn() },
@@ -182,10 +166,10 @@ describe('GameSceneEventBinder', () => {
 
     binder.bind();
 
-    // COMBO_MILESTONE triggers services.get(FeedbackSystem)
-    const comboListeners = listeners.get(GameEvents.COMBO_MILESTONE) ?? [];
-    expect(comboListeners.length).toBe(1);
-    comboListeners[0](10);
+    // HP_CHANGED triggers services.get(HealthSystem) or services.get(HUD)
+    const hpListeners = listeners.get(GameEvents.HP_CHANGED) ?? [];
+    expect(hpListeners.length).toBe(1);
+    hpListeners[0]({ hp: 2, maxHp: 3, delta: -1 });
     expect(services.get).toHaveBeenCalled();
   });
 

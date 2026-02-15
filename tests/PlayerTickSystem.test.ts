@@ -3,7 +3,7 @@ import { World } from '../src/world/World';
 import type { EntityId } from '../src/world/EntityId';
 import type { CursorRenderer } from '../src/plugins/builtin/entities/CursorRenderer';
 import type { CursorTrail } from '../src/plugins/builtin/entities/CursorTrail';
-import type { UpgradeSystem } from '../src/systems/UpgradeSystem';
+import type { UpgradeSystem } from '../src/plugins/builtin/services/UpgradeSystem';
 import type { HealthSystem } from '../src/systems/HealthSystem';
 
 function createMockCursorRenderer(): CursorRenderer {

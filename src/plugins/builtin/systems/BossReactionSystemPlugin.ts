@@ -1,5 +1,5 @@
 import { BossReactionSystem } from './BossReactionSystem';
-import { FeedbackSystem } from '../../../systems/FeedbackSystem';
+import { FeedbackSystem } from '../services/FeedbackSystem';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 import type { SystemPlugin, SystemPluginContext } from '../../types/SystemPlugin';
 

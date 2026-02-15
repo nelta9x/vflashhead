@@ -190,6 +190,7 @@ export class DamageText {
       duration: 400,
       ease: 'Back.easeOut',
       onComplete: () => {
+        if (!capturedText.scene) return;
         this.scene.tweens.add({
           targets: capturedText,
           y: capturedText.y + 20,
@@ -214,6 +215,7 @@ export class DamageText {
         duration: 400,
         ease: 'Back.easeOut',
         onComplete: () => {
+          if (!capturedComboText.scene) return;
           this.scene.tweens.add({
             targets: capturedComboText,
             alpha: 0,
@@ -235,6 +237,7 @@ export class DamageText {
   }
 
   private releaseComboText(text: Phaser.GameObjects.Text): void {
+    if (!text.scene) return;
     text.setVisible(false);
     this.activeComboTexts.delete(text);
   }
@@ -283,6 +286,7 @@ export class DamageText {
       duration: 150,
       ease: 'Back.easeOut',
       onComplete: () => {
+        if (!text!.scene) return;
         this.scene.tweens.add({
           targets: text,
           y: text!.y + 20, // 더 아래로 이동
@@ -414,6 +418,7 @@ export class DamageText {
       duration: duration,
       ease: 'Back.easeOut',
       onComplete: () => {
+        if (!text!.scene) return;
         this.scene.tweens.add({
           targets: text,
           y: text!.y + 30,
@@ -429,6 +434,7 @@ export class DamageText {
   }
 
   private releaseText(text: Phaser.GameObjects.Text): void {
+    if (!text.scene) return;
     this.scene.tweens.killTweensOf(text);
     text.setVisible(false);
     text.setRotation(0);

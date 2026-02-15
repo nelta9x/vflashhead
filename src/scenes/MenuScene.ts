@@ -193,5 +193,6 @@ export class MenuScene extends Phaser.Scene {
     this.gridRenderer?.destroy();
     this.cursorTrail?.destroy();
     this.cursorRenderer?.destroy();
+    this.particleManager?.destroy();
   }
 }

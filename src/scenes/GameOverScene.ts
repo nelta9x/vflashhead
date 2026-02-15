@@ -53,7 +53,10 @@ export class GameOverScene extends Phaser.Scene {
       zone.setOrigin(0);
       zone.setInteractive();
 
+      let transitioned = false;
       const returnToMenu = () => {
+        if (transitioned) return;
+        transitioned = true;
         this.cameras.main.fadeOut(500);
         this.cameras.main.once('camerafadeoutcomplete', () => {
           this.scene.start('MenuScene');

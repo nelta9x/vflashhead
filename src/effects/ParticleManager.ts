@@ -562,4 +562,11 @@ export class ParticleManager {
   ): void {
     this.bossShatter?.createBossGaugeShatter(x, y, innerRadius, outerRadius, bodyColor);
   }
+
+  destroy(): void {
+    for (const [, emitter] of this.emitters) {
+      emitter.destroy();
+    }
+    this.emitters.clear();
+  }
 }

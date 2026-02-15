@@ -52,14 +52,14 @@
 
 아래는 P2 항목을 실제 구현 작업으로 옮길 때의 체크리스트다.
 
-- [ ] P2-A 파이프라인 fail-fast 도입: `GameScene.initializeSystems()`에서 `getMissingSystems()`/`getUnmappedSystems()` 검사 추가
-- [ ] P2-A 실패 정책 확정: 누락/미매핑 발견 시 즉시 `throw` (환경별 정책 결정 반영)
-- [ ] P2-A 회귀 테스트 추가: 정상 config는 통과, 오타/누락 config는 초기화 실패 검증
-- [ ] P2-B `ModSystemContext.eventBus` 타입을 raw bus가 아닌 `ScopedEventBus`로 축소
-- [ ] P2-B `GameWrappersSystemPlugin` 주입 경로에서 scoped bus 사용으로 교체
-- [ ] P2-B unload 시 리스너 누수 방지 테스트 추가 (MOD unload 후 잔존 구독 0 확인)
-- [ ] P2 문서 동기화: `docs/CODEMAP.md`, `docs/PLUGIN_ARCHITECTURE.md`, `docs/LESSONS.md`
-- [ ] P2 검증 통과: `npm run lint`, `npm run test:run`, `npm run build`
+- [x] P2-A 파이프라인 fail-fast 도입: `GameScene.initializeSystems()`에서 `getMissingSystems()`/`getUnmappedSystems()` 검사 추가
+- [x] P2-A 실패 정책 확정: 누락/미매핑 발견 시 즉시 `throw` (환경별 정책 결정 반영)
+- [x] P2-A 회귀 테스트 추가: 정상 config는 통과, 오타/누락 config는 초기화 실패 검증
+- [x] P2-B `ModSystemContext.eventBus` 타입을 raw bus가 아닌 `ScopedEventBus`로 축소
+- [x] P2-B `GameWrappersSystemPlugin` 주입 경로에서 scoped bus 사용으로 교체
+- [x] P2-B unload 시 리스너 누수 방지 테스트 추가 (MOD unload 후 잔존 구독 0 확인)
+- [x] P2 문서 동기화: `docs/CODEMAP.md`, `docs/PLUGIN_ARCHITECTURE.md`, `docs/LESSONS.md`
+- [x] P2 검증 통과: `npm run lint`, `npm run test:run`, `npm run build`
 
 ## 1-3) P3 실행 체크리스트
 

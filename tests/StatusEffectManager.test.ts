@@ -272,6 +272,38 @@ describe('StatusEffectManager', () => {
       expect(minFactor).toBe(0.3);
     });
 
+    it('getMinEffectData로 배열 할당 없이 최소값을 구할 수 있어야 함', () => {
+      manager.applyEffect(ENTITY_1, createEffect({
+        id: 'slow-1',
+        type: 'slow',
+        duration: 1000,
+        data: { factor: 0.5 },
+      }));
+      manager.applyEffect(ENTITY_1, createEffect({
+        id: 'slow-2',
+        type: 'slow',
+        duration: 1000,
+        data: { factor: 0.3 },
+      }));
+
+      expect(manager.getMinEffectData(ENTITY_1, 'slow', 'factor', 1.0)).toBe(0.3);
+    });
+
+    it('getMinEffectData — 해당 타입 없으면 fallback 반환', () => {
+      expect(manager.getMinEffectData(ENTITY_1, 'slow', 'factor', 1.0)).toBe(1.0);
+    });
+
+    it('getMinEffectData — 키 누락 시 fallback 사용', () => {
+      manager.applyEffect(ENTITY_1, createEffect({
+        id: 'slow-1',
+        type: 'slow',
+        duration: 1000,
+        data: {},
+      }));
+
+      expect(manager.getMinEffectData(ENTITY_1, 'slow', 'factor', 1.0)).toBe(1.0);
+    });
+
     it('clearEntity로 freeze/slow 모두 제거되어야 함', () => {
       manager.applyEffect(ENTITY_1, createEffect({
         id: `${ENTITY_1}:freeze`,

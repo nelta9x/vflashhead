@@ -20,6 +20,7 @@ export class SceneInputAdapter {
   private readonly isGameOver: () => boolean;
   private readonly togglePause: () => void;
 
+  private tornDown = false;
   private pointerMoveHandler: ((pointer: Phaser.Input.Pointer) => void) | null = null;
   private pointerDownHandler: ((pointer: Phaser.Input.Pointer) => void) | null = null;
   private escapeKeyHandler: (() => void) | null = null;
@@ -72,6 +73,9 @@ export class SceneInputAdapter {
   }
 
   public teardown(): void {
+    if (this.tornDown) return;
+    this.tornDown = true;
+
     if (this.pointerMoveHandler) {
       this.scene.input.off('pointermove', this.pointerMoveHandler);
       this.pointerMoveHandler = null;
@@ -106,6 +110,7 @@ export class SceneInputAdapter {
 
     if (this.shutdownHandler) {
       this.scene.events.off(Phaser.Scenes.Events.SHUTDOWN, this.shutdownHandler, this);
+      this.scene.events.off(Phaser.Scenes.Events.DESTROY, this.shutdownHandler, this);
       this.shutdownHandler = null;
     }
   }
@@ -134,5 +139,6 @@ export class SceneInputAdapter {
     }
     this.scene.input.on(Phaser.Input.Events.GAME_OUT, this.gameOutHandler);
     this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdownHandler, this);
+    this.scene.events.once(Phaser.Scenes.Events.DESTROY, this.shutdownHandler, this);
   }
 }

@@ -83,6 +83,23 @@ export class StatusEffectManager {
     return list.filter((e) => e.type === type);
   }
 
+  getMinEffectData(entityId: EntityId, type: string, key: string, fallback: number): number {
+    const list = this.effects.get(entityId);
+    if (!list) return fallback;
+    let min = fallback;
+    let found = false;
+    for (const e of list) {
+      if (e.type === type) {
+        const val = (e.data[key] as number) ?? fallback;
+        if (!found || val < min) {
+          min = val;
+          found = true;
+        }
+      }
+    }
+    return min;
+  }
+
   hasEffect(entityId: EntityId, type: string): boolean {
     const list = this.effects.get(entityId);
     if (!list) return false;

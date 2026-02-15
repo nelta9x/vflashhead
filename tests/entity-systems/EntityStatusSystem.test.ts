@@ -6,6 +6,7 @@ function createMockSEM() {
   return {
     hasEffect: vi.fn().mockReturnValue(false),
     getEffectsByType: vi.fn().mockReturnValue([]),
+    getMinEffectData: vi.fn().mockReturnValue(1.0),
     applyEffect: vi.fn(),
     removeEffect: vi.fn(),
     clearEntity: vi.fn(),
@@ -34,7 +35,7 @@ describe('EntityStatusSystem', () => {
     const world = new World();
     const sem = createMockSEM();
     sem.hasEffect.mockImplementation((_id: number, type: string) => type === 'freeze');
-    sem.getEffectsByType.mockReturnValue([{ data: { factor: 0.5 } }]);
+    sem.getMinEffectData.mockReturnValue(0.5);
     const system = new EntityStatusSystem(world, sem as never);
 
     const e1 = world.createEntity();
@@ -78,7 +79,7 @@ describe('EntityStatusSystem', () => {
     const world = new World();
     const sem = createMockSEM();
     sem.hasEffect.mockReturnValue(true);
-    sem.getEffectsByType.mockReturnValue([{ data: { factor: 0.5 } }]);
+    sem.getMinEffectData.mockReturnValue(0.5);
     const system = new EntityStatusSystem(world, sem as never);
 
     const player = world.createEntity();

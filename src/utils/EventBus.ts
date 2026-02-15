@@ -68,7 +68,8 @@ export class EventBus {
     }
 
     if (toRemove.length > 0) {
-      const remaining = subscribers.filter((sub) => !toRemove.includes(sub));
+      const toRemoveSet = new Set(toRemove);
+      const remaining = subscribers.filter((sub) => !toRemoveSet.has(sub));
       if (remaining.length > 0) {
         this.events.set(event, remaining);
       } else {

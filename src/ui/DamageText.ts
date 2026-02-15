@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS_HEX, FONTS, DEPTHS } from '../data/constants';
+import { FONTS, DEPTHS } from '../data/constants';
 import { Data } from '../data/DataManager';
 
 type DamageType = 'normal' | 'critical';
@@ -98,22 +98,9 @@ export class DamageText {
     const typeConfig = config[type];
     const comboConfig = config.combo;
 
-    let text = this.pool.find((t) => !this.activeTexts.has(t));
+    const text = this.pool.find((t) => !this.activeTexts.has(t));
 
-    if (!text) {
-      const style = config.style;
-      text = this.scene.add.text(0, 0, '', {
-        fontFamily: FONTS.MAIN,
-        fontSize: `${typeConfig.fontSize}px`,
-        color: typeConfig.color,
-        stroke: '#000000',
-        strokeThickness: style?.strokeThickness || 3,
-        fontStyle: style?.fontStyle || 'normal',
-      });
-      text.setOrigin(0.5);
-      text.setDepth(DEPTHS.damageText);
-      this.pool.push(text);
-    }
+    if (!text) return;
 
     // 랜덤 크기 적용
     const randomScale = config.randomScale;
@@ -247,21 +234,9 @@ export class DamageText {
     const bossConfig = config.boss;
     
     // 풀에서 텍스트 가져오기
-    let text = this.pool.find((t) => !this.activeTexts.has(t));
+    const text = this.pool.find((t) => !this.activeTexts.has(t));
 
-    if (!text) {
-      text = this.scene.add.text(0, 0, '', {
-        fontFamily: FONTS.MAIN,
-        fontSize: `${bossConfig.fontSize}px`,
-        color: bossConfig.color,
-        stroke: '#000000',
-        strokeThickness: 6,
-        fontStyle: 'bold',
-      });
-      text.setOrigin(0.5);
-      text.setDepth(DEPTHS.bossDamageText);
-      this.pool.push(text);
-    }
+    if (!text) return;
 
     // 보스용 특별 스타일 설정
     text.setText(this.formatDamageForDisplay(damage));
@@ -318,22 +293,8 @@ export class DamageText {
   showShakingText(x: number, y: number, text: string, color: number): void {
     const hexColor = '#' + color.toString(16).padStart(6, '0');
     const config = Data.feedback.damageText;
-    const style = config.style;
-
-    let textObj = this.pool.find((t) => !this.activeTexts.has(t));
-    if (!textObj) {
-      textObj = this.scene.add.text(0, 0, '', {
-        fontFamily: FONTS.MAIN,
-        fontSize: `${config.normal.fontSize}px`,
-        color: hexColor,
-        stroke: '#000000',
-        strokeThickness: style?.strokeThickness || 3,
-        fontStyle: style?.fontStyle || 'normal',
-      });
-      textObj.setOrigin(0.5);
-      textObj.setDepth(DEPTHS.damageText);
-      this.pool.push(textObj);
-    }
+    const textObj = this.pool.find((t) => !this.activeTexts.has(t));
+    if (!textObj) return;
 
     const baseX = x;
     const baseY = y;
@@ -376,21 +337,9 @@ export class DamageText {
 
   private createDamageText(config: DamageTextConfig): void {
     // 풀에서 사용 가능한 텍스트 찾기
-    let text = this.pool.find((t) => !this.activeTexts.has(t));
+    const text = this.pool.find((t) => !this.activeTexts.has(t));
 
-    if (!text) {
-      // 풀이 가득 찼으면 새로 생성
-      text = this.scene.add.text(0, 0, '', {
-        fontFamily: FONTS.MAIN,
-        fontSize: '20px',
-        color: COLORS_HEX.WHITE,
-        stroke: '#000000',
-        strokeThickness: 3,
-      });
-      text.setOrigin(0.5);
-      text.setDepth(DEPTHS.damageText);
-      this.pool.push(text);
-    }
+    if (!text) return;
 
     // 텍스트 설정
     text.setText(config.text);

@@ -44,6 +44,9 @@ vi.mock('../src/data/DataManager', () => ({
           borderThickness: 1.6,
           lowHpPulseSpeed: 0.008,
           lowHpMinAlpha: 0.35
+        },
+        electricSpark: {
+          maxCount: 8
         }
       }
     },

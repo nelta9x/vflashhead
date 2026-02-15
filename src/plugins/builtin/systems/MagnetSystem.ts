@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { Data } from '../../../data/DataManager';
 import { MAGNET } from '../../../data/constants';
 import { C_DishTag, C_DishProps, C_Transform } from '../../../world';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
@@ -84,7 +85,7 @@ export class MagnetSystem implements EntitySystem {
         node.container.y = newY;
       }
 
-      if (Math.random() < 0.15) {
+      if (Math.random() < Data.gameConfig.magnet.particleSpawnChance) {
         this.particleManager.createMagnetPullEffect(newX, newY, cursor.x, cursor.y);
       }
     }

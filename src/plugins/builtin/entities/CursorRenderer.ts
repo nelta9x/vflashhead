@@ -186,7 +186,7 @@ export class CursorRenderer {
     time: number
   ): void {
     // 레벨에 따라 스파크 개수 조절
-    const sparkCount = 2 + level;
+    const sparkCount = Math.min(2 + level, Data.gameConfig.player.electricSpark.maxCount);
     const jitter = 5;
 
     // 시간에 따른 애니메이션 (50ms마다 변화하여 지지직거리는 느낌)

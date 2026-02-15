@@ -59,7 +59,8 @@ export class WaveSpawnPlanner {
   }
 
   private findValidSpawnPosition(minBossDistanceConfig: number): { x: number; y: number } | null {
-    const activeDishes = this.getDishPool().getActiveObjects();
+    const pool = this.getDishPool();
+    const activeDishes = pool.getActiveCount() > 0 ? pool.getActiveObjects() : null;
     const bosses = this.getBosses();
     const maxAttempts = 20;
     const maxY = this.getMaxSpawnY();
@@ -80,7 +81,7 @@ export class WaveSpawnPlanner {
         }
       }
 
-      if (isValid) {
+      if (isValid && activeDishes) {
         for (const dish of activeDishes) {
           const distance = Phaser.Math.Distance.Between(x, y, dish.x, dish.y);
           if (distance < MIN_DISH_DISTANCE) {

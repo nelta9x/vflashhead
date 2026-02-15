@@ -104,6 +104,29 @@ describe('ScopedEventBusWrapper', () => {
     });
   });
 
+  describe('once + off with original callback', () => {
+    it('once 등록 후 원본 콜백으로 off할 수 있어야 함', () => {
+      const cb = vi.fn();
+      wrapper.once('test', cb);
+      expect(wrapper.getSubscriptionCount()).toBe(1);
+
+      wrapper.off('test', cb);
+      expect(wrapper.getSubscriptionCount()).toBe(0);
+
+      wrapper.emit('test');
+      expect(cb).not.toHaveBeenCalled();
+    });
+
+    it('once 콜백이 실행된 후 off를 호출해도 안전해야 함', () => {
+      const cb = vi.fn();
+      wrapper.once('test', cb);
+      wrapper.emit('test');
+      expect(cb).toHaveBeenCalledTimes(1);
+
+      expect(() => wrapper.off('test', cb)).not.toThrow();
+    });
+  });
+
   describe('getSubscriptionCount', () => {
     it('초기 상태에서 0이어야 함', () => {
       expect(wrapper.getSubscriptionCount()).toBe(0);

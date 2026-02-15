@@ -80,6 +80,9 @@
     "cursorColor": "#f0f8ff",
     "cursorColorNumeric": 15792383,
     "cursorSpeed": 1123,
+    "electricSpark": {
+      "maxCount": 8
+    },
     "input": {
       "pointerPriorityMs": 120,
       "keyboardAxisRampUpMs": 130,
@@ -344,7 +347,8 @@
     "criticalMultiplier": 1.5
   },
   "magnet": {
-    "minPullDistance": 30
+    "minPullDistance": 30,
+    "particleSpawnChance": 0.08
   },
   "gameGrid": {
     "size": 60,

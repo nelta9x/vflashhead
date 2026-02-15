@@ -57,6 +57,7 @@ export class WaveCountdownUI {
     this.countdownText.setColor(Data.getColorHex(config.number.color));
     
     this.container.setVisible(true);
+    this.scene.tweens.killTweensOf(this.container);
 
     this.scene.tweens.add({
       targets: this.container,
@@ -68,6 +69,7 @@ export class WaveCountdownUI {
 
   hide(): void {
     if (!this.visible) return;
+    this.scene.tweens.killTweensOf(this.container);
 
     this.scene.tweens.add({
       targets: this.container,

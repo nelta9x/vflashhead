@@ -49,6 +49,9 @@ export interface PlayerConfig {
   cursorColor: string;
   cursorColorNumeric: number;
   cursorSpeed: number;
+  electricSpark: {
+    maxCount: number;
+  };
 }
 
 export interface UpgradeUIConfig {
@@ -1252,6 +1255,7 @@ export interface WeaponsConfig {
 // ========== 자기장 시스템 ==========
 export interface MagnetConfig {
   minPullDistance: number;
+  particleSpawnChance: number;
 }
 
 export interface ShatterEffectConfig {

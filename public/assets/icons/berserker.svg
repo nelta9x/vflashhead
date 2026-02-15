@@ -1,0 +1,13 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Skull: rage / missing-HP damage bonus -->
+  <!-- Skull dome -->
+  <path d="M16 34 C16 16 48 16 48 34 L48 40 L16 40 Z" fill="white"/>
+  <!-- Jaw -->
+  <path d="M20 40 L20 48 L24 44 L28 48 L32 44 L36 48 L40 44 L44 48 L44 40" fill="white"/>
+  <!-- Left eye -->
+  <ellipse cx="25" cy="30" rx="5" ry="6" fill="black"/>
+  <!-- Right eye -->
+  <ellipse cx="39" cy="30" rx="5" ry="6" fill="black"/>
+  <!-- Nose -->
+  <path d="M30 36 L32 39 L34 36" fill="black"/>
+</svg>

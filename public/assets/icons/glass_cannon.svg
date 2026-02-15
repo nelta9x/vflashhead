@@ -1,0 +1,11 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cracked shield: high damage, fragile -->
+  <!-- Shield outline -->
+  <path d="M32 6 L54 16 L54 34 C54 48 32 58 32 58 C32 58 10 48 10 34 L10 16 Z" fill="none" stroke="white" stroke-width="3"/>
+  <!-- Crack lines -->
+  <line x1="32" y1="14" x2="28" y2="28" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="28" y1="28" x2="22" y2="44" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="28" y1="28" x2="38" y2="36" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="38" y1="36" x2="42" y2="48" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <line x1="38" y1="36" x2="46" y2="30" stroke="white" stroke-width="2" stroke-linecap="round"/>
+</svg>

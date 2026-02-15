@@ -157,16 +157,18 @@ export class InGameUpgradeUI {
     // 아이콘 표시 (SVG 스프라이트 또는 텍스트 폴백)
     const iconY = -BOX_HEIGHT / 2 + (isCurse ? 95 : 80);
     const iconSize = 80;
+    const abilityId = Data.getAbilityIdByUpgradeId(upgrade.id);
+    const iconKey = Data.getAbilityIconKeyByUpgradeId(upgrade.id);
 
     // 텍스처가 존재하는지 확인
-    if (this.scene.textures.exists(upgrade.id)) {
-      const iconSprite = this.scene.add.image(0, iconY, upgrade.id);
+    if (this.scene.textures.exists(iconKey)) {
+      const iconSprite = this.scene.add.image(0, iconY, iconKey);
       iconSprite.setDisplaySize(iconSize, iconSize);
       iconSprite.setTint(borderColor); // 희귀도 색상 적용
       container.add(iconSprite);
     } else {
       // 텍스처가 없으면 텍스트 심볼 폴백
-      const iconSymbol = getUpgradeFallbackSymbol(upgrade.id);
+      const iconSymbol = getUpgradeFallbackSymbol(abilityId);
       const icon = this.scene.add
         .text(0, iconY, iconSymbol, {
           fontFamily: FONTS.MAIN,
@@ -180,7 +182,7 @@ export class InGameUpgradeUI {
     // 이름
     const textCfg = Data.gameConfig.textSettings;
     const name = this.scene.add
-      .text(0, -BOX_HEIGHT / 2 + 150, Data.t(`upgrade.${upgrade.id}.name`), {
+      .text(0, -BOX_HEIGHT / 2 + 150, Data.t(`upgrade.${abilityId}.name`), {
         fontFamily: FONTS.KOREAN,
         fontSize: `${textCfg.upgradeUI.nameSize}px`,
         fontStyle: 'normal',

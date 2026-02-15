@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { COLORS, GAME_WIDTH, GAME_HEIGHT, FONTS } from '../data/constants';
 import { SoundSystem } from '../plugins/builtin/services/SoundSystem';
 import { Data } from '../data/DataManager';
-import { resolveAbilityIconPreloadIds } from './boot/AbilityIconPreloadResolver';
+import { resolveAbilityIconPreloadDefinitions } from './boot/AbilityIconPreloadResolver';
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -70,25 +70,27 @@ export class BootScene extends Phaser.Scene {
   }
 
   private loadIconAssets(): void {
-    const gameConfigAbilityIds = Data.gameConfig.abilities;
+    const abilityDefinitions = Data.abilities.active;
     const upgradeIds = Data.upgrades.system.map((upgrade) => upgrade.id);
-    const iconIds = resolveAbilityIconPreloadIds(gameConfigAbilityIds, upgradeIds);
-    const resolvedSet = new Set(iconIds);
-    const undefinedAbilityIds = [...new Set(gameConfigAbilityIds.filter((id) => !resolvedSet.has(id)))]
-      .sort();
+    const { definitions, skippedAbilityIds } = resolveAbilityIconPreloadDefinitions(
+      abilityDefinitions,
+      upgradeIds
+    );
+    const queuedIconKeys = new Set<string>();
     const missingIconKeys = new Set<string>();
 
     this.load.on('loaderror', (file: unknown) => {
       const key = this.getLoaderFileKey(file);
       if (!key) return;
-      if (!resolvedSet.has(key)) return;
+      if (!queuedIconKeys.has(key)) return;
       missingIconKeys.add(key);
     });
 
     this.load.once('complete', () => {
-      if (undefinedAbilityIds.length > 0) {
+      if (skippedAbilityIds.length > 0) {
+        const skipped = [...new Set(skippedAbilityIds)].sort();
         console.warn(
-          `[BootScene] Skipped icon preload for undefined abilities: ${undefinedAbilityIds.join(', ')}`
+          `[BootScene] Skipped icon preload for abilities without valid upgrade mapping: ${skipped.join(', ')}`
         );
       }
 
@@ -101,8 +103,11 @@ export class BootScene extends Phaser.Scene {
       }
     });
 
-    for (const iconId of iconIds) {
-      this.load.svg(iconId, `assets/icons/${iconId}.svg`, { width: 64, height: 64 });
+    for (const definition of definitions) {
+      const { icon } = definition;
+      if (queuedIconKeys.has(icon.key)) continue;
+      queuedIconKeys.add(icon.key);
+      this.load.svg(icon.key, icon.path, { width: icon.width, height: icon.height });
     }
   }
 

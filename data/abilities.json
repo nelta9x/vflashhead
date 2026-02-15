@@ -1,0 +1,126 @@
+{
+  "version": 1,
+  "active": [
+    {
+      "id": "cursor_size",
+      "pluginId": "cursor_size",
+      "upgradeId": "cursor_size",
+      "icon": {
+        "key": "cursor_size",
+        "path": "assets/icons/cursor_size.svg",
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "id": "critical_chance",
+      "pluginId": "critical_chance",
+      "upgradeId": "critical_chance",
+      "icon": {
+        "key": "critical_chance",
+        "path": "assets/icons/critical_chance.svg",
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "id": "missile",
+      "pluginId": "missile",
+      "upgradeId": "missile",
+      "icon": {
+        "key": "missile",
+        "path": "assets/icons/missile.svg",
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "id": "health_pack",
+      "pluginId": "health_pack",
+      "upgradeId": "health_pack",
+      "icon": {
+        "key": "health_pack",
+        "path": "assets/icons/health_pack.svg",
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "id": "magnet",
+      "pluginId": "magnet",
+      "upgradeId": "magnet",
+      "icon": {
+        "key": "magnet",
+        "path": "assets/icons/magnet.svg",
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "id": "electric_shock",
+      "pluginId": "electric_shock",
+      "upgradeId": "electric_shock",
+      "icon": {
+        "key": "electric_shock",
+        "path": "assets/icons/electric_shock.svg",
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "id": "orbiting_orb",
+      "pluginId": "orbiting_orb",
+      "upgradeId": "orbiting_orb",
+      "icon": {
+        "key": "orbiting_orb",
+        "path": "assets/icons/orbiting_orb.svg",
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "id": "black_hole",
+      "pluginId": "black_hole",
+      "upgradeId": "black_hole",
+      "icon": {
+        "key": "black_hole",
+        "path": "assets/icons/black_hole.svg",
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "id": "glass_cannon",
+      "pluginId": "glass_cannon",
+      "upgradeId": "glass_cannon",
+      "icon": {
+        "key": "glass_cannon",
+        "path": "assets/icons/glass_cannon.svg",
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "id": "berserker",
+      "pluginId": "berserker",
+      "upgradeId": "berserker",
+      "icon": {
+        "key": "berserker",
+        "path": "assets/icons/berserker.svg",
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "id": "volatility",
+      "pluginId": "volatility",
+      "upgradeId": "volatility",
+      "icon": {
+        "key": "volatility",
+        "path": "assets/icons/volatility.svg",
+        "width": 64,
+        "height": 64
+      }
+    }
+  ]
+}

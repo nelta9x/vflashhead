@@ -1,4 +1,4 @@
-# HANDOFF - Extensibility Findings (P1~P3)
+# HANDOFF - Extensibility Findings (P1~P4)
 
 작성일: 2026-02-15  
 대상 프로젝트: `/Users/nelta/Projects/vibeshooter`
@@ -65,7 +65,7 @@
 
 아래는 P3 항목(반복 비용/문서 신뢰도)을 정리하기 위한 체크리스트다.
 
-- [x] P3-A BootScene 아이콘 프리로드를 data-driven으로 전환 (`upgrades`/`game-config` 기반 목록 생성)
+- [x] P3-A BootScene 아이콘 프리로드를 data-driven으로 전환 (`abilities.json.active[].icon` 기반)
 - [x] P3-A 아이콘 누락 fallback 정책 적용 (에셋 없음 시 안전 기본 아이콘 처리)
 - [x] P3-A 신규 Ability 추가 시 BootScene 코드 수정 불필요함을 테스트/수동 검증
 - [x] P3-B 문서의 `resetInstance`/초기화 시퀀스를 실제 코드와 일치하도록 정정
@@ -79,6 +79,20 @@
 - [ ] Ability 일반화 전략 결정: `UpgradeSystem` adapter 유지 vs 완전 플러그인 조회 전환
 - [ ] 보스 타입 스키마 기준점 결정: `waves[].bosses[].entityTypeId` 고정 vs boss definition 레벨 통합
 - [ ] 파이프라인 fail-fast 적용 범위 결정: 개발/테스트 전용 vs 프로덕션 포함
+
+## 1-5) P4 실행 체크리스트 (abilities.json 브레이킹 전환)
+
+- [x] `data/abilities.json` 신설 (`id`, `pluginId`, `upgradeId`, `icon` 명시 매핑형)
+- [x] `data/game-config.json.abilities` 제거(하위호환 레이어 없음)
+- [x] `GameConfig` 타입에서 `abilities` 제거 + `DataManager.abilities` 추가
+- [x] `registerBuiltinAbilities` 입력을 `AbilityDefinition[]`로 변경 + `pluginId` lookup strict 검증
+- [x] `UpgradeSystem`/`UpgradeDescriptionFormatter`/`UpgradePreviewModelBuilder`를 ability→upgrade 매핑 경유 조회로 통일
+- [x] `BootScene` 아이콘 preload를 `abilities.active[].icon` 기반으로 전환
+- [x] UI 아이콘 lookup(`InGameUpgradeUI`, `AbilitySummaryWidget`)을 ability 아이콘 key 매핑 기반으로 전환
+- [x] `AbilityConfigSyncValidator` 추가 및 `GameScene.initializeSystems()`에서 fail-fast 호출
+- [x] 신규 테스트 추가: `AbilityConfigSyncValidator.test.ts`, `AbilityDataConfig.test.ts`
+- [x] 기존 테스트/문서 동기화: `AbilityIconPreloadResolver.test.ts`, `UpgradeIconCatalog.test.ts`, `CODEMAP`, `PLUGIN_ARCHITECTURE`, `LESSONS`, `data/README`
+- [x] P4 검증 통과: `npm run lint`, `npm run test:run`, `npm run build`
 
 ---
 
@@ -264,16 +278,17 @@ rg -n "eventBus: EventBus|getInstance\\(\\)" src/plugins | head -n 40
 
 ## 4) P3 - 반복 비용과 문서 신뢰도 이슈
 
-## P3-A) BootScene 아이콘 프리로드가 하드코딩 목록에 의존
+## P3-A) BootScene 아이콘 프리로드 하드코딩 의존 (해결 완료)
 
 ### 증상
 
-아이콘 에셋 목록이 코드 배열에 고정되어 있다.
+과거에는 아이콘 에셋 목록이 코드 배열에 고정되어 있었고, 현재는 `abilities.json.active[].icon` 기반 data-driven 경로로 전환되었다.
 
 ### 근거 위치
 
 - 하드코딩 배열:
-  - `src/scenes/BootScene.ts:71`
+  - `src/scenes/BootScene.ts:72`
+  - `src/scenes/boot/AbilityIconPreloadResolver.ts:1`
 
 ### 왜 확장성 문제인가
 
@@ -288,7 +303,7 @@ sed -n '71,85p' src/scenes/BootScene.ts
 
 ### 권장 수정 방향
 
-1. 아이콘 로드 대상을 `data/upgrades.json` 또는 `data/game-config.json` 기반으로 생성
+1. 아이콘 로드 대상을 `data/abilities.json.active[].icon` 기반으로 생성
 2. 파일 존재 여부 검증과 fallback 아이콘 정책을 함께 정의
 
 ### 완료 기준
@@ -366,3 +381,23 @@ rg -n "resetInstance\\(" src/scenes src/plugins
 3. pipeline fail-fast를 개발/테스트에서만 강제할지, 프로덕션에서도 강제할지
 
 이 3개를 결정하면 P1/P2 리팩토링 설계를 확정할 수 있다.
+
+---
+
+## 8) P4 결정사항 / 완료 기준
+
+### 확정된 결정사항
+
+1. 어빌리티 SSOT는 `data/abilities.json`으로 고정한다.
+2. `game-config.json.abilities`는 즉시 제거한다(브레이킹, 하위호환 없음).
+3. 스키마는 명시 매핑형(`id`, `pluginId`, `upgradeId`, `icon`)으로 유지한다.
+4. 설정 드리프트(`pluginId`, `upgradeId`, icon 메타)는 초기화 단계 fail-fast로 즉시 실패시킨다.
+5. 아이콘 파일 누락은 경고 + UI fallback(`UpgradeIconCatalog`, 기본값 `★`)으로 처리한다.
+
+### 완료 기준 (Acceptance)
+
+1. `game-config.json`에 `abilities` 필드가 없고 런타임이 `abilities.json`만으로 능력 등록/매핑을 수행한다.
+2. 신규 ability 활성화/아이콘/업그레이드 연결이 `abilities.json` 수정만으로 반영된다.
+3. 잘못된 `pluginId`/`upgradeId`/icon 메타는 `GameScene.initializeSystems()`에서 즉시 예외로 실패한다.
+4. 아이콘 에셋 누락 시 부팅이 중단되지 않고 경고 후 UI 심볼 폴백으로 진행된다.
+5. 문서(`CODEMAP`, `PLUGIN_ARCHITECTURE`, `LESSONS`, `HANDOFF`)가 코드 경로와 일치한다.

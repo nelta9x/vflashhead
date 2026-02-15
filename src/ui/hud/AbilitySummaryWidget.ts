@@ -10,6 +10,7 @@ import { resolveAbilityTooltipPosition } from './AbilityTooltipLayout';
 interface ActiveAbility {
   id: string;
   level: number;
+  iconKey: string;
 }
 
 interface AbilitySlot {
@@ -163,7 +164,7 @@ export class AbilitySummaryWidget {
       const x = -totalWidth / 2 + config.iconSize / 2 + index * (config.iconSize + config.iconGap);
       const entryContainer = this.scene.add.container(x, 0);
 
-      this.addAbilityIcon(entryContainer, ability.id, iconY);
+      this.addAbilityIcon(entryContainer, ability, iconY);
 
       this.container.add(entryContainer);
       this.entries.push(entryContainer);
@@ -339,8 +340,8 @@ export class AbilitySummaryWidget {
     this.tooltipIconContent = null;
 
     const iconContentY = iconY;
-    if (this.scene.textures.exists(ability.id)) {
-      const iconImage = this.scene.add.image(iconX, iconContentY, ability.id);
+    if (this.scene.textures.exists(ability.iconKey)) {
+      const iconImage = this.scene.add.image(iconX, iconContentY, ability.iconKey);
       iconImage.setDisplaySize(
         tooltipCfg.iconSize - tooltipCfg.iconPadding * 2,
         tooltipCfg.iconSize - tooltipCfg.iconPadding * 2
@@ -371,10 +372,11 @@ export class AbilitySummaryWidget {
       return [];
     }
 
-    return Data.upgrades.system
-      .map((upgrade) => ({
-        id: upgrade.id,
-        level: upgradeSystem.getUpgradeStack(upgrade.id),
+    return Data.getActiveAbilityDefinitions()
+      .map((definition) => ({
+        id: definition.id,
+        level: upgradeSystem.getAbilityLevel(definition.id),
+        iconKey: definition.icon.key,
       }))
       .filter((ability) => ability.level > 0);
   }
@@ -411,7 +413,7 @@ export class AbilitySummaryWidget {
 
   private addAbilityIcon(
     entryContainer: Phaser.GameObjects.Container,
-    abilityId: string,
+    ability: ActiveAbility,
     iconY: number
   ): void {
     const config = Data.gameConfig.hud.abilityDisplay;
@@ -440,14 +442,14 @@ export class AbilitySummaryWidget {
     entryContainer.add(iconBg);
 
     const iconSize = Math.max(1, config.iconSize - config.iconPadding * 2);
-    if (this.scene.textures.exists(abilityId)) {
-      const iconImage = this.scene.add.image(0, iconY, abilityId);
+    if (this.scene.textures.exists(ability.iconKey)) {
+      const iconImage = this.scene.add.image(0, iconY, ability.iconKey);
       iconImage.setDisplaySize(iconSize, iconSize);
       entryContainer.add(iconImage);
       return;
     }
 
-    const symbol = getUpgradeFallbackSymbol(abilityId);
+    const symbol = getUpgradeFallbackSymbol(ability.id);
     const iconText = this.scene.add
       .text(0, iconY, symbol, {
         fontFamily: FONTS.MAIN,

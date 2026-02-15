@@ -1,17 +1,33 @@
-export function resolveAbilityIconPreloadIds(
-  gameConfigAbilityIds: readonly string[],
-  upgradeIds: readonly string[],
-): string[] {
-  const upgradeSet = new Set(upgradeIds);
-  const seen = new Set<string>();
-  const resolved: string[] = [];
+import type { AbilityDefinition } from '../../data/types';
 
-  for (const abilityId of gameConfigAbilityIds) {
-    if (seen.has(abilityId)) continue;
-    seen.add(abilityId);
-    if (!upgradeSet.has(abilityId)) continue;
-    resolved.push(abilityId);
+export interface AbilityIconPreloadResolution {
+  readonly definitions: readonly AbilityDefinition[];
+  readonly skippedAbilityIds: readonly string[];
+}
+
+export function resolveAbilityIconPreloadDefinitions(
+  abilityDefinitions: readonly AbilityDefinition[],
+  upgradeIds: readonly string[],
+): AbilityIconPreloadResolution {
+  const upgradeSet = new Set(upgradeIds);
+  const seenAbilityIds = new Set<string>();
+  const resolved: AbilityDefinition[] = [];
+  const skipped: string[] = [];
+
+  for (const definition of abilityDefinitions) {
+    if (seenAbilityIds.has(definition.id)) continue;
+    seenAbilityIds.add(definition.id);
+
+    if (!upgradeSet.has(definition.upgradeId)) {
+      skipped.push(definition.id);
+      continue;
+    }
+
+    resolved.push(definition);
   }
 
-  return resolved;
+  return {
+    definitions: resolved,
+    skippedAbilityIds: skipped,
+  };
 }

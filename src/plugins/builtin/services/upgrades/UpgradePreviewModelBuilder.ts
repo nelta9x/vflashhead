@@ -8,7 +8,8 @@ import type {
 } from '../../../../data/types/upgrades';
 
 interface UpgradePreviewModelBuilderDeps {
-  getUpgradeStack: (upgradeId: string) => number;
+  getAbilityLevel: (abilityId: string) => number;
+  getSystemUpgrade: (abilityId: string) => SystemUpgradeData | undefined;
 }
 
 const INVERSE_IMPROVEMENT_STATS = new Set<UpgradePreviewStatId>(['damageInterval', 'spawnInterval', 'hpPenalty']);
@@ -68,21 +69,23 @@ const NUMERIC_FIELDS: readonly NumericField[] = [
 ];
 
 export class UpgradePreviewModelBuilder {
-  private readonly getUpgradeStack: (upgradeId: string) => number;
+  private readonly getAbilityLevel: (abilityId: string) => number;
+  private readonly getSystemUpgrade: (abilityId: string) => SystemUpgradeData | undefined;
 
   constructor(deps: UpgradePreviewModelBuilderDeps) {
-    this.getUpgradeStack = deps.getUpgradeStack;
+    this.getAbilityLevel = deps.getAbilityLevel;
+    this.getSystemUpgrade = deps.getSystemUpgrade;
   }
 
-  public build(upgradeId: string): UpgradePreviewCardModel | null {
-    const upgradeData = this.getUpgradeDataOrThrow(upgradeId);
+  public build(abilityId: string): UpgradePreviewCardModel | null {
+    const upgradeData = this.getUpgradeDataOrThrow(abilityId);
     const levels = upgradeData.levels;
     if (!levels || levels.length === 0) {
       return null;
     }
     this.validatePreviewDisplay(upgradeData);
 
-    const currentLevel = this.getUpgradeStack(upgradeId);
+    const currentLevel = this.getAbilityLevel(abilityId);
     const nextLevel = currentLevel + 1;
     if (nextLevel > levels.length) {
       return null;
@@ -93,8 +96,8 @@ export class UpgradePreviewModelBuilder {
     const rows: UpgradePreviewRowModel[] = [];
 
     for (const stat of upgradeData.previewDisplay.stats) {
-      const currentValue = this.resolveStatValue(upgradeId, stat.id, currentData, false);
-      const nextValue = this.resolveStatValue(upgradeId, stat.id, nextData, true);
+      const currentValue = this.resolveStatValue(abilityId, stat.id, currentData, false);
+      const nextValue = this.resolveStatValue(abilityId, stat.id, nextData, true);
       if (currentValue === null || nextValue === null) {
         continue;
       }
@@ -119,7 +122,7 @@ export class UpgradePreviewModelBuilder {
     }
 
     return {
-      upgradeId,
+      upgradeId: abilityId,
       currentLevel,
       nextLevel,
       rows,
@@ -134,7 +137,7 @@ export class UpgradePreviewModelBuilder {
   }
 
   private resolveStatValue(
-    upgradeId: string,
+    abilityId: string,
     statId: UpgradePreviewStatId,
     levelData: SystemUpgradeLevelData | null,
     isNextLevel: boolean
@@ -147,10 +150,10 @@ export class UpgradePreviewModelBuilder {
     }
 
     if (statId === 'orbFinalSizeWithMagnet') {
-      const orbSize = this.resolveOrbSize(upgradeId, levelData);
+      const orbSize = this.resolveOrbSize(abilityId, levelData);
       if (orbSize === null) return null;
 
-      const magnetLevel = this.resolveMagnetLevel(upgradeId, isNextLevel);
+      const magnetLevel = this.resolveMagnetLevel(abilityId, isNextLevel);
       const upgradeData = this.getUpgradeDataOrThrow('orbiting_orb');
       const magnetSynergyPerLevel = upgradeData.magnetSynergyPerLevel ?? 0.2;
       return orbSize * (1 + magnetLevel * magnetSynergyPerLevel);
@@ -159,12 +162,12 @@ export class UpgradePreviewModelBuilder {
     return this.resolveDirectNumeric(statId, levelData);
   }
 
-  private resolveOrbSize(upgradeId: string, levelData: SystemUpgradeLevelData | null): number | null {
-    if (upgradeId === 'orbiting_orb') {
+  private resolveOrbSize(abilityId: string, levelData: SystemUpgradeLevelData | null): number | null {
+    if (abilityId === 'orbiting_orb') {
       return this.resolveDirectNumeric('size', levelData);
     }
 
-    const orbLevel = this.getUpgradeStack('orbiting_orb');
+    const orbLevel = this.getAbilityLevel('orbiting_orb');
     if (orbLevel <= 0) {
       return null;
     }
@@ -173,9 +176,9 @@ export class UpgradePreviewModelBuilder {
     return this.resolveDirectNumeric('size', orbLevelData);
   }
 
-  private resolveMagnetLevel(upgradeId: string, isNextLevel: boolean): number {
-    const currentMagnetLevel = this.getUpgradeStack('magnet');
-    if (upgradeId !== 'magnet') {
+  private resolveMagnetLevel(abilityId: string, isNextLevel: boolean): number {
+    const currentMagnetLevel = this.getAbilityLevel('magnet');
+    if (abilityId !== 'magnet') {
       return currentMagnetLevel;
     }
     return isNextLevel ? currentMagnetLevel + 1 : currentMagnetLevel;
@@ -267,7 +270,7 @@ export class UpgradePreviewModelBuilder {
   }
 
   private getUpgradeDataOrThrow(upgradeId: string): SystemUpgradeData {
-    const upgradeData = Data.upgrades.system.find((upgrade) => upgrade.id === upgradeId);
+    const upgradeData = this.getSystemUpgrade(upgradeId);
     if (!upgradeData) {
       throw new Error(`Unknown upgrade id: "${upgradeId}"`);
     }

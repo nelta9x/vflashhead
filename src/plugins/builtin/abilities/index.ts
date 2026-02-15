@@ -1,4 +1,5 @@
 import type { AbilityPlugin } from '../../types';
+import type { AbilityDefinition } from '../../../data/types';
 import { PluginRegistry } from '../../PluginRegistry';
 import { CursorSizeAbility } from './CursorSizeAbility';
 import { CriticalChanceAbility } from './CriticalChanceAbility';
@@ -29,11 +30,30 @@ const ABILITY_FACTORIES: Record<string, () => AbilityPlugin> = {
 
 export { ABILITY_FACTORIES };
 
-export function registerBuiltinAbilities(ids: readonly string[]): void {
+export function registerBuiltinAbilities(definitions: readonly AbilityDefinition[]): void {
   const registry = PluginRegistry.getInstance();
-  for (const id of ids) {
-    const factory = ABILITY_FACTORIES[id];
-    if (!factory) throw new Error(`Unknown builtin ability: "${id}"`);
-    registry.registerAbility(factory());
+  const seen = new Set<string>();
+
+  for (const definition of definitions) {
+    if (seen.has(definition.id)) {
+      throw new Error(`Duplicate ability id in abilities.json: "${definition.id}"`);
+    }
+    seen.add(definition.id);
+
+    const factory = ABILITY_FACTORIES[definition.pluginId];
+    if (!factory) {
+      throw new Error(
+        `Unknown ability pluginId "${definition.pluginId}" for ability "${definition.id}"`
+      );
+    }
+
+    const plugin = factory();
+    if (plugin.id !== definition.id) {
+      throw new Error(
+        `Ability id mismatch for plugin "${definition.pluginId}": plugin.id="${plugin.id}", definition.id="${definition.id}"`
+      );
+    }
+
+    registry.registerAbility(plugin);
   }
 }

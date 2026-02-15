@@ -28,6 +28,7 @@ import { registerBuiltinEntityTypes } from '../plugins/builtin/entities';
 import { registerBuiltinServicePlugins } from '../plugins/builtin/services';
 import { registerBuiltinSystemPlugins } from '../plugins/builtin/systems';
 import type { SystemPluginContext } from '../plugins/types/SystemPlugin';
+import { assertAbilityConfigSyncOrThrow } from '../plugins/builtin/services/upgrades/AbilityConfigSyncValidator';
 
 export class GameScene extends Phaser.Scene {
   private serviceRegistry!: ServiceRegistry;
@@ -111,8 +112,9 @@ export class GameScene extends Phaser.Scene {
       this.serviceRegistry.resolveEntries(plugin.services);
     }
 
-    // ── 3. Entity types & abilities (game-config.json 기반 동적 등록) ──
-    registerBuiltinAbilities(Data.gameConfig.abilities);
+    // ── 3. Entity types & abilities (abilities.json + game-config.json 기반 동적 등록) ──
+    registerBuiltinAbilities(Data.abilities.active);
+    assertAbilityConfigSyncOrThrow();
     registerBuiltinEntityTypes(Data.gameConfig.entityTypes);
 
     // ── 4. SystemPlugin pipeline (includes core:initial_spawn) ──

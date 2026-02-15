@@ -29,7 +29,23 @@ export interface Upgrade {
 
 // 시스템 업그레이드를 Upgrade 인터페이스로 변환
 function createSystemUpgrades(): Upgrade[] {
-  const validatedUpgrades = Data.upgrades.system.map((data) => {
+  const seenUpgradeIds = new Set<string>();
+  const validatedUpgrades = Data.getActiveAbilityDefinitions().map((abilityDefinition) => {
+    const upgradeId = abilityDefinition.upgradeId;
+    if (seenUpgradeIds.has(upgradeId)) {
+      throw new Error(
+        `Duplicate upgradeId mapping in abilities.json: "${upgradeId}"`
+      );
+    }
+    seenUpgradeIds.add(upgradeId);
+
+    const data = Data.upgrades.system.find((upgrade) => upgrade.id === upgradeId);
+    if (!data) {
+      throw new Error(
+        `Missing upgrade "${upgradeId}" mapped from ability "${abilityDefinition.id}"`
+      );
+    }
+
     if (!data.previewDisplay || data.previewDisplay.stats.length === 0) {
       throw new Error(`Missing required previewDisplay for upgrade "${data.id}"`);
     }
@@ -70,11 +86,13 @@ export class UpgradeSystem implements UpgradeSystemCore {
   private readonly previewModelBuilder: UpgradePreviewModelBuilder;
 
   constructor() {
-    this.descriptionFormatter = new UpgradeDescriptionFormatter((upgradeId) =>
-      this.getUpgradeStack(upgradeId)
+    this.descriptionFormatter = new UpgradeDescriptionFormatter(
+      (abilityId) => this.getAbilityLevel(abilityId),
+      (abilityId) => this.getSystemUpgrade(abilityId)
     );
     this.previewModelBuilder = new UpgradePreviewModelBuilder({
-      getUpgradeStack: (upgradeId) => this.getUpgradeStack(upgradeId),
+      getAbilityLevel: (abilityId) => this.getAbilityLevel(abilityId),
+      getSystemUpgrade: (abilityId) => this.getSystemUpgrade(abilityId),
     });
     this.reset();
   }
@@ -127,12 +145,14 @@ export class UpgradeSystem implements UpgradeSystemCore {
 
   // ========== 공통 조회 API ==========
 
-  public getAbilityLevel(abilityId: string): number {
-    this.getUpgradeDataOrThrow(abilityId);
-    return this.getUpgradeStack(abilityId);
+  public getAbilityLevel(inputAbilityId: string): number {
+    const abilityId = this.resolveAbilityIdOrThrow(inputAbilityId);
+    const upgradeId = Data.getUpgradeIdForAbility(abilityId);
+    return this.getUpgradeStack(upgradeId);
   }
 
-  public getEffectValue(abilityId: string, key: string): number {
+  public getEffectValue(inputAbilityId: string, key: string): number {
+    const abilityId = this.resolveAbilityIdOrThrow(inputAbilityId);
     const upgradeData = this.getUpgradeDataOrThrow(abilityId);
     const levelData = this.getLevelData<Record<string, unknown>>(abilityId);
 
@@ -156,13 +176,14 @@ export class UpgradeSystem implements UpgradeSystemCore {
   }
 
   // ========== 레벨 데이터 헬퍼 ==========
-  public getLevelData<T>(upgradeId: string): T | null {
-    const upgradeData = this.getSystemUpgrade(upgradeId);
+  public getLevelData<T>(inputAbilityId: string): T | null {
+    const abilityId = this.resolveAbilityIdOrThrow(inputAbilityId);
+    const upgradeData = this.getSystemUpgrade(abilityId);
     if (!upgradeData) {
       return null;
     }
 
-    const level = this.getUpgradeStack(upgradeId);
+    const level = this.getAbilityLevel(abilityId);
     if (level <= 0) return null;
     if (!upgradeData.levels || upgradeData.levels.length === 0) return null;
 
@@ -179,33 +200,50 @@ export class UpgradeSystem implements UpgradeSystemCore {
     return this.stateStore.getAllStacks();
   }
 
-  getSystemUpgrade(upgradeId: string): SystemUpgradeData | undefined {
-    return Data.upgrades.system.find((u) => u.id === upgradeId);
+  getSystemUpgrade(inputAbilityId: string): SystemUpgradeData | undefined {
+    const abilityId = this.resolveAbilityIdOrThrow(inputAbilityId);
+    return Data.getSystemUpgradeByAbilityId(abilityId);
   }
 
   // ========== 동적 설명 생성 ==========
 
   // 현재 레벨의 실제 효과를 설명하는 문자열 반환
-  getFormattedDescription(upgradeId: string): string {
-    return this.descriptionFormatter.getFormattedDescription(upgradeId);
+  getFormattedDescription(inputAbilityId: string): string {
+    const abilityId = this.resolveAbilityIdOrThrow(inputAbilityId);
+    return this.descriptionFormatter.getFormattedDescription(abilityId);
   }
 
   // 선택 화면용 구조화 프리뷰 모델 (현재 -> 다음 레벨)
-  getPreviewCardModel(upgradeId: string): UpgradePreviewCardModel | null {
-    return this.previewModelBuilder.build(upgradeId);
+  getPreviewCardModel(inputAbilityId: string): UpgradePreviewCardModel | null {
+    const abilityId = this.resolveAbilityIdOrThrow(inputAbilityId);
+    return this.previewModelBuilder.build(abilityId);
   }
 
-  private getUpgradeDataOrThrow(upgradeId: string): SystemUpgradeData {
-    const upgrade = this.getSystemUpgrade(upgradeId);
+  private getUpgradeDataOrThrow(abilityId: string): SystemUpgradeData {
+    const upgrade = this.getSystemUpgrade(abilityId);
     if (!upgrade) {
-      throw new Error(`Unknown ability id: "${upgradeId}"`);
+      throw new Error(`Unknown ability id: "${abilityId}"`);
     }
     return upgrade;
   }
 
+  private resolveAbilityIdOrThrow(inputId: string): string {
+    if (Data.getAbilityDefinition(inputId)) {
+      return inputId;
+    }
+
+    const byUpgrade = Data.getAbilityDefinitionByUpgradeId(inputId);
+    if (byUpgrade) {
+      return byUpgrade.id;
+    }
+
+    throw new Error(`Unknown ability id: "${inputId}"`);
+  }
+
   // 정적 타입 보조: 필요 시 호출부에서 안전하게 level data를 다루기 위한 유틸
-  public hasLevelDataKey(upgradeId: string, key: string): boolean {
-    const upgrade = this.getSystemUpgrade(upgradeId);
+  public hasLevelDataKey(inputAbilityId: string, key: string): boolean {
+    const abilityId = this.resolveAbilityIdOrThrow(inputAbilityId);
+    const upgrade = this.getSystemUpgrade(abilityId);
     const firstLevel = upgrade?.levels?.[0] as SystemUpgradeLevelData | undefined;
     if (!firstLevel) return false;
     return Object.prototype.hasOwnProperty.call(firstLevel, key);

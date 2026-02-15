@@ -519,11 +519,29 @@ export interface DepthsConfig {
   bossDamageText: number;
 }
 
+export interface AbilityIconConfig {
+  key: string;
+  path: string;
+  width: number;
+  height: number;
+}
+
+export interface AbilityDefinition {
+  id: string;
+  pluginId: string;
+  upgradeId: string;
+  icon: AbilityIconConfig;
+}
+
+export interface AbilitiesConfig {
+  version: number;
+  active: readonly AbilityDefinition[];
+}
+
 export interface GameConfig {
   servicePlugins: readonly string[];
   systemPlugins: readonly string[];
   entityTypes: readonly string[];
-  abilities: readonly string[];
   entityPipeline: readonly string[];
   initialEntities: readonly string[];
   screen: ScreenConfig;

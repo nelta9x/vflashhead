@@ -28,19 +28,6 @@
     "bomb",
     "boss_standard"
   ],
-  "abilities": [
-    "cursor_size",
-    "critical_chance",
-    "missile",
-    "health_pack",
-    "magnet",
-    "electric_shock",
-    "orbiting_orb",
-    "black_hole",
-    "glass_cannon",
-    "berserker",
-    "volatility"
-  ],
   "entityPipeline": [
     "core:initial_spawn",
     "core:wave",

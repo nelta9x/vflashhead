@@ -1,7 +1,7 @@
 # 플러그인 아키텍처 가이드
 
 > **핵심 원칙**: 모든 콘텐츠(엔티티, 어빌리티, 시스템, 서비스)는 플러그인 추가만으로 동작해야 한다.
-> 코어 코드(Scene, Pipeline, Registry)를 수정하지 않고 `game-config.json` + 플러그인 클래스 + 팩토리 맵 등록으로 완결한다.
+> 코어 코드(Scene, Pipeline, Registry)를 수정하지 않고 `abilities.json`/`game-config.json` + 플러그인 클래스 + 팩토리 맵 등록으로 완결한다.
 
 ---
 
@@ -9,7 +9,7 @@
 
 ```mermaid
 graph TD
-  CONFIG["data/game-config.json<br/><i>SSOT: 활성 플러그인 ID 배열</i>"]
+  CONFIG["data/game-config.json + data/abilities.json<br/><i>SSOT: 활성 플러그인/어빌리티 정의</i>"]
   REG["PluginRegistry<br/><i>싱글톤 레지스트리</i>"]
   AP["AbilityPlugin"]
   EP["EntityTypePlugin"]
@@ -40,14 +40,16 @@ sequenceDiagram
   participant SR as ServiceRegistry
   participant FM as Factory Maps
   participant CFG as game-config.json
+  participant ACFG as abilities.json
   participant PP as EntitySystemPipeline
 
   GS->>PR: registerBuiltinServicePlugins() (3개)
   GS->>CFG: servicePlugins[] 읽기
   GS->>SR: resolveEntries() (DI 컨테이너 구성)
-  GS->>CFG: abilities[] 읽기
-  GS->>FM: ABILITY_FACTORIES[id]() → AbilityPlugin
+  GS->>ACFG: active[] 읽기
+  GS->>FM: ABILITY_FACTORIES[pluginId]() → AbilityPlugin
   FM->>PR: registerAbility()
+  GS->>GS: assertAbilityConfigSyncOrThrow()
   GS->>CFG: entityTypes[] 읽기
   GS->>FM: ENTITY_TYPE_FACTORIES[id]() → EntityTypePlugin
   FM->>PR: registerEntityType()
@@ -65,7 +67,7 @@ sequenceDiagram
 아래 순서는 확장 안정성을 위해 **항상 유지되어야 하는 invariant**다.
 
 1. `servicePlugins`를 resolve하여 ServiceRegistry 구성이 완료되어야 한다.
-2. `abilities`/`entityTypes` 등록이 완료되어야 한다.
+2. `abilities.json.active`/`entityTypes` 등록이 완료되고, ability 설정 검증(`assertAbilityConfigSyncOrThrow`)이 통과해야 한다.
 3. 그 다음에만 `SystemPlugin.createSystems()`를 호출해야 한다.
 4. 시스템 등록 후 `entityPipeline` 동기화 검증(`assertConfigSyncOrThrow`)을 통과한 뒤 `startAll()`을 호출해야 한다.
 
@@ -182,7 +184,7 @@ flowchart LR
   A["1. data/*.json<br/>데이터 정의"] --> B["2. Plugin 클래스<br/>인터페이스 구현"]
   B --> C["3. Renderer<br/>(필요 시 colocate)"]
   C --> D["4. Factory Map<br/>index.ts 등록"]
-  D --> E["5. game-config.json<br/>ID 배열 추가"]
+  D --> E["5. SSOT JSON 업데이트<br/>(abilities.json 또는 game-config.json)"]
   E --> F["6. 동작 확인<br/>코어 수정 없음"]
 
   style A fill:#1a1a2e,stroke:#e94560,color:#eee
@@ -195,11 +197,11 @@ flowchart LR
 
 ### 3.1 새 어빌리티 추가
 
-1. **데이터**: `data/upgrades.json`에 어빌리티 레벨 데이터 추가
+1. **데이터**: `data/upgrades.json`(효과 수치) + `data/abilities.json`(활성/매핑/아이콘) 갱신
 2. **플러그인 클래스**: `src/plugins/builtin/abilities/NewAbility.ts` 작성 (`AbilityPlugin` 구현)
 3. **렌더러** (필요 시): 같은 디렉토리에 `NewAbilityRenderer.ts` 작성
 4. **팩토리 맵 등록**: `src/plugins/builtin/abilities/index.ts`의 `ABILITY_FACTORIES`에 한 줄 추가
-5. **활성화**: `data/game-config.json`의 `abilities` 배열에 ID 추가
+5. **활성화**: `data/abilities.json`의 `active[]`에 정의 추가 (`id`, `pluginId`, `upgradeId`, `icon`)
 6. **시스템** (필요 시): 전용 EntitySystem이 필요하면 SystemPlugin도 추가 (3.3 참조)
 
 ```typescript
@@ -268,18 +270,18 @@ const ENTITY_TYPE_FACTORIES: Record<string, () => EntityTypePlugin> = {
 
 ---
 
-## 5. game-config.json SSOT 필드
+## 5. SSOT 데이터 필드
 
 | 필드 | 역할 | 예시 |
 |------|------|------|
 | `servicePlugins` | 활성 ServicePlugin ID | `["core:services", "core:ecs", "core:game_modules"]` |
 | `systemPlugins` | 활성 SystemPlugin ID | `["core:initial_spawn", "core:world_systems", ...]` |
 | `entityTypes` | 활성 EntityType ID | `["player", "basic", "golden", ..., "boss_standard"]` |
-| `abilities` | 활성 Ability ID | `["cursor_size", "critical_chance", ...]` |
 | `entityPipeline` | 시스템 실행 순서 (20개) | `["core:initial_spawn", "core:wave", ..., "core:player", "core:ability_tick", ...]` |
 | `initialEntities` | 게임 시작 시 스폰할 엔티티 | `["player"]` |
 
-**추가/제거는 이 배열만 수정하면 된다.** 코어 코드 변경 불필요.
+어빌리티 활성/매핑은 `data/abilities.json`의 `active[]`가 SSOT다.
+`game-config.json` 배열과 `abilities.json`을 맞게 수정하면 코어 코드 변경 없이 확장할 수 있다.
 
 ---
 
@@ -369,7 +371,7 @@ sequenceDiagram
 
 > 코어 수정 금지, Scene 직접 호출 금지 등 상위 원칙은 `AGENTS.md` 원칙 3(플러그인 우선)·13(ECS 파이프라인)을 따른다. 아래는 플러그인 작업에 특화된 추가 금지 사항이다.
 
-- **팩토리 맵 우회 금지**: `PluginRegistry`에 직접 등록하지 않는다. 팩토리 맵(`ABILITY_FACTORIES`, `ENTITY_TYPE_FACTORIES`) + `game-config.json` ID 배열 패턴을 따른다.
+- **팩토리 맵 우회 금지**: `PluginRegistry`에 직접 등록하지 않는다. 팩토리 맵(`ABILITY_FACTORIES`, `ENTITY_TYPE_FACTORIES`) + `abilities.json`/`game-config.json` SSOT 패턴을 따른다.
 - **렌더러 분산 금지**: 전용 렌더러를 `src/effects/`에 배치하지 않는다. 플러그인 디렉토리에 colocate한다.
 
 ---
@@ -379,7 +381,7 @@ sequenceDiagram
 - [ ] 플러그인 인터페이스(`AbilityPlugin`/`EntityTypePlugin`/`SystemPlugin`/`ServicePlugin`)를 정확히 구현했는가
 - [ ] 밸런스/연출 데이터를 `data/*.json`에 먼저 정의했는가
 - [ ] 팩토리 맵(`index.ts`)에 등록했는가
-- [ ] `data/game-config.json`의 해당 배열에 ID를 추가했는가
+- [ ] `data/abilities.json` 또는 `data/game-config.json`의 해당 SSOT 항목을 갱신했는가
 - [ ] 전용 렌더러를 플러그인과 같은 디렉토리에 colocate했는가
 - [ ] 시스템이 `entityPipeline` 배열에 올바른 순서로 배치되었는가
 - [ ] 코어 코드(Scene/Pipeline/Registry)를 수정하지 않았는가

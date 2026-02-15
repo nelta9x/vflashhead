@@ -1,41 +1,46 @@
 import { Data } from '../../../../data/DataManager';
-import type { SystemUpgradeLevelData } from '../../../../data/types/upgrades';
+import type { SystemUpgradeData, SystemUpgradeLevelData } from '../../../../data/types/upgrades';
 
 export class UpgradeDescriptionFormatter {
-  private readonly getUpgradeStack: (upgradeId: string) => number;
+  private readonly getAbilityLevel: (abilityId: string) => number;
+  private readonly getSystemUpgrade: (abilityId: string) => SystemUpgradeData | undefined;
 
-  constructor(getUpgradeStack: (upgradeId: string) => number) {
-    this.getUpgradeStack = getUpgradeStack;
+  constructor(
+    getAbilityLevel: (abilityId: string) => number,
+    getSystemUpgrade: (abilityId: string) => SystemUpgradeData | undefined
+  ) {
+    this.getAbilityLevel = getAbilityLevel;
+    this.getSystemUpgrade = getSystemUpgrade;
   }
 
-  public getFormattedDescription(upgradeId: string): string {
-    const upgradeData = Data.upgrades.system.find((u) => u.id === upgradeId);
+  public getFormattedDescription(abilityId: string): string {
+    const upgradeData = this.getSystemUpgrade(abilityId);
     if (!upgradeData) {
-      return Data.t(`upgrade.${upgradeId}.desc`);
+      return Data.t(`upgrade.${abilityId}.desc`);
     }
 
-    const stack = this.getUpgradeStack(upgradeId);
+    const stack = this.getAbilityLevel(abilityId);
     if (stack <= 0) {
-      if (upgradeId === 'health_pack') {
-        return Data.formatTemplate(`upgrade.${upgradeId}.desc`, this.getHealthPackBaseParams());
+      if (abilityId === 'health_pack') {
+        return Data.formatTemplate(`upgrade.${abilityId}.desc`, this.getHealthPackBaseParams());
       }
-      return Data.t(`upgrade.${upgradeId}.desc`);
+      return Data.t(`upgrade.${abilityId}.desc`);
     }
 
     if (!upgradeData.descriptionTemplate) {
-      return Data.t(`upgrade.${upgradeId}.desc`);
+      return Data.t(`upgrade.${abilityId}.desc`);
     }
 
     if (!upgradeData.levels) {
-      return Data.t(`upgrade.${upgradeId}.desc`);
+      return Data.t(`upgrade.${abilityId}.desc`);
     }
 
     const index = Math.min(stack, upgradeData.levels.length) - 1;
     const levelData = upgradeData.levels[index];
     const params = this.extractTemplateParams(levelData);
-    this.appendSharedTemplateParams(upgradeId, params);
+    this.appendSharedTemplateParams(abilityId, params);
 
-    return Data.formatTemplate(`upgrade.${upgradeId}.desc_template`, params);
+    return Data.formatTemplate(`upgrade.${abilityId}.desc_template`, params);
   }
 
   private normalizeTemplateNumericValue(key: string, value: number): number {
@@ -66,10 +71,10 @@ export class UpgradeDescriptionFormatter {
   }
 
   private appendSharedTemplateParams(
-    upgradeId: string,
+    abilityId: string,
     params: Record<string, number | string>
   ): void {
-    if (upgradeId !== 'health_pack') {
+    if (abilityId !== 'health_pack') {
       return;
     }
 

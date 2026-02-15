@@ -10,6 +10,7 @@
 2. [체력 표시 빠른 맵](#체력-표시-빠른-맵)
 3. [파일별 상세 가이드](#파일별-상세-가이드)
    - [game-config.json](#game-configjson)
+   - [abilities.json](#abilitiesjson)
    - [waves.json](#wavesjson)
    - [dishes.json](#dishesjson)
    - [combo.json](#combojson)
@@ -40,6 +41,7 @@
 | **낙하 폭탄 스폰 확률** | `falling-bomb.json` | `baseSpawnChance` |
 | **낙하 폭탄 등장 시작 웨이브** | `falling-bomb.json` | `minWave` |
 | **플레이어 초기 HP** | `game-config.json` | `player.initialHp` |
+| **어빌리티 활성화/매핑/아이콘** | `abilities.json` | `active[]` (`id`, `pluginId`, `upgradeId`, `icon`) |
 | **플레이어 HP 링 스타일** | `game-config.json` | `player.hpRing` |
 | **보스 HP 세그먼트 스케일** | `boss.json` | `visual.armor.hpSegments` |
 | **멀티 보스 구성/HP 분배** | `waves.json` | `bossTotalHp`, `bosses[]`, `bossSpawnMinDistance` |
@@ -183,6 +185,50 @@ import { COLORS, FONTS } from '../data/constants';
   }
 }
 ```
+
+---
+
+### abilities.json
+
+어빌리티 활성화/플러그인 매핑/업그레이드 매핑/아이콘 preload 메타의 SSOT입니다.
+
+```json
+{
+  "version": 1,
+  "active": [
+    {
+      "id": "cursor_size",
+      "pluginId": "cursor_size",
+      "upgradeId": "cursor_size",
+      "icon": {
+        "key": "cursor_size",
+        "path": "assets/icons/cursor_size.svg",
+        "width": 64,
+        "height": 64
+      }
+    }
+  ]
+}
+```
+
+#### 필드 규칙
+
+| 필드 | 설명 |
+|------|------|
+| `id` | 런타임 canonical ability ID |
+| `pluginId` | `ABILITY_FACTORIES` lookup 키 |
+| `upgradeId` | `upgrades.system[].id` 매핑 대상 |
+| `icon.key` | Phaser texture key |
+| `icon.path` | Boot preload 경로 |
+| `icon.width/height` | preload 옵션 크기 |
+
+#### 제약 조건 (fail-fast)
+
+- `active[]` 내 `id`, `pluginId`, `icon.key`는 중복 불가
+- `pluginId`는 `ABILITY_FACTORIES`에 반드시 존재해야 함
+- `upgradeId`는 `upgrades.system[].id`에 반드시 존재해야 함
+- `icon.path`는 비어 있으면 안 되며, `width/height`는 0보다 커야 함
+- `GameScene.initializeSystems()`에서 `AbilityConfigSyncValidator`가 위 조건을 검증하고 실패 시 즉시 예외를 던짐
 
 ---
 

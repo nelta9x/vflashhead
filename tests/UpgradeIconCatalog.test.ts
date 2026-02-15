@@ -10,8 +10,8 @@ describe('UpgradeIconCatalog', () => {
     }
   });
 
-  it('should return a fallback symbol string for all active abilities in game config', () => {
-    for (const abilityId of Data.gameConfig.abilities) {
+  it('should return a fallback symbol string for all active abilities', () => {
+    for (const abilityId of Data.abilities.active.map((ability) => ability.id)) {
       const symbol = getUpgradeFallbackSymbol(abilityId);
       expect(typeof symbol).toBe('string');
       expect(symbol.length).toBeGreaterThan(0);

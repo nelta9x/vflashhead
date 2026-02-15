@@ -290,8 +290,8 @@
 ## 18. 부트 에셋 프리로드 data-driven + 문서 시퀀스 동기화 `occurrences: 1`
 
 ### 원칙
-- BootScene의 아이콘 preload 대상은 하드코딩 배열이 아니라 `game-config.abilities` 기준으로 계산한다.
-- preload 대상은 `upgrades.system[].id`와 교차 검증해 미정의 ID를 제외하고, 경고만 남긴다(실패로 승격하지 않음).
+- BootScene의 아이콘 preload 대상은 하드코딩 배열이 아니라 `abilities.json.active[].icon` 기준으로 계산한다.
+- preload 대상은 `abilities.json.active[].upgradeId`와 `upgrades.system[].id`를 교차 검증해 미정의 매핑을 제외하고, 경고만 남긴다(실패로 승격하지 않음).
 - 아이콘 파일 누락은 부팅 실패가 아니라 UI fallback symbol 렌더(`UpgradeIconCatalog`)로 흡수한다.
 - 아키텍처 문서의 초기화 시퀀스는 실제 `GameScene.initializeSystems()` 순서와 항상 동일하게 유지한다.
 - 특히 서비스 resolve → abilities/entityTypes 등록 → system 생성 순서는 불변 조건으로 문서에 명시한다.
@@ -300,3 +300,19 @@
 - BootScene 아이콘 리스트 하드코딩을 제거하고 data-driven resolver로 전환
 - 아이콘 누락 시 경고 후 진행 + HUD/업그레이드 UI에서 심볼 폴백 렌더를 유지
 - `PLUGIN_ARCHITECTURE`에 초기화 순서 invariant를 추가해 온보딩 혼선을 차단
+
+---
+
+## 19. Ability 스키마 분리 + 매핑 fail-fast `occurrences: 1`
+
+### 원칙
+- 어빌리티 활성 목록과 메타(`pluginId`, `upgradeId`, `icon`)는 `game-config.json`에 섞지 않고 `abilities.json`으로 분리한다.
+- 런타임 canonical ID는 `ability.id`로 고정하고, 업그레이드 수치 조회는 `abilityId -> upgradeId` 매핑을 통해 일관되게 수행한다.
+- `pluginId`/`upgradeId`/`icon` 메타 드리프트는 `initializeSystems()` 단계에서 즉시 실패시켜 조기 감지한다.
+- 아이콘 누락은 경고 + UI fallback으로 처리해 런타임을 지속하고, 설정 오류는 validator에서 fail-fast로 차단한다.
+
+### 사례 요약
+- `data/abilities.json` 신설 후 `game-config.json.abilities` 제거(브레이킹 전환)
+- `registerBuiltinAbilities()`를 definition 기반(`id`, `pluginId`) strict 검증 경로로 전환
+- `UpgradeSystem`/description/preview 경로를 매핑 기반 조회로 통일
+- `AbilityConfigSyncValidator`를 도입해 중복/미등록 pluginId/미정의 upgradeId/icon 메타 오류를 초기화 시점에 즉시 차단

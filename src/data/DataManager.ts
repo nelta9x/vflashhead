@@ -5,6 +5,8 @@
 // ============================================
 
 import type {
+  AbilitiesConfig,
+  AbilityDefinition,
   GameConfig,
   SpawnConfig,
   ComboConfig,
@@ -22,11 +24,13 @@ import type {
   LocalesConfig,
   RarityWeights,
   BombEntityData,
+  SystemUpgradeData,
 } from './types';
 import type { BossAttacksConfig } from './types/bossAttacks';
 
 // JSON 파일 직접 import
 import gameConfigJson from '../../data/game-config.json';
+import abilitiesJson from '../../data/abilities.json';
 import mainMenuJson from '../../data/main-menu.json';
 import spawnJson from '../../data/spawn.json';
 import comboJson from '../../data/combo.json';
@@ -48,6 +52,7 @@ class DataManager {
 
   // 타입 캐스팅된 데이터
   public readonly gameConfig: GameConfig;
+  public readonly abilities: AbilitiesConfig;
   public readonly mainMenu: MenuConfig;
   public readonly spawn: SpawnConfig;
   public readonly combo: ComboConfig;
@@ -65,6 +70,8 @@ class DataManager {
   public readonly bossAttacks: BossAttacksConfig;
 
   private currentLang: 'en' | 'ko' = 'en';
+  private readonly abilitiesById = new Map<string, AbilityDefinition>();
+  private readonly abilitiesByUpgradeId = new Map<string, AbilityDefinition>();
 
   private getStorage():
     | Pick<Storage, 'getItem' | 'setItem'>
@@ -82,6 +89,7 @@ class DataManager {
 
   private constructor() {
     this.gameConfig = gameConfigJson as GameConfig;
+    this.abilities = abilitiesJson as AbilitiesConfig;
     this.mainMenu = mainMenuJson as MenuConfig;
     this.spawn = spawnJson as SpawnConfig;
     this.combo = comboJson as ComboConfig;
@@ -97,6 +105,13 @@ class DataManager {
     this.fallingBomb = fallingBombJson as FallingBombConfig;
     this.locales = localesJson as LocalesConfig;
     this.bossAttacks = bossAttacksJson as BossAttacksConfig;
+
+    for (const definition of this.abilities.active) {
+      this.abilitiesById.set(definition.id, definition);
+      if (!this.abilitiesByUpgradeId.has(definition.upgradeId)) {
+        this.abilitiesByUpgradeId.set(definition.upgradeId, definition);
+      }
+    }
 
     // 지원하는 언어 목록 확인
     const supportedLanguages = Object.keys(this.locales);
@@ -186,6 +201,65 @@ class DataManager {
     });
 
     return str;
+  }
+
+  public getActiveAbilityDefinitions(): readonly AbilityDefinition[] {
+    return this.abilities.active;
+  }
+
+  public getAbilityDefinition(abilityId: string): AbilityDefinition | undefined {
+    return this.abilitiesById.get(abilityId);
+  }
+
+  public getAbilityDefinitionByUpgradeId(upgradeId: string): AbilityDefinition | undefined {
+    return this.abilitiesByUpgradeId.get(upgradeId);
+  }
+
+  public getUpgradeIdForAbility(abilityId: string): string {
+    const definition = this.getAbilityDefinition(abilityId);
+    if (!definition) {
+      throw new Error(`Unknown ability id in abilities.json: "${abilityId}"`);
+    }
+    return definition.upgradeId;
+  }
+
+  public getSystemUpgradeByAbilityId(abilityId: string): SystemUpgradeData {
+    const upgradeId = this.getUpgradeIdForAbility(abilityId);
+    const upgrade = this.upgrades.system.find((data) => data.id === upgradeId);
+    if (!upgrade) {
+      throw new Error(
+        `Missing upgrade mapping for ability "${abilityId}": upgrade "${upgradeId}" not found in upgrades.system`
+      );
+    }
+    return upgrade;
+  }
+
+  public getAbilityIconKey(abilityId: string): string {
+    const definition = this.getAbilityDefinition(abilityId);
+    if (!definition) {
+      throw new Error(`Unknown ability id in abilities.json: "${abilityId}"`);
+    }
+    return definition.icon.key;
+  }
+
+  public getAbilityIconKeyByUpgradeId(upgradeId: string): string {
+    const definition = this.getAbilityDefinitionByUpgradeId(upgradeId);
+    if (!definition) {
+      throw new Error(
+        `Missing ability definition for upgrade "${upgradeId}" in abilities.json`
+      );
+    }
+    return definition.icon.key;
+  }
+
+  public getAbilityIdByUpgradeId(upgradeId: string): string {
+    const definition = this.getAbilityDefinitionByUpgradeId(upgradeId);
+    if (!definition) {
+      throw new Error(
+        `Missing ability definition for upgrade "${upgradeId}" in abilities.json`
+      );
+    }
+    return definition.id;
   }
 
   // ===================================

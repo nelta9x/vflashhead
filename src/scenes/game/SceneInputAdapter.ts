@@ -9,6 +9,7 @@ interface SceneInputAdapterDeps {
   resetMovementInput: () => void;
   isGameOver: () => boolean;
   togglePause: () => void;
+  toggleFps: () => void;
 }
 
 export class SceneInputAdapter {
@@ -19,11 +20,13 @@ export class SceneInputAdapter {
   private readonly resetMovementInput: () => void;
   private readonly isGameOver: () => boolean;
   private readonly togglePause: () => void;
+  private readonly toggleFps: () => void;
 
   private tornDown = false;
   private pointerMoveHandler: ((pointer: Phaser.Input.Pointer) => void) | null = null;
   private pointerDownHandler: ((pointer: Phaser.Input.Pointer) => void) | null = null;
   private escapeKeyHandler: (() => void) | null = null;
+  private fpsKeyHandler: (() => void) | null = null;
   private gameOutHandler: ((..._args: unknown[]) => void) | null = null;
   private windowBlurHandler: (() => void) | null = null;
   private visibilityChangeHandler: (() => void) | null = null;
@@ -37,6 +40,7 @@ export class SceneInputAdapter {
     this.resetMovementInput = deps.resetMovementInput;
     this.isGameOver = deps.isGameOver;
     this.togglePause = deps.togglePause;
+    this.toggleFps = deps.toggleFps;
   }
 
   public setup(): void {
@@ -69,6 +73,11 @@ export class SceneInputAdapter {
     };
     this.scene.input.keyboard?.on('keydown-ESC', this.escapeKeyHandler);
 
+    this.fpsKeyHandler = () => {
+      this.toggleFps();
+    };
+    this.scene.input.keyboard?.on('keydown-F', this.fpsKeyHandler);
+
     this.setupSafetyHandlers();
   }
 
@@ -91,6 +100,11 @@ export class SceneInputAdapter {
     if (this.escapeKeyHandler) {
       this.scene.input.keyboard?.off('keydown-ESC', this.escapeKeyHandler);
       this.escapeKeyHandler = null;
+    }
+
+    if (this.fpsKeyHandler) {
+      this.scene.input.keyboard?.off('keydown-F', this.fpsKeyHandler);
+      this.fpsKeyHandler = null;
     }
 
     if (this.gameOutHandler) {

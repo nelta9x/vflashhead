@@ -4,6 +4,7 @@ import {
   GAME_HEIGHT,
   COLORS,
   DEPTHS,
+  FONTS,
 } from '../data/constants';
 import { Data } from '../data/DataManager';
 import { EventBus } from '../utils/EventBus';
@@ -47,6 +48,10 @@ export class GameScene extends Phaser.Scene {
   // 물리/Tween 상태 (Phaser Scene API 전용)
   private isSimulationPaused = false;
 
+  // FPS 표시
+  private fpsText: Phaser.GameObjects.Text | null = null;
+  private showFps = false;
+
   constructor() {
     super({ key: 'GameScene' });
   }
@@ -78,6 +83,7 @@ export class GameScene extends Phaser.Scene {
       resetMovementInput: () => this.controller.resetMovementInput(this.getInputTimestamp()),
       isGameOver: () => this.controller.isGameOver,
       togglePause: () => this.togglePause(),
+      toggleFps: () => this.toggleFpsDisplay(),
     });
 
     this.eventBinder.bind();
@@ -179,6 +185,10 @@ export class GameScene extends Phaser.Scene {
   // === Update ===
 
   update(_time: number, delta: number): void {
+    if (this.showFps && this.fpsText) {
+      this.fpsText.setText(`${Math.round(this.game.loop.actualFps)} FPS`);
+    }
+
     if (this.controller.isGameOver) return;
 
     this.controller.processKeyboardInput(delta, this.getInputTimestamp());
@@ -221,6 +231,22 @@ export class GameScene extends Phaser.Scene {
     this.controller.toggleEscPause(this.getInputTimestamp());
   }
 
+  private toggleFpsDisplay(): void {
+    this.showFps = !this.showFps;
+    if (this.showFps) {
+      if (!this.fpsText) {
+        this.fpsText = this.add.text(GAME_WIDTH - 8, 8, '', {
+          fontFamily: FONTS.MAIN,
+          fontSize: '14px',
+          color: '#ffffff',
+        }).setOrigin(1, 0).setAlpha(0.6).setDepth(9999);
+      }
+      this.fpsText.setVisible(true);
+    } else if (this.fpsText) {
+      this.fpsText.setVisible(false);
+    }
+  }
+
   private gameOver(): void {
     this.controller.setGameOver();
     this.syncSimulationPauseState(false);
@@ -236,6 +262,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   private cleanup(): void {
+    this.fpsText?.destroy();
+    this.fpsText = null;
+    this.showFps = false;
+
     this.controller?.destroy();
     this.controller.resetMovementInput(this.getInputTimestamp());
     this.eventBinder?.unbind();

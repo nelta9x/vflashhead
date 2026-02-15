@@ -90,6 +90,7 @@ describe('SceneInputAdapter', () => {
       resetMovementInput,
       isGameOver: () => false,
       togglePause,
+      toggleFps: vi.fn(),
     });
 
     adapter.setup();
@@ -155,6 +156,7 @@ describe('SceneInputAdapter', () => {
       resetMovementInput: vi.fn(),
       isGameOver: () => false,
       togglePause: vi.fn(),
+      toggleFps: vi.fn(),
     });
 
     adapter.setup();

@@ -10,6 +10,14 @@ describe('UpgradeIconCatalog', () => {
     }
   });
 
+  it('should return a fallback symbol string for all active abilities in game config', () => {
+    for (const abilityId of Data.gameConfig.abilities) {
+      const symbol = getUpgradeFallbackSymbol(abilityId);
+      expect(typeof symbol).toBe('string');
+      expect(symbol.length).toBeGreaterThan(0);
+    }
+  });
+
   it('should fallback to default symbol for unknown upgrade ids', () => {
     expect(getUpgradeFallbackSymbol('unknown_upgrade_id')).toBe('★');
   });

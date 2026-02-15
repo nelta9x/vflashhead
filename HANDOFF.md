@@ -65,12 +65,12 @@
 
 아래는 P3 항목(반복 비용/문서 신뢰도)을 정리하기 위한 체크리스트다.
 
-- [ ] P3-A BootScene 아이콘 프리로드를 data-driven으로 전환 (`upgrades`/`game-config` 기반 목록 생성)
-- [ ] P3-A 아이콘 누락 fallback 정책 적용 (에셋 없음 시 안전 기본 아이콘 처리)
-- [ ] P3-A 신규 Ability 추가 시 BootScene 코드 수정 불필요함을 테스트/수동 검증
-- [ ] P3-B 문서의 `resetInstance`/초기화 시퀀스를 실제 코드와 일치하도록 정정
-- [ ] P3-B 등록 순서 불변 조건(서비스 → abilities/entityTypes 등록 → system plugin 생성)을 문서에 명시
-- [ ] P3 검증 통과: `npm run lint`, `npm run test:run`, `npm run build`
+- [x] P3-A BootScene 아이콘 프리로드를 data-driven으로 전환 (`upgrades`/`game-config` 기반 목록 생성)
+- [x] P3-A 아이콘 누락 fallback 정책 적용 (에셋 없음 시 안전 기본 아이콘 처리)
+- [x] P3-A 신규 Ability 추가 시 BootScene 코드 수정 불필요함을 테스트/수동 검증
+- [x] P3-B 문서의 `resetInstance`/초기화 시퀀스를 실제 코드와 일치하도록 정정
+- [x] P3-B 등록 순서 불변 조건(서비스 → abilities/entityTypes 등록 → system plugin 생성)을 문서에 명시
+- [x] P3 검증 통과: `npm run lint`, `npm run test:run`, `npm run build`
 
 ## 1-4) 오픈 이슈 결정 체크리스트
 

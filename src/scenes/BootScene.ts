@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { COLORS, GAME_WIDTH, GAME_HEIGHT, FONTS } from '../data/constants';
 import { SoundSystem } from '../plugins/builtin/services/SoundSystem';
 import { Data } from '../data/DataManager';
+import { resolveAbilityIconPreloadIds } from './boot/AbilityIconPreloadResolver';
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -69,20 +70,47 @@ export class BootScene extends Phaser.Scene {
   }
 
   private loadIconAssets(): void {
-    const icons = [
-      'cursor_size',
-      'critical_chance',
-      'electric_shock',
-      'magnet',
-      'missile',
-      'health_pack',
-      'orbiting_orb',
-      'black_hole',
-    ];
+    const gameConfigAbilityIds = Data.gameConfig.abilities;
+    const upgradeIds = Data.upgrades.system.map((upgrade) => upgrade.id);
+    const iconIds = resolveAbilityIconPreloadIds(gameConfigAbilityIds, upgradeIds);
+    const resolvedSet = new Set(iconIds);
+    const undefinedAbilityIds = [...new Set(gameConfigAbilityIds.filter((id) => !resolvedSet.has(id)))]
+      .sort();
+    const missingIconKeys = new Set<string>();
 
-    icons.forEach((icon) => {
-      this.load.svg(icon, `assets/icons/${icon}.svg`, { width: 64, height: 64 });
+    this.load.on('loaderror', (file: unknown) => {
+      const key = this.getLoaderFileKey(file);
+      if (!key) return;
+      if (!resolvedSet.has(key)) return;
+      missingIconKeys.add(key);
     });
+
+    this.load.once('complete', () => {
+      if (undefinedAbilityIds.length > 0) {
+        console.warn(
+          `[BootScene] Skipped icon preload for undefined abilities: ${undefinedAbilityIds.join(', ')}`
+        );
+      }
+
+      if (missingIconKeys.size > 0) {
+        const missing = [...missingIconKeys].sort();
+        console.warn(
+          `[BootScene] Missing icon assets for abilities: ${missing.join(', ')}. ` +
+          'UI will fallback to symbolic icons.'
+        );
+      }
+    });
+
+    for (const iconId of iconIds) {
+      this.load.svg(iconId, `assets/icons/${iconId}.svg`, { width: 64, height: 64 });
+    }
+  }
+
+  private getLoaderFileKey(file: unknown): string | null {
+    if (!file || typeof file !== 'object') return null;
+    if (!('key' in file)) return null;
+    const { key } = file as { key?: unknown };
+    return typeof key === 'string' ? key : null;
   }
 
   private createProceduralAssets(): void {

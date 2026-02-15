@@ -37,7 +37,7 @@
 ### 1. 진입점 및 씬 (Scenes)
 
 - **`src/main.ts`**: 게임 인스턴스 생성 및 씬 등록 (`Boot`, `Menu`, `Game`, `GameOver`).
-- **`src/scenes/BootScene.ts`**: 초기 로딩 화면. 에셋 프리로딩(오디오, SVG 아이콘), 프로그레스 바 표시.
+- **`src/scenes/BootScene.ts`**: 초기 로딩 화면. 에셋 프리로딩(오디오, SVG 아이콘), 프로그레스 바 표시. 아이콘 preload 대상은 `game-config.json.abilities`를 기준으로 data-driven 계산되며, 아이콘 파일 누락 시 경고 후 런타임을 계속 진행한다.
 - **`src/scenes/MenuScene.ts`**: 메인 메뉴 오케스트레이터. 타이틀/시작 UI와 배경 렌더러를 구성하고, 언어 위젯/입력/앰비언트 시뮬레이션은 보조 모듈에 위임합니다.
 - **`src/scenes/GameScene.ts`**: **핵심 게임 루프 오케스트레이터**. 시스템/렌더러를 초기화하고 `update()`에서 파이프라인을 실행합니다.
   - **initializeSystems() 순서**: ServiceRegistry → ServicePlugins → `game-config.json`의 `entityTypes`/`abilities` 배열 기반 동적 등록 → SystemPlugin 파이프라인 구성(includes `core:initial_spawn`) → `assertConfigSyncOrThrow()`(파이프라인 구성 드리프트 fail-fast) → `startAll()` (player 등 초기 엔티티 data-driven 스폰) → GameSceneController 생성.
@@ -210,7 +210,7 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
   - `upgrade/UpgradeCardContentRenderer.ts`: 카드 본문 렌더 전담 (`Lv.cur -> Lv.next`, 변경 수치 행 리스트).
   - `DamageText`: 타격 시 데미지 수치 팝업 (오브젝트 풀링, 크리티컬 색상 처리).
   - `WaveCountdownUI`: 다음 웨이브 시작 전 카운트다운 표시.
-  - `upgrade/UpgradeIconCatalog.ts`: 업그레이드 fallback 아이콘/심볼 SSOT.
+  - `upgrade/UpgradeIconCatalog.ts`: 업그레이드 fallback 아이콘/심볼 SSOT. 아이콘 텍스처가 없으면 `InGameUpgradeUI`/`AbilitySummaryWidget`가 이 심볼로 대체 렌더링한다.
 
 ---
 

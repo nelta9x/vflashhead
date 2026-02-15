@@ -284,3 +284,19 @@
 - `ModSystemRegistry`에 `bindSystemEventBus(systemId, bus)`를 도입하고 `runAll()`에서 미바인딩 시스템을 즉시 실패 처리
 - `ModRegistry.loadMod()`에서 diff로 파악한 `modSystemIds` 전부에 MOD의 scoped bus를 바인딩하도록 표준 경로를 고정
 - `GameWrappersSystemPlugin`/`ModTickSystem`에서 raw `EventBus` 주입을 제거해 scoped 이벤트 경로 우회 가능성을 제거
+
+---
+
+## 18. 부트 에셋 프리로드 data-driven + 문서 시퀀스 동기화 `occurrences: 1`
+
+### 원칙
+- BootScene의 아이콘 preload 대상은 하드코딩 배열이 아니라 `game-config.abilities` 기준으로 계산한다.
+- preload 대상은 `upgrades.system[].id`와 교차 검증해 미정의 ID를 제외하고, 경고만 남긴다(실패로 승격하지 않음).
+- 아이콘 파일 누락은 부팅 실패가 아니라 UI fallback symbol 렌더(`UpgradeIconCatalog`)로 흡수한다.
+- 아키텍처 문서의 초기화 시퀀스는 실제 `GameScene.initializeSystems()` 순서와 항상 동일하게 유지한다.
+- 특히 서비스 resolve → abilities/entityTypes 등록 → system 생성 순서는 불변 조건으로 문서에 명시한다.
+
+### 사례 요약
+- BootScene 아이콘 리스트 하드코딩을 제거하고 data-driven resolver로 전환
+- 아이콘 누락 시 경고 후 진행 + HUD/업그레이드 UI에서 심볼 폴백 렌더를 유지
+- `PLUGIN_ARCHITECTURE`에 초기화 순서 invariant를 추가해 온보딩 혼선을 차단

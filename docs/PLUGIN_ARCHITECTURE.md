@@ -60,6 +60,17 @@ sequenceDiagram
   GS->>PP: startAll() → initialEntities[] 스폰
 ```
 
+### 초기화 순서 불변 조건
+
+아래 순서는 확장 안정성을 위해 **항상 유지되어야 하는 invariant**다.
+
+1. `servicePlugins`를 resolve하여 ServiceRegistry 구성이 완료되어야 한다.
+2. `abilities`/`entityTypes` 등록이 완료되어야 한다.
+3. 그 다음에만 `SystemPlugin.createSystems()`를 호출해야 한다.
+4. 시스템 등록 후 `entityPipeline` 동기화 검증(`assertConfigSyncOrThrow`)을 통과한 뒤 `startAll()`을 호출해야 한다.
+
+특히 2번과 3번의 순서가 바뀌면, 시스템 생성 시점에 필요한 ability/entity type 조회가 실패할 수 있다.
+
 ---
 
 ## 2. 플러그인 타입별 인터페이스

@@ -79,17 +79,17 @@
     },
     "cursorColor": "#f0f8ff",
     "cursorColorNumeric": 15792383,
-    "cursorSpeed": 1123,
+    "cursorSpeed": 850,
     "electricSpark": {
       "maxCount": 8
     },
     "input": {
       "pointerPriorityMs": 120,
-      "keyboardAxisRampUpMs": 130,
-      "keyboardEaseInPower": 1.35,
-      "keyboardMinAxisSpeed": 0.18,
+      "keyboardAxisRampUpMs": 230,
+      "keyboardEaseInPower": 1.9,
+      "keyboardMinAxisSpeed": 1.0,
       "smoothing": {
-        "baseLerp": 0.4,
+        "halfLifeMs": 22.6,
         "snapThreshold": 175,
         "convergenceThreshold": 0.5,
         "deadZone": 2.5

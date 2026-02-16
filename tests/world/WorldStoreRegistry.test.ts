@@ -94,7 +94,7 @@ describe('World Store Registry', () => {
         transform: { x: 10, y: 20, baseX: 10, baseY: 20, alpha: 1, scaleX: 1, scaleY: 1 },
         health: { currentHp: 100, maxHp: 100 },
         statusCache: { isFrozen: false, slowFactor: 1.0, isShielded: false },
-        playerInput: { targetX: 10, targetY: 20, smoothingConfig: { baseLerp: 0.4, snapThreshold: 175, convergenceThreshold: 0.5, deadZone: 2.5 } },
+        playerInput: { targetX: 10, targetY: 20, smoothingConfig: { halfLifeMs: 22.6, snapThreshold: 175, convergenceThreshold: 0.5, deadZone: 2.5 } },
         playerRender: { gaugeRatio: 0, gameTime: 0 },
       });
 

@@ -7,15 +7,10 @@ export interface SmoothingResult {
 }
 
 /**
- * 적응형 커서 스무딩 계산 (순수 함수)
+ * 프레임 독립 지수 감쇠 커서 스무딩 (순수 함수)
  *
- * @param currentX 현재 커서 X
- * @param currentY 현재 커서 Y
- * @param targetX 목표 커서 X
- * @param targetY 목표 커서 Y
- * @param delta 프레임 델타(ms)
- * @param config 스무딩 설정
- * @returns 스무딩 적용된 새 위치
+ * halfLifeMs 기반: FPS와 무관하게 동일 시간 후 동일 위치에 도달.
+ * smoothFactor = 1 - 2^(-delta / halfLifeMs)
  */
 export function computeCursorSmoothing(
   currentX: number,
@@ -25,7 +20,6 @@ export function computeCursorSmoothing(
   delta: number,
   config: CursorSmoothingConfig
 ): SmoothingResult {
-  // delta <= 0 → 현재 위치 유지 (탭 전환 등 비정상 프레임)
   if (delta <= 0) {
     return { x: currentX, y: currentY, snapped: false };
   }
@@ -34,18 +28,18 @@ export function computeCursorSmoothing(
   const dy = targetY - currentY;
   const distance = Math.sqrt(dx * dx + dy * dy);
 
-  // convergenceThreshold 또는 deadZone 이하 → 즉시 snap
   const snapRadius = Math.max(config.convergenceThreshold, config.deadZone);
   if (distance <= snapRadius) {
     return { x: targetX, y: targetY, snapped: true };
   }
 
-  // 적응형 lerp: 거리가 멀수록 factor → 1.0
-  const rawFactor = config.baseLerp +
-    (1 - config.baseLerp) * Math.min(Math.max(distance / config.snapThreshold, 0), 1);
+  // snapThreshold 이상 → 즉시 snap
+  if (distance >= config.snapThreshold) {
+    return { x: targetX, y: targetY, snapped: true };
+  }
 
-  // 프레임 독립 보정
-  const smoothFactor = 1 - Math.pow(1 - rawFactor, delta / 16.67);
+  // 프레임 독립 지수 감쇠: halfLifeMs마다 남은 거리가 절반
+  const smoothFactor = 1 - Math.pow(2, -delta / config.halfLifeMs);
 
   return {
     x: currentX + dx * smoothFactor,

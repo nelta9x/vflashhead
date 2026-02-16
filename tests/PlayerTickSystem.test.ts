@@ -49,7 +49,7 @@ function setupPlayerEntity(world: World): EntityId {
   world.playerInput.set(playerId, {
     targetX: 300, targetY: 400,
     smoothingConfig: {
-      baseLerp: 0.4,
+      halfLifeMs: 22.6,
       snapThreshold: 175,
       convergenceThreshold: 0.5,
       deadZone: 2.5,

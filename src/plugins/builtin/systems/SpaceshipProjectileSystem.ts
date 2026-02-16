@@ -161,9 +161,11 @@ export class SpaceshipProjectileSystem implements EntitySystem {
   ): void {
     if (gameTime - this.lastHitTime < projConfig.invincibilityDuration) return;
 
-    for (const p of this.projectiles) {
+    for (let i = this.projectiles.length - 1; i >= 0; i--) {
+      const p = this.projectiles[i];
       const dist = Phaser.Math.Distance.Between(cursorX, cursorY, p.x, p.y);
       if (dist < cursorRadius + projConfig.hitboxRadius) {
+        this.projectiles.splice(i, 1);
         this.lastHitTime = gameTime;
         this.healthSystem.takeDamage(projConfig.damage);
         this.feedbackSystem.onHpLost();
@@ -178,15 +180,19 @@ export class SpaceshipProjectileSystem implements EntitySystem {
 
     for (const p of this.projectiles) {
       // Outer glow
-      this.graphics.fillStyle(parsedProjectileColor, 0.3);
+      this.graphics.fillStyle(parsedProjectileColor, 0.15);
+      this.graphics.fillCircle(p.x, p.y, projConfig.size * 3);
+
+      // Mid glow
+      this.graphics.fillStyle(parsedProjectileColor, 0.35);
       this.graphics.fillCircle(p.x, p.y, projConfig.size * 2);
 
       // Body
-      this.graphics.fillStyle(parsedProjectileColor, 0.8);
+      this.graphics.fillStyle(parsedProjectileColor, 0.9);
       this.graphics.fillCircle(p.x, p.y, projConfig.size);
 
       // Core
-      this.graphics.fillStyle(parsedCoreColor, 0.9);
+      this.graphics.fillStyle(parsedCoreColor, 1);
       this.graphics.fillCircle(p.x, p.y, projConfig.size * 0.5);
     }
   }

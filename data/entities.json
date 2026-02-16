@@ -85,7 +85,7 @@
       "name": "우주선",
       "hp": 45,
       "color": "#1a8a5a",
-      "size": 28,
+      "size": 35,
       "lifetime": 25000,
       "poolSize": 8,
       "cursorInteraction": "dps",
@@ -106,22 +106,45 @@
       },
       "projectile": {
         "speed": 180,
-        "size": 4,
+        "size": 6,
         "hitboxRadius": 10,
         "lifetime": 5000,
         "color": "#ff4444",
         "coreColor": "#ffaaaa",
         "damage": 1,
         "invincibilityDuration": 500,
-        "minInterval": 3000,
+        "minInterval": 5000,
         "maxInterval": 5000,
         "aimVarianceDeg": 12
       },
       "visual": {
-        "bodyColor": "#1a3a5a",
-        "accentColor": "#00ccff",
-        "engineColor": "#00aaff",
-        "enginePulseSpeed": 0.008
+        "core": {
+          "radius": 16,
+          "color": "#ff0000",
+          "initialAlpha": 0.8,
+          "pulseSpeed": 0.012,
+          "pulseIntensity": 0.2,
+          "lightRadiusRatio": 0.4,
+          "glowLevels": [
+            { "radius": 1.3, "alpha": 0.25 },
+            { "radius": 1.6, "alpha": 0.12 },
+            { "radius": 2.0, "alpha": 0.04 }
+          ]
+        },
+        "armor": {
+          "pieces": 6,
+          "radius": 28,
+          "innerRadius": 20,
+          "rotationSpeed": 0.001,
+          "gap": 0.12,
+          "bodyColor": "#1a0505",
+          "bodyAlpha": 0.85,
+          "borderColor": "#ff0000",
+          "depletedBodyColor": "#090202",
+          "depletedBodyAlpha": 0.2,
+          "depletedBorderColor": "#5a1313",
+          "depletedBorderAlpha": 0.4
+        }
       }
     },
     "boss_standard": {

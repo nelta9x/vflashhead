@@ -1,15 +1,42 @@
 import Phaser from 'phaser';
 
+interface GlowLevel {
+  radius: number;
+  alpha: number;
+}
+
+interface CoreVisualConfig {
+  radius: number;
+  color: number;
+  initialAlpha: number;
+  pulseSpeed: number;
+  pulseIntensity: number;
+  lightRadiusRatio: number;
+  glowLevels: GlowLevel[];
+}
+
+interface ArmorVisualConfig {
+  pieces: number;
+  radius: number;
+  innerRadius: number;
+  rotationSpeed: number;
+  gap: number;
+  bodyColor: number;
+  bodyAlpha: number;
+  borderColor: number;
+  depletedBodyColor: number;
+  depletedBodyAlpha: number;
+  depletedBorderColor: number;
+  depletedBorderAlpha: number;
+}
+
 export interface SpaceshipVisualState {
-  size: number;
   currentHp: number;
   maxHp: number;
   hitFlashPhase: number;
-  movementTime: number;
-  bodyColor: number;
-  accentColor: number;
-  engineColor: number;
-  enginePulseSpeed: number;
+  timeElapsed: number;
+  core: CoreVisualConfig;
+  armor: ArmorVisualConfig;
 }
 
 export class SpaceshipRenderer {
@@ -19,103 +46,177 @@ export class SpaceshipRenderer {
   ): void {
     graphics.clear();
 
-    const { size, movementTime, hitFlashPhase, enginePulseSpeed } = state;
+    const { core, armor, hitFlashPhase, timeElapsed } = state;
+    const hpRatio = Phaser.Math.Clamp(state.currentHp / state.maxHp, 0, 1);
+    const filledPieces = Math.ceil(hpRatio * armor.pieces);
+    const dangerLevel = 1 - hpRatio;
     const flashWhite = hitFlashPhase > 0 ? hitFlashPhase : 0;
 
-    const bodyColor = flashWhite > 0
-      ? this.lerpColor(state.bodyColor, 0xffffff, flashWhite)
-      : state.bodyColor;
-    const accentColor = flashWhite > 0
-      ? this.lerpColor(state.accentColor, 0xffffff, flashWhite)
-      : state.accentColor;
+    this.drawCoreGlow(graphics, core, timeElapsed, dangerLevel, flashWhite);
+    this.drawArmorGlow(graphics, core, armor, timeElapsed, filledPieces);
+    this.drawCore(graphics, core, timeElapsed, dangerLevel, flashWhite);
+    this.drawCoreLight(graphics, core, timeElapsed, flashWhite);
+    this.drawArmor(graphics, armor, timeElapsed, filledPieces, flashWhite);
+  }
 
-    // Engine glow (pulsing, behind body)
-    const pulse = Math.sin(movementTime * enginePulseSpeed) * 0.3 + 0.7;
-    const engineColor = flashWhite > 0
-      ? this.lerpColor(state.engineColor, 0xffffff, flashWhite)
-      : state.engineColor;
-    graphics.fillStyle(engineColor, 0.15 * pulse);
-    graphics.fillCircle(0, -size * 0.4, size * 1.2);
-    graphics.fillStyle(engineColor, 0.3 * pulse);
-    graphics.fillCircle(0, -size * 0.3, size * 0.7);
+  private static drawCoreGlow(
+    graphics: Phaser.GameObjects.Graphics,
+    core: CoreVisualConfig,
+    timeElapsed: number,
+    dangerLevel: number,
+    flashWhite: number,
+  ): void {
+    const pulseFactor = 1 + Math.sin(timeElapsed * core.pulseSpeed) * 0.1;
+    const color = flashWhite > 0 ? this.lerpColor(core.color, 0xffffff, flashWhite) : core.color;
 
-    // Body: downward-pointing chevron (inverted triangle)
-    const halfW = size * 0.7;
-    const topY = -size * 0.6;
-    const bottomY = size * 0.8;
-    const midY = -size * 0.1;
-
-    // Main body fill
-    graphics.fillStyle(bodyColor, 0.85);
-    graphics.beginPath();
-    graphics.moveTo(-halfW, topY);
-    graphics.lineTo(0, bottomY);
-    graphics.lineTo(halfW, topY);
-    graphics.lineTo(0, midY);
-    graphics.closePath();
-    graphics.fillPath();
-
-    // Body outline
-    graphics.lineStyle(2, accentColor, 0.9);
-    graphics.beginPath();
-    graphics.moveTo(-halfW, topY);
-    graphics.lineTo(0, bottomY);
-    graphics.lineTo(halfW, topY);
-    graphics.lineTo(0, midY);
-    graphics.closePath();
-    graphics.strokePath();
-
-    // Wing accents
-    graphics.lineStyle(1.5, accentColor, 0.6);
-    graphics.beginPath();
-    graphics.moveTo(-halfW * 0.5, topY + (midY - topY) * 0.3);
-    graphics.lineTo(0, midY + (bottomY - midY) * 0.4);
-    graphics.moveTo(halfW * 0.5, topY + (midY - topY) * 0.3);
-    graphics.lineTo(0, midY + (bottomY - midY) * 0.4);
-    graphics.strokePath();
-
-    // Cockpit (circle at front)
-    const cockpitY = midY + (bottomY - midY) * 0.2;
-    graphics.fillStyle(accentColor, 0.5);
-    graphics.fillCircle(0, cockpitY, size * 0.18);
-    graphics.lineStyle(1, accentColor, 0.8);
-    graphics.strokeCircle(0, cockpitY, size * 0.18);
-
-    // Engine thruster dots at top
-    const thrusterY = topY - 2;
-    graphics.fillStyle(engineColor, 0.7 * pulse);
-    graphics.fillCircle(-halfW * 0.4, thrusterY, 3);
-    graphics.fillCircle(halfW * 0.4, thrusterY, 3);
-
-    // HP bar (only when damaged)
-    if (state.currentHp < state.maxHp) {
-      this.drawHpBar(graphics, size, state.currentHp, state.maxHp);
+    for (const level of core.glowLevels) {
+      graphics.fillStyle(color, level.alpha * pulseFactor);
+      graphics.fillCircle(
+        0,
+        0,
+        core.radius * level.radius * (1 + dangerLevel * 0.2),
+      );
     }
   }
 
-  private static drawHpBar(
+  private static drawArmorGlow(
     graphics: Phaser.GameObjects.Graphics,
-    size: number,
-    currentHp: number,
-    maxHp: number,
+    core: CoreVisualConfig,
+    armor: ArmorVisualConfig,
+    timeElapsed: number,
+    filledPieces: number,
   ): void {
-    const barWidth = size * 1.6;
-    const barHeight = 5;
-    const barY = -size - 12;
+    const pulseFactor = 1 + Math.sin(timeElapsed * core.pulseSpeed) * 0.1;
+    const rotation = timeElapsed * armor.rotationSpeed;
+    const pieceAngle = (Math.PI * 2) / armor.pieces;
+    const pieceSpan = this.getArmorPieceSpan(armor.gap, armor.pieces);
+    const glowAlpha = 0.4 * pulseFactor;
 
-    graphics.fillStyle(0x000000, 0.6);
-    graphics.fillRect(-barWidth / 2 - 1, barY - 1, barWidth + 2, barHeight + 2);
+    for (let i = 0; i < filledPieces; i++) {
+      const centerAngle = rotation + (i + 0.5) * pieceAngle;
+      const startAngle = centerAngle - pieceSpan * 0.5;
+      const endAngle = centerAngle + pieceSpan * 0.5;
+      if (endAngle <= startAngle) continue;
 
-    const hpRatio = Math.max(0, currentHp / maxHp);
-    const hpColor = this.lerpColor(0xff0000, 0x00ff00, hpRatio);
-    graphics.fillStyle(hpColor, 1);
-    graphics.fillRect(-barWidth / 2, barY, barWidth * hpRatio, barHeight);
-
-    graphics.lineStyle(1, 0xffffff, 0.5);
-    graphics.strokeRect(-barWidth / 2, barY, barWidth, barHeight);
+      graphics.lineStyle(4, armor.borderColor, glowAlpha);
+      this.traceArmorPiecePath(graphics, startAngle, endAngle, armor.innerRadius, armor.radius);
+      graphics.strokePath();
+    }
   }
 
-  private static lerpColor(colorA: number, colorB: number, t: number): number {
+  private static drawCore(
+    graphics: Phaser.GameObjects.Graphics,
+    core: CoreVisualConfig,
+    timeElapsed: number,
+    dangerLevel: number,
+    flashWhite: number,
+  ): void {
+    const corePulse =
+      core.initialAlpha +
+      Math.sin(timeElapsed * core.pulseSpeed * (1 + dangerLevel)) *
+        core.pulseIntensity;
+    const color = flashWhite > 0 ? this.lerpColor(core.color, 0xffffff, flashWhite) : core.color;
+    const scale = 1 + dangerLevel * 0.1;
+
+    graphics.fillStyle(color, corePulse);
+    graphics.fillCircle(0, 0, core.radius * scale);
+  }
+
+  private static drawCoreLight(
+    graphics: Phaser.GameObjects.Graphics,
+    core: CoreVisualConfig,
+    timeElapsed: number,
+    flashWhite: number,
+  ): void {
+    const lightPulse = 0.8 + Math.sin(timeElapsed * core.pulseSpeed * 2) * 0.2;
+    const color = flashWhite > 0 ? 0xffffff : 0xffffff;
+    const lightRadius = core.radius * core.lightRadiusRatio;
+
+    graphics.fillStyle(color, lightPulse);
+    graphics.fillCircle(0, 0, lightRadius);
+  }
+
+  private static drawArmor(
+    graphics: Phaser.GameObjects.Graphics,
+    armor: ArmorVisualConfig,
+    timeElapsed: number,
+    filledPieces: number,
+    flashWhite: number,
+  ): void {
+    const rotation = timeElapsed * armor.rotationSpeed;
+    const pieceAngle = (Math.PI * 2) / armor.pieces;
+    const pieceSpan = this.getArmorPieceSpan(armor.gap, armor.pieces);
+
+    for (let i = 0; i < armor.pieces; i++) {
+      const centerAngle = rotation + (i + 0.5) * pieceAngle;
+      const startAngle = centerAngle - pieceSpan * 0.5;
+      const endAngle = centerAngle + pieceSpan * 0.5;
+      if (endAngle <= startAngle) continue;
+
+      const isFilled = i < filledPieces;
+
+      let bodyColor: number;
+      let bodyAlpha: number;
+      let borderColor: number;
+      let borderAlpha: number;
+
+      if (isFilled) {
+        bodyColor = flashWhite > 0
+          ? this.lerpColor(armor.bodyColor, 0xffffff, flashWhite)
+          : armor.bodyColor;
+        bodyAlpha = armor.bodyAlpha;
+        borderColor = flashWhite > 0
+          ? this.lerpColor(armor.borderColor, 0xffffff, flashWhite)
+          : armor.borderColor;
+        borderAlpha = 1;
+      } else {
+        bodyColor = armor.depletedBodyColor;
+        bodyAlpha = armor.depletedBodyAlpha;
+        borderColor = armor.depletedBorderColor;
+        borderAlpha = armor.depletedBorderAlpha;
+      }
+
+      const detailAlpha = isFilled ? 0.4 : Math.min(0.25, armor.depletedBorderAlpha * 0.7);
+
+      graphics.fillStyle(bodyColor, bodyAlpha);
+      this.traceArmorPiecePath(graphics, startAngle, endAngle, armor.innerRadius, armor.radius);
+      graphics.fillPath();
+
+      graphics.lineStyle(2, borderColor, borderAlpha);
+      this.traceArmorPiecePath(graphics, startAngle, endAngle, armor.innerRadius, armor.radius);
+      graphics.strokePath();
+
+      graphics.lineStyle(1, borderColor, detailAlpha);
+      const midRadius = (armor.radius + armor.innerRadius) / 2;
+      graphics.beginPath();
+      graphics.arc(0, 0, midRadius, startAngle, endAngle);
+      graphics.strokePath();
+    }
+  }
+
+  private static getArmorPieceSpan(gap: number, pieceCount: number): number {
+    const safePieceCount = Math.max(1, pieceCount);
+    const slotAngle = (Math.PI * 2) / safePieceCount;
+    const maxGap = slotAngle * 0.45;
+    const clampedGap = Phaser.Math.Clamp(gap, 0, maxGap);
+    return Math.max(slotAngle - clampedGap * 2, slotAngle * 0.2);
+  }
+
+  private static traceArmorPiecePath(
+    graphics: Phaser.GameObjects.Graphics,
+    startAngle: number,
+    endAngle: number,
+    innerRadius: number,
+    outerRadius: number,
+  ): void {
+    graphics.beginPath();
+    graphics.arc(0, 0, outerRadius, startAngle, endAngle, false);
+    graphics.lineTo(Math.cos(endAngle) * innerRadius, Math.sin(endAngle) * innerRadius);
+    graphics.arc(0, 0, innerRadius, endAngle, startAngle, true);
+    graphics.closePath();
+  }
+
+  static lerpColor(colorA: number, colorB: number, t: number): number {
     const rA = (colorA >> 16) & 0xff;
     const gA = (colorA >> 8) & 0xff;
     const bA = colorA & 0xff;

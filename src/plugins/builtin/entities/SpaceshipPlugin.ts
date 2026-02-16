@@ -27,9 +27,37 @@ interface SpaceshipMovementConfig {
 
 const spaceshipData = entitiesJson.types.spaceship;
 const visualConfig = spaceshipData.visual;
-const parsedBodyColor = Phaser.Display.Color.HexStringToColor(visualConfig.bodyColor).color;
-const parsedAccentColor = Phaser.Display.Color.HexStringToColor(visualConfig.accentColor).color;
-const parsedEngineColor = Phaser.Display.Color.HexStringToColor(visualConfig.engineColor).color;
+
+const parsedCoreColor = Phaser.Display.Color.HexStringToColor(visualConfig.core.color).color;
+const parsedArmorBodyColor = Phaser.Display.Color.HexStringToColor(visualConfig.armor.bodyColor).color;
+const parsedArmorBorderColor = Phaser.Display.Color.HexStringToColor(visualConfig.armor.borderColor).color;
+const parsedDepletedBodyColor = Phaser.Display.Color.HexStringToColor(visualConfig.armor.depletedBodyColor).color;
+const parsedDepletedBorderColor = Phaser.Display.Color.HexStringToColor(visualConfig.armor.depletedBorderColor).color;
+
+const coreConfig = {
+  radius: visualConfig.core.radius,
+  color: parsedCoreColor,
+  initialAlpha: visualConfig.core.initialAlpha,
+  pulseSpeed: visualConfig.core.pulseSpeed,
+  pulseIntensity: visualConfig.core.pulseIntensity,
+  lightRadiusRatio: visualConfig.core.lightRadiusRatio,
+  glowLevels: visualConfig.core.glowLevels,
+} as const;
+
+const armorConfig = {
+  pieces: visualConfig.armor.pieces,
+  radius: visualConfig.armor.radius,
+  innerRadius: visualConfig.armor.innerRadius,
+  rotationSpeed: visualConfig.armor.rotationSpeed,
+  gap: visualConfig.armor.gap,
+  bodyColor: parsedArmorBodyColor,
+  bodyAlpha: visualConfig.armor.bodyAlpha,
+  borderColor: parsedArmorBorderColor,
+  depletedBodyColor: parsedDepletedBodyColor,
+  depletedBodyAlpha: visualConfig.armor.depletedBodyAlpha,
+  depletedBorderColor: parsedDepletedBorderColor,
+  depletedBorderAlpha: visualConfig.armor.depletedBorderAlpha,
+} as const;
 
 export class SpaceshipPlugin implements EntityTypePlugin {
   readonly typeId = 'spaceship';
@@ -59,40 +87,32 @@ export class SpaceshipPlugin implements EntityTypePlugin {
 
   onSpawn(entityId: EntityId, world: World): void {
     const pn = world.phaserNode.get(entityId);
-    const dishProps = world.dishProps.get(entityId);
     const health = world.health.get(entityId);
-    if (!pn || !dishProps || !health) return;
+    if (!pn || !health) return;
 
     SpaceshipRenderer.render(pn.graphics, {
-      size: dishProps.size,
       currentHp: health.currentHp,
       maxHp: health.maxHp,
       hitFlashPhase: 0,
-      movementTime: 0,
-      bodyColor: parsedBodyColor,
-      accentColor: parsedAccentColor,
-      engineColor: parsedEngineColor,
-      enginePulseSpeed: visualConfig.enginePulseSpeed,
+      timeElapsed: 0,
+      core: coreConfig,
+      armor: armorConfig,
     });
   }
 
   onUpdate(entityId: EntityId, world: World, _delta: number, gameTime: number): void {
     const pn = world.phaserNode.get(entityId);
-    const dishProps = world.dishProps.get(entityId);
     const health = world.health.get(entityId);
     const visualState = world.visualState.get(entityId);
-    if (!pn || !dishProps || !health) return;
+    if (!pn || !health) return;
 
     SpaceshipRenderer.render(pn.graphics, {
-      size: dishProps.size,
       currentHp: health.currentHp,
       maxHp: health.maxHp,
       hitFlashPhase: visualState?.hitFlashPhase ?? 0,
-      movementTime: gameTime,
-      bodyColor: parsedBodyColor,
-      accentColor: parsedAccentColor,
-      engineColor: parsedEngineColor,
-      enginePulseSpeed: visualConfig.enginePulseSpeed,
+      timeElapsed: gameTime,
+      core: coreConfig,
+      armor: armorConfig,
     });
   }
 

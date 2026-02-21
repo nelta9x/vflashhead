@@ -28,7 +28,7 @@
     "amber",
     "bomb",
     "spaceship",
-    "boss_standard"
+    "gatekeeper_spaceship"
   ],
   "entityPipeline": [
     "core:initial_spawn",

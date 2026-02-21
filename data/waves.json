@@ -27,7 +27,7 @@
             "minInterval": 999999,
             "maxInterval": 999999
           },
-          "entityTypeId": "boss_standard"
+          "entityTypeId": "gatekeeper_spaceship"
         }
       ],
       "bossSpawnMinDistance": 150,
@@ -64,7 +64,7 @@
             "minInterval": 999999,
             "maxInterval": 999999
           },
-          "entityTypeId": "boss_standard"
+          "entityTypeId": "gatekeeper_spaceship"
         }
       ],
       "bossSpawnMinDistance": 150,
@@ -109,7 +109,7 @@
             "minInterval": 999999,
             "maxInterval": 999999
           },
-          "entityTypeId": "boss_standard"
+          "entityTypeId": "gatekeeper_spaceship"
         }
       ],
       "bossSpawnMinDistance": 150,
@@ -154,7 +154,7 @@
             "minInterval": 6500,
             "maxInterval": 10000
           },
-          "entityTypeId": "boss_standard"
+          "entityTypeId": "gatekeeper_spaceship"
         }
       ],
       "bossSpawnMinDistance": 150,
@@ -204,7 +204,7 @@
             "minInterval": 5500,
             "maxInterval": 9000
           },
-          "entityTypeId": "boss_standard"
+          "entityTypeId": "gatekeeper_spaceship"
         }
       ],
       "bossSpawnMinDistance": 150,
@@ -261,7 +261,7 @@
               "maxInterval": 16000
             }
           },
-          "entityTypeId": "boss_standard"
+          "entityTypeId": "gatekeeper_spaceship"
         }
       ],
       "bossSpawnMinDistance": 150,
@@ -322,7 +322,7 @@
               "maxInterval": 14000
             }
           },
-          "entityTypeId": "boss_standard"
+          "entityTypeId": "gatekeeper_spaceship"
         }
       ],
       "bossSpawnMinDistance": 150,
@@ -383,7 +383,7 @@
               "maxInterval": 13000
             }
           },
-          "entityTypeId": "boss_standard"
+          "entityTypeId": "gatekeeper_spaceship"
         }
       ],
       "bossSpawnMinDistance": 150,
@@ -444,7 +444,7 @@
               "maxInterval": 13000
             }
           },
-          "entityTypeId": "boss_standard"
+          "entityTypeId": "gatekeeper_spaceship"
         }
       ],
       "bossSpawnMinDistance": 150,
@@ -514,7 +514,7 @@
               "maxInterval": 20000
             }
           },
-          "entityTypeId": "boss_standard"
+          "entityTypeId": "gatekeeper_spaceship"
         }
       ],
       "bossSpawnMinDistance": 150,
@@ -584,7 +584,7 @@
               "maxInterval": 18000
             }
           },
-          "entityTypeId": "boss_standard"
+          "entityTypeId": "gatekeeper_spaceship"
         },
         {
           "id": "boss_right",
@@ -612,7 +612,7 @@
               "maxInterval": 18000
             }
           },
-          "entityTypeId": "boss_standard"
+          "entityTypeId": "gatekeeper_spaceship"
         }
       ],
       "bossSpawnMinDistance": 280,
@@ -682,7 +682,7 @@
               "maxInterval": 18000
             }
           },
-          "entityTypeId": "boss_standard"
+          "entityTypeId": "gatekeeper_spaceship"
         },
         {
           "id": "boss_right",
@@ -710,7 +710,7 @@
               "maxInterval": 18000
             }
           },
-          "entityTypeId": "boss_standard"
+          "entityTypeId": "gatekeeper_spaceship"
         }
       ],
       "bossSpawnMinDistance": 280,
@@ -780,7 +780,7 @@
               "maxInterval": 16000
             }
           },
-          "entityTypeId": "boss_standard"
+          "entityTypeId": "gatekeeper_spaceship"
         },
         {
           "id": "boss_right",
@@ -808,7 +808,7 @@
               "maxInterval": 16000
             }
           },
-          "entityTypeId": "boss_standard"
+          "entityTypeId": "gatekeeper_spaceship"
         }
       ],
       "bossSpawnMinDistance": 280,
@@ -880,7 +880,7 @@
             "maxInterval": 15000
           }
         },
-        "entityTypeId": "boss_standard"
+        "entityTypeId": "gatekeeper_spaceship"
       },
       {
         "id": "boss_center",
@@ -908,7 +908,7 @@
             "maxInterval": 15000
           }
         },
-        "entityTypeId": "boss_standard"
+        "entityTypeId": "gatekeeper_spaceship"
       },
       {
         "id": "boss_right",
@@ -936,7 +936,7 @@
             "maxInterval": 15000
           }
         },
-        "entityTypeId": "boss_standard"
+        "entityTypeId": "gatekeeper_spaceship"
       }
     ],
     "minDishCountIncrease": 0,

@@ -2,7 +2,7 @@ import type { EntityTypePlugin } from '../../types';
 import { PluginRegistry } from '../../PluginRegistry';
 import { BasicDishPlugin } from './BasicDish';
 import { BombEntityPlugin } from './BombEntity';
-import { StandardBossPlugin } from './StandardBoss';
+import { GatekeeperSpaceshipPlugin } from './GatekeeperSpaceship';
 import { SpaceshipPlugin } from './SpaceshipPlugin';
 import { PlayerEntityPlugin } from './PlayerEntity';
 import entitiesJson from '../../../../data/entities.json';
@@ -38,10 +38,10 @@ const ENTITY_TYPE_FACTORIES: Record<string, () => EntityTypePlugin> = {
       },
     );
   },
-  boss_standard: () => {
-    const d = entitiesJson.types.boss_standard;
+  gatekeeper_spaceship: () => {
+    const d = entitiesJson.types.gatekeeper_spaceship;
     const mc = 'movement' in d ? d.movement : undefined;
-    return new StandardBossPlugin(
+    return new GatekeeperSpaceshipPlugin(
       mc as {
         type: string;
         drift: { xAmplitude: number; xFrequency: number; yAmplitude: number; yFrequency: number };

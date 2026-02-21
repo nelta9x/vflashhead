@@ -1,5 +1,5 @@
 {
-  "defaultEntityTypeId": "boss_standard",
+  "defaultEntityTypeId": "gatekeeper_spaceship",
   "depth": 1600,
   "visual": {
     "core": {

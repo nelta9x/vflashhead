@@ -27,11 +27,11 @@ interface BossMovementConfig {
 }
 
 /**
- * 표준 보스 타입 플러그인.
+ * 관문 우주선 타입 플러그인.
  * 드리프트 이동, 아머 HP 바, 피격 반응(push/shake/flash), 레이저 공격.
  */
-export class StandardBossPlugin implements EntityTypePlugin {
-  readonly typeId = 'boss_standard';
+export class GatekeeperSpaceshipPlugin implements EntityTypePlugin {
+  readonly typeId = 'gatekeeper_spaceship';
   readonly config: EntityTypeConfig = {
     spawnCategory: 'pooled',
     poolSize: 0,

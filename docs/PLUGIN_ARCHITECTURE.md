@@ -276,7 +276,7 @@ const ENTITY_TYPE_FACTORIES: Record<string, () => EntityTypePlugin> = {
 |------|------|------|
 | `servicePlugins` | 활성 ServicePlugin ID | `["core:services", "core:ecs", "core:game_modules"]` |
 | `systemPlugins` | 활성 SystemPlugin ID | `["core:initial_spawn", "core:world_systems", ...]` |
-| `entityTypes` | 활성 EntityType ID | `["player", "basic", "golden", ..., "boss_standard"]` |
+| `entityTypes` | 활성 EntityType ID | `["player", "basic", "golden", ..., "gatekeeper_spaceship"]` |
 | `entityPipeline` | 시스템 실행 순서 (20개) | `["core:initial_spawn", "core:wave", ..., "core:player", "core:ability_tick", ...]` |
 | `initialEntities` | 게임 시작 시 스폰할 엔티티 | `["player"]` |
 

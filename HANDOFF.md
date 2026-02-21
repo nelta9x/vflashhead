@@ -42,7 +42,7 @@
 - [x] `WaveBossConfig.entityTypeId` 필수화 + `BossConfig.defaultEntityTypeId` 추가
 - [x] `waves[].bosses[]` 및 `infiniteBossTemplate[]` 전 항목에 `entityTypeId` 반영
 - [x] `waveBossConfig`/`WaveSystem`에서 `entityTypeId` clone/fallback 경로 보존
-- [x] `BossRosterSync`의 `boss_standard` 하드코딩 제거, `entityTypeId` 기반 plugin lookup + 미등록 즉시 예외
+- [x] `BossRosterSync`의 `gatekeeper_spaceship` 하드코딩 제거, `entityTypeId` 기반 plugin lookup + 미등록 즉시 예외
 - [x] 테스트 전환: 기존 전용 getter 기반 테스트/mocks를 공통 API 기준으로 교체
 - [x] 신규 테스트 추가: `AbilityTickSystem.test.ts`, `BossRosterSync.test.ts`
 - [x] 문서 동기화: `docs/CODEMAP.md`, `docs/PLUGIN_ARCHITECTURE.md`, `docs/LESSONS.md`
@@ -178,11 +178,11 @@ rg -n "cursor_size|critical_chance|electric_shock|magnet|missile|health_pack|orb
 
 ---
 
-## P1-B) 보스 타입이 `boss_standard`로 고정되어 보스 플러그인 확장성이 낮음
+## P1-B) 보스 타입이 `gatekeeper_spaceship`로 고정되어 보스 플러그인 확장성이 낮음
 
 ### 증상
 
-보스 스폰 동기화에서 엔티티 타입 ID를 문자열 `'boss_standard'`로 고정 조회/주입한다.
+보스 스폰 동기화에서 엔티티 타입 ID를 문자열 `'gatekeeper_spaceship'`로 고정 조회/주입한다.
 
 ### 근거 위치
 
@@ -199,7 +199,7 @@ rg -n "cursor_size|critical_chance|electric_shock|magnet|missile|health_pack|orb
 ### 빠른 재확인 방법
 
 ```bash
-rg -n "getEntityType\\('boss_standard'\\)|entityType: 'boss_standard'" src/plugins/builtin/services/boss
+rg -n "getEntityType\\('gatekeeper_spaceship'\\)|entityType: 'gatekeeper_spaceship'" src/plugins/builtin/services/boss
 ```
 
 ### 권장 수정 방향

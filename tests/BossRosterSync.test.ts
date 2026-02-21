@@ -110,20 +110,20 @@ describe('BossRosterSync', () => {
   it('looks up plugins by each boss entityTypeId and spawns with matching entityType', () => {
     mockGetEntityType.mockImplementation((typeId: string) => ({ typeId }));
     const bossConfigs = [
-      createBossConfig('boss_left', 'boss_standard'),
-      createBossConfig('boss_right', 'boss_standard'),
+      createBossConfig('boss_left', 'gatekeeper_spaceship'),
+      createBossConfig('boss_right', 'gatekeeper_spaceship'),
     ];
     const { sync, monsterSystem } = createSync(bossConfigs);
 
     sync.syncBossesForCurrentWave();
 
-    expect(mockGetEntityType).toHaveBeenCalledWith('boss_standard');
+    expect(mockGetEntityType).toHaveBeenCalledWith('gatekeeper_spaceship');
     expect(mockInitializeEntitySpawn).toHaveBeenCalledTimes(2);
     expect(mockInitializeEntitySpawn.mock.calls[0][2]).toEqual(
-      expect.objectContaining({ entityType: 'boss_standard', bossDataId: 'boss_left' })
+      expect.objectContaining({ entityType: 'gatekeeper_spaceship', bossDataId: 'boss_left' })
     );
     expect(mockInitializeEntitySpawn.mock.calls[1][2]).toEqual(
-      expect.objectContaining({ entityType: 'boss_standard', bossDataId: 'boss_right' })
+      expect.objectContaining({ entityType: 'gatekeeper_spaceship', bossDataId: 'boss_right' })
     );
     expect(monsterSystem.publishBossHpSnapshot).toHaveBeenCalledWith('boss_left');
     expect(monsterSystem.publishBossHpSnapshot).toHaveBeenCalledWith('boss_right');

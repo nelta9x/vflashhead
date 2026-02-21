@@ -207,7 +207,7 @@ vi.mock('../src/plugins/PluginRegistry', () => ({
   PluginRegistry: {
     getInstance: () => ({
       getEntityType: () => ({
-        typeId: 'boss_standard',
+        typeId: 'gatekeeper_spaceship',
         config: { spawnCategory: 'pooled', poolSize: 0, defaultLifetime: null, isGatekeeper: true, cursorInteraction: 'contact' },
         createMovementData: () => ({ type: 'none', homeX: 0, homeY: 0, movementTime: 0, drift: null }),
       }),
@@ -349,13 +349,13 @@ describe('BossCombatCoordinator', () => {
     waveBosses = [
       {
         id: 'boss_left',
-        entityTypeId: 'boss_standard',
+        entityTypeId: 'gatekeeper_spaceship',
         spawnRange: { minX: 300, maxX: 320, minY: 100, maxY: 120 },
         laser: { maxCount: 1, minInterval: 0, maxInterval: 0 },
       },
       {
         id: 'boss_right',
-        entityTypeId: 'boss_standard',
+        entityTypeId: 'gatekeeper_spaceship',
         spawnRange: { minX: 900, maxX: 920, minY: 100, maxY: 120 },
         laser: { maxCount: 1, minInterval: 0, maxInterval: 0 },
       },
@@ -383,7 +383,7 @@ describe('BossCombatCoordinator', () => {
     waveBosses = [
       {
         id: 'boss_right',
-        entityTypeId: 'boss_standard',
+        entityTypeId: 'gatekeeper_spaceship',
         spawnRange: { minX: 900, maxX: 920, minY: 100, maxY: 120 },
         laser: { maxCount: 1, minInterval: 0, maxInterval: 0 },
       },
@@ -452,7 +452,7 @@ describe('BossCombatCoordinator', () => {
     waveBosses = [
       {
         id: 'boss_left',
-        entityTypeId: 'boss_standard',
+        entityTypeId: 'gatekeeper_spaceship',
         spawnRange: { minX: 300, maxX: 320, minY: 100, maxY: 120 },
         laser: { maxCount: 1, minInterval: 0, maxInterval: 0 },
       },
@@ -487,7 +487,7 @@ describe('BossCombatCoordinator', () => {
     waveBosses = [
       {
         id: 'boss_left',
-        entityTypeId: 'boss_standard',
+        entityTypeId: 'gatekeeper_spaceship',
         spawnRange: { minX: 300, maxX: 320, minY: 100, maxY: 120 },
         laser: { maxCount: 1, minInterval: 0, maxInterval: 0 },
       },

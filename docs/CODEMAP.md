@@ -44,7 +44,7 @@
   - **update() 4단계 구조**: 입력 처리(`processKeyboardInput`) → pause 체크 → `entitySystemPipeline.run(delta)` → scene 비주얼(`updateSceneVisuals`).
   - **World.context 동기화**: `syncWorldContext()`에서 gameTime/currentWave/playerId를 한 번만 갱신. 시스템은 `world.context`에서 직접 읽음.
   - **모든 tick 로직은 파이프라인 안**: 개별 시스템의 tick/update를 Scene에서 직접 호출하지 않음. 게임 레벨 시스템(Wave/Combo/StatusEffect/BossCoordinator/Mod)도 래퍼 EntitySystem으로 파이프라인에 통합.
-  - **입력 안정화**: 키보드 축 이동 적용은 Scene에서 수행하되, 리스너 바인딩/해제는 `SceneInputAdapter`로 위임합니다.
+  - **입력 안정화**: `processKeyboardInput()`은 `targetX/Y`만 갱신하고 `transform.x/y`를 직접 쓰지 않음. 포인터 입력도 동일하게 `targetX/Y`만 설정. `PlayerTickSystem`이 `transform.x/y`의 유일한 writer로서 스무딩을 적용함. 리스너 바인딩/해제는 `SceneInputAdapter`로 위임합니다.
   - **전투/접시 규칙 위임**: 보스 전투, 플레이어 특수공격, 접시 라이프사이클은 전용 모듈로 분리되어 Scene은 호출만 담당합니다.
 - **`src/scenes/GameOverScene.ts`**: 게임 오버 화면. 최종 스탯(최대 콤보, 웨이브, 생존 시간) 표시, 재시작 안내, 페이드 전환.
 

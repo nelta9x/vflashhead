@@ -86,19 +86,15 @@ export class GameSceneController {
 
   processKeyboardInput(delta: number, timestamp: number): void {
     const playerId = this.world.context.playerId;
-    const playerT = this.world.transform.getRequired(playerId);
     const playerI = this.world.playerInput.getRequired(playerId);
     const shouldUseKeyboard = this.inputController.shouldUseKeyboardMovement(timestamp);
     const axis = this.inputController.getKeyboardAxis(delta, timestamp);
     const speed = Data.gameConfig.player.cursorSpeed;
     const moveDistance = (speed * delta) / 1000;
     if (shouldUseKeyboard && axis.isMoving) {
-      const newX = Phaser.Math.Clamp(playerT.x + axis.x * moveDistance, 0, GAME_WIDTH);
-      const newY = Phaser.Math.Clamp(playerT.y + axis.y * moveDistance, 0, GAME_HEIGHT);
-      playerT.x = newX;
-      playerT.y = newY;
-      playerI.targetX = newX;
-      playerI.targetY = newY;
+      // target만 전진 — 실제 위치는 PlayerTickSystem이 스무딩으로 처리
+      playerI.targetX = Phaser.Math.Clamp(playerI.targetX + axis.x * moveDistance, 0, GAME_WIDTH);
+      playerI.targetY = Phaser.Math.Clamp(playerI.targetY + axis.y * moveDistance, 0, GAME_HEIGHT);
     }
   }
 

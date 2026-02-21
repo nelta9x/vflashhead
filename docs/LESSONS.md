@@ -120,6 +120,7 @@
 - 키보드 폴링 기반 이동(`isDown`)은 항상 **상태 리셋 경로**(blur/visibility/gameout/pause)를 함께 설계
 - 혼합 입력(포인터+키보드)에서는 입력 장치 우선순위를 데이터 기반으로 명시
 - 입력 정책(우선순위/가속/리셋)은 전용 컨트롤러(`PlayerCursorInputController`)로 캡슐화
+- 키보드 입력은 `targetX/Y`만 갱신하고, `transform.x/y`는 `PlayerTickSystem`의 스무딩이 유일하게 기록해야 한다. 양쪽 경로(키보드/포인터)가 동일한 target→smoothing→transform 흐름을 따라야 이산적 점프 없이 매끄러운 이동이 보장된다.
 
 ### 사례 요약
 - `hide()` tween 중 `selectUpgrade` 다중 호출 → stack 폭주, `visible` 즉시 변경으로 해결
@@ -127,6 +128,7 @@
 - 축 가속 도입 시 포인터 우선 유예 중 축 누적 금지를 명시적으로 처리
 - 메뉴 `mousedown`이 모바일 터치 무시 → `pointerdown`(`PointerEvent`)으로 교체해 마우스+터치+펜 통합
 - 게임 컨테이너에 `touch-action: none` CSS 누락 → 브라우저가 터치를 스크롤/줌으로 가로챔, CSS + Phaser `input.touch.capture: true` 이중 방어로 해결
+- 키보드 `processKeyboardInput()`이 `transform.x/y`와 `targetX/Y`를 동시에 동일 값으로 설정 → 스무딩 거리 0, no-op → 이산적 점프. `targetX/Y`만 갱신하도록 수정해 키보드/포인터 모두 동일 스무딩 경로를 통과하게 해결
 
 > 상세: [LESSONS_ARCHIVE.md](LESSONS_ARCHIVE.md)
 

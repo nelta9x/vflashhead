@@ -2,43 +2,6 @@
   "waves": [
     {
       "number": 1,
-      "name": "가속",
-      "dishCount": 3,
-      "spawnInterval": 950,
-      "dishTypes": [
-        {
-          "type": "basic",
-          "weight": 1
-        }
-      ],
-      "bossTotalHp": 500,
-      "bosses": [
-        {
-          "id": "boss_center",
-          "hpWeight": 1,
-          "spawnRange": {
-            "minX": 640,
-            "maxX": 640,
-            "minY": 100,
-            "maxY": 100
-          },
-          "laser": {
-            "maxCount": 0,
-            "minInterval": 999999,
-            "maxInterval": 999999
-          },
-          "entityTypeId": "gatekeeper_spaceship"
-        }
-      ],
-      "bossSpawnMinDistance": 150,
-      "laser": {
-        "maxCount": 0,
-        "minInterval": 999999,
-        "maxInterval": 999999
-      }
-    },
-    {
-      "number": 2,
       "name": "황금 수확",
       "dishCount": 2,
       "spawnInterval": 1100,
@@ -56,6 +19,10 @@
           "weight": 0.15
         }
       ],
+      "spaceship": {
+        "maxActive": 1,
+        "spawnInterval": 8000
+      },
       "bossTotalHp": 440,
       "bosses": [
         {
@@ -83,7 +50,7 @@
       }
     },
     {
-      "number": 3,
+      "number": 2,
       "name": "추격",
       "dishCount": 3,
       "spawnInterval": 920,
@@ -101,6 +68,10 @@
           "weight": 0.05
         }
       ],
+      "spaceship": {
+        "maxActive": 1,
+        "spawnInterval": 8000
+      },
       "bossTotalHp": 620,
       "bosses": [
         {
@@ -128,14 +99,14 @@
       }
     },
     {
-      "number": 4,
+      "number": 3,
       "name": "밀물",
       "dishCount": 4,
       "spawnInterval": 880,
       "dishTypes": [
         {
           "type": "basic",
-          "weight": 0.67
+          "weight": 0.72
         },
         {
           "type": "golden",
@@ -144,13 +115,12 @@
         {
           "type": "mini",
           "weight": 0.1
-        },
-        {
-          "type": "spaceship",
-          "weight": 0.05,
-          "maxActive": 1
         }
       ],
+      "spaceship": {
+        "maxActive": 2,
+        "spawnInterval": 6000
+      },
       "bossTotalHp": 800,
       "bosses": [
         {
@@ -178,14 +148,14 @@
       }
     },
     {
-      "number": 5,
+      "number": 4,
       "name": "콤보 파티",
       "dishCount": 3,
       "spawnInterval": 1050,
       "dishTypes": [
         {
           "type": "basic",
-          "weight": 0.25
+          "weight": 0.3
         },
         {
           "type": "golden",
@@ -194,13 +164,12 @@
         {
           "type": "mini",
           "weight": 0.35
-        },
-        {
-          "type": "spaceship",
-          "weight": 0.05,
-          "maxActive": 1
         }
       ],
+      "spaceship": {
+        "maxActive": 2,
+        "spawnInterval": 6000
+      },
       "bossTotalHp": 700,
       "bosses": [
         {
@@ -235,14 +204,14 @@
       }
     },
     {
-      "number": 6,
+      "number": 5,
       "name": "폭탄 등장",
       "dishCount": 4,
       "spawnInterval": 900,
       "dishTypes": [
         {
           "type": "basic",
-          "weight": 0.75
+          "weight": 0.8
         },
         {
           "type": "golden",
@@ -255,13 +224,12 @@
         {
           "type": "mini",
           "weight": 0.05
-        },
-        {
-          "type": "spaceship",
-          "weight": 0.05,
-          "maxActive": 1
         }
       ],
+      "spaceship": {
+        "maxActive": 2,
+        "spawnInterval": 5500
+      },
       "bossTotalHp": 980,
       "bosses": [
         {
@@ -296,14 +264,14 @@
       }
     },
     {
-      "number": 7,
+      "number": 6,
       "name": "격돌",
       "dishCount": 5,
       "spawnInterval": 840,
       "dishTypes": [
         {
           "type": "basic",
-          "weight": 0.59
+          "weight": 0.65
         },
         {
           "type": "golden",
@@ -316,13 +284,12 @@
         {
           "type": "mini",
           "weight": 0.06
-        },
-        {
-          "type": "spaceship",
-          "weight": 0.06,
-          "maxActive": 2
         }
       ],
+      "spaceship": {
+        "maxActive": 3,
+        "spawnInterval": 5000
+      },
       "bossTotalHp": 1200,
       "bosses": [
         {
@@ -357,14 +324,14 @@
       }
     },
     {
-      "number": 8,
+      "number": 7,
       "name": "폭풍 속 고요",
       "dishCount": 3,
       "spawnInterval": 1050,
       "dishTypes": [
         {
           "type": "basic",
-          "weight": 0.13
+          "weight": 0.19
         },
         {
           "type": "golden",
@@ -381,13 +348,12 @@
         {
           "type": "mini",
           "weight": 0.3
-        },
-        {
-          "type": "spaceship",
-          "weight": 0.06,
-          "maxActive": 2
         }
       ],
+      "spaceship": {
+        "maxActive": 3,
+        "spawnInterval": 5000
+      },
       "bossTotalHp": 1050,
       "bosses": [
         {
@@ -422,14 +388,14 @@
       }
     },
     {
-      "number": 9,
+      "number": 8,
       "name": "크리스탈 포위",
       "dishCount": 4,
       "spawnInterval": 880,
       "dishTypes": [
         {
           "type": "basic",
-          "weight": 0.49
+          "weight": 0.55
         },
         {
           "type": "golden",
@@ -446,13 +412,12 @@
         {
           "type": "mini",
           "weight": 0.1
-        },
-        {
-          "type": "spaceship",
-          "weight": 0.06,
-          "maxActive": 2
         }
       ],
+      "spaceship": {
+        "maxActive": 3,
+        "spawnInterval": 4500
+      },
       "bossTotalHp": 1400,
       "bosses": [
         {
@@ -492,14 +457,14 @@
       }
     },
     {
-      "number": 10,
+      "number": 9,
       "name": "최후의 몰아치기",
       "dishCount": 5,
       "spawnInterval": 820,
       "dishTypes": [
         {
           "type": "basic",
-          "weight": 0.39
+          "weight": 0.45
         },
         {
           "type": "golden",
@@ -516,13 +481,12 @@
         {
           "type": "mini",
           "weight": 0.1
-        },
-        {
-          "type": "spaceship",
-          "weight": 0.06,
-          "maxActive": 2
         }
       ],
+      "spaceship": {
+        "maxActive": 4,
+        "spawnInterval": 4000
+      },
       "bossTotalHp": 1700,
       "bosses": [
         {
@@ -580,14 +544,14 @@
       }
     },
     {
-      "number": 11,
+      "number": 10,
       "name": "마지막 숨",
       "dishCount": 3,
       "spawnInterval": 1000,
       "dishTypes": [
         {
           "type": "basic",
-          "weight": 0.14
+          "weight": 0.2
         },
         {
           "type": "golden",
@@ -604,13 +568,12 @@
         {
           "type": "mini",
           "weight": 0.3
-        },
-        {
-          "type": "spaceship",
-          "weight": 0.06,
-          "maxActive": 2
         }
       ],
+      "spaceship": {
+        "maxActive": 4,
+        "spawnInterval": 4000
+      },
       "bossTotalHp": 1500,
       "bosses": [
         {
@@ -678,14 +641,14 @@
       }
     },
     {
-      "number": 12,
+      "number": 11,
       "name": "결전",
       "dishCount": 5,
       "spawnInterval": 850,
       "dishTypes": [
         {
           "type": "basic",
-          "weight": 0.34
+          "weight": 0.4
         },
         {
           "type": "golden",
@@ -702,13 +665,12 @@
         {
           "type": "mini",
           "weight": 0.14
-        },
-        {
-          "type": "spaceship",
-          "weight": 0.06,
-          "maxActive": 2
         }
       ],
+      "spaceship": {
+        "maxActive": 5,
+        "spawnInterval": 3500
+      },
       "bossTotalHp": 2200,
       "bosses": [
         {
@@ -929,15 +891,14 @@
         "startWeight": 0.02,
         "weightPerWave": 0.02,
         "maxWeight": 0.16
-      },
-      {
-        "type": "spaceship",
-        "baseWeightFallback": 0.06,
-        "weightPerWave": 0.005,
-        "maxWeight": 0.12,
-        "maxActive": 3
       }
     ],
+    "spaceshipScaling": {
+      "maxActive": 5,
+      "spawnInterval": 3500,
+      "spawnIntervalReduction": 50,
+      "minSpawnInterval": 2500
+    },
     "remainderType": "basic",
     "remainderMinWeight": 0.05,
     "laserScaling": {

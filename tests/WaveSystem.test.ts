@@ -51,6 +51,7 @@ vi.mock('../src/data/DataManager', () => ({
           dishCount: 3,
           spawnInterval: 2000,
           dishTypes: [{ type: 'basic', weight: 1 }],
+          spaceship: { maxActive: 2, spawnInterval: 3000 },
           bossTotalHp: 100,
           bosses: [
             {
@@ -69,6 +70,7 @@ vi.mock('../src/data/DataManager', () => ({
             { type: 'basic', weight: 0.8 },
             { type: 'golden', weight: 0.2, maxActive: 1 },
           ],
+          spaceship: { maxActive: 1, spawnInterval: 2000 },
           bossTotalHp: 200,
           bosses: [
             {
@@ -363,6 +365,80 @@ describe('WaveSystem', () => {
 
       expect(waveSystem.getWavePhase()).toBe('waiting');
       expect(mockEmit).toHaveBeenCalledWith(GameEvents.WAVE_COMPLETED, 1);
+    });
+  });
+
+  describe('Spaceship Spawning', () => {
+    // Mock wave 1 has: spawnInterval 2000ms, spaceship { maxActive: 2, spawnInterval: 3000 }
+    let mockSpawnDelegate: { spawnDish: ReturnType<typeof vi.fn> };
+    let mockGetActiveCountByType: ReturnType<typeof vi.fn>;
+
+    function createSpaceshipWaveSystem() {
+      mockSpawnDelegate = { spawnDish: vi.fn() };
+      mockGetActiveCountByType = vi.fn().mockReturnValue(0);
+
+      return new WaveSystem(
+        {} as Phaser.Scene,
+        () => mockDishPool as unknown as ObjectPool<Entity>,
+        mockGetMaxSpawnY,
+        mockGetBoss as () => Array<{ id: string; x: number; y: number; visible: boolean }>,
+        mockSpawnDelegate,
+        mockGetActiveCountByType as (type: string) => number,
+      );
+    }
+
+    it('should spawn spaceship on separate timer from dishes', () => {
+      const ws = createSpaceshipWaveSystem();
+      ws.startWave(1);
+
+      // Dish interval (2000ms) reached, spaceship interval (3000ms) not
+      ws.update(2000);
+
+      const dishCalls = mockSpawnDelegate.spawnDish.mock.calls.filter(
+        (args) => args[0] !== 'spaceship',
+      );
+      const spaceshipCalls = mockSpawnDelegate.spawnDish.mock.calls.filter(
+        (args) => args[0] === 'spaceship',
+      );
+      expect(dishCalls.length).toBe(1);
+      expect(spaceshipCalls.length).toBe(0);
+
+      mockSpawnDelegate.spawnDish.mockClear();
+
+      // +1000ms = total 3000ms — spaceship interval reached
+      ws.update(1000);
+
+      const spaceshipCalls2 = mockSpawnDelegate.spawnDish.mock.calls.filter(
+        (args) => args[0] === 'spaceship',
+      );
+      expect(spaceshipCalls2.length).toBe(1);
+    });
+
+    it('should not spawn spaceship when maxActive reached', () => {
+      const ws = createSpaceshipWaveSystem();
+      // spaceship maxActive for wave 1 is 2
+      mockGetActiveCountByType.mockImplementation((type: string) => (type === 'spaceship' ? 2 : 0));
+
+      ws.startWave(1);
+      ws.update(3000);
+
+      const spaceshipCalls = mockSpawnDelegate.spawnDish.mock.calls.filter(
+        (args) => args[0] === 'spaceship',
+      );
+      expect(spaceshipCalls.length).toBe(0);
+    });
+
+    it('should not spawn spaceship during fever time', () => {
+      const ws = createSpaceshipWaveSystem();
+      ws.startWave(1);
+      ws.startFeverTime();
+
+      ws.update(3000);
+
+      const spaceshipCalls = mockSpawnDelegate.spawnDish.mock.calls.filter(
+        (args) => args[0] === 'spaceship',
+      );
+      expect(spaceshipCalls.length).toBe(0);
     });
   });
 

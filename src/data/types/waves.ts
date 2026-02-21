@@ -2,6 +2,7 @@ export type {
   DishTypeWeight,
   FeverConfig,
   InfiniteScalingConfig,
+  SpaceshipWaveConfig,
   WaveBossAttackEntry,
   WaveBossAttacksConfig,
   WaveBossConfig,

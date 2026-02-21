@@ -15,9 +15,11 @@ export class WaveSystem {
   private currentWave = 0;
   private timeSinceLastSpawn = 0;
   private timeSinceLastFillSpawn = 0;
+  private timeSinceLastSpaceshipSpawn = 0;
   private waveConfig: WaveRuntimeConfig | null = null;
   private isFeverTime = false;
   private totalGameTime = 0;
+  private readonly getActiveCountByType?: (type: string) => number;
   private readonly getDishPool: () => ObjectPool<Entity>;
   private readonly getMaxSpawnY: () => number;
   private readonly getBosses: () => Array<{ id: string; x: number; y: number; visible: boolean }>;
@@ -38,6 +40,7 @@ export class WaveSystem {
     this.getDishPool = getDishPool;
     this.getMaxSpawnY = getMaxSpawnY || (() => SPAWN_AREA.maxY);
     this.getBosses = getBosses || (() => []);
+    this.getActiveCountByType = getActiveCountByType;
 
     this.phaseController = new WavePhaseController();
     this.configResolver = new WaveConfigResolver();
@@ -53,6 +56,7 @@ export class WaveSystem {
     this.currentWave = waveNumber;
     this.timeSinceLastSpawn = 0;
     this.timeSinceLastFillSpawn = 0;
+    this.timeSinceLastSpaceshipSpawn = 0;
     this.phaseController.startSpawning();
 
     this.waveConfig = this.configResolver.resolveWaveConfig(waveNumber);
@@ -105,6 +109,27 @@ export class WaveSystem {
       this.spawnDish();
       this.timeSinceLastSpawn = 0;
     }
+
+    this.updateSpaceshipSpawn(delta);
+  }
+
+  private updateSpaceshipSpawn(delta: number): void {
+    if (!this.waveConfig?.spaceship) return;
+    if (this.isFeverTime) return;
+
+    this.timeSinceLastSpaceshipSpawn += delta;
+    const { maxActive, spawnInterval } = this.waveConfig.spaceship;
+
+    if (this.timeSinceLastSpaceshipSpawn < spawnInterval) return;
+
+    const activeCount = this.getActiveCountByType?.('spaceship') ?? 0;
+    if (activeCount >= maxActive) return;
+
+    const planned = this.spawnPlanner.planSpaceshipSpawn(this.waveConfig, this.currentWave);
+    if (planned) {
+      this.dishSpawnDelegate.spawnDish(planned.type, planned.x, planned.y, planned.speedMultiplier);
+    }
+    this.timeSinceLastSpaceshipSpawn = 0;
   }
 
   private spawnDish(): void {

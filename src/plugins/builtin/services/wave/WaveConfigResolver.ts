@@ -1,11 +1,12 @@
 import { Data } from '../../../../data/DataManager';
-import type { DishTypeWeight, WaveBossConfig, WaveLaserConfig } from '../../../../data/types/waves';
+import type { DishTypeWeight, SpaceshipWaveConfig, WaveBossConfig, WaveLaserConfig } from '../../../../data/types/waves';
 import { resolveWaveBossConfig } from '../waveBossConfig';
 
 export interface WaveRuntimeConfig {
   spawnInterval: number;
   minDishCount: number;
   dishTypes: DishTypeWeight[];
+  spaceship?: SpaceshipWaveConfig;
   laser?: WaveLaserConfig;
   bosses: WaveBossConfig[];
   bossTotalHp: number;
@@ -24,6 +25,7 @@ export class WaveConfigResolver {
         spawnInterval: waveData.spawnInterval,
         minDishCount: waveData.dishCount,
         dishTypes: waveData.dishTypes,
+        spaceship: waveData.spaceship,
         laser: waveData.laser,
         bosses: bossConfig.bosses,
         bossTotalHp: bossConfig.bossTotalHp,
@@ -50,6 +52,17 @@ export class WaveConfigResolver {
       waveData.dishCount + wavesBeyond * scaling.minDishCountIncrease
     );
 
+    const spaceshipScaling = scaling.spaceshipScaling;
+    const spaceshipConfig: SpaceshipWaveConfig | undefined = spaceshipScaling
+      ? {
+          maxActive: spaceshipScaling.maxActive,
+          spawnInterval: Math.max(
+            spaceshipScaling.minSpawnInterval ?? 2500,
+            spaceshipScaling.spawnInterval - wavesBeyond * (spaceshipScaling.spawnIntervalReduction ?? 0),
+          ),
+        }
+      : waveData.spaceship;
+
     return {
       spawnInterval: Math.max(
         scaling.minSpawnInterval,
@@ -57,6 +70,7 @@ export class WaveConfigResolver {
       ),
       minDishCount,
       dishTypes: this.getScaledDishTypes(waveNumber),
+      spaceship: spaceshipConfig,
       laser: { maxCount: laserCount, minInterval, maxInterval },
       bosses: bossConfig.bosses,
       bossTotalHp: bossConfig.bossTotalHp,

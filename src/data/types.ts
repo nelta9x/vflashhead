@@ -934,12 +934,18 @@ export interface WaveBossConfig {
   attacks?: WaveBossAttacksConfig;
 }
 
+export interface SpaceshipWaveConfig {
+  maxActive: number;
+  spawnInterval: number;
+}
+
 export interface WaveData {
   number: number;
   name: string;
   dishCount: number;
   spawnInterval: number;
   dishTypes: DishTypeWeight[];
+  spaceship?: SpaceshipWaveConfig;
   bossHp?: number;
   bossTotalHp?: number;
   bosses?: WaveBossConfig[];
@@ -980,6 +986,12 @@ export interface InfiniteScalingConfig {
   remainderType?: string;
   remainderMinWeight?: number;
   laserScaling?: InfiniteLaserScalingConfig;
+  spaceshipScaling?: {
+    maxActive: number;
+    spawnInterval: number;
+    spawnIntervalReduction?: number;
+    minSpawnInterval?: number;
+  };
 }
 
 export interface InfiniteLaserScalingConfig {

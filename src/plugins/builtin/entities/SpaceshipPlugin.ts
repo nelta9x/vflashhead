@@ -165,7 +165,7 @@ export class SpaceshipPlugin implements EntityTypePlugin {
     let boundsMinY = b.minY;
 
     if (entry) {
-      startHomeY = homeY + entry.offsetY;
+      startHomeY = Math.min(0, homeY + entry.offsetY);
       boundsMinY = Math.min(b.minY, startHomeY - d.yAmplitude);
       this.entryState.set(entityId, {
         targetHomeY: homeY,

@@ -58,6 +58,21 @@ export class WaveSpawnPlanner {
     };
   }
 
+  public planSpaceshipSpawn(
+    waveConfig: WaveRuntimeConfig,
+    currentWave: number,
+  ): PlannedDishSpawn | null {
+    const position = this.findValidSpawnPosition(waveConfig.bossSpawnMinDistance);
+    if (!position) return null;
+
+    return {
+      type: 'spaceship',
+      x: position.x,
+      y: position.y,
+      speedMultiplier: 1 + (currentWave - 1) * 0.1,
+    };
+  }
+
   private findValidSpawnPosition(minBossDistanceConfig: number): { x: number; y: number } | null {
     const pool = this.getDishPool();
     const activeDishes = pool.getActiveCount() > 0 ? pool.getActiveObjects() : null;

@@ -72,7 +72,7 @@ export class DishSpawnService {
     }
 
     const bombData = Data.getBombData(type);
-    const dishData = bombData ? undefined : Data.getDishData(type);
+    const dishData = bombData ? undefined : Data.getEntityTypeData(type);
     this.ensureEffectCache();
     const options = {
       cursorSizeBonus: this.cachedCursorSizeBonus,

@@ -89,7 +89,7 @@
       "lifetime": 25000,
       "poolSize": 8,
       "cursorInteraction": "dps",
-      "playerDamage": 1,
+      "playerDamage": 0,
       "spawnAnimation": { "duration": 200, "ease": "Back.easeOut" },
       "movement": {
         "type": "drift",
@@ -109,7 +109,7 @@
         "chaseSpeed": 120,
         "eatRange": 45,
         "hitInterval": 500,
-        "hitDamage": 2
+        "hitDamage": 5
       },
       "projectile": {
         "speed": 180,
@@ -242,7 +242,7 @@
   },
   "damage": {
     "playerDamage": 10,
-    "damageInterval": 150,
+    "damageInterval": 300,
     "criticalMultiplier": 1.5,
     "criticalChance": 0.1
   }

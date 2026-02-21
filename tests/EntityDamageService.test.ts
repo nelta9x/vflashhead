@@ -3,13 +3,13 @@ import type { EntityId } from '../src/world/EntityId';
 
 vi.mock('../src/data/DataManager', () => ({
   Data: {
-    dishes: {
-      damage: {
+    get entityDamage() {
+      return {
         playerDamage: 10,
         damageInterval: 150,
         criticalChance: 0.1,
         criticalMultiplier: 2,
-      },
+      };
     },
   },
 }));

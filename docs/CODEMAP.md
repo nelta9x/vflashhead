@@ -233,8 +233,7 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
   - `locales.json`: 다국어(EN, KO) 번역 데이터 및 업그레이드 설명/카드 라벨 템플릿 (`upgrade.stat.*`, `upgrade.card.*`).
   - `main-menu.json`: 메인 메뉴 씬 설정 (별 배경, 보스 애니메이션, 메뉴 접시 스폰, 언어 UI 설정).
   - `colors.json`: 게임 내 모든 색상 팔레트 및 테마 (숫자값/hex).
-  - `entities.json` (신규): dishes.json + boss.json을 통합한 엔티티 타입 정의 + **`archetypes` 섹션**(6종 아키타입의 컴포넌트 구성을 문자열 배열로 정의). 접시/보스/폭탄 모두 동일한 스키마로 관리하며, `cursorInteraction`, `isGatekeeper`, `movement`, `visual` 등 타입별 설정 포함. 폭탄 타입은 `bombWarning` 필드를 가지며 `DataManager.getBombData()`로 조회.
-  - `dishes.json`: 적 종류별 체력, 크기, 수명, 특수 속성 설정 (레거시, entities.json으로 마이그레이션 예정).
+  - `entities.json` **(SSOT)**: 모든 엔티티 타입 정의 + `damage` 글로벌 데미지 설정 + **`archetypes` 섹션**(6종 아키타입의 컴포넌트 구성을 문자열 배열로 정의). 접시/보스/폭탄 모두 동일한 스키마로 관리하며, `cursorInteraction`, `isGatekeeper`, `movement`, `visual` 등 타입별 설정 포함. 폭탄 타입은 `bombWarning` 필드를 가지며 `DataManager.getBombData()`로 조회. `DataManager.getEntityTypeData()`로 접시 데이터, `Data.entityDamage`로 글로벌 데미지 설정 접근.
   - `waves.json`: 웨이브별 구성, 난이도 곡선, 멀티 보스 구성(`bossTotalHp`, `bosses[].entityTypeId`, `bossSpawnMinDistance`), 무한 웨이브 스케일링 설정(`infiniteBossCount`, `amberStart*`, `maxAmberWeight`, `dishTypeScaling[]` 포함).
   - `boss.json`: 보스 비주얼 및 공격 설정 + fallback 스폰용 `defaultEntityTypeId` (레거시, entities.json으로 마이그레이션 예정).
   - `upgrades.json`: 업그레이드 어빌리티 정의, 확률(Rarity), 효과 수치, 카드 프리뷰 표시 스키마(`previewDisplay`).

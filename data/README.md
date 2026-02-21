@@ -12,7 +12,6 @@
    - [game-config.json](#game-configjson)
    - [abilities.json](#abilitiesjson)
    - [waves.json](#wavesjson)
-   - [dishes.json](#dishesjson)
    - [combo.json](#combojson)
    - [upgrades.json](#upgradesjson)
    - [health-pack.json](#health-packjson)
@@ -31,8 +30,8 @@
 | 수정 목표 | 파일 | 필드 |
 |----------|------|------|
 | **전체 난이도 조절** | `waves.json` | `spawnInterval`, `dishTypes` |
-| **접시 체력** | `dishes.json` | `hp` |
-| **접시 생존 시간** | `dishes.json` | `lifetime` |
+| **접시 체력** | `entities.json` | `types.<type>.hp` |
+| **접시 생존 시간** | `entities.json` | `types.<type>.lifetime` |
 | **콤보 타임아웃** | `combo.json` | `timeout.base`, `timeout.minimum` |
 | **콤보 배율** | `combo.json` | `multiplier.factor` |
 | **업그레이드 출현율** | `upgrades.json` | `rarityWeights` |
@@ -88,7 +87,7 @@
 import { Data } from '../data/DataManager';
 
 const playerHp = Data.gameConfig.player.initialHp;
-const dishHp = Data.getDishData('basic').hp;
+const dishHp = Data.getEntityTypeData('basic')?.hp;
 
 // 상수 사용
 import { COLORS, FONTS } from '../data/constants';
@@ -318,55 +317,6 @@ import { COLORS, FONTS } from '../data/constants';
 ```json
 { "type": "bomb", "baseWeightFallback": 0.25, "weightPerWave": 0.002, "maxWeight": 0.18, "maxActive": 3 }
 ```
-
----
-
-### dishes.json
-
-접시(적) 종류별 스탯을 설정합니다.
-
-#### 접시 설정
-
-```json
-{
-  "basic": {
-    "name": "기본 접시",     // 표시 이름
-    "hp": 10,               // 체력 (플레이어 데미지로 깎임)
-    "color": "#00ffff",     // 색상 (hex)
-    "size": 30,             // 접시 크기 (px)
-    "lifetime": 2000,       // 생존 시간 (ms). 시간 내 파괴 못하면 사라짐
-    "spawnAnimation": {
-      "duration": 150,      // 스폰 애니메이션 시간 (ms)
-      "ease": "Back.easeOut" // 이징 함수
-    }
-  }
-}
-```
-
-#### 접시 타입 특성
-
-| 타입 | 특성 |
-|------|------|
-| `basic` | 기본 접시. 밸런스 기준점 |
-| `golden` | 높은 HP의 중후반 탱커 타입 |
-| `crystal` | 높은 HP의 고위협 접시 |
-| `mini` | 낮은 HP, 빠른 소멸 |
-| `amber` | 주황색 상위 접시. 무한 웨이브(15+)에서 점진 도입 |
-
-> **폭탄**: 접시에서 분리됨 — `data/entities.json`의 `bombWarning` 타입 참조. `C_BombProps` 컴포넌트로 별도 관리.
-
-#### 데미지 설정
-
-```json
-{
-  "damage": {
-    "playerDamage": 10,    // 플레이어가 접시에 주는 기본 데미지
-    "damageInterval": 200  // 데미지 적용 간격 (ms). 커서가 접시 위에 있을 때
-  }
-}
-```
-
-`dishes.damage`는 접시 커서 공격뿐 아니라, 인게임에서 커서가 보스와 겹칠 때의 보스 주기 피해(기본 피해/치명타/틱 간격), 그리고 전기 충격/금구슬/블랙홀의 치명타 판정(접시 및 블랙홀 보스 틱 피해)에도 동일하게 사용됩니다.
 
 ---
 
@@ -961,7 +911,7 @@ import { COLORS, FONTS } from '../data/constants';
 
 1. **난이도 곡선**: `waves.json`의 `spawnInterval`을 조절. 웨이브 1은 1000ms, 웨이브 12는 200ms가 기본값.
 
-2. **접시 생존성**: `dishes.json`의 `hp`, `lifetime` 값을 조절해 타입별 체감 난이도를 조절.
+2. **접시 생존성**: `entities.json`의 `types.<type>.hp`, `types.<type>.lifetime` 값을 조절해 타입별 체감 난이도를 조절.
 
 3. **콤보 시스템**:
    - 쉽게 만들려면: `combo.json`의 `timeout.base` 증가, `timeout.minimum` 증가

@@ -125,11 +125,12 @@ export class DishResolutionService {
 
   public onDishMissed(data: DishMissedEventPayload): void {
     const { snapshot, x, y } = data;
-    const dishData = Data.getDishData(snapshot.entityType);
 
     this.feedbackSystem.onDishMissed(x, y, snapshot.color, snapshot.entityType);
-    const damage = dishData?.playerDamage ?? 1;
-    this.healthSystem.takeDamage(damage);
+    const damage = Data.getPlayerDamage(snapshot.entityType);
+    if (damage > 0) {
+      this.healthSystem.takeDamage(damage);
+    }
     this.comboSystem.reset();
     this.removeDishFromPool(snapshot.entityId);
   }

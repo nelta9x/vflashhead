@@ -29,14 +29,14 @@ export function initializeEntitySpawn(
   // 1. 타입 데이터 로드
   const bombData = Data.getBombData(config.entityType);
   const isBomb = !!bombData;
-  const dishData = isBomb ? undefined : Data.getDishData(config.entityType);
+  const dishData = isBomb ? undefined : Data.getEntityTypeData(config.entityType);
   const size = bombData?.size ?? dishData?.size ?? 30;
   const color = (bombData?.color ?? dishData?.color)
     ? parseInt((bombData?.color ?? dishData?.color ?? '#00ffff').replace('#', ''), 16)
     : 0x00ffff;
 
   const attackSpeedMultiplier = upgradeOptions.attackSpeedMultiplier ?? 1;
-  const damageInterval = Data.dishes.damage.damageInterval * attackSpeedMultiplier;
+  const damageInterval = Data.entityDamage.damageInterval * attackSpeedMultiplier;
 
   const cursorSizeBonus = upgradeOptions.cursorSizeBonus ?? 0;
   const cursorRadius = CURSOR_HITBOX.BASE_RADIUS * (1 + cursorSizeBonus);

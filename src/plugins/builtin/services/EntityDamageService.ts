@@ -90,7 +90,7 @@ export class EntityDamageService {
     const health = this.world.health.get(entityId);
     if (!health) return;
 
-    const damageConfig = Data.dishes.damage;
+    const damageConfig = Data.entityDamage;
     const upgradeOptions = dp?.upgradeOptions ?? {};
     const curseModifiers = this.getCurseModifiers?.() ?? undefined;
     const { damage, isCritical } = DishDamageResolver.resolveCursorDamage(damageConfig, upgradeOptions, curseModifiers);
@@ -161,7 +161,7 @@ export class EntityDamageService {
     const health = this.world.health.get(entityId);
     if (!health) return;
 
-    const damageConfig = Data.dishes.damage;
+    const damageConfig = Data.entityDamage;
     const upgradeCurseModifiers = this.getCurseModifiers?.() ?? undefined;
     const { damage: totalDamage, isCritical } = DishDamageResolver.resolveUpgradeDamage(
       damageConfig, baseDamage, damageBonus, criticalChanceBonus, upgradeCurseModifiers

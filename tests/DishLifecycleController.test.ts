@@ -33,7 +33,7 @@ const dishDataByType: Record<string, { playerDamage: number; resetCombo: boolean
 
 vi.mock('../src/data/DataManager', () => ({
   Data: {
-    getDishData: (type: string) => dishDataByType[type] ?? null,
+    getEntityTypeData: (type: string) => dishDataByType[type] ?? null,
     getBombData: (type: string) => {
       if (type === 'bomb') return { bombWarning: { duration: 500, radius: 50, blinkInterval: 100 }, playerDamage: 2, resetCombo: true };
       return undefined;

@@ -28,11 +28,11 @@ vi.mock('../src/data/constants', () => ({
 
 vi.mock('../src/data/DataManager', () => ({
   Data: {
-    dishes: {
-      damage: {
+    get entityDamage() {
+      return {
         criticalChance: 0,
         criticalMultiplier: 1.5,
-      },
+      };
     },
   },
 }));

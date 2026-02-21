@@ -47,7 +47,7 @@ export class BossContactDamageController {
     cursorRadius: number,
     gameTime: number
   ): void {
-    const damageConfig = Data.dishes.damage;
+    const damageConfig = Data.entityDamage;
     const cursorDamageBonus = this.abilityRuntimeQuery.getEffectValueOrThrow(
       ABILITY_IDS.CURSOR_SIZE,
       CURSOR_SIZE_EFFECT_KEYS.DAMAGE,

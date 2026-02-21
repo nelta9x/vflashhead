@@ -131,13 +131,13 @@ vi.mock('../src/data/DataManager', () => ({
         armor: { radius: 30 },
       },
     },
-    dishes: {
-      damage: {
+    get entityDamage() {
+      return {
         playerDamage: 1,
         criticalChance: 0,
         criticalMultiplier: 2,
         damageInterval: 100,
-      },
+      };
     },
     t: (key: string) => {
       if (key === 'feedback.interrupted') return 'INTERRUPTED!';

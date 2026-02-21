@@ -15,7 +15,6 @@ import type {
   FeedbackConfig,
   ColorsConfig,
   WavesConfig,
-  DishesConfig,
   UpgradesConfig,
   WeaponsConfig,
   MagnetConfig,
@@ -24,6 +23,7 @@ import type {
   LocalesConfig,
   RarityWeights,
   BombEntityData,
+  EntityTypeData,
   SystemUpgradeData,
 } from './types';
 import type { BossAttacksConfig } from './types/bossAttacks';
@@ -38,7 +38,6 @@ import healthPackJson from '../../data/health-pack.json';
 import feedbackJson from '../../data/feedback.json';
 import colorsJson from '../../data/colors.json';
 import wavesJson from '../../data/waves.json';
-import dishesJson from '../../data/dishes.json';
 import upgradesJson from '../../data/upgrades.json';
 import weaponsJson from '../../data/weapons.json';
 import bossJson from '../../data/boss.json';
@@ -60,7 +59,6 @@ class DataManager {
   public readonly feedback: FeedbackConfig;
   public readonly colors: ColorsConfig;
   public readonly waves: WavesConfig;
-  public readonly dishes: DishesConfig;
   public readonly upgrades: UpgradesConfig;
   public readonly weapons: WeaponsConfig;
   public readonly magnet: MagnetConfig;
@@ -97,7 +95,6 @@ class DataManager {
     this.feedback = feedbackJson as FeedbackConfig;
     this.colors = colorsJson as ColorsConfig;
     this.waves = wavesJson as WavesConfig;
-    this.dishes = dishesJson as DishesConfig;
     this.upgrades = upgradesJson as UpgradesConfig;
     this.weapons = weaponsJson as WeaponsConfig;
     this.magnet = gameConfigJson.magnet as MagnetConfig;
@@ -327,9 +324,27 @@ class DataManager {
     return this.waves.waves[index];
   }
 
-  // 편의 메서드: 접시 데이터 가져오기
-  public getDishData(dishType: string) {
-    return this.dishes.dishes[dishType];
+  // 편의 메서드: 엔티티 타입 데이터 가져오기 (entities.json SSOT)
+  public getEntityTypeData(entityType: string): EntityTypeData | undefined {
+    if (!(entityType in entitiesJson.types)) return undefined;
+    const entry = entitiesJson.types[entityType as keyof typeof entitiesJson.types];
+    if (!('hp' in entry)) return undefined;
+    return entry as EntityTypeData;
+  }
+
+  // 편의 메서드: 엔티티 글로벌 데미지 설정 (entities.json SSOT)
+  public get entityDamage() {
+    return entitiesJson.damage;
+  }
+
+  // 편의 메서드: 엔티티의 playerDamage 조회 (entities.json SSOT)
+  public getPlayerDamage(entityType: string): number {
+    if (!(entityType in entitiesJson.types)) return 0;
+    const entry = entitiesJson.types[entityType as keyof typeof entitiesJson.types];
+    if ('playerDamage' in entry && typeof entry.playerDamage === 'number') {
+      return entry.playerDamage;
+    }
+    return 0;
   }
 
   // 편의 메서드: 폭탄 데이터 가져오기 (entities.json에서 조회)

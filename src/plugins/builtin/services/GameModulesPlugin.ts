@@ -41,7 +41,7 @@ function calculateMaxSpawnedDishRadius(): number {
 
   let maxRadius = 0;
   uniqueDishTypes.forEach((type) => {
-    const dishData = Data.getDishData(type);
+    const dishData = Data.getEntityTypeData(type);
     if (dishData) {
       maxRadius = Math.max(maxRadius, dishData.size);
     }

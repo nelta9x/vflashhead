@@ -387,7 +387,7 @@ export class BlackHoleSystem implements EntitySystem {
     baseDamage: number,
     criticalChanceBonus: number
   ): { damage: number; isCritical: boolean } {
-    const damageConfig = Data.dishes.damage;
+    const damageConfig = Data.entityDamage;
     const criticalChance = Phaser.Math.Clamp(
       (damageConfig.criticalChance ?? 0) + criticalChanceBonus,
       0,

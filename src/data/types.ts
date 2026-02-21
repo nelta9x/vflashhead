@@ -1023,7 +1023,7 @@ export interface SpawnAnimationConfig {
   ease: string;
 }
 
-export interface DishData {
+export interface EntityTypeData {
   name: string;
   hp: number;
   color: string;
@@ -1052,17 +1052,6 @@ export interface BombWarningConfig {
   blinkInterval: number;
 }
 
-export interface DishDamageConfig {
-  playerDamage: number;
-  damageInterval: number;
-  criticalChance: number;
-  criticalMultiplier: number;
-}
-
-export interface DishesConfig {
-  dishes: Record<string, DishData>;
-  damage: DishDamageConfig;
-}
 
 // ========== 업그레이드 시스템 ==========
 

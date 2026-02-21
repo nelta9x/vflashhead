@@ -491,14 +491,11 @@
     {
       "id": "berserker",
       "name": "광전사",
-      "description": "미싱 HP당 데미지 증가, 치유 불가",
+      "description": "미싱 HP당 데미지 증가",
       "rarity": "rare",
-      "isCurse": true,
       "effectType": "berserkerLevel",
       "levels": [
-        { "missingHpDamagePercent": 0.15 },
-        { "missingHpDamagePercent": 0.25 },
-        { "missingHpDamagePercent": 0.35 }
+        { "missingHpDamagePercent": 0.10 }
       ],
       "previewDisplay": {
         "stats": [

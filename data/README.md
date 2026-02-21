@@ -944,7 +944,6 @@ import { COLORS, FONTS } from '../data/constants';
 | ID | 이름 | 레어리티 | 긍정 효과 | 부정 효과 |
 |----|------|---------|----------|----------|
 | `glass_cannon` | 글래스 캐논 | epic | +40/60/80% 전체 데미지 | -1 최대 HP/레벨 |
-| `berserker` | 광전사 | rare | 미싱 HP당 +15/25/35% 데미지 | 치유 비활성화 |
 | `volatility` | 변덕 | legendary | 치명타 2.5/3/3.5x 배율 | 비치명타 0.7/0.6/0.5x 배율 |
 
 #### 저주 levels 필드
@@ -953,7 +952,6 @@ import { COLORS, FONTS } from '../data/constants';
 |----------|------|------|
 | `glass_cannon` | `damageMultiplier` | 전체 데미지 증가 비율 (0.4 = 40%) |
 | | `hpPenalty` | 최대 HP 감소량 |
-| `berserker` | `missingHpDamagePercent` | 미싱 HP당 데미지 증가 비율 (0.15 = 15%) |
 | `volatility` | `critMultiplier` | 치명타 배율 (2.5 = 2.5x) |
 | | `nonCritPenalty` | 비치명타 데미지 감소 비율 (0.3 = 30% 감소) |
 

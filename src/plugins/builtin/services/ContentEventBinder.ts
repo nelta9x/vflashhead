@@ -5,7 +5,6 @@ import { FeedbackSystem } from './FeedbackSystem';
 import { HealthSystem } from '../../../systems/HealthSystem';
 import { MonsterSystem } from './MonsterSystem';
 import { WaveSystem } from './WaveSystem';
-import { AbilityProgressionService } from './abilities/AbilityProgressionService';
 import { DamageText } from '../../../ui/DamageText';
 import { World } from '../../../world';
 import { EventBus, GameEvents } from '../../../utils/EventBus';
@@ -20,8 +19,6 @@ import type {
   BombDestroyedEventPayload,
   BombMissedEventPayload,
 } from './ContentContracts';
-import { ABILITY_IDS } from './upgrades/AbilityEffectCatalog';
-
 interface EventSubscription {
   event: string;
   handler: (...args: unknown[]) => void;
@@ -123,9 +120,7 @@ export class ContentEventBinder {
       s.get(FeedbackSystem).onHealthPackPassing(payload.x, payload.y);
     });
     this.on(GameEvents.HEALTH_PACK_COLLECTED, (payload: { x: number; y: number }) => {
-      if (s.get(AbilityProgressionService).getAbilityLevel(ABILITY_IDS.BERSERKER) <= 0) {
-        s.get(HealthSystem).heal(1);
-      }
+      s.get(HealthSystem).heal(1);
       s.get(FeedbackSystem).onHealthPackCollected(payload.x, payload.y);
     });
     this.on(GameEvents.BLACK_HOLE_CONSUMED, (payload: { x: number; y: number }) => {

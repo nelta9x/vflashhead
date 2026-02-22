@@ -504,6 +504,7 @@ export interface DepthsConfig {
   abilityDockResumeHint: number;
   abilityTooltip: number;
   cursor: number;
+  playerHitDebris: number;
   orb: number;
   laser: number;
   boss: number;
@@ -877,6 +878,19 @@ export interface UpgradeAbsorptionConfig {
   impactGlowEase: string;
 }
 
+export interface PlayerHitDebrisConfig {
+  count: number;
+  minSize: number;
+  maxSize: number;
+  minVelocity: number;
+  maxVelocity: number;
+  upwardForce: number;
+  gravity: number;
+  rotationSpeedRange: number;
+  minDuration: number;
+  maxDuration: number;
+}
+
 export interface PlayerHitFeedbackConfig {
   flashDuration: number;
   sparkColor: string;
@@ -884,6 +898,7 @@ export interface PlayerHitFeedbackConfig {
   flashStrokeAlpha: number;
   flashStrokeWidth: number;
   flashRadiusOffset: number;
+  debris: PlayerHitDebrisConfig;
 }
 
 export interface FeedbackConfig {

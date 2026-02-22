@@ -423,6 +423,55 @@ export class ParticleManager {
     emitter.explode(15, x, y);
   }
 
+  createPlayerHitDebris(x: number, y: number, _color: number): void {
+    const cfg = Data.feedback.playerHit.debris;
+
+    for (let i = 0; i < cfg.count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const shard = this.scene.add.graphics();
+      shard.setDepth(DEPTHS.playerHitDebris);
+
+      const size = Phaser.Math.Between(cfg.minSize, cfg.maxSize);
+
+      shard.fillStyle(COLORS.WHITE, 0.9);
+      const points: Phaser.Math.Vector2[] = [];
+      const numPoints = Phaser.Math.Between(3, 4);
+      for (let j = 0; j < numPoints; j++) {
+        const pAngle = (j / numPoints) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+        const pRadius = (size / 2) * (0.5 + Math.random() * 0.5);
+        points.push(new Phaser.Math.Vector2(Math.cos(pAngle) * pRadius, Math.sin(pAngle) * pRadius));
+      }
+      shard.fillPoints(points, true);
+
+      shard.setPosition(x, y);
+      shard.setRotation(Math.random() * Math.PI * 2);
+
+      const speed = Phaser.Math.Between(cfg.minVelocity, cfg.maxVelocity);
+      const velocityX = Math.cos(angle) * speed;
+      const velocityY = Math.sin(angle) * speed - cfg.upwardForce;
+      const rotationSpeed = (Math.random() - 0.5) * cfg.rotationSpeedRange;
+      const duration = Phaser.Math.Between(cfg.minDuration, cfg.maxDuration);
+      const startX = x;
+      const startY = y;
+
+      this.scene.tweens.add({
+        targets: shard,
+        alpha: 0,
+        duration,
+        ease: 'Cubic.easeIn',
+        onUpdate: (_tween) => {
+          const t = _tween.elapsed / 1000;
+          shard.setPosition(
+            startX + velocityX * t,
+            startY + velocityY * t + 0.5 * cfg.gravity * t * t,
+          );
+          shard.setRotation(shard.rotation + rotationSpeed * 0.016);
+        },
+        onComplete: () => shard.destroy(),
+      });
+    }
+  }
+
   private createShockwave(x: number, y: number, color: number): void {
     const shockwave = this.scene.add.graphics();
     shockwave.setPosition(x, y);

@@ -212,7 +212,19 @@
     "flashFillAlpha": 0.6,
     "flashStrokeAlpha": 0.8,
     "flashStrokeWidth": 3,
-    "flashRadiusOffset": 3
+    "flashRadiusOffset": 3,
+    "debris": {
+      "count": 10,
+      "minSize": 6,
+      "maxSize": 12,
+      "minVelocity": 100,
+      "maxVelocity": 240,
+      "upwardForce": 80,
+      "gravity": 320,
+      "rotationSpeedRange": 8,
+      "minDuration": 500,
+      "maxDuration": 800
+    }
   },
   "shakePresets": {
     "dishDestroyed": { "intensity": 4, "duration": 100 },

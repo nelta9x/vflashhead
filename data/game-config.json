@@ -560,6 +560,7 @@
     "abilityDockResumeHint": 953,
     "abilityTooltip": 956,
     "cursor": 1000,
+    "playerHitDebris": 1001,
     "orb": 1001,
     "laser": 1500,
     "boss": 1600,

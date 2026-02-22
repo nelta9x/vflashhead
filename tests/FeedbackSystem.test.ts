@@ -32,13 +32,13 @@ import { FeedbackSystem } from '../src/plugins/builtin/services/FeedbackSystem';
 
 describe('FeedbackSystem', () => {
   let system: FeedbackSystem;
-  let mockParticleManager: { createSparkBurst: ReturnType<typeof vi.fn> };
+  let mockParticleManager: { createSparkBurst: ReturnType<typeof vi.fn>; createPlayerHitDebris: ReturnType<typeof vi.fn> };
   let mockScreenShake: { shake: ReturnType<typeof vi.fn> };
   let mockDamageText: Record<string, unknown>;
   let mockSoundSystem: Record<string, unknown>;
 
   beforeEach(() => {
-    mockParticleManager = { createSparkBurst: vi.fn() };
+    mockParticleManager = { createSparkBurst: vi.fn(), createPlayerHitDebris: vi.fn() };
     mockScreenShake = { shake: vi.fn() };
     mockDamageText = {};
     mockSoundSystem = {};
@@ -53,11 +53,15 @@ describe('FeedbackSystem', () => {
   });
 
   describe('onPlayerHit', () => {
-    it('should create spark burst at the given position', () => {
+    it('should create spark burst and debris at the given position', () => {
       system.onPlayerHit(100, 200);
 
       expect(mockParticleManager.createSparkBurst).toHaveBeenCalledTimes(1);
       expect(mockParticleManager.createSparkBurst).toHaveBeenCalledWith(
+        100, 200, 0xff4444,
+      );
+      expect(mockParticleManager.createPlayerHitDebris).toHaveBeenCalledTimes(1);
+      expect(mockParticleManager.createPlayerHitDebris).toHaveBeenCalledWith(
         100, 200, 0xff4444,
       );
     });

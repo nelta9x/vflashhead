@@ -138,6 +138,7 @@ export class FeedbackSystem {
       ).color;
     }
     this.particleManager.createSparkBurst(x, y, this.cachedPlayerHitSparkColor);
+    this.particleManager.createPlayerHitDebris(x, y, this.cachedPlayerHitSparkColor);
   }
 
   onHealthPackCollected(x: number, y: number): void {

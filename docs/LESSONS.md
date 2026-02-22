@@ -134,19 +134,22 @@
 
 ---
 
-## 8. 데이터 SSOT `occurrences: 1`
+## 8. 데이터 SSOT `occurrences: 2`
 
 ### 원칙
 - 동작 의미가 바뀌는 리팩토링은 데이터 키 명명까지 함께 맞춤
 - 미사용 데이터 필드는 같은 변경 단위에서 제거
 - 성장 공식/증가량/임계값은 코드 상수가 아니라 JSON SSOT로 관리
 - 프리뷰는 문장 생성이 아니라 **비교 모델 생성 문제** → `previewDisplay` 스키마로 강제
+- **두 JSON 파일이 같은 엔티티를 정의하면 값이 묵시적으로 분기**한다. 마이그레이션이 계획되면 즉시 완료하고 레거시 파일을 제거해야 한다
+- Fallback 조회 패턴(`A.json → B.json`)은 불완전한 SSOT 마이그레이션을 은폐한다. 기존 데이터는 동작하지만 신규 엔티티가 primary 소스에 없으면 조회 실패
 
 ### 사례 요약
 - 헬스팩 방향 변경 후 속도 키가 과거 의미로 잔존 → `moveSpeed`로 리네이밍 + 미사용 필드 제거
 - 블랙홀 성장 규칙을 레벨 데이터(`consumeRadiusGrowthRatio` 등)로 SSOT 이동
 - 업그레이드 카드를 문자열 프리뷰에서 구조화 모델(`getPreviewCardModel()`)로 교체
 - 처치형 템포 버프(오버클럭)는 스택/지속/상한/만료를 SSOT 데이터 세트로 정의
+- `dishes.json`과 `entities.json`이 접시 5종을 이중 정의 → `damageInterval` 300 vs 150 묵시적 분기, 우주선 `playerDamage` 조회 실패. dishes.json 제거 + entities.json 단일 SSOT로 해결
 
 > 상세: [LESSONS_ARCHIVE.md](LESSONS_ARCHIVE.md)
 

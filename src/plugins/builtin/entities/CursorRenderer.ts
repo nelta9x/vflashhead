@@ -152,37 +152,63 @@ export class CursorRenderer {
       filledAlphaScale = Phaser.Math.Linear(config.lowHpMinAlpha, 1, pulse);
     }
 
+    // Pre-calculate segment angles
+    const segStartAngles: number[] = [];
+    const segEndAngles: number[] = [];
+    const segIsFilled: boolean[] = [];
     let startAngle = -Math.PI / 2;
 
     for (let i = 0; i < segmentCount; i++) {
       const endAngle = startAngle + segmentAngle;
-      // Fill from the tail so HP loss depletes clockwise from the start segment.
-      const isFilled = i >= segmentCount - filledCount;
-
-      // Empty bar base keeps the slot visible after HP loss.
-      this.graphics.lineStyle(config.barThickness, emptyColor, config.emptyAlpha);
-      this.graphics.beginPath();
-      this.graphics.arc(x, y, ringRadius, startAngle, endAngle);
-      this.graphics.strokePath();
-
-      if (isFilled) {
-        this.graphics.lineStyle(
-          config.barThickness,
-          filledColor,
-          config.filledAlpha * filledAlphaScale
-        );
-        this.graphics.beginPath();
-        this.graphics.arc(x, y, ringRadius, startAngle, endAngle);
-        this.graphics.strokePath();
-      }
-
-      this.graphics.lineStyle(config.borderThickness, borderColor, config.borderAlpha);
-      this.graphics.beginPath();
-      this.graphics.arc(x, y, ringRadius, startAngle, endAngle);
-      this.graphics.strokePath();
-
+      segStartAngles.push(startAngle);
+      segEndAngles.push(endAngle);
+      segIsFilled.push(i >= segmentCount - filledCount);
       startAngle = endAngle + clampedGap;
     }
+
+    // Batch 1: All empty segment bases
+    this.graphics.lineStyle(config.barThickness, emptyColor, config.emptyAlpha);
+    this.graphics.beginPath();
+    for (let i = 0; i < segmentCount; i++) {
+      this.graphics.moveTo(
+        x + Math.cos(segStartAngles[i]) * ringRadius,
+        y + Math.sin(segStartAngles[i]) * ringRadius
+      );
+      this.graphics.arc(x, y, ringRadius, segStartAngles[i], segEndAngles[i]);
+    }
+    this.graphics.strokePath();
+
+    // Batch 2: All filled segments
+    if (filledCount > 0) {
+      this.graphics.lineStyle(
+        config.barThickness,
+        filledColor,
+        config.filledAlpha * filledAlphaScale
+      );
+      this.graphics.beginPath();
+      for (let i = 0; i < segmentCount; i++) {
+        if (segIsFilled[i]) {
+          this.graphics.moveTo(
+            x + Math.cos(segStartAngles[i]) * ringRadius,
+            y + Math.sin(segStartAngles[i]) * ringRadius
+          );
+          this.graphics.arc(x, y, ringRadius, segStartAngles[i], segEndAngles[i]);
+        }
+      }
+      this.graphics.strokePath();
+    }
+
+    // Batch 3: All border segments
+    this.graphics.lineStyle(config.borderThickness, borderColor, config.borderAlpha);
+    this.graphics.beginPath();
+    for (let i = 0; i < segmentCount; i++) {
+      this.graphics.moveTo(
+        x + Math.cos(segStartAngles[i]) * ringRadius,
+        y + Math.sin(segStartAngles[i]) * ringRadius
+      );
+      this.graphics.arc(x, y, ringRadius, segStartAngles[i], segEndAngles[i]);
+    }
+    this.graphics.strokePath();
   }
 
   /**
@@ -205,11 +231,11 @@ export class CursorRenderer {
     for (let i = 0; i < sparkCount; i++) {
       // 결정론적 각도 (i와 seed를 사용하여 매 프레임 위치가 변하도록 함)
       const angle = ((i / sparkCount) * Math.PI * 2) + (Math.sin(seed * 1.5 + i) * 0.8);
-      
+
       // 중심(x, y)에서 시작하여 원주 근처까지 뻗는 지그재그 줄기
       const targetDist = radius + (Math.cos(seed * 2 + i) * jitter);
       const segments = 3;
-      
+
       const alpha = 0.4 + (Math.sin(time / 40 + i) * 0.3);
       this.graphics.lineStyle(1.5, COLORS.CYAN, alpha);
       this.graphics.beginPath();
@@ -221,7 +247,7 @@ export class CursorRenderer {
       for (let s = 1; s <= segments; s++) {
         const progress = s / segments;
         const dist = progress * targetDist;
-        
+
         // 지그재그 효과를 위해 각도에 오프셋 추가
         const offset = s === segments ? 0 : (Math.sin(seed * 5 + i * 2 + s) * 0.4);
         const sx = x + Math.cos(angle + offset) * dist;
@@ -231,7 +257,7 @@ export class CursorRenderer {
         lastX = sx;
         lastY = sy;
       }
-      
+
       this.graphics.strokePath();
 
       // 끝점 및 중간 굴절 포인트에 작은 빛 추가

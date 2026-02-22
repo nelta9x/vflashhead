@@ -13,11 +13,6 @@ export class EntityVisualSystem implements EntitySystem {
       if (this.world.playerInput.has(entityId)) return;
       if (!this.world.isActive(entityId)) return;
 
-      // Magnet pull animation
-      if (vs.isBeingPulled) {
-        vs.pullPhase += 0.5;
-      }
-
       // Hit flash decay
       if (vs.hitFlashPhase > 0) {
         vs.hitFlashPhase -= delta / 100;

@@ -130,13 +130,15 @@ export interface MonsterAttackConfig {
   laser: LaserAttackConfig;
 }
 
-export interface GridConfig {
-  size: number;
+export interface GameGridConfig {
   speed: number;
   alpha: number;
-  color: string;
   depth: number;
   lineWidth: number;
+}
+
+export interface GridConfig {
+  size: number;
   horizonRatio?: number;
   verticalLines?: number;
   horizontalLines?: number;
@@ -586,7 +588,7 @@ export interface GameConfig {
     };
   };
   magnet: MagnetConfig;
-  gameGrid: GridConfig;
+  gameGrid: GameGridConfig;
   stars: StarsConfig;
   blackHoleVisual: BlackHoleVisualConfig;
   audio: AudioConfig;

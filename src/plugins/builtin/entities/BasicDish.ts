@@ -49,12 +49,7 @@ export class BasicDishPlugin implements EntityTypePlugin {
       baseColor: dishProps.color,
       currentHp: health.currentHp,
       maxHp: health.maxHp,
-      isHovered: false,
-      isBeingPulled: false,
-      pullPhase: 0,
-      hitFlashPhase: 0,
       isFrozen: false,
-      wobblePhase: 0,
       blinkPhase: 0,
     });
   }

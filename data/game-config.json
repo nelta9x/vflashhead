@@ -40,6 +40,7 @@
     "core:player",
     "core:ability_tick",
     "core:entity_movement",
+    "core:spatial_index",
     "core:boss_reaction",
     "core:boss_coordinator",
     "core:magnet",
@@ -356,15 +357,10 @@
     "particleSpawnChance": 0.08
   },
   "gameGrid": {
-    "size": 60,
     "speed": 0.15,
     "alpha": 0.12,
-    "color": "#00ffff",
     "depth": -1,
-    "lineWidth": 1.5,
-    "horizonRatio": 0.6,
-    "verticalLines": 150,
-    "horizontalLines": 15
+    "lineWidth": 1.5
   },
   "stars": {
     "count": 60,

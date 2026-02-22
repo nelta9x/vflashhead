@@ -8,6 +8,7 @@ interface StarData {
   size: number;
   twinkleSpeed: number;
   offset: number;
+  cachedAlpha: number;
 }
 
 interface ShootingStarData {
@@ -27,7 +28,8 @@ interface ShootingStarData {
 }
 
 export class StarBackground {
-  private graphics: Phaser.GameObjects.Graphics;
+  private starGraphics: Phaser.GameObjects.Graphics;
+  private shootingStarGraphics: Phaser.GameObjects.Graphics;
   private config: StarsConfig;
   private stars: StarData[] = [];
   private shootingStars: ShootingStarData[] = [];
@@ -35,10 +37,15 @@ export class StarBackground {
   private nextBurstInMs: number = 0;
   private burstSpawnDelayMs: number = 0;
   private burstRemainingCount: number = 0;
+  private frameCounter: number = 10;
+  private accumulatedDelta: number = 0;
+  private starsDirty: boolean = true;
+  private lastGridSpeed: number = 0;
 
   constructor(scene: Phaser.Scene, config: StarsConfig) {
     this.config = config;
-    this.graphics = scene.add.graphics();
+    this.starGraphics = scene.add.graphics();
+    this.shootingStarGraphics = scene.add.graphics();
     this.init();
     this.initShootingStarState();
   }
@@ -57,56 +64,78 @@ export class StarBackground {
           this.config.twinkleSpeedMax
         ),
         offset: Math.random() * Math.PI * 2,
+        cachedAlpha: 1,
       });
     }
   }
 
   public update(delta: number, time: number, gridSpeed: number): void {
     const limitY = GAME_HEIGHT * this.config.verticalLimitRatio;
-    this.graphics.clear();
 
-    this.stars.forEach((star) => {
-      // 1. 반짝임 (Alpha)
-      const alpha = 0.2 + Math.abs(Math.sin(time * star.twinkleSpeed + star.offset)) * 0.8;
+    this.accumulatedDelta += delta;
+    this.lastGridSpeed = gridSpeed;
+    this.frameCounter++;
 
-      // 2. 아래로 이동 (그리드보다 10배 느리게 흐름)
-      // 원근감을 위해 크기에 비례하여 속도 조절
+    if (this.frameCounter >= 10) {
+      this.updateStarPhysics(time, limitY);
+      this.frameCounter = 0;
+      this.accumulatedDelta = 0;
+      this.starsDirty = true;
+    }
+
+    if (this.starsDirty) {
+      this.starsDirty = false;
+      this.redrawStars();
+    }
+
+    this.shootingStarGraphics.clear();
+    this.updateShootingStars(delta, limitY);
+  }
+
+  private updateStarPhysics(time: number, limitY: number): void {
+    const accDelta = this.accumulatedDelta;
+    const gridSpeed = this.lastGridSpeed;
+
+    for (let i = 0; i < this.stars.length; i++) {
+      const star = this.stars[i];
       const sizeFactor = star.size / this.config.maxSize;
       const baseRatio = this.config.parallaxRatio;
       const variation = this.config.sizeSpeedFactor;
-
-      // 공식: gridSpeed * 기본비율 * (1 - variation/2 + sizeFactor * variation)
-      // 예: 0.1 * (0.8 + sizeFactor * 0.4) 와 비슷하게 동작하도록 설정
       const parallaxSpeed = gridSpeed * baseRatio * (1 - variation * 0.5 + sizeFactor * variation);
 
-      star.y += parallaxSpeed * delta;
+      star.y += parallaxSpeed * accDelta;
 
-      // 경계 체크 및 리셋
       if (star.y > limitY) {
         star.y = 0;
         star.x = Math.random() * GAME_WIDTH;
       }
 
-      // 3. 그리기
-      this.graphics.fillStyle(0xffffff, alpha);
-      this.graphics.fillCircle(star.x, star.y, star.size);
+      star.cachedAlpha = 0.2 + Math.abs(Math.sin(time * star.twinkleSpeed + star.offset)) * 0.8;
+    }
+  }
 
-      // 큰 별은 가끔 Cyan 빛 테두리 추가
+  private redrawStars(): void {
+    this.starGraphics.clear();
+    for (let i = 0; i < this.stars.length; i++) {
+      const star = this.stars[i];
+      this.starGraphics.fillStyle(0xffffff, star.cachedAlpha);
+      this.starGraphics.fillCircle(star.x, star.y, star.size);
+
       if (star.size > 1.5) {
-        this.graphics.lineStyle(1, COLORS.CYAN, alpha * 0.4);
-        this.graphics.strokeCircle(star.x, star.y, star.size + 1);
+        this.starGraphics.lineStyle(1, COLORS.CYAN, star.cachedAlpha * 0.4);
+        this.starGraphics.strokeCircle(star.x, star.y, star.size + 1);
       }
-    });
-
-    this.updateShootingStars(delta, limitY);
+    }
   }
 
   public setDepth(depth: number): void {
-    this.graphics.setDepth(depth);
+    this.starGraphics.setDepth(depth);
+    this.shootingStarGraphics.setDepth(depth);
   }
 
   public destroy(): void {
-    this.graphics.destroy();
+    this.starGraphics.destroy();
+    this.shootingStarGraphics.destroy();
   }
 
   private initShootingStarState(): void {
@@ -158,7 +187,11 @@ export class StarBackground {
       shootingStar.age += delta;
 
       if (shootingStar.age >= shootingStar.lifetime) {
-        this.shootingStars.splice(i, 1);
+        const last = this.shootingStars.length - 1;
+        if (i !== last) {
+          this.shootingStars[i] = this.shootingStars[last];
+        }
+        this.shootingStars.pop();
         continue;
       }
 
@@ -171,7 +204,11 @@ export class StarBackground {
         shootingStar.y > GAME_HEIGHT + shootingStarConfig.startXPadding;
 
       if (outOfBounds) {
-        this.shootingStars.splice(i, 1);
+        const last = this.shootingStars.length - 1;
+        if (i !== last) {
+          this.shootingStars[i] = this.shootingStars[last];
+        }
+        this.shootingStars.pop();
         continue;
       }
 
@@ -184,36 +221,38 @@ export class StarBackground {
       const tailX = shootingStar.x - shootingStar.directionX * shootingStar.length;
       const tailY = shootingStar.y - shootingStar.directionY * shootingStar.length;
 
-      this.graphics.lineStyle(
+      this.shootingStarGraphics.lineStyle(
         shootingStar.lineWidth * 2,
         shootingStar.color,
         tailAlpha * shootingStarConfig.glowAlphaScale
       );
-      this.graphics.beginPath();
-      this.graphics.moveTo(shootingStar.x, shootingStar.y);
-      this.graphics.lineTo(tailX, tailY);
-      this.graphics.strokePath();
+      this.shootingStarGraphics.beginPath();
+      this.shootingStarGraphics.moveTo(shootingStar.x, shootingStar.y);
+      this.shootingStarGraphics.lineTo(tailX, tailY);
+      this.shootingStarGraphics.strokePath();
 
-      this.graphics.lineStyle(shootingStar.lineWidth, shootingStar.color, bodyAlpha);
-      this.graphics.beginPath();
-      this.graphics.moveTo(shootingStar.x, shootingStar.y);
-      this.graphics.lineTo(tailX, tailY);
-      this.graphics.strokePath();
+      this.shootingStarGraphics.lineStyle(shootingStar.lineWidth, shootingStar.color, bodyAlpha);
+      this.shootingStarGraphics.beginPath();
+      this.shootingStarGraphics.moveTo(shootingStar.x, shootingStar.y);
+      this.shootingStarGraphics.lineTo(tailX, tailY);
+      this.shootingStarGraphics.strokePath();
 
       const headRadius = shootingStar.lineWidth * shootingStarConfig.glowRadiusScale;
 
-      // Head glow: brighter layered bloom so the meteor head pops more.
-      this.graphics.fillStyle(
+      this.shootingStarGraphics.fillStyle(
         shootingStar.color,
         bodyAlpha * shootingStarConfig.glowAlphaScale * 0.5 * headGlowIntensity
       );
-      this.graphics.fillCircle(shootingStar.x, shootingStar.y, headRadius * 2.2);
+      this.shootingStarGraphics.fillCircle(shootingStar.x, shootingStar.y, headRadius * 2.2);
 
-      this.graphics.fillStyle(shootingStar.color, bodyAlpha * 0.75 * headGlowIntensity);
-      this.graphics.fillCircle(shootingStar.x, shootingStar.y, headRadius * 1.15);
+      this.shootingStarGraphics.fillStyle(
+        shootingStar.color,
+        bodyAlpha * 0.75 * headGlowIntensity
+      );
+      this.shootingStarGraphics.fillCircle(shootingStar.x, shootingStar.y, headRadius * 1.15);
 
-      this.graphics.fillStyle(0xffffff, bodyAlpha * 0.5 * headGlowIntensity);
-      this.graphics.fillCircle(shootingStar.x, shootingStar.y, headRadius * 0.55);
+      this.shootingStarGraphics.fillStyle(0xffffff, bodyAlpha * 0.5 * headGlowIntensity);
+      this.shootingStarGraphics.fillCircle(shootingStar.x, shootingStar.y, headRadius * 0.55);
     }
   }
 

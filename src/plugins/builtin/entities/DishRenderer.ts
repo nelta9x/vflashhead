@@ -6,14 +6,16 @@ export interface DishVisualState {
   baseColor: number;
   currentHp: number;
   maxHp: number;
-  isHovered: boolean;
-  isBeingPulled: boolean;
-  pullPhase: number;
-  hitFlashPhase: number;
   isFrozen: boolean;
-  wobblePhase: number;
   blinkPhase: number;
 }
+
+/**
+ * Purpose: Per-graphics dirty state cache for DishRenderer skip-redraw optimization.
+ * Boundary: Only tracks string keys; does not manage graphics lifecycle.
+ */
+const dishStateCache = new WeakMap<Phaser.GameObjects.Graphics, string>();
+const dangerDishStateCache = new WeakMap<Phaser.GameObjects.Graphics, string>();
 
 export class DishRenderer {
   public static renderMenuDish(
@@ -30,6 +32,10 @@ export class DishRenderer {
   }
 
   public static renderDish(graphics: Phaser.GameObjects.Graphics, state: DishVisualState): void {
+    const stateKey = `${state.size}|${state.baseColor}|${state.currentHp}|${state.maxHp}|${state.isFrozen ? 1 : 0}|${(state.blinkPhase * 100) | 0}`;
+    if (dishStateCache.get(graphics) === stateKey) return;
+    dishStateCache.set(graphics, stateKey);
+
     graphics.clear();
     this.renderRegularDish(graphics, state);
   }
@@ -38,6 +44,9 @@ export class DishRenderer {
     graphics: Phaser.GameObjects.Graphics,
     state: Pick<DishVisualState, 'size' | 'blinkPhase'>
   ): void {
+    const stateKey = `${state.size}|${(state.blinkPhase * 100) | 0}`;
+    if (dangerDishStateCache.get(graphics) === stateKey) return;
+    dangerDishStateCache.set(graphics, stateKey);
     const pulse = Math.sin(state.blinkPhase * 2) * 0.15 + 0.85;
     const baseRadius = state.size * 0.7;
 
@@ -82,16 +91,6 @@ export class DishRenderer {
     state: DishVisualState
   ): void {
     const sides = 8;
-    const wobble = Math.sin(state.wobblePhase) * 2;
-
-    let pullOffsetX = 0;
-    let pullOffsetY = 0;
-    if (state.isBeingPulled) {
-      pullOffsetX = Math.sin(state.pullPhase * 2) * 2;
-      pullOffsetY = Math.cos(state.pullPhase * 1.5) * 2;
-    }
-
-    const flashWhite = state.hitFlashPhase > 0 ? state.hitFlashPhase : 0;
     const hpRatio = state.maxHp > 0 ? state.currentHp / state.maxHp : 1;
     let displayColor = this.lerpColor(COLORS.RED, state.baseColor, hpRatio);
 
@@ -99,61 +98,46 @@ export class DishRenderer {
       displayColor = COLORS.FROZEN;
     }
 
-    if (state.isBeingPulled) {
-      const magnetAlpha = 0.15;
-      graphics.fillStyle(COLORS.MAGENTA, magnetAlpha);
-      graphics.fillCircle(pullOffsetX, pullOffsetY, state.size + 15);
-    }
+    // Glow
+    graphics.fillStyle(displayColor, 0.2);
+    graphics.fillCircle(0, 0, state.size + 10);
 
-    const glowAlpha = state.isHovered ? 0.4 : 0.2;
-    graphics.fillStyle(displayColor, glowAlpha);
-    graphics.fillCircle(pullOffsetX, pullOffsetY, state.size + 10 + wobble);
-
-    const fillAlpha = flashWhite > 0 ? 0.7 + flashWhite * 0.3 : 0.7;
-    const fillColor =
-      flashWhite > 0 ? this.lerpColor(displayColor, COLORS.WHITE, flashWhite) : displayColor;
-    graphics.fillStyle(fillColor, fillAlpha);
-    this.tracePolygonPath(graphics, pullOffsetX, pullOffsetY, state.size + wobble, sides);
+    // Fill octagon
+    graphics.fillStyle(displayColor, 0.7);
+    this.tracePolygonPath(graphics, 0, 0, state.size, sides);
     graphics.fillPath();
 
-    const lineWidth = state.isHovered ? 4 : 3;
-    graphics.lineStyle(lineWidth, displayColor, 1);
-    this.tracePolygonPath(graphics, pullOffsetX, pullOffsetY, state.size + wobble, sides);
+    // Stroke octagon
+    graphics.lineStyle(3, displayColor, 1);
+    this.tracePolygonPath(graphics, 0, 0, state.size, sides);
     graphics.strokePath();
 
-    graphics.lineStyle(2, COLORS.WHITE, 0.4);
-    graphics.strokeCircle(pullOffsetX, pullOffsetY, state.size * 0.5);
-
+    // HP bar (only when damaged)
     if (state.currentHp < state.maxHp) {
-      this.drawHpBar(graphics, state.size, state.currentHp, state.maxHp, pullOffsetX, pullOffsetY);
+      this.drawHpBar(graphics, state.size, state.currentHp, state.maxHp);
     }
-
-    graphics.lineStyle(1, COLORS.GREEN, 0.5);
-    graphics.strokeCircle(pullOffsetX, pullOffsetY, state.size);
   }
 
   private static drawHpBar(
     graphics: Phaser.GameObjects.Graphics,
     size: number,
     currentHp: number,
-    maxHp: number,
-    offsetX: number,
-    offsetY: number
+    maxHp: number
   ): void {
     const barWidth = size * 1.6;
     const barHeight = 6;
-    const barY = -size - 15 + offsetY;
+    const barY = -size - 15;
 
     graphics.fillStyle(0x000000, 0.6);
-    graphics.fillRect(-barWidth / 2 - 1 + offsetX, barY - 1, barWidth + 2, barHeight + 2);
+    graphics.fillRect(-barWidth / 2 - 1, barY - 1, barWidth + 2, barHeight + 2);
 
     const hpRatio = Math.max(0, currentHp / maxHp);
     const hpColor = this.lerpColor(COLORS.RED, COLORS.GREEN, hpRatio);
     graphics.fillStyle(hpColor, 1);
-    graphics.fillRect(-barWidth / 2 + offsetX, barY, barWidth * hpRatio, barHeight);
+    graphics.fillRect(-barWidth / 2, barY, barWidth * hpRatio, barHeight);
 
     graphics.lineStyle(1, COLORS.WHITE, 0.5);
-    graphics.strokeRect(-barWidth / 2 + offsetX, barY, barWidth, barHeight);
+    graphics.strokeRect(-barWidth / 2, barY, barWidth, barHeight);
   }
 
   private static tracePolygonPath(

@@ -15,7 +15,6 @@ export class EntityMovementSystem implements EntitySystem {
 
       const statusCache = this.world.statusCache.get(entityId);
       const isFrozen = statusCache?.isFrozen ?? false;
-      const slowFactor = statusCache?.slowFactor ?? 1.0;
       const bs = this.world.bossState.get(entityId);
       const isStunned = bs?.isHitStunned ?? false;
       const transform = this.world.transform.get(entityId);
@@ -41,11 +40,6 @@ export class EntityMovementSystem implements EntitySystem {
         const pushY = bs?.pushOffsetY ?? 0;
         transform.x = transform.baseX + shakeX + pushX;
         transform.y = transform.baseY + shakeY + pushY;
-      } else if (mov.type === 'none') {
-        const visualState = this.world.visualState.get(entityId);
-        if (visualState) {
-          visualState.wobblePhase += 0.1 * slowFactor;
-        }
       }
     });
   }

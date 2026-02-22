@@ -42,7 +42,6 @@ export class EntityRenderSystem implements EntitySystem {
       const health = this.world.health.get(entityId);
       const statusCache = this.world.statusCache.get(entityId);
       const visualState = this.world.visualState.get(entityId);
-      const cursorInteraction = this.world.cursorInteraction.get(entityId);
       const bossState = this.world.bossState.get(entityId);
       const lifetime = this.world.lifetime.get(entityId);
 
@@ -67,12 +66,7 @@ export class EntityRenderSystem implements EntitySystem {
           baseColor: dishProps.color,
           currentHp: health.currentHp,
           maxHp: health.maxHp,
-          isHovered: cursorInteraction?.isHovered ?? false,
-          isBeingPulled: visualState.isBeingPulled,
-          pullPhase: visualState.pullPhase,
-          hitFlashPhase: visualState.hitFlashPhase,
           isFrozen: statusCache?.isFrozen ?? false,
-          wobblePhase: visualState.wobblePhase,
           blinkPhase: visualState.blinkPhase,
         });
       }

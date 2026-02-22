@@ -21,17 +21,6 @@ describe('EntityVisualSystem', () => {
     system = new EntityVisualSystem(world);
   });
 
-  it('increments pullPhase when isBeingPulled', () => {
-    const e1 = world.createEntity();
-    world.visualState.set(e1, {
-      hitFlashPhase: 0, wobblePhase: 0, blinkPhase: 0, isBeingPulled: true, pullPhase: 0,
-    });
-
-    system.tick(16);
-
-    expect(world.visualState.getRequired(e1).pullPhase).toBe(0.5);
-  });
-
   it('decrements hitFlashPhase', () => {
     const e1 = world.createEntity();
     world.visualState.set(e1, {

@@ -23,7 +23,7 @@
   "grid": {
     "horizonRatio": 0.6,
     "size": 60,
-    "verticalLines": 150,
+    "verticalLines": 80,
     "horizontalLines": 15
   },
   "stars": {

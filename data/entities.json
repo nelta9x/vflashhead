@@ -107,7 +107,6 @@
       },
       "dishAttack": {
         "chaseSpeed": 120,
-        "eatRange": 45,
         "hitInterval": 500,
         "hitDamage": 5
       },

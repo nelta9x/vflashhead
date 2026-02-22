@@ -351,3 +351,16 @@
 ### 사례 요약
 - SpaceshipProjectileSystem 분리 시, AI→Projectile 발사 트리거를 closure 공유 FireRequest[]로 설계 → EventBus 이벤트로 전환
 - 공유 상태가 없으면 각 시스템이 완전히 독립적으로 테스트/교체 가능
+
+---
+
+## 22. drift 엔티티의 근접 판정은 앵커 기준 `occurrences: 1`
+
+### 원칙
+- drift 이동 엔티티의 `transform.x/y`는 `homeX/Y + sin(...) * amplitude` — 진폭이 수백 px에 달할 수 있다.
+- 근접 판정(eat, collect 등)을 `transform` 기준으로 하면 진폭 >> 판정 반경이라 거의 발동하지 않는다.
+- 앵커(`homeX/homeY`)가 대상에 수렴했는지로 판정해야 chase→eat 흐름이 성립한다.
+
+### 사례 요약
+- 우주선 drift 진폭 X:±400, Y:±120 vs eatRange 45 → transform 거리가 항상 eatRange를 초과하여 먹기 불가
+- eat 판정을 `homeX/homeY` 기준으로 변경하여 해결

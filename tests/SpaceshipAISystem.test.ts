@@ -20,15 +20,34 @@ import { EventBus, GameEvents } from '../src/utils/EventBus';
 import entitiesJson from '../data/entities.json';
 
 const dishAttack = entitiesJson.types.spaceship.dishAttack;
+const SHIP_SIZE = 35;
+const DISH_SIZE = 30;
 
 interface MockTransform { x: number; y: number }
 interface MockIdentity { entityType: string }
 interface MockMovement { homeX: number; homeY: number; drift: { bounds: { minX: number; maxX: number; minY: number; maxY: number } } | null }
 
+interface AddEntityOpts {
+  mov?: MockMovement;
+  hasDishTag?: boolean;
+  size?: number;
+}
+
+const defaultBounds = { minX: 0, maxX: 1280, minY: 0, maxY: 720 };
+
+function shipMov(homeX: number, homeY: number, bounds = defaultBounds): AddEntityOpts {
+  return { mov: { homeX, homeY, drift: { bounds } }, hasDishTag: true, size: SHIP_SIZE };
+}
+
+function dishOpts(size = DISH_SIZE): AddEntityOpts {
+  return { hasDishTag: true, size };
+}
+
 function createTestWorld() {
   const transforms = new Map<string, MockTransform>();
   const identities = new Map<string, MockIdentity>();
   const movements = new Map<string, MockMovement>();
+  const dishPropsStore = new Map<string, { size: number }>();
   const dishTags = new Set<string>();
   const activeSet = new Set<string>();
 
@@ -42,11 +61,13 @@ function createTestWorld() {
     movement: {
       get: (id: string) => movements.get(id),
     },
+    dishProps: {
+      get: (id: string) => dishPropsStore.get(id),
+    },
     isActive: (id: string) => activeSet.has(id),
     query: vi.fn((...defs: Array<{ name?: string }>) => {
       const firstName = defs[0]?.name;
       if (firstName === 'identity') {
-        // query(C_Identity, C_Transform)
         return (function* () {
           for (const [id, identity] of identities) {
             if (!activeSet.has(id)) continue;
@@ -57,7 +78,6 @@ function createTestWorld() {
         })();
       }
       if (firstName === 'dishTag') {
-        // query(C_DishTag, C_Identity, C_Transform) — only entities with dishTag
         return (function* () {
           for (const id of dishTags) {
             if (!activeSet.has(id)) continue;
@@ -72,23 +92,20 @@ function createTestWorld() {
     }),
   };
 
-  const addEntity = (id: string, type: string, x: number, y: number, mov?: MockMovement, hasDishTag = false) => {
+  const addEntity = (id: string, type: string, x: number, y: number, opts: AddEntityOpts = {}) => {
     activeSet.add(id);
     identities.set(id, { entityType: type });
     transforms.set(id, { x, y });
-    if (mov) movements.set(id, mov);
-    if (hasDishTag) dishTags.add(id);
+    if (opts.mov) movements.set(id, opts.mov);
+    if (opts.hasDishTag) dishTags.add(id);
+    if (opts.size !== undefined) dishPropsStore.set(id, { size: opts.size });
   };
 
   const removeEntity = (id: string) => {
     activeSet.delete(id);
   };
 
-  const setTransform = (id: string, x: number, y: number) => {
-    transforms.set(id, { x, y });
-  };
-
-  return { world, addEntity, removeEntity, setTransform, transforms, movements, activeSet };
+  return { world, addEntity, removeEntity, activeSet };
 }
 
 describe('SpaceshipAISystem', () => {
@@ -107,11 +124,9 @@ describe('SpaceshipAISystem', () => {
       mockDamageService as never,
     );
 
-    // Subscribe to fire event
     fireListener = vi.fn();
     EventBus.getInstance().on(GameEvents.SPACESHIP_FIRE_PROJECTILE, fireListener);
 
-    // Default player
     env.addEntity('player', 'player', 640, 360);
   });
 
@@ -121,67 +136,49 @@ describe('SpaceshipAISystem', () => {
   });
 
   it('should clean stale spaceship states when spaceship becomes inactive', () => {
-    env.addEntity('ship1', 'spaceship', 100, 100, {
-      homeX: 100, homeY: 100, drift: { bounds: { minX: 0, maxX: 1280, minY: 0, maxY: 720 } },
-    }, true);
-    // Add a dish so the spaceship has a target
-    env.addEntity('dish1', 'basic', 200, 200, undefined, true);
+    env.addEntity('ship1', 'spaceship', 100, 100, shipMov(100, 100));
+    env.addEntity('dish1', 'basic', 200, 200, dishOpts());
 
-    // Tick to create state
     env.world.context.gameTime = 0;
     system.tick(16);
 
-    // Now remove the spaceship
     env.removeEntity('ship1');
 
-    // Tick again — stale state should be cleaned
     env.world.context.gameTime = 100;
     system.tick(16);
 
-    // clear() should have no problem
     system.clear();
   });
 
   it('should chase nearest dish by moving homeX/homeY toward it', () => {
-    const mov: MockMovement = {
-      homeX: 100, homeY: 100,
-      drift: { bounds: { minX: 0, maxX: 1280, minY: 0, maxY: 720 } },
-    };
-    env.addEntity('ship1', 'spaceship', 100, 100, mov, true);
-    env.addEntity('dish1', 'basic', 300, 100, undefined, true);
+    const opts = shipMov(100, 100);
+    env.addEntity('ship1', 'spaceship', 100, 100, opts);
+    env.addEntity('dish1', 'basic', 300, 100, dishOpts());
 
     env.world.context.gameTime = 0;
     system.tick(1000); // 1 second delta
 
     // homeX should have moved toward 300 (chaseSpeed * 1s = 120)
-    expect(mov.homeX).toBeCloseTo(220, 0);
-    expect(mov.homeY).toBeCloseTo(100, 0);
+    expect(opts.mov!.homeX).toBeCloseTo(220, 0);
+    expect(opts.mov!.homeY).toBeCloseTo(100, 0);
   });
 
   it('should exclude other spaceships from chase targets', () => {
-    const mov: MockMovement = {
-      homeX: 100, homeY: 100,
-      drift: { bounds: { minX: 0, maxX: 1280, minY: 0, maxY: 720 } },
-    };
-    env.addEntity('ship1', 'spaceship', 100, 100, mov, true);
-    // Another spaceship nearby — should NOT be chased
-    env.addEntity('ship2', 'spaceship', 110, 100, undefined, true);
+    const opts = shipMov(100, 100);
+    env.addEntity('ship1', 'spaceship', 100, 100, opts);
+    env.addEntity('ship2', 'spaceship', 110, 100, shipMov(110, 100));
 
     env.world.context.gameTime = 0;
     system.tick(1000);
 
-    // homeX should NOT have changed since no valid target
-    expect(mov.homeX).toBe(100);
-    expect(mov.homeY).toBe(100);
+    expect(opts.mov!.homeX).toBe(100);
+    expect(opts.mov!.homeY).toBe(100);
   });
 
-  it('should apply damage when in eatRange', () => {
-    env.addEntity('ship1', 'spaceship', 100, 100, {
-      homeX: 100, homeY: 100,
-      drift: { bounds: { minX: 0, maxX: 1280, minY: 0, maxY: 720 } },
-    }, true);
-    // Dish within eatRange (45)
-    env.addEntity('dish1', 'basic', 130, 100, undefined, true);
+  it('should apply damage when anchor within shipSize + dishSize', () => {
+    // anchor dist = 30 < 35 + 30 = 65
+    env.addEntity('ship1', 'spaceship', 100, 100, shipMov(100, 100));
+    env.addEntity('dish1', 'basic', 130, 100, dishOpts());
 
     env.world.context.gameTime = 1000;
     system.tick(16);
@@ -189,38 +186,39 @@ describe('SpaceshipAISystem', () => {
     expect(mockDamageService.applyDamage).toHaveBeenCalledWith('dish1', dishAttack.hitDamage);
   });
 
-  it('should respect hitInterval cooldown', () => {
-    env.addEntity('ship1', 'spaceship', 100, 100, {
-      homeX: 100, homeY: 100,
-      drift: { bounds: { minX: 0, maxX: 1280, minY: 0, maxY: 720 } },
-    }, true);
-    env.addEntity('dish1', 'basic', 130, 100, undefined, true);
+  it('should NOT eat when anchor distance exceeds shipSize + dishSize', () => {
+    // anchor dist = 70 > 35 + 30 = 65
+    env.addEntity('ship1', 'spaceship', 100, 100, shipMov(100, 100));
+    env.addEntity('dish1', 'basic', 170, 100, dishOpts());
 
-    // First hit
+    env.world.context.gameTime = 1000;
+    system.tick(16);
+
+    expect(mockDamageService.applyDamage).not.toHaveBeenCalled();
+  });
+
+  it('should respect hitInterval cooldown', () => {
+    env.addEntity('ship1', 'spaceship', 100, 100, shipMov(100, 100));
+    env.addEntity('dish1', 'basic', 130, 100, dishOpts());
+
     env.world.context.gameTime = 1000;
     system.tick(16);
     expect(mockDamageService.applyDamage).toHaveBeenCalledTimes(1);
 
-    // Too soon
     mockDamageService.applyDamage.mockClear();
     env.world.context.gameTime = 1000 + dishAttack.hitInterval - 1;
     system.tick(16);
     expect(mockDamageService.applyDamage).not.toHaveBeenCalled();
 
-    // After cooldown
     env.world.context.gameTime = 1000 + dishAttack.hitInterval;
     system.tick(16);
     expect(mockDamageService.applyDamage).toHaveBeenCalledTimes(1);
   });
 
   it('should emit SPACESHIP_FIRE_PROJECTILE when dish is destroyed', () => {
-    env.addEntity('ship1', 'spaceship', 100, 100, {
-      homeX: 100, homeY: 100,
-      drift: { bounds: { minX: 0, maxX: 1280, minY: 0, maxY: 720 } },
-    }, true);
-    env.addEntity('dish1', 'basic', 130, 100, undefined, true);
+    env.addEntity('ship1', 'spaceship', 100, 100, shipMov(100, 100));
+    env.addEntity('dish1', 'basic', 130, 100, dishOpts());
 
-    // Simulate dish destruction: applyDamage removes it from active
     mockDamageService.applyDamage.mockImplementation(() => {
       env.removeEntity('dish1');
     });
@@ -238,13 +236,9 @@ describe('SpaceshipAISystem', () => {
   });
 
   it('should NOT emit fire event when dish survives damage', () => {
-    env.addEntity('ship1', 'spaceship', 100, 100, {
-      homeX: 100, homeY: 100,
-      drift: { bounds: { minX: 0, maxX: 1280, minY: 0, maxY: 720 } },
-    }, true);
-    env.addEntity('dish1', 'basic', 130, 100, undefined, true);
+    env.addEntity('ship1', 'spaceship', 100, 100, shipMov(100, 100));
+    env.addEntity('dish1', 'basic', 130, 100, dishOpts());
 
-    // Dish stays active after damage
     env.world.context.gameTime = 1000;
     system.tick(16);
 
@@ -252,35 +246,51 @@ describe('SpaceshipAISystem', () => {
     expect(fireListener).not.toHaveBeenCalled();
   });
 
+  it('should use anchor distance (not transform) for eat check', () => {
+    // Transform far from dish (drift offset), but anchor close
+    env.addEntity('ship1', 'spaceship', 500, 100, shipMov(130, 100));
+    env.addEntity('dish1', 'basic', 140, 100, dishOpts());
+    // anchorDist = 10 < 65 (shipSize+dishSize), transform dist = 360
+
+    env.world.context.gameTime = 1000;
+    system.tick(16);
+
+    expect(mockDamageService.applyDamage).toHaveBeenCalledWith('dish1', dishAttack.hitDamage);
+  });
+
+  it('should NOT eat when anchor is outside collision range even if transform is close', () => {
+    env.addEntity('ship1', 'spaceship', 140, 100, shipMov(500, 100));
+    env.addEntity('dish1', 'basic', 140, 100, dishOpts());
+    // anchorDist = 360 >> 65, transform dist = 0
+
+    env.world.context.gameTime = 1000;
+    system.tick(16);
+
+    expect(mockDamageService.applyDamage).not.toHaveBeenCalled();
+  });
+
   it('should clamp homeX/homeY to bounds', () => {
-    const mov: MockMovement = {
-      homeX: 10, homeY: 10,
-      drift: { bounds: { minX: 60, maxX: 1220, minY: 60, maxY: 500 } },
-    };
-    env.addEntity('ship1', 'spaceship', 10, 10, mov, true);
-    // Dish far to the left/up — should clamp to minX/minY
-    env.addEntity('dish1', 'basic', 0, 0, undefined, true);
+    const bounds = { minX: 60, maxX: 1220, minY: 60, maxY: 500 };
+    const opts = shipMov(10, 10, bounds);
+    env.addEntity('ship1', 'spaceship', 10, 10, opts);
+    env.addEntity('dish1', 'basic', 0, 0, dishOpts());
 
     env.world.context.gameTime = 0;
     system.tick(1000);
 
-    expect(mov.homeX).toBeGreaterThanOrEqual(60);
-    expect(mov.homeY).toBeGreaterThanOrEqual(60);
+    expect(opts.mov!.homeX).toBeGreaterThanOrEqual(60);
+    expect(opts.mov!.homeY).toBeGreaterThanOrEqual(60);
   });
 
   it('should clear spaceship states on clear()', () => {
-    env.addEntity('ship1', 'spaceship', 100, 100, {
-      homeX: 100, homeY: 100,
-      drift: { bounds: { minX: 0, maxX: 1280, minY: 0, maxY: 720 } },
-    }, true);
-    env.addEntity('dish1', 'basic', 130, 100, undefined, true);
+    env.addEntity('ship1', 'spaceship', 100, 100, shipMov(100, 100));
+    env.addEntity('dish1', 'basic', 130, 100, dishOpts());
 
     env.world.context.gameTime = 1000;
     system.tick(16);
 
     system.clear();
 
-    // After clear, damage cooldown should be reset
     mockDamageService.applyDamage.mockClear();
     env.world.context.gameTime = 1001;
     system.tick(16);

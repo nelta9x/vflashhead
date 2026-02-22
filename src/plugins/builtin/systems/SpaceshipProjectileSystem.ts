@@ -91,6 +91,7 @@ export class SpaceshipProjectileSystem implements EntitySystem {
     for (const entityId of activeSpaceshipIds) {
       const t = this.world.transform.get(entityId);
       if (!t) continue;
+      const mov = this.world.movement.get(entityId);
 
       let state = this.spaceshipStates.get(entityId);
       if (!state) {
@@ -117,14 +118,15 @@ export class SpaceshipProjectileSystem implements EntitySystem {
       if (nearestId !== null) {
         const dishT = this.world.transform.get(nearestId);
         if (dishT) {
-          // Chase toward target dish
+          // Chase toward target dish by shifting the drift anchor
           const dx = dishT.x - t.x;
           const dy = dishT.y - t.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist > 0) {
+          if (dist > 0 && mov?.drift) {
             const move = Math.min(dishAttackConfig.chaseSpeed * dtSec, dist);
-            t.x += (dx / dist) * move;
-            t.y += (dy / dist) * move;
+            const bounds = mov.drift.bounds;
+            mov.homeX = Phaser.Math.Clamp(mov.homeX + (dx / dist) * move, bounds.minX, bounds.maxX);
+            mov.homeY = Phaser.Math.Clamp(mov.homeY + (dy / dist) * move, bounds.minY, bounds.maxY);
           }
 
           // Eat: apply damage at interval when in range

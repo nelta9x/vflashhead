@@ -4,6 +4,7 @@ import { Data } from '../../../data/DataManager';
 
 export class CursorRenderer {
   private graphics: Phaser.GameObjects.Graphics;
+  private lastStateKey = '';
 
   constructor(scene: Phaser.Scene) {
     this.graphics = scene.add.graphics();
@@ -19,6 +20,17 @@ export class CursorRenderer {
     perspectiveFactor: number,
     time: number = 0
   ): void {
+    // Position via container transform — draw at (0,0) relative
+    this.graphics.x = x;
+    this.graphics.y = y;
+
+    // Dirty flag: skip redraw if nothing visual changed
+    const timeQ = (time / 50) | 0;
+    const pfQ = (perspectiveFactor * 20) | 0;
+    const stateKey = `menu|${radius}|${pfQ}|${timeQ}`;
+    if (stateKey === this.lastStateKey) return;
+    this.lastStateKey = stateKey;
+
     this.graphics.clear();
 
     // 1. 외곽 원 (원근감이 적용된 두께와 크기)
@@ -27,22 +39,22 @@ export class CursorRenderer {
       Data.gameConfig.player.cursorColorNumeric,
       0.4 + perspectiveFactor * 0.4
     );
-    this.graphics.strokeCircle(x, y, radius);
+    this.graphics.strokeCircle(0, 0, radius);
 
     // 2. 내부 채우기
     this.graphics.fillStyle(
       Data.gameConfig.player.cursorColorNumeric,
       0.1 + perspectiveFactor * 0.2
     );
-    this.graphics.fillCircle(x, y, radius);
+    this.graphics.fillCircle(0, 0, radius);
 
     // 3. 메뉴에서도 인게임과 동일한 HP 링 표시 (항상 최대 HP 상태)
     const initialHp = Math.max(1, Math.floor(Data.gameConfig.player.initialHp));
-    this.drawHpRing(x, y, radius, initialHp, initialHp, time);
+    this.drawHpRing(radius, initialHp, initialHp, time);
 
     // 4. 중앙 점
     this.graphics.fillStyle(COLORS.WHITE, 0.7 + perspectiveFactor * 0.3);
-    this.graphics.fillCircle(x, y, 2 * (0.5 + perspectiveFactor * 0.5));
+    this.graphics.fillCircle(0, 0, 2 * (0.5 + perspectiveFactor * 0.5));
   }
 
   /**
@@ -61,19 +73,31 @@ export class CursorRenderer {
     maxHp: number = 0,
     hitFlashAlpha: number = 0
   ): void {
+    // Position via container transform — draw at (0,0) relative
+    this.graphics.x = x;
+    this.graphics.y = y;
+
+    // Dirty flag: skip redraw if nothing visual changed
+    const timeQ = (time / 50) | 0;
+    const gaugeQ = (gaugeRatio * 20) | 0;
+    const flashQ = (hitFlashAlpha * 10) | 0;
+    const stateKey = `atk|${radius}|${gaugeQ}|${magnetRadius}|${magnetLevel}|${electricLevel}|${timeQ}|${currentHp}|${maxHp}|${flashQ}`;
+    if (stateKey === this.lastStateKey) return;
+    this.lastStateKey = stateKey;
+
     this.graphics.clear();
 
     // 1. 자기장 범위 원
     if (magnetLevel > 0) {
       this.graphics.lineStyle(1, COLORS.MAGENTA, 0.25);
-      this.graphics.strokeCircle(x, y, magnetRadius);
+      this.graphics.strokeCircle(0, 0, magnetRadius);
       this.graphics.fillStyle(COLORS.MAGENTA, 0.04);
-      this.graphics.fillCircle(x, y, magnetRadius);
+      this.graphics.fillCircle(0, 0, magnetRadius);
     }
 
     // 2. 전기 충격 효과 (어빌리티 획득 시)
     if (electricLevel > 0) {
-      this.drawElectricSparks(x, y, radius, electricLevel, time);
+      this.drawElectricSparks(radius, electricLevel, time);
     }
 
     // 3. 공격 범위 테두리
@@ -84,45 +108,43 @@ export class CursorRenderer {
     const baseColor = isReady ? readyColor : Data.gameConfig.player.cursorColorNumeric;
 
     this.graphics.lineStyle(2, baseColor, 0.8);
-    this.graphics.strokeCircle(x, y, radius);
+    this.graphics.strokeCircle(0, 0, radius);
 
     // 4. 내부 게이지 채우기
     if (gaugeRatio > 0) {
       const fillRadius = radius * gaugeRatio;
       this.graphics.fillStyle(baseColor, isReady ? 0.5 : 0.4);
-      this.graphics.fillCircle(x, y, fillRadius);
+      this.graphics.fillCircle(0, 0, fillRadius);
 
       if (isReady) {
         // 준비 완료 시 글로우 효과
         this.graphics.lineStyle(4, readyColor, 0.4);
-        this.graphics.strokeCircle(x, y, radius + 2);
+        this.graphics.strokeCircle(0, 0, radius + 2);
       }
     }
 
     // 5. 기본 내부 채우기
     this.graphics.fillStyle(baseColor, 0.15);
-    this.graphics.fillCircle(x, y, radius);
+    this.graphics.fillCircle(0, 0, radius);
 
     // 6. HP 링 (커서 둘레 세그먼트 바)
-    this.drawHpRing(x, y, radius, currentHp, maxHp, time);
+    this.drawHpRing(radius, currentHp, maxHp, time);
 
     // 7. 중앙 점
     this.graphics.fillStyle(COLORS.WHITE, 1);
-    this.graphics.fillCircle(x, y, 2);
+    this.graphics.fillCircle(0, 0, 2);
 
     // 8. 피격 플래시 (보스 hitFlash와 동일 패턴: 흰색 오버레이 페이드아웃)
     if (hitFlashAlpha > 0) {
       const hitCfg = Data.feedback.playerHit;
       this.graphics.fillStyle(COLORS.WHITE, hitFlashAlpha * hitCfg.flashFillAlpha);
-      this.graphics.fillCircle(x, y, radius);
+      this.graphics.fillCircle(0, 0, radius);
       this.graphics.lineStyle(hitCfg.flashStrokeWidth, COLORS.WHITE, hitFlashAlpha * hitCfg.flashStrokeAlpha);
-      this.graphics.strokeCircle(x, y, radius + hitCfg.flashRadiusOffset);
+      this.graphics.strokeCircle(0, 0, radius + hitCfg.flashRadiusOffset);
     }
   }
 
   private drawHpRing(
-    x: number,
-    y: number,
     radius: number,
     currentHp: number,
     maxHp: number,
@@ -171,10 +193,10 @@ export class CursorRenderer {
     this.graphics.beginPath();
     for (let i = 0; i < segmentCount; i++) {
       this.graphics.moveTo(
-        x + Math.cos(segStartAngles[i]) * ringRadius,
-        y + Math.sin(segStartAngles[i]) * ringRadius
+        Math.cos(segStartAngles[i]) * ringRadius,
+        Math.sin(segStartAngles[i]) * ringRadius
       );
-      this.graphics.arc(x, y, ringRadius, segStartAngles[i], segEndAngles[i]);
+      this.graphics.arc(0, 0, ringRadius, segStartAngles[i], segEndAngles[i]);
     }
     this.graphics.strokePath();
 
@@ -189,10 +211,10 @@ export class CursorRenderer {
       for (let i = 0; i < segmentCount; i++) {
         if (segIsFilled[i]) {
           this.graphics.moveTo(
-            x + Math.cos(segStartAngles[i]) * ringRadius,
-            y + Math.sin(segStartAngles[i]) * ringRadius
+            Math.cos(segStartAngles[i]) * ringRadius,
+            Math.sin(segStartAngles[i]) * ringRadius
           );
-          this.graphics.arc(x, y, ringRadius, segStartAngles[i], segEndAngles[i]);
+          this.graphics.arc(0, 0, ringRadius, segStartAngles[i], segEndAngles[i]);
         }
       }
       this.graphics.strokePath();
@@ -203,10 +225,10 @@ export class CursorRenderer {
     this.graphics.beginPath();
     for (let i = 0; i < segmentCount; i++) {
       this.graphics.moveTo(
-        x + Math.cos(segStartAngles[i]) * ringRadius,
-        y + Math.sin(segStartAngles[i]) * ringRadius
+        Math.cos(segStartAngles[i]) * ringRadius,
+        Math.sin(segStartAngles[i]) * ringRadius
       );
-      this.graphics.arc(x, y, ringRadius, segStartAngles[i], segEndAngles[i]);
+      this.graphics.arc(0, 0, ringRadius, segStartAngles[i], segEndAngles[i]);
     }
     this.graphics.strokePath();
   }
@@ -215,8 +237,6 @@ export class CursorRenderer {
    * 커서 주변에 찌릿찌릿한 전기 스파크 연출
    */
   private drawElectricSparks(
-    x: number,
-    y: number,
     radius: number,
     level: number,
     time: number
@@ -232,17 +252,17 @@ export class CursorRenderer {
       // 결정론적 각도 (i와 seed를 사용하여 매 프레임 위치가 변하도록 함)
       const angle = ((i / sparkCount) * Math.PI * 2) + (Math.sin(seed * 1.5 + i) * 0.8);
 
-      // 중심(x, y)에서 시작하여 원주 근처까지 뻗는 지그재그 줄기
+      // 중심(0, 0)에서 시작하여 원주 근처까지 뻗는 지그재그 줄기
       const targetDist = radius + (Math.cos(seed * 2 + i) * jitter);
       const segments = 3;
 
       const alpha = 0.4 + (Math.sin(time / 40 + i) * 0.3);
       this.graphics.lineStyle(1.5, COLORS.CYAN, alpha);
       this.graphics.beginPath();
-      this.graphics.moveTo(x, y);
+      this.graphics.moveTo(0, 0);
 
-      let lastX = x;
-      let lastY = y;
+      let lastX = 0;
+      let lastY = 0;
 
       for (let s = 1; s <= segments; s++) {
         const progress = s / segments;
@@ -250,8 +270,8 @@ export class CursorRenderer {
 
         // 지그재그 효과를 위해 각도에 오프셋 추가
         const offset = s === segments ? 0 : (Math.sin(seed * 5 + i * 2 + s) * 0.4);
-        const sx = x + Math.cos(angle + offset) * dist;
-        const sy = y + Math.sin(angle + offset) * dist;
+        const sx = Math.cos(angle + offset) * dist;
+        const sy = Math.sin(angle + offset) * dist;
 
         this.graphics.lineTo(sx, sy);
         lastX = sx;
@@ -270,7 +290,7 @@ export class CursorRenderer {
     // 전체적인 푸른 글로우 효과
     const glowAlpha = 0.04 + (Math.sin(time / 100) + 1) * 0.03;
     this.graphics.fillStyle(COLORS.CYAN, glowAlpha);
-    this.graphics.fillCircle(x, y, radius + 10);
+    this.graphics.fillCircle(0, 0, radius + 10);
   }
 
   public setDepth(depth: number): void {

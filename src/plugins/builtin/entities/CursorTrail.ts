@@ -29,10 +29,17 @@ export class CursorTrail {
   private config: TrailConfig;
   private lastCenter: { x: number; y: number } | null = null;
   private lastFrameSpeed = 0;
+  private readonly cachedColor: number;
+  // Reusable edge buffers to avoid per-frame allocation
+  private edgeLeftX: number[] = [];
+  private edgeLeftY: number[] = [];
+  private edgeRightX: number[] = [];
+  private edgeRightY: number[] = [];
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
     this.config = Data.feedback.cursorTrail;
+    this.cachedColor = Phaser.Display.Color.HexStringToColor(this.config.color).color;
     this.graphics = this.scene.add.graphics();
     this.graphics.setDepth(DEPTHS.cursorTrail);
   }
@@ -115,7 +122,7 @@ export class CursorTrail {
     this.graphics.clear();
     if (this.points.length < 2) return;
 
-    const color = Phaser.Display.Color.HexStringToColor(this.config.color).color;
+    const color = this.cachedColor;
     const currentTime = this.scene.time.now;
     const totalPoints = this.points.length;
 
@@ -124,29 +131,79 @@ export class CursorTrail {
     const dynamicAlpha = this.config.speedAlphaMin +
       (this.config.speedAlphaMax - this.config.speedAlphaMin) * speedRatio;
 
-    for (let i = 0; i < totalPoints - 1; i++) {
-      const p1 = this.points[i];
-      const p2 = this.points[i + 1];
+    // Reuse edge buffers — reset length, fill in-place
+    const leftX = this.edgeLeftX;
+    const leftY = this.edgeLeftY;
+    const rightX = this.edgeRightX;
+    const rightY = this.edgeRightY;
+    leftX.length = totalPoints;
+    leftY.length = totalPoints;
+    rightX.length = totalPoints;
+    rightY.length = totalPoints;
 
-      // 1. 시간 기반 비율 (나이가 들수록 투명해짐)
-      const age1 = currentTime - p1.time;
-      const lifeRatio = 1 - Phaser.Math.Clamp(age1 / this.config.lifespan, 0, 1);
+    for (let i = 0; i < totalPoints; i++) {
+      const p = this.points[i];
 
-      // 2. 인덱스 기반 비율 (커서에서 멀어질수록 얇아짐)
-      // i=0이 가장 오래된 점(꼬리 끝), i=totalPoints-1이 가장 최신 점(머리)
+      // Calculate direction vector (forward-looking, last point uses backward)
+      let dx: number, dy: number;
+      if (i < totalPoints - 1) {
+        dx = this.points[i + 1].x - p.x;
+        dy = this.points[i + 1].y - p.y;
+      } else {
+        dx = p.x - this.points[i - 1].x;
+        dy = p.y - this.points[i - 1].y;
+      }
+
+      const len = Math.sqrt(dx * dx + dy * dy);
+      if (len < 0.001) {
+        // Degenerate segment — copy previous edge or collapse to point
+        if (i > 0) {
+          leftX[i] = leftX[i - 1];
+          leftY[i] = leftY[i - 1];
+          rightX[i] = rightX[i - 1];
+          rightY[i] = rightY[i - 1];
+        } else {
+          leftX[i] = p.x;
+          leftY[i] = p.y;
+          rightX[i] = p.x;
+          rightY[i] = p.y;
+        }
+        continue;
+      }
+
+      // Perpendicular vector (unit normal rotated 90°)
+      const perpX = -dy / len;
+      const perpY = dx / len;
+
+      // Width calculation (same sizeRatio logic as original)
+      const age = currentTime - p.time;
+      const lifeRatio = 1 - Phaser.Math.Clamp(age / this.config.lifespan, 0, 1);
       const indexRatio = i / (totalPoints - 1);
-
-      // 더 묵직한 올챙이 머리 느낌을 위해 지수 조정 (0.5 -> 0.8)
       const sizeRatio = Math.pow(indexRatio, 0.8) * lifeRatio;
+      const pointMaxWidth = p.radius * 2;
+      const halfW = (this.config.minWidth + (pointMaxWidth - this.config.minWidth) * sizeRatio) / 2;
 
-      // 포인트가 생성될 때의 지름을 기준으로 트레일 두께 결정
-      const pointMaxWidth = p1.radius * 2;
-      const width = this.config.minWidth + (pointMaxWidth - this.config.minWidth) * sizeRatio;
-      const alpha = dynamicAlpha * sizeRatio;
-
-      this.graphics.lineStyle(width, color, alpha);
-      this.graphics.lineBetween(p1.x, p1.y, p2.x, p2.y);
+      leftX[i] = p.x + perpX * halfW;
+      leftY[i] = p.y + perpY * halfW;
+      rightX[i] = p.x - perpX * halfW;
+      rightY[i] = p.y - perpY * halfW;
     }
+
+    // Draw ribbon polygon: left edge forward → right edge backward → close
+    this.graphics.fillStyle(color, dynamicAlpha);
+    this.graphics.beginPath();
+    this.graphics.moveTo(leftX[0], leftY[0]);
+
+    for (let i = 1; i < totalPoints; i++) {
+      this.graphics.lineTo(leftX[i], leftY[i]);
+    }
+
+    for (let i = totalPoints - 1; i >= 0; i--) {
+      this.graphics.lineTo(rightX[i], rightY[i]);
+    }
+
+    this.graphics.closePath();
+    this.graphics.fillPath();
   }
 
   destroy(): void {

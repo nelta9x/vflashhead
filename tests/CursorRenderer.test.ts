@@ -70,6 +70,8 @@ vi.mock('../src/data/constants', () => ({
 // Create mock graphics object
 function createMockGraphics() {
   return {
+    x: 0,
+    y: 0,
     clear: vi.fn().mockReturnThis(),
     lineStyle: vi.fn().mockReturnThis(),
     strokeCircle: vi.fn().mockReturnThis(),
@@ -105,9 +107,13 @@ describe('CursorRenderer', () => {
 
   it('should render attack indicator without electric effect', () => {
     cursorRenderer.renderAttackIndicator(100, 100, 30, 0.5, 50, 0, 0, 0);
-    
+
+    // Position via container transform
+    expect(mockGraphics.x).toBe(100);
+    expect(mockGraphics.y).toBe(100);
     expect(mockGraphics.clear).toHaveBeenCalled();
-    expect(mockGraphics.strokeCircle).toHaveBeenCalledWith(100, 100, 30);
+    // Draw calls use relative (0, 0)
+    expect(mockGraphics.strokeCircle).toHaveBeenCalledWith(0, 0, 30);
     // Should NOT call electric effect related methods
     expect(mockGraphics.beginPath).not.toHaveBeenCalled();
   });
@@ -115,14 +121,16 @@ describe('CursorRenderer', () => {
   it('should render hp ring in menu cursor', () => {
     cursorRenderer.renderMenuCursor(100, 100, 30, 0.7, 1200);
 
+    expect(mockGraphics.x).toBe(100);
+    expect(mockGraphics.y).toBe(100);
     expect(mockGraphics.clear).toHaveBeenCalled();
-    expect(mockGraphics.strokeCircle).toHaveBeenCalledWith(100, 100, 30);
+    expect(mockGraphics.strokeCircle).toHaveBeenCalledWith(0, 0, 30);
     expect(mockGraphics.arc).toHaveBeenCalled();
   });
 
   it('should render electric sparks when electricLevel > 0', () => {
     cursorRenderer.renderAttackIndicator(100, 100, 30, 0.5, 50, 0, 1, 100);
-    
+
     expect(mockGraphics.clear).toHaveBeenCalled();
     // Should call beginPath/moveTo/lineTo for sparks
     expect(mockGraphics.beginPath).toHaveBeenCalled();
@@ -133,10 +141,33 @@ describe('CursorRenderer', () => {
 
   it('should render magnet range when magnetLevel > 0', () => {
     cursorRenderer.renderAttackIndicator(100, 100, 30, 0.5, 50, 1, 0, 0);
-    
+
     // One for magnet, one for attack indicator
     expect(mockGraphics.strokeCircle).toHaveBeenCalledTimes(2);
-    expect(mockGraphics.strokeCircle).toHaveBeenCalledWith(100, 100, 50); // Magnet
-    expect(mockGraphics.strokeCircle).toHaveBeenCalledWith(100, 100, 30); // Attack
+    expect(mockGraphics.strokeCircle).toHaveBeenCalledWith(0, 0, 50); // Magnet
+    expect(mockGraphics.strokeCircle).toHaveBeenCalledWith(0, 0, 30); // Attack
+  });
+
+  it('should skip redraw when stateKey unchanged (dirty flag)', () => {
+    cursorRenderer.renderAttackIndicator(100, 100, 30, 0.5, 50, 0, 0, 0);
+    expect(mockGraphics.clear).toHaveBeenCalledTimes(1);
+
+    // Same visual state, different position → no redraw
+    mockGraphics.clear.mockClear();
+    cursorRenderer.renderAttackIndicator(200, 200, 30, 0.5, 50, 0, 0, 0);
+    expect(mockGraphics.clear).not.toHaveBeenCalled();
+    // But position should update
+    expect(mockGraphics.x).toBe(200);
+    expect(mockGraphics.y).toBe(200);
+  });
+
+  it('should redraw when visual state changes (dirty flag invalidation)', () => {
+    cursorRenderer.renderAttackIndicator(100, 100, 30, 0.5, 50, 0, 0, 0);
+    expect(mockGraphics.clear).toHaveBeenCalledTimes(1);
+
+    // Change gaugeRatio → stateKey differs → must redraw
+    mockGraphics.clear.mockClear();
+    cursorRenderer.renderAttackIndicator(100, 100, 30, 0.8, 50, 0, 0, 0);
+    expect(mockGraphics.clear).toHaveBeenCalledTimes(1);
   });
 });

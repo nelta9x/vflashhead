@@ -152,6 +152,10 @@ export class SpaceshipPlugin implements EntityTypePlugin {
     this.entryState.delete(entityId);
   }
 
+  isInEntry(entityId: EntityId): boolean {
+    return this.entryState.has(entityId);
+  }
+
   createMovementData(entityId: EntityId, homeX: number, homeY: number): MovementComponent {
     if (!this.movementConfig || this.movementConfig.type !== 'drift') {
       return { type: 'none', homeX, homeY, movementTime: 0, drift: null };

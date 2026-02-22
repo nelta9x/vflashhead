@@ -60,6 +60,7 @@ function createTestWorld() {
     transform: { get: (id: string) => transforms.get(id) },
     movement: { get: (id: string) => movements.get(id) },
     dishProps: { get: (id: string) => dishPropsStore.get(id) },
+    phaserNode: { get: () => undefined },
     isActive: (id: string) => activeSet.has(id),
     query: vi.fn((...defs: Array<{ name?: string }>) => {
       const firstName = defs[0]?.name;
@@ -280,6 +281,46 @@ describe('SpaceshipAISystem', () => {
     env.world.context.gameTime = 1001;
     system.tick(1000);
     expect(opts.homeX).toBeGreaterThan(prevHomeX);
+  });
+
+  // --- Entry animation skip ---
+  it('should skip AI when typePlugin.isInEntry returns true', () => {
+    const opts = shipMov(100, 100);
+    env.addEntity('ship1', 'spaceship', 100, 100, opts);
+    env.addEntity('dish1', 'basic', 130, 100, dishOpts());
+
+    // isInEntry → true: phaserNode에 entry 중인 plugin 설정
+    (env.world as Record<string, unknown>).phaserNode = {
+      get: (id: string) => id === 'ship1'
+        ? { typePlugin: { isInEntry: () => true } }
+        : undefined,
+    };
+
+    env.world.context.gameTime = 1000;
+    system.tick(16);
+
+    // entry 중이므로 chase 안 함, damage도 없음
+    expect(opts.mov!.homeX).toBe(100);
+    expect(mockDamageService.applyDamage).not.toHaveBeenCalled();
+  });
+
+  it('should resume AI after entry completes (isInEntry returns false)', () => {
+    const opts = shipMov(100, 100);
+    env.addEntity('ship1', 'spaceship', 100, 100, opts);
+    env.addEntity('dish1', 'basic', 130, 100, dishOpts());
+
+    // entry 완료: isInEntry → false
+    (env.world as Record<string, unknown>).phaserNode = {
+      get: (id: string) => id === 'ship1'
+        ? { typePlugin: { isInEntry: () => false } }
+        : undefined,
+    };
+
+    env.world.context.gameTime = 1000;
+    system.tick(16);
+
+    // entry 완료 → 정상 chase + damage
+    expect(mockDamageService.applyDamage).toHaveBeenCalledWith('dish1', dishAttack.hitDamage);
   });
 
   // --- Clear ---

@@ -67,6 +67,10 @@ export class SpaceshipAISystem implements EntitySystem {
       const mov = this.world.movement.get(entityId);
       if (!t || !mov || !mov.drift) continue;
 
+      // entry 애니메이션 중에는 AI 비활성 (entry가 homeY를 제어하므로 chase와 충돌)
+      const pn = this.world.phaserNode.get(entityId);
+      if (pn?.typePlugin?.isInEntry?.(entityId)) continue;
+
       let state = this.spaceshipStates.get(entityId);
       if (!state) {
         state = { targetDishId: null, isEating: false, lastEatHitTime: 0 };

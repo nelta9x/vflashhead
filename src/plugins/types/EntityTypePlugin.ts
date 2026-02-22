@@ -46,4 +46,7 @@ export interface EntityTypePlugin {
   onDamaged?(entityId: EntityId, world: World, damage: number, source: DamageSource): void;
   onDestroyed?(entityId: EntityId, world: World): void;
   onTimeout?(entityId: EntityId, world: World): void;
+
+  /** entry 애니메이션 진행 중 여부 (true이면 AI 등 외부 시스템이 이동을 양보) */
+  isInEntry?(entityId: EntityId): boolean;
 }

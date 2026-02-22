@@ -15,6 +15,7 @@ export interface CursorHitboxConfig {
 
 export interface CursorSmoothingConfig {
   halfLifeMs: number;
+  keyboardHalfLifeMs: number;
   snapThreshold: number;
   convergenceThreshold: number;
   deadZone: number;

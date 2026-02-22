@@ -4,6 +4,7 @@ import { computeCursorSmoothing } from '../src/utils/cursorSmoothing';
 
 const DEFAULT_CONFIG: CursorSmoothingConfig = {
   halfLifeMs: 22.6,
+  keyboardHalfLifeMs: 8,
   snapThreshold: 175,
   convergenceThreshold: 0.5,
   deadZone: 2.5,

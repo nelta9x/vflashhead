@@ -44,6 +44,7 @@ export class PlayerEntityPlugin implements EntityTypePlugin {
       statusCache: { isFrozen: false, slowFactor: 1.0, isShielded: false },
       playerInput: {
         targetX: 0, targetY: 0,
+        isKeyboardInput: false,
         smoothingConfig: Data.gameConfig.player.input.smoothing,
       },
       playerRender: { gaugeRatio: 0, gameTime: 0 },

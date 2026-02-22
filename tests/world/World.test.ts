@@ -126,7 +126,7 @@ describe('World', () => {
       world.playerInput.set(player, {
         targetX: 100,
         targetY: 200,
-        smoothingConfig: { halfLifeMs: 22.6, snapThreshold: 175, convergenceThreshold: 0.5, deadZone: 2.5 },
+        isKeyboardInput: false, smoothingConfig: { halfLifeMs: 22.6, keyboardHalfLifeMs: 8, snapThreshold: 175, convergenceThreshold: 0.5, deadZone: 2.5 },
       });
       world.playerRender.set(player, { gaugeRatio: 0.5, gameTime: 1000 });
 
@@ -138,7 +138,7 @@ describe('World', () => {
       const player = world.createEntity();
       world.playerInput.set(player, {
         targetX: 0, targetY: 0,
-        smoothingConfig: { halfLifeMs: 22.6, snapThreshold: 175, convergenceThreshold: 0.5, deadZone: 2.5 },
+        isKeyboardInput: false, smoothingConfig: { halfLifeMs: 22.6, keyboardHalfLifeMs: 8, snapThreshold: 175, convergenceThreshold: 0.5, deadZone: 2.5 },
       });
       world.playerRender.set(player, { gaugeRatio: 0, gameTime: 0 });
 

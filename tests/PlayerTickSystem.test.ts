@@ -48,8 +48,10 @@ function setupPlayerEntity(world: World): EntityId {
   world.statusCache.set(playerId, { isFrozen: false, slowFactor: 1.0, isShielded: false });
   world.playerInput.set(playerId, {
     targetX: 300, targetY: 400,
+    isKeyboardInput: false,
     smoothingConfig: {
       halfLifeMs: 22.6,
+      keyboardHalfLifeMs: 8,
       snapThreshold: 175,
       convergenceThreshold: 0.5,
       deadZone: 2.5,
@@ -216,6 +218,61 @@ describe('PlayerTickSystem', () => {
       expect(transform.x).toBeLessThanOrEqual(300);
       expect(transform.y).toBeGreaterThan(200);
       expect(transform.y).toBeLessThanOrEqual(400);
+    });
+
+    it('키보드 입력 시 더 짧은 halfLife로 빠르게 보간해야 함', () => {
+      const smoothingConfig = {
+        halfLifeMs: 22.6,
+        keyboardHalfLifeMs: 8,
+        snapThreshold: 175,
+        convergenceThreshold: 0.5,
+        deadZone: 2.5,
+      };
+      // target distance=50 (within snapThreshold, so smoothing applies)
+      const startX = 100;
+      const targetX = 150;
+
+      // Pointer input (default)
+      const pointerPlayerId = world.createEntity();
+      world.identity.set(pointerPlayerId, { entityId: pointerPlayerId, entityType: 'player', isGatekeeper: false });
+      world.transform.set(pointerPlayerId, { x: startX, y: 0, baseX: 0, baseY: 0, alpha: 1, scaleX: 1, scaleY: 1 });
+      world.health.set(pointerPlayerId, { currentHp: 5, maxHp: 5, isDead: false });
+      world.statusCache.set(pointerPlayerId, { isFrozen: false, slowFactor: 1.0, isShielded: false });
+      world.playerInput.set(pointerPlayerId, {
+        targetX, targetY: 0, isKeyboardInput: false, smoothingConfig,
+      });
+      world.playerRender.set(pointerPlayerId, { gaugeRatio: 0, gameTime: 0 });
+      world.context.playerId = pointerPlayerId;
+      const pointerSystem = createSystem();
+      pointerSystem.tick(16);
+      const pointerX = world.transform.getRequired(pointerPlayerId).x;
+
+      // Keyboard input
+      const kbWorld = new World();
+      const kbPlayerId = kbWorld.createEntity();
+      kbWorld.identity.set(kbPlayerId, { entityId: kbPlayerId, entityType: 'player', isGatekeeper: false });
+      kbWorld.transform.set(kbPlayerId, { x: startX, y: 0, baseX: 0, baseY: 0, alpha: 1, scaleX: 1, scaleY: 1 });
+      kbWorld.health.set(kbPlayerId, { currentHp: 5, maxHp: 5, isDead: false });
+      kbWorld.statusCache.set(kbPlayerId, { isFrozen: false, slowFactor: 1.0, isShielded: false });
+      kbWorld.playerInput.set(kbPlayerId, {
+        targetX, targetY: 0, isKeyboardInput: true, smoothingConfig,
+      });
+      kbWorld.playerRender.set(kbPlayerId, { gaugeRatio: 0, gameTime: 0 });
+      kbWorld.context.playerId = kbPlayerId;
+
+      const kbSystem = new PlayerTickSystem(
+        kbWorld,
+        cursorRenderer,
+        cursorTrail,
+        abilityRuntimeQuery as never,
+        abilityProgression as never,
+        healthSystem,
+      );
+      kbSystem.tick(16);
+      const kbX = kbWorld.transform.getRequired(kbPlayerId).x;
+
+      // Keyboard (halfLife=8) should move further toward target than pointer (halfLife=22.6)
+      expect(kbX).toBeGreaterThan(pointerX);
     });
   });
 

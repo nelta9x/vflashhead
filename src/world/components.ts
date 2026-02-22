@@ -170,6 +170,7 @@ export const C_HealthPack = defineComponent<HealthPackComponent>('healthPack');
 export interface PlayerInputComponent {
   targetX: number;
   targetY: number;
+  isKeyboardInput: boolean;
   smoothingConfig: CursorSmoothingConfig;
 }
 export const C_PlayerInput = defineComponent<PlayerInputComponent>('playerInput');

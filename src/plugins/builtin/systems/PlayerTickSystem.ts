@@ -58,11 +58,15 @@ export class PlayerTickSystem implements EntitySystem {
     const input = this.world.playerInput.get(id);
     if (!transform || !input) return;
 
+    const config = input.isKeyboardInput
+      ? { ...input.smoothingConfig, halfLifeMs: input.smoothingConfig.keyboardHalfLifeMs }
+      : input.smoothingConfig;
+
     const result = computeCursorSmoothing(
       transform.x, transform.y,
       input.targetX, input.targetY,
       delta,
-      input.smoothingConfig
+      config
     );
     transform.x = result.x;
     transform.y = result.y;

@@ -94,6 +94,7 @@
       "keyboardMinAxisSpeed": 1.0,
       "smoothing": {
         "halfLifeMs": 22.6,
+        "keyboardHalfLifeMs": 8,
         "snapThreshold": 175,
         "convergenceThreshold": 0.5,
         "deadZone": 2.5

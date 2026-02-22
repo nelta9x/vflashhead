@@ -301,6 +301,7 @@ export interface AudioConfig {
   boss_charge: AudioBGMConfig;
   boss_fire: AudioBGMConfig;
   boss_impact: AudioBGMConfig;
+  spaceship_charge: AudioBGMConfig;
   upgrade_selected?: AudioBGMConfig;
 }
 

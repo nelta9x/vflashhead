@@ -13,6 +13,7 @@ interface SpaceshipState {
 }
 
 export interface SpaceshipFireProjectilePayload {
+  entityId: EntityId;
   fromX: number;
   fromY: number;
   targetX: number;
@@ -123,6 +124,7 @@ export class SpaceshipAISystem implements EntitySystem {
 
             if (!this.world.isActive(state.targetDishId) && playerT) {
               const payload: SpaceshipFireProjectilePayload = {
+                entityId,
                 fromX: t.x,
                 fromY: t.y,
                 targetX: playerT.x,

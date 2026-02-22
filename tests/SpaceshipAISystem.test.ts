@@ -253,6 +253,7 @@ describe('SpaceshipAISystem', () => {
 
     expect(fireListener).toHaveBeenCalledTimes(1);
     const payload = fireListener.mock.calls[0][0];
+    expect(payload.entityId).toBe('ship1');
     expect(payload.fromX).toBe(100);
     expect(payload.fromY).toBe(100);
     expect(payload.targetX).toBe(640);

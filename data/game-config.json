@@ -522,6 +522,11 @@
       "key": "boss_impact",
       "path": "assets/audio/boss_impact.wav",
       "volume": 0.5
+    },
+    "spaceship_charge": {
+      "key": "player_charge",
+      "path": "assets/audio/player_charge.wav",
+      "volume": 0.04
     }
   },
   "boot": {

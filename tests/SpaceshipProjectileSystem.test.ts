@@ -42,9 +42,11 @@ vi.mock('../src/utils/EventBus', async () => {
 import { SpaceshipProjectileSystem } from '../src/plugins/builtin/systems/SpaceshipProjectileSystem';
 import { EventBus, GameEvents } from '../src/utils/EventBus';
 import type { SpaceshipFireProjectilePayload } from '../src/plugins/builtin/systems/SpaceshipAISystem';
+import type { EntityId } from '../src/world/EntityId';
 import entitiesJson from '../data/entities.json';
 
 const projConfig = entitiesJson.types.spaceship.projectile;
+const chargeDuration = projConfig.charge.duration;
 
 function createMockScene() {
   const graphicsMock = {
@@ -63,14 +65,81 @@ function createMockScene() {
 
 function createMockWorld(playerX = 640, playerY = 360) {
   const context = { gameTime: 0, playerId: 'player', currentWave: 1 };
-  const transforms = new Map<string, { x: number; y: number }>();
+  const transforms = new Map<string | number, { x: number; y: number }>();
   transforms.set('player', { x: playerX, y: playerY });
+  const dishPropsStore = new Map<string | number, { size: number }>();
+  const activeSet = new Set<string | number>(['player']);
 
   return {
     context,
-    transform: { get: (id: string) => transforms.get(id) },
+    transform: { get: (id: string | number) => transforms.get(id) },
+    dishProps: { get: (id: string | number) => dishPropsStore.get(id) },
+    isActive: (id: string | number) => activeSet.has(id),
     _transforms: transforms,
+    _dishProps: dishPropsStore,
+    _activeSet: activeSet,
   };
+}
+
+function createMockChargeHandle() {
+  return {
+    update: vi.fn(),
+    destroy: vi.fn(),
+  };
+}
+
+function createMockPlayerAttackRenderer() {
+  const handle = createMockChargeHandle();
+  return {
+    renderer: {
+      createChargeVisual: vi.fn(() => handle),
+      createMissile: vi.fn(),
+      destroyProjectile: vi.fn(),
+      spawnMissileTrail: vi.fn(),
+      showPreFireCursorGlow: vi.fn(),
+      showBombWarning: vi.fn(),
+      destroy: vi.fn(),
+    },
+    handle,
+  };
+}
+
+const SHIP1: EntityId = 1;
+const SHIP2: EntityId = 2;
+
+/** Emit fire event and add spaceship entity to the world. */
+function emitFireEvent(
+  world: ReturnType<typeof createMockWorld>,
+  opts: Partial<SpaceshipFireProjectilePayload> = {},
+) {
+  const entityId = opts.entityId ?? SHIP1;
+  const fromX = opts.fromX ?? 100;
+  const fromY = opts.fromY ?? 100;
+
+  // Ensure spaceship exists in world
+  world._transforms.set(entityId, { x: fromX, y: fromY });
+  world._dishProps.set(entityId, { size: 35 });
+  world._activeSet.add(entityId);
+
+  const payload: SpaceshipFireProjectilePayload = {
+    entityId,
+    fromX,
+    fromY,
+    targetX: opts.targetX ?? 200,
+    targetY: opts.targetY ?? 100,
+    gameTime: opts.gameTime ?? world.context.gameTime,
+  };
+  EventBus.getInstance().emit(GameEvents.SPACESHIP_FIRE_PROJECTILE, payload);
+}
+
+/** Advance gameTime and tick(0) to complete charge without moving projectiles. */
+function completeCharge(
+  system: SpaceshipProjectileSystem,
+  world: ReturnType<typeof createMockWorld>,
+  startTime: number,
+) {
+  world.context.gameTime = startTime + chargeDuration;
+  system.tick(0);
 }
 
 describe('SpaceshipProjectileSystem', () => {
@@ -80,6 +149,8 @@ describe('SpaceshipProjectileSystem', () => {
   let mockHealthSystem: { takeDamage: ReturnType<typeof vi.fn> };
   let mockFeedbackSystem: { onHpLost: ReturnType<typeof vi.fn> };
   let mockAbilityQuery: { getEffectValueOrThrow: ReturnType<typeof vi.fn> };
+  let mockSoundSystem: { playSpaceshipChargeSound: ReturnType<typeof vi.fn> };
+  let mockRendererCtx: ReturnType<typeof createMockPlayerAttackRenderer>;
 
   beforeEach(() => {
     EventBus.resetInstance();
@@ -88,6 +159,8 @@ describe('SpaceshipProjectileSystem', () => {
     mockHealthSystem = { takeDamage: vi.fn() };
     mockFeedbackSystem = { onHpLost: vi.fn() };
     mockAbilityQuery = { getEffectValueOrThrow: vi.fn().mockReturnValue(0) };
+    mockSoundSystem = { playSpaceshipChargeSound: vi.fn() };
+    mockRendererCtx = createMockPlayerAttackRenderer();
 
     system = new SpaceshipProjectileSystem(
       scene as never,
@@ -95,6 +168,8 @@ describe('SpaceshipProjectileSystem', () => {
       mockHealthSystem as never,
       mockFeedbackSystem as never,
       mockAbilityQuery as never,
+      mockSoundSystem as never,
+      mockRendererCtx.renderer as never,
     );
   });
 
@@ -103,41 +178,104 @@ describe('SpaceshipProjectileSystem', () => {
     EventBus.resetInstance();
   });
 
-  it('should create projectile on SPACESHIP_FIRE_PROJECTILE event', () => {
-    const payload: SpaceshipFireProjectilePayload = {
-      fromX: 100, fromY: 100,
-      targetX: 200, targetY: 100,
-      gameTime: 1000,
-    };
-    EventBus.getInstance().emit(GameEvents.SPACESHIP_FIRE_PROJECTILE, payload);
+  // --- Charge phase tests ---
 
-    // Tick to move/render
+  it('should start charge visual and play sound on fire event', () => {
     world.context.gameTime = 1000;
+    emitFireEvent(world, { gameTime: 1000 });
+
     system.tick(16);
 
-    // Graphics should render the projectile
+    expect(mockSoundSystem.playSpaceshipChargeSound).toHaveBeenCalledTimes(1);
+    expect(mockRendererCtx.renderer.createChargeVisual).toHaveBeenCalledTimes(1);
+    expect(mockRendererCtx.handle.update).toHaveBeenCalled();
+  });
+
+  it('should update charge progress each tick', () => {
+    world.context.gameTime = 0;
+    emitFireEvent(world, { gameTime: 0 });
+
+    world.context.gameTime = chargeDuration / 2;
+    system.tick(16);
+
+    const updateCall = mockRendererCtx.handle.update.mock.calls[0];
+    const progress = updateCall[0] as number;
+    expect(progress).toBeCloseTo(0.5, 1);
+  });
+
+  it('should fire projectile after charge duration completes', () => {
+    world.context.gameTime = 0;
+    emitFireEvent(world, { gameTime: 0 });
+
+    completeCharge(system, world, 0);
+
+    expect(mockRendererCtx.handle.destroy).toHaveBeenCalled();
+
+    // Tick again to move/render the projectile
+    scene._graphics.fillCircle.mockClear();
+    world.context.gameTime = chargeDuration + 16;
+    system.tick(16);
+
     expect(scene._graphics.fillCircle).toHaveBeenCalled();
   });
 
+  it('should NOT create projectile before charge completes', () => {
+    world.context.gameTime = 0;
+    emitFireEvent(world, { gameTime: 0 });
+
+    world.context.gameTime = chargeDuration / 2;
+    system.tick(16);
+
+    expect(scene._graphics.fillCircle).not.toHaveBeenCalled();
+  });
+
+  it('should cancel charge if spaceship dies during charging', () => {
+    world.context.gameTime = 0;
+    emitFireEvent(world, { entityId: SHIP1, gameTime: 0 });
+
+    world._activeSet.delete(SHIP1);
+
+    world.context.gameTime = 100;
+    system.tick(16);
+
+    expect(mockRendererCtx.handle.destroy).toHaveBeenCalled();
+
+    // Complete charge time — no projectile should exist
+    scene._graphics.fillCircle.mockClear();
+    world.context.gameTime = chargeDuration + 100;
+    system.tick(16);
+    expect(scene._graphics.fillCircle).not.toHaveBeenCalled();
+  });
+
+  it('should follow spaceship position during charge', () => {
+    world.context.gameTime = 0;
+    emitFireEvent(world, { entityId: SHIP1, fromX: 100, fromY: 100, gameTime: 0 });
+
+    world._transforms.set(SHIP1, { x: 200, y: 200 });
+
+    world.context.gameTime = chargeDuration / 2;
+    system.tick(16);
+
+    const updateCall = mockRendererCtx.handle.update.mock.calls[0];
+    expect(updateCall[1]).toBe(200);
+    expect(updateCall[2]).toBe(200);
+  });
+
+  // --- Projectile behavior tests (after charge) ---
+
   it('should move projectiles by velocity * dt', () => {
-    // Use deterministic angle: fire straight right
-    vi.spyOn(Math, 'random').mockReturnValue(0.5); // no variance
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
 
-    const payload: SpaceshipFireProjectilePayload = {
-      fromX: 100, fromY: 100,
-      targetX: 200, targetY: 100,
-      gameTime: 0,
-    };
-    EventBus.getInstance().emit(GameEvents.SPACESHIP_FIRE_PROJECTILE, payload);
+    world.context.gameTime = 0;
+    emitFireEvent(world, { fromX: 100, fromY: 100, targetX: 200, targetY: 100, gameTime: 0 });
 
-    world.context.gameTime = 1000;
-    system.tick(1000); // 1 second
+    completeCharge(system, world, 0);
 
-    // Projectile should have moved right by speed * 1s
-    // We check via collision: position should be ~100 + 180 = 280
-    // We can verify indirectly by checking render calls
+    scene._graphics.fillCircle.mockClear();
+    world.context.gameTime = chargeDuration + 1000;
+    system.tick(1000);
+
     const fillCalls = scene._graphics.fillCircle.mock.calls;
-    // First fillCircle call x should be near 280
     expect(fillCalls.length).toBeGreaterThan(0);
     const xPos = fillCalls[0][0] as number;
     expect(xPos).toBeCloseTo(100 + projConfig.speed, 0);
@@ -146,37 +284,30 @@ describe('SpaceshipProjectileSystem', () => {
   });
 
   it('should remove projectiles that exceed lifetime', () => {
-    const payload: SpaceshipFireProjectilePayload = {
-      fromX: 640, fromY: 360,
-      targetX: 641, targetY: 360,
-      gameTime: 0,
-    };
-    EventBus.getInstance().emit(GameEvents.SPACESHIP_FIRE_PROJECTILE, payload);
+    world.context.gameTime = 0;
+    emitFireEvent(world, { fromX: 640, fromY: 360, targetX: 641, targetY: 360, gameTime: 0 });
 
-    // Advance past lifetime
-    world.context.gameTime = projConfig.lifetime + 1;
+    completeCharge(system, world, 0);
+
+    scene._graphics.fillCircle.mockClear();
+    world.context.gameTime = chargeDuration + projConfig.lifetime + 1;
     system.tick(16);
 
-    // Should not render anything (projectile removed)
     expect(scene._graphics.fillCircle).not.toHaveBeenCalled();
   });
 
   it('should remove projectiles that go offscreen', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.5);
 
-    const payload: SpaceshipFireProjectilePayload = {
-      fromX: 1280, fromY: 360,
-      targetX: 1400, targetY: 360,
-      gameTime: 0,
-    };
-    EventBus.getInstance().emit(GameEvents.SPACESHIP_FIRE_PROJECTILE, payload);
+    world.context.gameTime = 0;
+    emitFireEvent(world, { fromX: 1280, fromY: 360, targetX: 1400, targetY: 360, gameTime: 0 });
 
-    // Move enough time for it to go offscreen (50px margin)
-    world.context.gameTime = 1000;
+    completeCharge(system, world, 0);
+
+    scene._graphics.fillCircle.mockClear();
+    world.context.gameTime = chargeDuration + 1000;
     system.tick(1000);
 
-    // Check fillCircle — if offscreen, no render
-    // At 180px/s for 1s from x=1280, x = 1460 > 1280+50 = 1330
     expect(scene._graphics.fillCircle).not.toHaveBeenCalled();
 
     vi.restoreAllMocks();
@@ -185,17 +316,12 @@ describe('SpaceshipProjectileSystem', () => {
   it('should deal damage on cursor collision', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.5);
 
-    const baseTime = 1000;
-    // Fire projectile toward player
-    const payload: SpaceshipFireProjectilePayload = {
-      fromX: 640, fromY: 360,
-      targetX: 641, targetY: 360,
-      gameTime: baseTime,
-    };
-    EventBus.getInstance().emit(GameEvents.SPACESHIP_FIRE_PROJECTILE, payload);
+    world.context.gameTime = 0;
+    emitFireEvent(world, { fromX: 640, fromY: 360, targetX: 641, targetY: 360, gameTime: 0 });
 
-    // Very small tick so projectile is still near player
-    world.context.gameTime = baseTime + 10;
+    completeCharge(system, world, 0);
+
+    world.context.gameTime = chargeDuration + 10;
     system.tick(10);
 
     expect(mockHealthSystem.takeDamage).toHaveBeenCalledWith(projConfig.damage);
@@ -208,48 +334,45 @@ describe('SpaceshipProjectileSystem', () => {
   it('should respect invincibility cooldown after hit', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.5);
 
-    const baseTime = 1000;
+    // Emit two projectiles at the same time from different ships
+    world.context.gameTime = 0;
+    emitFireEvent(world, { entityId: SHIP1, fromX: 640, fromY: 360, targetX: 641, targetY: 360, gameTime: 0 });
 
-    // First projectile hits
-    EventBus.getInstance().emit(GameEvents.SPACESHIP_FIRE_PROJECTILE, {
-      fromX: 640, fromY: 360, targetX: 641, targetY: 360, gameTime: baseTime,
-    });
-    world.context.gameTime = baseTime + 10;
-    system.tick(10);
+    const handle2 = createMockChargeHandle();
+    mockRendererCtx.renderer.createChargeVisual.mockReturnValueOnce(handle2);
+    emitFireEvent(world, { entityId: SHIP2, fromX: 640, fromY: 360, targetX: 641, targetY: 360, gameTime: 0 });
+
+    // Both charges complete at the same time
+    completeCharge(system, world, 0);
+
+    // First collision: one projectile hits
+    world.context.gameTime = chargeDuration + 1;
+    system.tick(0);
     expect(mockHealthSystem.takeDamage).toHaveBeenCalledTimes(1);
 
-    // Second projectile during invincibility
+    // Second projectile still exists but invincibility blocks it
     mockHealthSystem.takeDamage.mockClear();
-    const duringInvincibility = baseTime + 100;
-    EventBus.getInstance().emit(GameEvents.SPACESHIP_FIRE_PROJECTILE, {
-      fromX: 640, fromY: 360, targetX: 641, targetY: 360, gameTime: duringInvincibility,
-    });
-    world.context.gameTime = duringInvincibility + 10;
-    system.tick(10);
+    world.context.gameTime = chargeDuration + 2;
+    system.tick(0);
     expect(mockHealthSystem.takeDamage).not.toHaveBeenCalled();
 
-    // After invincibility
-    const afterInvincibility = baseTime + 10 + projConfig.invincibilityDuration;
-    EventBus.getInstance().emit(GameEvents.SPACESHIP_FIRE_PROJECTILE, {
-      fromX: 640, fromY: 360, targetX: 641, targetY: 360,
-      gameTime: afterInvincibility,
-    });
-    world.context.gameTime = afterInvincibility + 10;
-    system.tick(10);
+    // After invincibility expires — second projectile hits
+    world.context.gameTime = chargeDuration + 1 + projConfig.invincibilityDuration;
+    system.tick(0);
     expect(mockHealthSystem.takeDamage).toHaveBeenCalledTimes(1);
 
     vi.restoreAllMocks();
   });
 
-  it('should clear projectiles and reset state on clear()', () => {
-    EventBus.getInstance().emit(GameEvents.SPACESHIP_FIRE_PROJECTILE, {
-      fromX: 640, fromY: 360, targetX: 641, targetY: 360, gameTime: 0,
-    });
+  it('should clear projectiles, charges, and reset state on clear()', () => {
+    world.context.gameTime = 0;
+    emitFireEvent(world, { gameTime: 0 });
 
     system.clear();
 
-    // Tick should render nothing
-    world.context.gameTime = 10;
+    expect(mockRendererCtx.handle.destroy).toHaveBeenCalled();
+
+    world.context.gameTime = chargeDuration + 10;
     scene._graphics.fillCircle.mockClear();
     system.tick(10);
     expect(scene._graphics.fillCircle).not.toHaveBeenCalled();
@@ -258,36 +381,39 @@ describe('SpaceshipProjectileSystem', () => {
   it('should unsubscribe from EventBus and destroy graphics on destroy()', () => {
     system.destroy();
 
-    // Emit after destroy — should not create projectile
     EventBus.getInstance().emit(GameEvents.SPACESHIP_FIRE_PROJECTILE, {
+      entityId: SHIP1,
       fromX: 100, fromY: 100, targetX: 200, targetY: 100, gameTime: 0,
     });
 
     expect(scene._graphics.destroy).toHaveBeenCalled();
 
     // Re-create system for afterEach cleanup
+    const freshRendererCtx = createMockPlayerAttackRenderer();
     system = new SpaceshipProjectileSystem(
       scene as never,
       world as never,
       mockHealthSystem as never,
       mockFeedbackSystem as never,
       mockAbilityQuery as never,
+      mockSoundSystem as never,
+      freshRendererCtx.renderer as never,
     );
   });
 
   it('should apply aimVariance to projectile direction', () => {
-    // Force max variance in one direction
     vi.spyOn(Math, 'random').mockReturnValue(1.0);
 
-    EventBus.getInstance().emit(GameEvents.SPACESHIP_FIRE_PROJECTILE, {
-      fromX: 0, fromY: 0, targetX: 100, targetY: 0, gameTime: 0,
-    });
+    world.context.gameTime = 0;
+    emitFireEvent(world, { fromX: 0, fromY: 0, targetX: 100, targetY: 0, gameTime: 0 });
 
-    // With random=1.0, variance = (1.0 - 0.5) * 2 * varianceRad = +varianceRad
+    completeCharge(system, world, 0);
+
     const varianceRad = (projConfig.aimVarianceDeg * Math.PI) / 180;
     const expectedAngle = 0 + varianceRad;
 
-    world.context.gameTime = 1000;
+    scene._graphics.fillCircle.mockClear();
+    world.context.gameTime = chargeDuration + 1000;
     system.tick(1000);
 
     const fillCalls = scene._graphics.fillCircle.mock.calls;

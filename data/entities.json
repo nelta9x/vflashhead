@@ -115,13 +115,55 @@
         "size": 6,
         "hitboxRadius": 10,
         "lifetime": 5000,
-        "color": "#ff4444",
-        "coreColor": "#ffaaaa",
+        "visual": {
+          "color": "#ff0000",
+          "bodyAlpha": 0.8,
+          "lightColor": "#ffffff",
+          "lightRadiusRatio": 0.4,
+          "glowLevels": [
+            { "radiusMultiplier": 1.3, "alpha": 0.25 },
+            { "radiusMultiplier": 1.6, "alpha": 0.12 },
+            { "radiusMultiplier": 2.0, "alpha": 0.04 }
+          ]
+        },
         "damage": 1,
         "invincibilityDuration": 500,
         "minInterval": 5000,
         "maxInterval": 5000,
-        "aimVarianceDeg": 12
+        "aimVarianceDeg": 12,
+        "charge": {
+          "duration": 1000,
+          "mainColor": "#ff4444",
+          "accentColor": "#ff8888",
+          "initialRadius": 3,
+          "maxScale": 3,
+          "glowInitialAlpha": 1,
+          "glowMaxAlpha": 1,
+          "glowInitialRadius": 10,
+          "glowMaxRadius": 30,
+          "lightningChanceBase": 0.2,
+          "lightningChanceP": 0.4,
+          "lightningSegments": 2,
+          "particleFrequency": 30,
+          "energyConverge": {
+            "color": "#ff4444",
+            "particleCount": 24,
+            "outerRadiusMultiplier": 2.5,
+            "outerRadiusPadding": 40,
+            "innerRadius": 2,
+            "minParticleRadius": 1.5,
+            "maxParticleRadius": 5.0,
+            "swirlTurns": 2.5,
+            "alphaMin": 1,
+            "alphaMax": 1,
+            "wobbleRadius": 12,
+            "angleJitter": 0.8,
+            "radiusJitter": 20,
+            "alphaFlicker": 0,
+            "chaosRateMin": 5,
+            "chaosRateMax": 18
+          }
+        }
       },
       "visual": {
         "core": {

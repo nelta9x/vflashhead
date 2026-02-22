@@ -5,10 +5,13 @@ import { EventBus, GameEvents } from '../../../utils/EventBus';
 import entitiesJson from '../../../../data/entities.json';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 import type { World } from '../../../world';
+import type { EntityId } from '../../../world/EntityId';
 import type { HealthSystem } from '../../../systems/HealthSystem';
 import type { FeedbackSystem } from '../services/FeedbackSystem';
 import type { AbilityRuntimeQueryService } from '../services/abilities/AbilityRuntimeQueryService';
+import type { SoundSystem } from '../services/SoundSystem';
 import type { SpaceshipFireProjectilePayload } from './SpaceshipAISystem';
+import type { IPlayerAttackRenderer, ChargeVisualHandle } from '../../types/renderers';
 import {
   ABILITY_IDS,
   CURSOR_SIZE_EFFECT_KEYS,
@@ -22,9 +25,21 @@ interface Projectile {
   spawnTime: number;
 }
 
+interface PendingCharge {
+  entityId: EntityId;
+  targetX: number;
+  targetY: number;
+  startTime: number;
+  handle: ChargeVisualHandle;
+}
+
 const projConfig = entitiesJson.types.spaceship.projectile;
-const parsedProjectileColor = Phaser.Display.Color.HexStringToColor(projConfig.color).color;
-const parsedCoreColor = Phaser.Display.Color.HexStringToColor(projConfig.coreColor).color;
+const chargeConfig = projConfig.charge;
+const visual = projConfig.visual;
+const parsedVisualColor = Phaser.Display.Color.HexStringToColor(visual.color).color;
+const parsedLightColor = Phaser.Display.Color.HexStringToColor(visual.lightColor).color;
+const parsedChargeMainColor = Phaser.Display.Color.HexStringToColor(chargeConfig.mainColor).color;
+const parsedChargeAccentColor = Phaser.Display.Color.HexStringToColor(chargeConfig.accentColor).color;
 const OFFSCREEN_MARGIN = 50;
 
 export class SpaceshipProjectileSystem implements EntitySystem {
@@ -36,14 +51,17 @@ export class SpaceshipProjectileSystem implements EntitySystem {
   private readonly healthSystem: HealthSystem;
   private readonly feedbackSystem: FeedbackSystem;
   private readonly abilityRuntimeQuery: AbilityRuntimeQueryService;
+  private readonly soundSystem: SoundSystem;
+  private readonly playerAttackRenderer: IPlayerAttackRenderer;
 
   private readonly graphics: Phaser.GameObjects.Graphics;
   private readonly projectiles: Projectile[] = [];
+  private readonly pendingCharges: PendingCharge[] = [];
   private lastHitTime = 0;
 
   private readonly handleFireRequest = (payload: unknown): void => {
     const p = payload as SpaceshipFireProjectilePayload;
-    this.fireProjectile(p.fromX, p.fromY, p.targetX, p.targetY, p.gameTime);
+    this.startCharge(p.entityId, p.targetX, p.targetY, p.gameTime);
   };
 
   constructor(
@@ -52,12 +70,16 @@ export class SpaceshipProjectileSystem implements EntitySystem {
     healthSystem: HealthSystem,
     feedbackSystem: FeedbackSystem,
     abilityRuntimeQuery: AbilityRuntimeQueryService,
+    soundSystem: SoundSystem,
+    playerAttackRenderer: IPlayerAttackRenderer,
   ) {
     this.scene = scene;
     this.world = world;
     this.healthSystem = healthSystem;
     this.feedbackSystem = feedbackSystem;
     this.abilityRuntimeQuery = abilityRuntimeQuery;
+    this.soundSystem = soundSystem;
+    this.playerAttackRenderer = playerAttackRenderer;
 
     this.graphics = this.scene.add.graphics();
     this.graphics.setDepth(Data.gameConfig.depths.laser);
@@ -69,7 +91,10 @@ export class SpaceshipProjectileSystem implements EntitySystem {
     const gameTime = this.world.context.gameTime;
     const dtSec = delta / 1000;
 
-    // Move projectiles
+    // 1. Update pending charges
+    this.updateCharges(gameTime);
+
+    // 2. Move projectiles
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const p = this.projectiles[i];
       p.x += p.vx * dtSec;
@@ -85,7 +110,7 @@ export class SpaceshipProjectileSystem implements EntitySystem {
       }
     }
 
-    // Cursor collision check
+    // 3. Cursor collision check
     const playerT = this.world.transform.get(this.world.context.playerId);
     if (playerT) {
       const cursorSizeBonus = this.abilityRuntimeQuery.getEffectValueOrThrow(
@@ -96,8 +121,55 @@ export class SpaceshipProjectileSystem implements EntitySystem {
       this.checkCollisions(playerT.x, playerT.y, cursorRadius, gameTime);
     }
 
-    // Render
+    // 4. Render
     this.render();
+  }
+
+  private startCharge(
+    entityId: EntityId,
+    targetX: number,
+    targetY: number,
+    gameTime: number,
+  ): void {
+    this.soundSystem.playSpaceshipChargeSound();
+    const handle = this.playerAttackRenderer.createChargeVisual(
+      parsedChargeMainColor,
+      parsedChargeAccentColor,
+      chargeConfig,
+    );
+    this.pendingCharges.push({ entityId, targetX, targetY, startTime: gameTime, handle });
+  }
+
+  private updateCharges(gameTime: number): void {
+    for (let i = this.pendingCharges.length - 1; i >= 0; i--) {
+      const charge = this.pendingCharges[i];
+
+      // Cancel if spaceship died
+      if (!this.world.isActive(charge.entityId)) {
+        charge.handle.destroy();
+        this.pendingCharges.splice(i, 1);
+        continue;
+      }
+
+      const t = this.world.transform.get(charge.entityId);
+      if (!t) {
+        charge.handle.destroy();
+        this.pendingCharges.splice(i, 1);
+        continue;
+      }
+
+      const elapsed = gameTime - charge.startTime;
+      const progress = Math.min(elapsed / chargeConfig.duration, 1);
+      const spaceshipSize = this.world.dishProps.get(charge.entityId)?.size ?? 35;
+
+      charge.handle.update(progress, t.x, t.y, spaceshipSize);
+
+      if (progress >= 1) {
+        charge.handle.destroy();
+        this.fireProjectile(t.x, t.y, charge.targetX, charge.targetY, gameTime);
+        this.pendingCharges.splice(i, 1);
+      }
+    }
   }
 
   private fireProjectile(
@@ -146,25 +218,27 @@ export class SpaceshipProjectileSystem implements EntitySystem {
     this.graphics.clear();
 
     for (const p of this.projectiles) {
-      // Outer glow
-      this.graphics.fillStyle(parsedProjectileColor, 0.3);
-      this.graphics.fillCircle(p.x, p.y, projConfig.size * 3);
-
-      // Mid glow
-      this.graphics.fillStyle(parsedProjectileColor, 0.6);
-      this.graphics.fillCircle(p.x, p.y, projConfig.size * 2);
+      // Glow levels (same structure as spaceship core)
+      for (const level of visual.glowLevels) {
+        this.graphics.fillStyle(parsedVisualColor, level.alpha);
+        this.graphics.fillCircle(p.x, p.y, projConfig.size * level.radiusMultiplier);
+      }
 
       // Body
-      this.graphics.fillStyle(parsedProjectileColor, 1);
+      this.graphics.fillStyle(parsedVisualColor, visual.bodyAlpha);
       this.graphics.fillCircle(p.x, p.y, projConfig.size);
 
-      // Core
-      this.graphics.fillStyle(parsedCoreColor, 1);
-      this.graphics.fillCircle(p.x, p.y, projConfig.size * 0.5);
+      // Center light
+      this.graphics.fillStyle(parsedLightColor, 0.8);
+      this.graphics.fillCircle(p.x, p.y, projConfig.size * visual.lightRadiusRatio);
     }
   }
 
   clear(): void {
+    for (const charge of this.pendingCharges) {
+      charge.handle.destroy();
+    }
+    this.pendingCharges.length = 0;
     this.projectiles.length = 0;
     this.lastHitTime = 0;
     this.graphics.clear();

@@ -167,6 +167,13 @@ export class SoundSystem {
   }
 
   /**
+   * 우주선 기 모으기 사운드 (플레이어보다 작은 볼륨)
+   */
+  playSpaceshipChargeSound(): void {
+    this.playSound('spaceship_charge');
+  }
+
+  /**
    * 보스 공격 기 모으기 사운드
    */
   playBossChargeSound(): void {

@@ -6,11 +6,22 @@ export interface HealthPackVisualState {
   pulsePhase: number;
 }
 
+/**
+ * Purpose: Per-graphics dirty state cache for HealthPackRenderer skip-redraw optimization.
+ * Boundary: Only tracks string keys; does not manage graphics lifecycle.
+ */
+const healthPackStateCache = new WeakMap<Phaser.GameObjects.Graphics, string>();
+
 export class HealthPackRenderer {
   public static render(
     graphics: Phaser.GameObjects.Graphics,
     state: HealthPackVisualState
   ): void {
+    // Quantize pulsePhase to ~50 steps per radian to reduce redraws
+    const stateKey = `${state.size}|${(state.pulsePhase * 50) | 0}`;
+    if (healthPackStateCache.get(graphics) === stateKey) return;
+    healthPackStateCache.set(graphics, stateKey);
+
     graphics.clear();
 
     const pulse = 1 + Math.sin(state.pulsePhase) * 0.1;

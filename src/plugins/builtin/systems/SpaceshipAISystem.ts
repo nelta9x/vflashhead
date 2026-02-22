@@ -1,8 +1,9 @@
-import { C_DishTag, C_Identity, C_Transform } from '../../../world';
+import { C_Identity, C_Transform } from '../../../world';
 import entitiesJson from '../../../../data/entities.json';
 import { EventBus, GameEvents } from '../../../utils/EventBus';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 import type { World } from '../../../world';
+import type { SpatialIndex } from '../../../systems/SpatialIndex';
 import type { EntityId } from '../../../world/EntityId';
 import type { EntityDamageService } from '../services/EntityDamageService';
 
@@ -36,11 +37,13 @@ export class SpaceshipAISystem implements EntitySystem {
   enabled = true;
 
   private readonly world: World;
+  private readonly spatialIndex: SpatialIndex;
   private readonly entityDamageService: EntityDamageService;
   private readonly spaceshipStates = new Map<EntityId, SpaceshipState>();
 
-  constructor(world: World, entityDamageService: EntityDamageService) {
+  constructor(world: World, spatialIndex: SpatialIndex, entityDamageService: EntityDamageService) {
     this.world = world;
+    this.spatialIndex = spatialIndex;
     this.entityDamageService = entityDamageService;
   }
 
@@ -147,15 +150,21 @@ export class SpaceshipAISystem implements EntitySystem {
 
   private findNearestDish(fromX: number, fromY: number): EntityId | null {
     let nearestId: EntityId | null = null;
-    let nearestDist = Infinity;
-    for (const [dishId, , dishIdentity, dishTransform] of this.world.query(C_DishTag, C_Identity, C_Transform)) {
-      if (dishIdentity.entityType === 'spaceship') continue;
-      const dist = this.distanceBetween(fromX, fromY, dishTransform.x, dishTransform.y);
-      if (dist < nearestDist) {
-        nearestDist = dist;
+    let nearestDistSq = Infinity;
+    this.spatialIndex.dishGrid.forEachEntity((dishId) => {
+      if (!this.world.isActive(dishId)) return;
+      const dishIdentity = this.world.identity.get(dishId);
+      if (!dishIdentity || dishIdentity.entityType === 'spaceship') return;
+      const dishTransform = this.world.transform.get(dishId);
+      if (!dishTransform) return;
+      const dx = fromX - dishTransform.x;
+      const dy = fromY - dishTransform.y;
+      const distSq = dx * dx + dy * dy;
+      if (distSq < nearestDistSq) {
+        nearestDistSq = distSq;
         nearestId = dishId;
       }
-    }
+    });
     return nearestId;
   }
 

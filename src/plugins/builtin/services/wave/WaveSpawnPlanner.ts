@@ -81,6 +81,9 @@ export class WaveSpawnPlanner {
     const maxY = this.getMaxSpawnY();
     const minBossDistance = Math.max(MIN_BOSS_DISTANCE, minBossDistanceConfig);
 
+    const minBossDistSq = minBossDistance * minBossDistance;
+    const minDishDistSq = MIN_DISH_DISTANCE * MIN_DISH_DISTANCE;
+
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const x = Phaser.Math.Between(SPAWN_AREA.minX, SPAWN_AREA.maxX);
       const y = Phaser.Math.Between(SPAWN_AREA.minY, maxY);
@@ -89,8 +92,9 @@ export class WaveSpawnPlanner {
 
       for (const boss of bosses) {
         if (!boss.visible) continue;
-        const distanceToBoss = Phaser.Math.Distance.Between(x, y, boss.x, boss.y);
-        if (distanceToBoss < minBossDistance) {
+        const dx = x - boss.x;
+        const dy = y - boss.y;
+        if (dx * dx + dy * dy < minBossDistSq) {
           isValid = false;
           break;
         }
@@ -98,8 +102,9 @@ export class WaveSpawnPlanner {
 
       if (isValid && activeDishes) {
         for (const dish of activeDishes) {
-          const distance = Phaser.Math.Distance.Between(x, y, dish.x, dish.y);
-          if (distance < MIN_DISH_DISTANCE) {
+          const dx = x - dish.x;
+          const dy = y - dish.y;
+          if (dx * dx + dy * dy < minDishDistSq) {
             isValid = false;
             break;
           }

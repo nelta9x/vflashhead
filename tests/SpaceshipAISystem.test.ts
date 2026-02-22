@@ -58,6 +58,7 @@ function createTestWorld() {
   const world = {
     context,
     transform: { get: (id: string) => transforms.get(id) },
+    identity: { get: (id: string) => identities.get(id) },
     movement: { get: (id: string) => movements.get(id) },
     dishProps: { get: (id: string) => dishPropsStore.get(id) },
     phaserNode: { get: () => undefined },
@@ -100,7 +101,28 @@ function createTestWorld() {
 
   const removeEntity = (id: string) => { activeSet.delete(id); };
 
-  return { world, addEntity, removeEntity, activeSet };
+  const mockSpatialIndex = {
+    dishGrid: {
+      forEachInRadius: (_cx: number, _cy: number, _r: number, cb: (id: string) => void) => {
+        for (const id of dishTags) {
+          if (activeSet.has(id)) cb(id);
+        }
+      },
+      forEachEntity: (cb: (id: string) => void) => {
+        for (const id of dishTags) {
+          if (activeSet.has(id)) cb(id);
+        }
+      },
+    },
+    bombGrid: {
+      forEachInRadius: vi.fn(),
+      forEachEntity: vi.fn(),
+    },
+    rebuild: vi.fn(),
+    clear: vi.fn(),
+  };
+
+  return { world, addEntity, removeEntity, activeSet, mockSpatialIndex };
 }
 
 describe('SpaceshipAISystem', () => {
@@ -113,7 +135,7 @@ describe('SpaceshipAISystem', () => {
     EventBus.resetInstance();
     env = createTestWorld();
     mockDamageService = { applyDamage: vi.fn() };
-    system = new SpaceshipAISystem(env.world as never, mockDamageService as never);
+    system = new SpaceshipAISystem(env.world as never, env.mockSpatialIndex as never, mockDamageService as never);
     fireListener = vi.fn();
     EventBus.getInstance().on(GameEvents.SPACESHIP_FIRE_PROJECTILE, fireListener);
     env.addEntity('player', 'player', 640, 360);

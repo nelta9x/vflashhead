@@ -305,57 +305,43 @@ describe('WaveSystem', () => {
     it('should not spawn if no valid position found', () => {
       waveSystem.startWave(1);
 
-      // Mock Distance.Between to always return 0 (collision)
-      // We need to override the mock for this test
-      const originalDistance = Phaser.Math.Distance.Between;
-      Phaser.Math.Distance.Between = vi.fn(() => 0); // Always collides
-
-      // Add an active dish to cause collision check
-      mockDishPool.getActiveObjects.mockReturnValue([{ x: 100, y: 100 }]);
+      // Place an active dish at spawn position (0,0) so squared distance is 0,
+      // which is less than MIN_DISH_DISTANCE^2 (50^2 = 2500), blocking spawn.
+      // Phaser.Math.Between mock always returns min, so spawn position = (0, 0).
+      mockDishPool.getActiveObjects.mockReturnValue([{ x: 0, y: 0 }]);
 
       // Update time to trigger spawn attempt
       waveSystem.update(2000);
 
       expect(mockScene.spawnDish).not.toHaveBeenCalled();
-
-      // Restore mock
-      Phaser.Math.Distance.Between = originalDistance;
     });
 
     it('checks distance against all visible bosses', () => {
       waveSystem.startWave(2);
 
+      // Place bosses at spawn position (0,0) so squared distance is 0,
+      // which is less than MIN_BOSS_DISTANCE^2, blocking spawn.
       mockGetBoss.mockReturnValue([
-        { id: 'boss_left', x: 100, y: 100, visible: true },
-        { id: 'boss_right', x: 700, y: 100, visible: true },
+        { id: 'boss_left', x: 0, y: 0, visible: true },
+        { id: 'boss_right', x: 0, y: 0, visible: true },
       ]);
-
-      const originalDistance = Phaser.Math.Distance.Between;
-      Phaser.Math.Distance.Between = vi.fn(() => 0);
 
       waveSystem.update(2000);
 
       expect(mockScene.spawnDish).not.toHaveBeenCalled();
-
-      Phaser.Math.Distance.Between = originalDistance;
     });
 
     it('validates both boss and dish distance constraints before spawning', () => {
       waveSystem.startWave(1);
-      mockGetBoss.mockReturnValue([{ id: 'boss_center', x: 100, y: 100, visible: true }]);
-      mockDishPool.getActiveObjects.mockReturnValue([{ x: 200, y: 200 }]);
-
-      const originalDistance = Phaser.Math.Distance.Between;
-      const distanceSpy = vi.fn(() => 1000);
-      Phaser.Math.Distance.Between = distanceSpy;
+      // Place boss and dish far from spawn position (0,0) so squared distance
+      // exceeds MIN_BOSS_DISTANCE^2 and MIN_DISH_DISTANCE^2 respectively,
+      // allowing spawn to succeed.
+      mockGetBoss.mockReturnValue([{ id: 'boss_center', x: 9999, y: 9999, visible: true }]);
+      mockDishPool.getActiveObjects.mockReturnValue([{ x: 9999, y: 9999 }]);
 
       waveSystem.update(2000);
 
-      expect(distanceSpy).toHaveBeenCalledWith(0, 0, 100, 100);
-      expect(distanceSpy).toHaveBeenCalledWith(0, 0, 200, 200);
       expect(mockScene.spawnDish).toHaveBeenCalled();
-
-      Phaser.Math.Distance.Between = originalDistance;
     });
   });
   describe('Completion', () => {

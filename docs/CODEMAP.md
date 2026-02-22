@@ -83,8 +83,8 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
   - `EntityVisualSystem` (`core:entity_visual`): pull/hitFlash/blink/dangerVibration
   - `StatusEffectTickSystem` (`core:status_effect_tick`): StatusEffectManager.tick()
 - **플러그인 colocate 시스템들** (`src/plugins/builtin/systems/`): 플러그인 구체 렌더러/엔티티를 직접 참조하거나 콘텐츠 서비스에 의존하는 시스템. SystemPlugin과 같은 디렉토리에 colocate.
-  - `MagnetSystem` (`core:magnet`): 자석 어빌리티 접시 흡인 로직 (World query 기반)
-  - `CursorAttackSystem` (`core:cursor_attack`): 커서 DPS/접촉/폭발 상호작용 (World query 기반)
+  - `MagnetSystem` (`core:magnet`): 자석 어빌리티 접시 흡인 로직 (SpatialIndex 기반)
+  - `CursorAttackSystem` (`core:cursor_attack`): 커서 DPS/접촉/폭발 상호작용 (SpatialIndex 기반)
   - `WaveTickSystem` (`core:wave`): WaveSystem.update() + currentWave 동기화
   - `ComboTickSystem` (`core:combo`): ComboSystem.setWave() + update()
   - `BossCoordinatorSystem` (`core:boss_coordinator`): BossCombatCoordinator.update() 위임
@@ -93,16 +93,17 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
   - `AbilityTickSystem` (`core:ability_tick`): `AbilityManager.update(delta, gameTime, playerX, playerY)` 호출을 ECS 파이프라인으로 통합 실행.
   - `BossReactionSystem` (`core:boss_reaction`): `BossStateComponent` 기반 보스 피격/사망 리액션 트윈
   - `EntityRenderSystem` (`core:entity_render`): World → Phaser Container 동기화 + DishRenderer/BossRenderer 렌더 + typePlugin.onUpdate
-  - `BlackHoleSystem` (`core:black_hole`): World query로 접시/폭탄 흡인 + 피해 + 렌더링
-  - `OrbSystem` (`core:orb`): World query로 접시/폭탄 충돌 판정 + 렌더링
+  - `SpatialIndexSystem` (`core:spatial_index`): 매 프레임 `SpatialIndex` (dish/bomb 공간 그리드)를 재구축. entity_movement 이후 실행되어 다운스트림 충돌 시스템이 O(1) 근접 쿼리를 사용할 수 있게 함.
+  - `BlackHoleSystem` (`core:black_hole`): SpatialIndex 기반 접시/폭탄 흡인 + 피해 + 렌더링
+  - `OrbSystem` (`core:orb`): SpatialIndex 기반 접시/폭탄 충돌 판정 + 렌더링
   - `FallingBombSystem` (`core:falling_bomb`): World query로 낙하 폭탄 스폰/이동/충돌 + 커서 충돌 체크
-  - `SpaceshipAISystem` (`core:spaceship_ai`): 우주선 AI — 접시 추적(chase homeX/Y), 먹기(eat damage), 접시 파괴 시 `SPACESHIP_FIRE_PROJECTILE` 이벤트 발행.
+  - `SpaceshipAISystem` (`core:spaceship_ai`): 우주선 AI — SpatialIndex 기반 접시 추적(chase homeX/Y), 먹기(eat damage), 접시 파괴 시 `SPACESHIP_FIRE_PROJECTILE` 이벤트 발행.
   - `SpaceshipProjectileSystem` (`core:spaceship_projectile`): 우주선 발사체 — `SPACESHIP_FIRE_PROJECTILE` 이벤트 구독으로 발사체 생성, 이동, 커서 충돌(무적 쿨다운), 렌더링.
   - `HealthPackSystem` (`core:health_pack`): World query로 힐팩 스폰/이동/충돌 + 수집 체크
   - `ModTickSystem` (`core:mod_tick`): `ModSystemRegistry.runAll()` 호출. `EntityQueryService`/`StatusEffectManager`만 공유 컨텍스트로 전달하고, `eventBus`는 레지스트리가 시스템별 scoped bus를 주입.
-- **`EntitySystemPipeline.ts`** (`src/systems/`): data-driven 엔티티 시스템 실행 파이프라인. `game-config.json`의 `entityPipeline` 배열이 실행 순서의 SSOT (22개 시스템). `register(system)`, `unregister(id)`, `setEnabled(id, enabled)`, `run(delta)`. config 순서대로 배치 → config에 없는 등록 시스템은 끝에 추가. `getMissingSystems()`, `getUnmappedSystems()`, `getRegisteredIds()` 진단 메서드와 `assertConfigSyncOrThrow()` fail-fast 검증 메서드를 제공.
-  - GameScene 호출 순서: `syncWorldContext()` → `entitySystemPipeline.run(delta)` (22개 시스템 순차, 모든 tick 로직 포함)
-  - 파이프라인 순서: initial_spawn → wave → combo → status_effect_tick → entity_status → entity_timing → player → ability_tick → entity_movement → boss_reaction → boss_coordinator → magnet → cursor_attack → spaceship_ai → spaceship_projectile → black_hole → orb → falling_bomb → health_pack → entity_visual → entity_render → mod_tick
+- **`EntitySystemPipeline.ts`** (`src/systems/`): data-driven 엔티티 시스템 실행 파이프라인. `game-config.json`의 `entityPipeline` 배열이 실행 순서의 SSOT (23개 시스템). `register(system)`, `unregister(id)`, `setEnabled(id, enabled)`, `run(delta)`. config 순서대로 배치 → config에 없는 등록 시스템은 끝에 추가. `getMissingSystems()`, `getUnmappedSystems()`, `getRegisteredIds()` 진단 메서드와 `assertConfigSyncOrThrow()` fail-fast 검증 메서드를 제공.
+  - GameScene 호출 순서: `syncWorldContext()` → `entitySystemPipeline.run(delta)` (23개 시스템 순차, 모든 tick 로직 포함)
+  - 파이프라인 순서: initial_spawn → wave → combo → status_effect_tick → entity_status → entity_timing → player → ability_tick → entity_movement → **spatial_index** → boss_reaction → boss_coordinator → magnet → cursor_attack → spaceship_ai → spaceship_projectile → black_hole → orb → falling_bomb → health_pack → entity_visual → entity_render → mod_tick
 - **`builtin/systems/GameLevelSystemsPlugin.ts`**: ComboTickSystem(colocate) + StatusEffectTickSystem을 파이프라인에 등록하는 SystemPlugin.
 - **`Entity.ts` 연동**: 경량 Phaser wrapper (~182줄). `deactivate()` 시 `StatusEffectManager.clearEntity()` 및 `World.destroyEntity()` 자동 호출로 풀 반환 시 잔류 효과/컴포넌트 방지. `spawn()` 시 `EntitySpawnInitializer`를 통해 World 컴포넌트를 초기화. freeze/slow는 StatusEffectManager로 위임. 모든 tick 로직은 외부 ECS 시스템이 World 스토어를 직접 읽어 처리.
 
@@ -291,7 +292,9 @@ MOD가 커스텀 상태효과, 크로스 엔티티 상호작용, 매 프레임 �
 
 ## 🛠️ 주요 유틸리티
 
-- **`ObjectPool.ts`**: 빈번하게 생성/삭제되는 `Entity` (Dish/Boss) 리소스를 관리하여 가비지 컬렉션 부하를 줄임. FallingBomb/HealthPack은 World 컴포넌트로 관리되어 ObjectPool을 사용하지 않음.
+- **`ObjectPool.ts`**: 빈번하게 생성/삭제되는 `Entity` (Dish/Boss) 리소스를 관리하여 가비지 컬렉션 부하를 줄임. `freeStack` LIFO로 O(1) acquire/release. FallingBomb/HealthPack은 World 컴포넌트로 관리되어 ObjectPool을 사용하지 않음.
+- **`SpatialGrid.ts`**: 2D 균등 그리드 기반 공간 인덱스 유틸리티. `forEachInRadius(cx, cy, r, cb)` / `forEachEntity(cb)` API로 엔티티 근접 쿼리를 O(n) → O(k)로 최적화. 셀 크기 128px, 배열 재사용으로 GC 부하 최소화.
+- **`SpatialIndex.ts`** (`src/systems/`): `SpatialGrid` 두 인스턴스(dishGrid, bombGrid)를 래핑하는 공유 서비스. `rebuild(world)` 호출 시 World의 활성 dish/bomb 엔티티 위치를 그리드에 인덱싱. `SpatialIndexSystem`이 매 프레임 entity_movement 이후에 rebuild.
 - **`EventBus.ts`**: 전역 이벤트 발행/구독 시스템 및 모든 게임 이벤트 상수(`GameEvents`)가 정의된 곳.
 - **`cursorSmoothing.ts`**: 적응형 커서 스무딩 순수 함수. 거리 기반 lerp 보간 + 프레임 독립 보정을 수행하며, `snapRadius(= max(convergenceThreshold, deadZone))` 이하에서 즉시 snap하여 정지 버그를 방지합니다.
 

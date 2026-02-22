@@ -9,12 +9,19 @@ import {
 import type { IBossShatterEffect } from '../plugins/types';
 import { UpgradeAbsorptionEffect } from './UpgradeAbsorptionEffect';
 
+/**
+ * Purpose: Manages particle/graphics effects (explosions, sparks, rings, etc.)
+ * Boundary: Does NOT handle entity-specific rendering (delegated to plugin renderers)
+ */
+export const GRAPHICS_POOL_MAX = 50;
+
 export class ParticleManager {
   private scene: Phaser.Scene;
   private emitters: Map<string, Phaser.GameObjects.Particles.ParticleEmitter> = new Map();
   private readonly cursorProvider?: CursorPositionProvider;
   private readonly bossShatter: IBossShatterEffect | null;
   private readonly upgradeAbsorption: UpgradeAbsorptionEffect;
+  private readonly graphicsPool: Phaser.GameObjects.Graphics[] = [];
 
   constructor(scene: Phaser.Scene, cursorProvider?: CursorPositionProvider, soundSystem?: SoundSystem, bossShatterEffect?: IBossShatterEffect) {
     this.scene = scene;
@@ -27,6 +34,43 @@ export class ParticleManager {
       soundSystem,
     );
     this.createEmitters();
+  }
+
+  /**
+   * Acquires a Graphics object from the pool (or creates a new one).
+   * The returned object is cleared and reset to default transform/alpha.
+   */
+  acquireGraphics(): Phaser.GameObjects.Graphics {
+    const g = this.graphicsPool.pop();
+    if (g) {
+      g.setVisible(true);
+      return g;
+    }
+    return this.scene.add.graphics();
+  }
+
+  /**
+   * Returns a Graphics object to the pool for reuse.
+   * Clears drawing state and resets transform/alpha/scale/rotation/depth/blendMode.
+   * If the pool is already at max capacity, the object is destroyed instead.
+   */
+  releaseGraphics(g: Phaser.GameObjects.Graphics): void {
+    if (!g.active) return;
+
+    g.clear();
+    g.setPosition(0, 0);
+    g.setAlpha(1);
+    g.setScale(1, 1);
+    g.setRotation(0);
+    g.setDepth(0);
+    g.setBlendMode(Phaser.BlendModes.NORMAL);
+    g.setVisible(false);
+
+    if (this.graphicsPool.length < GRAPHICS_POOL_MAX) {
+      this.graphicsPool.push(g);
+    } else {
+      g.destroy();
+    }
   }
 
   private createEmitters(): void {
@@ -173,7 +217,7 @@ export class ParticleManager {
     });
     trail.setDepth(DEPTHS.dishTrail);
 
-    const glow = this.scene.add.graphics();
+    const glow = this.acquireGraphics();
     glow.setDepth(DEPTHS.dishGlow);
 
     const angle = Math.random() * Math.PI * 2;
@@ -241,7 +285,7 @@ export class ParticleManager {
     const y = particle.y;
 
     particle.destroy();
-    glow.destroy();
+    this.releaseGraphics(glow);
 
     this.scene.time.delayedCall(trailLifespan, () => {
       trail.destroy();
@@ -269,7 +313,7 @@ export class ParticleManager {
   private createRainbowRingEffect(x: number, y: number): void {
     RAINBOW_COLORS.forEach((color, index) => {
       this.scene.time.delayedCall(index * 40, () => {
-        const ring = this.scene.add.graphics();
+        const ring = this.acquireGraphics();
         ring.setPosition(x, y);
         ring.lineStyle(3, color, 1);
         ring.strokeCircle(0, 0, 15 + index * 5);
@@ -281,7 +325,7 @@ export class ParticleManager {
           alpha: 0,
           duration: 400,
           ease: 'Power2',
-          onComplete: () => ring.destroy(),
+          onComplete: () => this.releaseGraphics(ring),
         });
       });
     });
@@ -298,7 +342,7 @@ export class ParticleManager {
   }
 
   private drawLightning(x1: number, y1: number, x2: number, y2: number): void {
-    const lightning = this.scene.add.graphics();
+    const lightning = this.acquireGraphics();
     lightning.lineStyle(3, COLORS.CYAN, 1);
 
     const segments = 5;
@@ -327,7 +371,7 @@ export class ParticleManager {
     }
     lightning.strokePath();
 
-    const glow = this.scene.add.graphics();
+    const glow = this.acquireGraphics();
     glow.lineStyle(8, COLORS.CYAN, 0.3);
     glow.beginPath();
     glow.moveTo(points[0].x, points[0].y);
@@ -341,8 +385,8 @@ export class ParticleManager {
       alpha: 0,
       duration: 200,
       onComplete: () => {
-        lightning.destroy();
-        glow.destroy();
+        this.releaseGraphics(lightning);
+        this.releaseGraphics(glow);
       },
     });
   }
@@ -399,7 +443,7 @@ export class ParticleManager {
   }
 
   private createRingEffect(x: number, y: number, color: number): void {
-    const ring = this.scene.add.graphics();
+    const ring = this.acquireGraphics();
     ring.setPosition(x, y);
     ring.lineStyle(4, color, 1);
     ring.strokeCircle(0, 0, 10);
@@ -411,7 +455,7 @@ export class ParticleManager {
       alpha: 0,
       duration: 300,
       ease: 'Power2',
-      onComplete: () => ring.destroy(),
+      onComplete: () => this.releaseGraphics(ring),
     });
   }
 
@@ -428,7 +472,7 @@ export class ParticleManager {
 
     for (let i = 0; i < cfg.count; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const shard = this.scene.add.graphics();
+      const shard = this.acquireGraphics();
       shard.setDepth(DEPTHS.playerHitDebris);
 
       const size = Phaser.Math.Between(cfg.minSize, cfg.maxSize);
@@ -467,13 +511,13 @@ export class ParticleManager {
           );
           shard.setRotation(shard.rotation + rotationSpeed * 0.016);
         },
-        onComplete: () => shard.destroy(),
+        onComplete: () => this.releaseGraphics(shard),
       });
     }
   }
 
   private createShockwave(x: number, y: number, color: number): void {
-    const shockwave = this.scene.add.graphics();
+    const shockwave = this.acquireGraphics();
     shockwave.setPosition(x, y);
     shockwave.lineStyle(6, color, 1);
     shockwave.strokeCircle(0, 0, 20);
@@ -485,7 +529,7 @@ export class ParticleManager {
       alpha: 0,
       duration: 500,
       ease: 'Power1',
-      onComplete: () => shockwave.destroy(),
+      onComplete: () => this.releaseGraphics(shockwave),
     });
   }
 
@@ -495,7 +539,7 @@ export class ParticleManager {
 
     for (let i = 0; i < rays; i++) {
       const angle = (i / rays) * Math.PI * 2;
-      const ray = this.scene.add.graphics();
+      const ray = this.acquireGraphics();
       ray.setPosition(x, y);
 
       ray.lineStyle(3, color, 1);
@@ -508,7 +552,7 @@ export class ParticleManager {
         alpha: 0,
         duration: 200,
         ease: 'Power2',
-        onComplete: () => ray.destroy(),
+        onComplete: () => this.releaseGraphics(ray),
       });
     }
   }
@@ -537,7 +581,7 @@ export class ParticleManager {
   }
 
   private createHealRing(x: number, y: number, color: number): void {
-    const ring = this.scene.add.graphics();
+    const ring = this.acquireGraphics();
     ring.setPosition(x, y);
     ring.lineStyle(3, color, 1);
     ring.strokeCircle(0, 0, 15);
@@ -549,7 +593,7 @@ export class ParticleManager {
       alpha: 0,
       duration: 400,
       ease: 'Power2',
-      onComplete: () => ring.destroy(),
+      onComplete: () => this.releaseGraphics(ring),
     });
   }
 
@@ -572,7 +616,7 @@ export class ParticleManager {
   }
 
   createShieldEffect(x: number, y: number, color: number): void {
-    const shield = this.scene.add.graphics();
+    const shield = this.acquireGraphics();
     shield.setPosition(x, y);
     shield.lineStyle(4, color, 1);
     shield.fillStyle(color, 0.3);
@@ -596,7 +640,7 @@ export class ParticleManager {
       alpha: 0,
       duration: 400,
       ease: 'Power2',
-      onComplete: () => shield.destroy(),
+      onComplete: () => this.releaseGraphics(shield),
     });
 
     this.createSparkBurst(x, y, color);
@@ -617,5 +661,10 @@ export class ParticleManager {
       emitter.destroy();
     }
     this.emitters.clear();
+
+    for (const g of this.graphicsPool) {
+      g.destroy();
+    }
+    this.graphicsPool.length = 0;
   }
 }

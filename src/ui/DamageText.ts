@@ -20,6 +20,7 @@ export class DamageText {
   private comboPool: Phaser.GameObjects.Text[] = [];
   private activeTexts: Set<Phaser.GameObjects.Text> = new Set();
   private activeComboTexts: Set<Phaser.GameObjects.Text> = new Set();
+  private static readonly MAX_COMBO_POOL_SIZE = 40;
 
   private formatDamageForDisplay(damage: number): string {
     return Math.floor(damage).toString();
@@ -139,7 +140,7 @@ export class DamageText {
     if (combo >= comboConfig.minComboToShow) {
       comboText = this.comboPool.find((t) => !this.activeComboTexts.has(t)) || null;
 
-      if (!comboText) {
+      if (!comboText && this.comboPool.length < DamageText.MAX_COMBO_POOL_SIZE) {
         comboText = this.scene.add.text(0, 0, '', {
           fontFamily: FONTS.MAIN,
           fontSize: `${comboConfig.fontSize}px`,
@@ -152,16 +153,18 @@ export class DamageText {
         this.comboPool.push(comboText);
       }
 
-      const comboColor = this.getComboColor(combo, comboConfig);
-      comboText.setText(Data.t('damage.combo', combo));
-      comboText.setPosition(posX + comboConfig.offsetX, y + comboConfig.offsetY);
-      comboText.setColor(comboColor);
-      comboText.setFontSize(comboConfig.fontSize);
-      comboText.setVisible(true);
-      comboText.setAlpha(1);
-      comboText.setScale(0.5);
+      if (comboText) {
+        const comboColor = this.getComboColor(combo, comboConfig);
+        comboText.setText(Data.t('damage.combo', combo));
+        comboText.setPosition(posX + comboConfig.offsetX, y + comboConfig.offsetY);
+        comboText.setColor(comboColor);
+        comboText.setFontSize(comboConfig.fontSize);
+        comboText.setVisible(true);
+        comboText.setAlpha(1);
+        comboText.setScale(0.5);
 
-      this.activeComboTexts.add(comboText);
+        this.activeComboTexts.add(comboText);
+      }
     }
 
     const capturedText = text;

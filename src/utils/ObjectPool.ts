@@ -6,6 +6,10 @@ export interface Poolable {
 export class ObjectPool<T extends Poolable> {
   private pool: T[] = [];
   private activeObjects: Set<T> = new Set();
+  /** Stack of free object indices for O(1) acquire/release (LIFO) */
+  private freeStack: number[] = [];
+  /** Reverse lookup: object -> pool index, for O(1) release */
+  private objectToIndex: Map<T, number> = new Map();
   private factory: () => T;
   private maxSize: number;
 
@@ -18,19 +22,27 @@ export class ObjectPool<T extends Poolable> {
       const obj = this.factory();
       obj.active = false;
       this.pool.push(obj);
+      this.objectToIndex.set(obj, i);
+      this.freeStack.push(i);
     }
   }
 
   acquire(): T | null {
     let obj: T | undefined;
 
-    // 비활성 오브젝트 찾기 (active가 false이고 activeObjects에 없는 것만)
-    obj = this.pool.find((o) => !o.active && !this.activeObjects.has(o));
+    // O(1) free object lookup via free stack (LIFO — recently released first)
+    if (this.freeStack.length > 0) {
+      const idx = this.freeStack.pop()!;
+      obj = this.pool[idx];
+    }
 
     // 풀에 없으면 새로 생성 (최대 크기 미만일 때)
     if (!obj && this.pool.length < this.maxSize) {
       obj = this.factory();
+      const newIndex = this.pool.length;
       this.pool.push(obj);
+      this.objectToIndex.set(obj, newIndex);
+      // No need to add to freeStack — we're using it immediately
     }
 
     if (obj) {
@@ -47,12 +59,20 @@ export class ObjectPool<T extends Poolable> {
     if (this.activeObjects.has(obj)) {
       obj.active = false;
       this.activeObjects.delete(obj);
+      const idx = this.objectToIndex.get(obj);
+      if (idx !== undefined) {
+        this.freeStack.push(idx);
+      }
     }
   }
 
   releaseAll(): void {
     for (const obj of this.activeObjects) {
       obj.active = false;
+      const idx = this.objectToIndex.get(obj);
+      if (idx !== undefined) {
+        this.freeStack.push(idx);
+      }
     }
     this.activeObjects.clear();
   }
@@ -82,5 +102,7 @@ export class ObjectPool<T extends Poolable> {
   clear(): void {
     this.releaseAll();
     this.pool = [];
+    this.freeStack.length = 0;
+    this.objectToIndex.clear();
   }
 }

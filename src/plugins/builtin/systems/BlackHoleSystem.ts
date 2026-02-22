@@ -7,7 +7,7 @@ import type { EntityDamageService } from '../services/EntityDamageService';
 import { FallingBombSystem } from './FallingBombSystem';
 import type { BlackHoleRenderer } from '../abilities/BlackHoleRenderer';
 import type { BossCombatCoordinator } from '../services/BossCombatCoordinator';
-import { C_DishTag, C_DishProps, C_Transform, C_BombProps } from '../../../world';
+import type { SpatialIndex } from '../../../systems/SpatialIndex';
 import type { EntitySystem, SystemStartContext } from '../../../systems/entity-systems/EntitySystem';
 import type { World } from '../../../world';
 import type { AbilityProgressionService } from '../services/abilities/AbilityProgressionService';
@@ -49,6 +49,7 @@ export class BlackHoleSystem implements EntitySystem {
   private readonly abilityProgression: AbilityProgressionService;
   private readonly abilityRuntimeQuery: AbilityRuntimeQueryService;
   private readonly world: World;
+  private readonly spatialIndex: SpatialIndex;
   private readonly damageService: EntityDamageService;
   private readonly bcc: BossCombatCoordinator;
   private readonly renderer: BlackHoleRenderer;
@@ -62,6 +63,7 @@ export class BlackHoleSystem implements EntitySystem {
     abilityProgression: AbilityProgressionService,
     abilityRuntimeQuery: AbilityRuntimeQueryService,
     world: World,
+    spatialIndex: SpatialIndex,
     damageService: EntityDamageService,
     bcc: BossCombatCoordinator,
     renderer: BlackHoleRenderer,
@@ -69,6 +71,7 @@ export class BlackHoleSystem implements EntitySystem {
     this.abilityProgression = abilityProgression;
     this.abilityRuntimeQuery = abilityRuntimeQuery;
     this.world = world;
+    this.spatialIndex = spatialIndex;
     this.damageService = damageService;
     this.bcc = bcc;
     this.renderer = renderer;
@@ -242,14 +245,26 @@ export class BlackHoleSystem implements EntitySystem {
     const deltaSeconds = delta / 1000;
     const consumeRatio = Phaser.Math.Clamp(data.bombConsumeRadiusRatio, 0, 1);
 
-    // 접시 pull (consumable: false — 접시는 흡수 불가)
-    const dishTargets: PullTarget[] = [];
-    for (const [entityId, , , t] of this.world.query(C_DishTag, C_DishProps, C_Transform)) {
-      if (!this.world.isActive(entityId)) continue;
-      dishTargets.push({ id: entityId, transform: t, consumable: false });
+    // 최대 블랙홀 반경 계산 (공간 쿼리 범위)
+    let maxRadius = 0;
+    for (const hole of this.blackHoles) {
+      if (hole.radius > maxRadius) maxRadius = hole.radius;
     }
+
+    // 접시 pull (consumable: false — 접시는 흡수 불가)
     // isBeingPulled 리셋은 MagnetSystem(core:magnet)이 담당.
-    // 파이프라인에서 magnet이 black_hole보다 먼저 실행됨 (game-config.json entityPipeline 참조).
+    const seenDish = new Set<number>();
+    const dishTargets: PullTarget[] = [];
+    for (const hole of this.blackHoles) {
+      this.spatialIndex.dishGrid.forEachInRadius(hole.x, hole.y, hole.radius, (entityId) => {
+        if (seenDish.has(entityId)) return;
+        if (!this.world.isActive(entityId)) return;
+        const t = this.world.transform.get(entityId);
+        if (!t) return;
+        seenDish.add(entityId);
+        dishTargets.push({ id: entityId, transform: t, consumable: false });
+      });
+    }
     this.applyPullToTargets(dishTargets, deltaSeconds, consumeRatio, data, {
       isActive: (id) => this.world.isActive(id),
       forceDestroy: (id) => this.damageService.forceDestroy(id, true),
@@ -257,11 +272,19 @@ export class BlackHoleSystem implements EntitySystem {
     });
 
     // 폭탄 통합 pull (웨이브 + 낙하, 항상 consumable)
+    const seenBomb = new Set<number>();
     const bombTargets: PullTarget[] = [];
-    for (const [bombId, , bt] of this.world.query(C_BombProps, C_Transform)) {
-      const fb = this.world.fallingBomb.get(bombId);
-      if (fb && !fb.fullySpawned) continue;
-      bombTargets.push({ id: bombId, transform: bt, consumable: true });
+    for (const hole of this.blackHoles) {
+      this.spatialIndex.bombGrid.forEachInRadius(hole.x, hole.y, hole.radius, (bombId) => {
+        if (seenBomb.has(bombId)) return;
+        if (!this.world.isActive(bombId)) return;
+        const fb = this.world.fallingBomb.get(bombId);
+        if (fb && !fb.fullySpawned) return;
+        const bt = this.world.transform.get(bombId);
+        if (!bt) return;
+        seenBomb.add(bombId);
+        bombTargets.push({ id: bombId, transform: bt, consumable: true });
+      });
     }
     // onPulled 생략: 폭탄은 pull 시각 효과(pullPhase) 불필요 — 흡인 즉시 소멸 대상
     this.applyPullToTargets(bombTargets, deltaSeconds, consumeRatio, data, {
@@ -348,18 +371,21 @@ export class BlackHoleSystem implements EntitySystem {
     data: BlackHoleLevelData,
     criticalChanceBonus: number,
   ): void {
-    // 1) 스냅샷 수집 — query iterator 순회 중 엔티티 삭제 안전성 (applyPull과 동일 패턴)
+    // 1) 공간 그리드로 후보 수집 (스냅샷 — 순회 중 엔티티 삭제 안전성)
     const targets: Array<{ id: number; tx: number; ty: number }> = [];
-    for (const [entityId, , , t] of this.world.query(C_DishTag, C_DishProps, C_Transform)) {
-      if (!this.world.isActive(entityId)) continue;
-      targets.push({ id: entityId, tx: t.x, ty: t.y });
-    }
+    this.spatialIndex.dishGrid.forEachInRadius(hole.x, hole.y, hole.radius, (entityId) => {
+      if (!this.world.isActive(entityId)) return;
+      const t = this.world.transform.get(entityId);
+      if (t) targets.push({ id: entityId, tx: t.x, ty: t.y });
+    });
 
     // 2) 안전한 순회
     for (const target of targets) {
       if (!this.world.isActive(target.id)) continue;
-      const distance = Phaser.Math.Distance.Between(hole.x, hole.y, target.tx, target.ty);
-      if (distance > hole.radius) continue;
+      const dx = hole.x - target.tx;
+      const dy = hole.y - target.ty;
+      const distSq = dx * dx + dy * dy;
+      if (distSq > hole.radius * hole.radius) continue;
 
       const wasActive = this.world.isActive(target.id);
       this.damageService.applyUpgradeDamage(target.id, hole.damage, 0, criticalChanceBonus);
@@ -370,8 +396,11 @@ export class BlackHoleSystem implements EntitySystem {
 
     const bosses = this.bcc.getAliveVisibleBossSnapshotsWithRadius();
     for (const boss of bosses) {
-      const distance = Phaser.Math.Distance.Between(hole.x, hole.y, boss.x, boss.y);
-      if (distance > hole.radius + boss.radius) continue;
+      const dx = hole.x - boss.x;
+      const dy = hole.y - boss.y;
+      const distSq = dx * dx + dy * dy;
+      const range = hole.radius + boss.radius;
+      if (distSq > range * range) continue;
 
       const criticalResult = this.resolveCriticalDamage(hole.damage, criticalChanceBonus);
       this.bcc.damageBoss(boss.id, criticalResult.damage, hole.x, hole.y, criticalResult.isCritical);

@@ -1,5 +1,6 @@
 import { OrbSystem } from './OrbSystem';
 import { EntityDamageService } from '../services/EntityDamageService';
+import { SpatialIndex } from '../../../systems/SpatialIndex';
 import { OrbRenderer } from '../abilities/OrbRenderer';
 import { BossCombatCoordinator } from '../services/BossCombatCoordinator';
 import { AbilityProgressionService } from '../services/abilities/AbilityProgressionService';
@@ -16,6 +17,7 @@ export class OrbSystemPlugin implements SystemPlugin {
         ctx.services.get(AbilityProgressionService),
         ctx.services.get(AbilityRuntimeQueryService),
         ctx.world,
+        ctx.services.get(SpatialIndex),
         ctx.services.get(EntityDamageService),
         ctx.services.get(BossCombatCoordinator),
         ctx.services.get(OrbRenderer),

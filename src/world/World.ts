@@ -243,6 +243,8 @@ export class World {
       }
     }
 
+    const tupleLen = stores.length + 1;
+
     const pivot = stores[pivotIdx];
     for (const [entityId] of pivot.entries()) {
       if (!this.activeEntities.has(entityId)) continue;
@@ -255,10 +257,11 @@ export class World {
       }
       if (!valid) continue;
 
-      // Build tuple: [entityId, c1Data, c2Data, ...]
-      const tuple: [EntityId, ...unknown[]] = [entityId];
-      for (const store of stores) {
-        tuple.push(store.get(entityId)!);
+      // Pre-sized array + indexed assignment — push() 리사이즈 오버헤드 제거
+      const tuple = new Array(tupleLen) as [EntityId, ...unknown[]];
+      tuple[0] = entityId;
+      for (let i = 0; i < stores.length; i++) {
+        tuple[i + 1] = stores[i].get(entityId)!;
       }
       yield tuple;
     }

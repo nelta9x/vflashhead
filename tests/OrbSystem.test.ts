@@ -34,6 +34,7 @@ import { OrbSystem } from '../src/plugins/builtin/systems/OrbSystem';
 import {
   createMockWorldStores,
   createMockWorldApi,
+  createMockSpatialIndex,
   addDishToWorld as addDish,
   addBombToWorld as addBomb,
   resetEntityIdCounter,
@@ -129,10 +130,12 @@ describe('OrbSystem', () => {
     const mockAbilityRuntimeQuery = {
       getEffectValueOrThrow: mockUpgradeSystem.getEffectValue,
     };
+    const mockSpatialIndex = createMockSpatialIndex(mockStores);
     system = new OrbSystem(
       mockAbilityProgression as never,
       mockAbilityRuntimeQuery as never,
       mockWorld as never,
+      mockSpatialIndex as never,
       mockDamageService as never,
       mockBcc as never,
       { render: vi.fn() } as never,

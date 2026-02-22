@@ -6,6 +6,7 @@ import { Entity } from '../../../entities/Entity';
 import { EntityPoolManager } from '../../../systems/EntityPoolManager';
 import { EntityDamageService } from './EntityDamageService';
 import { EntityQueryService } from '../../../systems/EntityQueryService';
+import { SpatialIndex } from '../../../systems/SpatialIndex';
 import { HealthSystem } from '../../../systems/HealthSystem';
 import { StatusEffectManager } from '../../../systems/StatusEffectManager';
 import { AbilityRuntimeQueryService } from './abilities/AbilityRuntimeQueryService';
@@ -17,6 +18,7 @@ import {
   VOLATILITY_EFFECT_KEYS,
 } from './upgrades/AbilityEffectCatalog';
 import { computeGlobalDamageMultiplier } from './upgrades/CurseEffectMath';
+import { GAME_WIDTH, GAME_HEIGHT } from '../../../data/constants';
 
 export class EcsFoundationPlugin implements ServicePlugin {
   readonly id = 'core:ecs';
@@ -82,6 +84,10 @@ export class EcsFoundationPlugin implements ServicePlugin {
       factory: (r) => {
         return new EntityQueryService(r.get(EntityPoolManager).getPool('dish')!);
       },
+    },
+    {
+      key: SpatialIndex,
+      factory: () => new SpatialIndex(GAME_WIDTH, GAME_HEIGHT),
     },
   ];
 }

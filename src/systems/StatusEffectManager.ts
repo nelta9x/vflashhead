@@ -40,7 +40,11 @@ export class StatusEffectManager {
 
     const idx = list.findIndex((e) => e.id === effectId);
     if (idx !== -1) {
-      list.splice(idx, 1);
+      const last = list.length - 1;
+      if (idx !== last) {
+        list[idx] = list[last];
+      }
+      list.pop();
     }
     if (list.length === 0) {
       this.effects.delete(entityId);
@@ -56,7 +60,13 @@ export class StatusEffectManager {
 
         if (effect.remaining <= 0) {
           effect.onExpire?.(entityId, effect.data);
-          list.splice(i, 1);
+          // swap-and-pop: O(1) removal instead of O(n) splice
+          const last = list.length - 1;
+          if (i !== last) {
+            list[i] = list[last];
+          }
+          list.pop();
+          // do not increment i — re-check the swapped element
         } else {
           effect.onTick?.(entityId, delta, effect.data);
           i++;

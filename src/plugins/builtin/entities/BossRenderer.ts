@@ -12,6 +12,9 @@ export class BossRenderer implements IBossRenderer {
   private readonly glowGraphics: Phaser.GameObjects.Graphics;
   private readonly armorGraphics: Phaser.GameObjects.Graphics;
 
+  /** Dirty-flag key for glow/armor graphics redraw skip optimization. */
+  private lastGraphicsStateKey = '';
+
   constructor(scene: Phaser.Scene, host: Phaser.GameObjects.Container) {
     this.scene = scene;
     const config = Data.boss.visual;
@@ -50,6 +53,7 @@ export class BossRenderer implements IBossRenderer {
     );
     const dangerLevel = 1 - safeHpRatio;
 
+    // Core/light alpha+scale updates are cheap (no graphics redraw)
     const corePulse =
       config.core.initialAlpha +
       Math.sin(state.timeElapsed * config.core.pulseSpeed * (1 + dangerLevel)) *
@@ -59,6 +63,12 @@ export class BossRenderer implements IBossRenderer {
 
     const lightPulse = 0.8 + Math.sin(state.timeElapsed * config.core.pulseSpeed * 2) * 0.2;
     this.coreLight.setAlpha(lightPulse);
+
+    // Dirty-check for expensive glow/armor graphics redraw.
+    // Quantize timeElapsed to ~30 steps/sec to reduce redraws while keeping rotation smooth.
+    const stateKey = `${(safeHpRatio * 1000) | 0}|${safeArmorPieceCount}|${safeFilledArmorPieceCount}|${(state.timeElapsed * 30) | 0}`;
+    if (this.lastGraphicsStateKey === stateKey) return;
+    this.lastGraphicsStateKey = stateKey;
 
     this.glowGraphics.clear();
     this.armorGraphics.clear();

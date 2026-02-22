@@ -4,9 +4,11 @@ import {
   EntityMovementSystem,
   EntityVisualSystem,
 } from '../../../systems/entity-systems';
+import { SpatialIndexSystem } from '../../../systems/entity-systems/SpatialIndexSystem';
 import { EntityRenderSystem } from './EntityRenderSystem';
 import { EntityDamageService } from '../services/EntityDamageService';
 import { StatusEffectManager } from '../../../systems/StatusEffectManager';
+import { SpatialIndex } from '../../../systems/SpatialIndex';
 import type { EntitySystem } from '../../../systems/entity-systems/EntitySystem';
 import type { SystemPlugin, SystemPluginContext } from '../../types/SystemPlugin';
 
@@ -20,6 +22,7 @@ export class CoreWorldSystemsPlugin implements SystemPlugin {
       new EntityStatusSystem(ctx.world, sem),
       new EntityTimingSystem(ctx.world, dmg),
       new EntityMovementSystem(ctx.world),
+      new SpatialIndexSystem(ctx.world, ctx.services.get(SpatialIndex)),
       new EntityVisualSystem(ctx.world),
       new EntityRenderSystem(ctx.world),
     ];

@@ -1,6 +1,7 @@
 import { SpaceshipAISystem } from './SpaceshipAISystem';
 import { SpaceshipProjectileSystem } from './SpaceshipProjectileSystem';
 import { HealthSystem } from '../../../systems/HealthSystem';
+import { SpatialIndex } from '../../../systems/SpatialIndex';
 import { AbilityRuntimeQueryService } from '../services/abilities/AbilityRuntimeQueryService';
 import { EntityDamageService } from '../services/EntityDamageService';
 import { SoundSystem } from '../services/SoundSystem';
@@ -15,6 +16,7 @@ export class SpaceshipSystemsPlugin implements SystemPlugin {
     return [
       new SpaceshipAISystem(
         ctx.world,
+        ctx.services.get(SpatialIndex),
         ctx.services.get(EntityDamageService),
       ),
       new SpaceshipProjectileSystem(

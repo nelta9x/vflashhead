@@ -10,17 +10,22 @@ export class OrbRenderer {
     this.graphics = scene.add.graphics();
   }
 
-  public render(orbs: Array<{ x: number; y: number; size: number }>): void {
+  public render(orbs: Array<{ x: number; y: number; size: number }>, time?: number): void {
     this.graphics.clear();
 
     if (orbs.length === 0) return;
 
-    for (const orb of orbs) {
-      // "지지직"거리는 느낌을 위한 무작위 노이즈 값들
-      const jitterX = (Math.random() - 0.5) * 4;
-      const jitterY = (Math.random() - 0.5) * 4;
-      const pulse = 1 + Math.sin(Date.now() * 0.02) * 0.1;
-      const flicker = 0.7 + Math.random() * 0.3;
+    const t = time ?? performance.now();
+
+    for (let orbIdx = 0; orbIdx < orbs.length; orbIdx++) {
+      const orb = orbs[orbIdx];
+      // Deterministic jitter: replace Math.random() with sin-based patterns
+      // using orb index and time for unique, repeatable per-orb noise
+      const phaseOffset = orbIdx * 2.399; // golden angle for decorrelation
+      const jitterX = Math.sin(t * 0.013 + phaseOffset) * 2;
+      const jitterY = Math.cos(t * 0.017 + phaseOffset + 1.0) * 2;
+      const pulse = 1 + Math.sin(t * 0.02) * 0.1;
+      const flicker = 0.7 + (Math.sin(t * 0.023 + phaseOffset + 2.0) * 0.5 + 0.5) * 0.3;
 
       // 1. Outer Glow (Light Blue - pulsing)
       this.graphics.fillStyle(this.GLOW_COLOR, 0.25 * flicker);
@@ -32,7 +37,9 @@ export class OrbRenderer {
       this.graphics.beginPath();
       for (let i = 0; i <= auraPoints; i++) {
         const angle = (i / auraPoints) * Math.PI * 2;
-        const dist = orb.size * (1.1 + Math.random() * 0.4);
+        // Deterministic aura jitter per point
+        const auraJitter = Math.sin(t * 0.011 + i * 0.7 + phaseOffset) * 0.5 + 0.5;
+        const dist = orb.size * (1.1 + auraJitter * 0.4);
         const px = orb.x + Math.cos(angle) * dist;
         const py = orb.y + Math.sin(angle) * dist;
         if (i === 0) this.graphics.moveTo(px, py);

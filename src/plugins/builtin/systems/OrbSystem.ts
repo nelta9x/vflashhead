@@ -4,7 +4,7 @@ import type { OrbRenderer } from '../abilities/OrbRenderer';
 import type { OrbitingOrbLevelData } from '../../../data/types';
 import type { BossRadiusSnapshot } from '../services/ContentContracts';
 import type { BossCombatCoordinator } from '../services/BossCombatCoordinator';
-import { C_DishTag, C_DishProps, C_Transform, C_BombProps } from '../../../world';
+import type { SpatialIndex } from '../../../systems/SpatialIndex';
 import { FallingBombSystem } from './FallingBombSystem';
 import type { EntitySystem, SystemStartContext } from '../../../systems/entity-systems/EntitySystem';
 import type { World } from '../../../world';
@@ -36,6 +36,7 @@ export class OrbSystem implements EntitySystem {
   private readonly abilityProgression: AbilityProgressionService;
   private readonly abilityRuntimeQuery: AbilityRuntimeQueryService;
   private readonly world: World;
+  private readonly spatialIndex: SpatialIndex;
   private readonly damageService: EntityDamageService;
   private readonly bcc: BossCombatCoordinator;
   private readonly renderer: OrbRenderer;
@@ -54,6 +55,7 @@ export class OrbSystem implements EntitySystem {
     abilityProgression: AbilityProgressionService,
     abilityRuntimeQuery: AbilityRuntimeQueryService,
     world: World,
+    spatialIndex: SpatialIndex,
     damageService: EntityDamageService,
     bcc: BossCombatCoordinator,
     renderer: OrbRenderer,
@@ -61,6 +63,7 @@ export class OrbSystem implements EntitySystem {
     this.abilityProgression = abilityProgression;
     this.abilityRuntimeQuery = abilityRuntimeQuery;
     this.world = world;
+    this.spatialIndex = spatialIndex;
     this.damageService = damageService;
     this.bcc = bcc;
     this.renderer = renderer;
@@ -77,7 +80,7 @@ export class OrbSystem implements EntitySystem {
     this.update(delta, ctx.gameTime, playerT.x, playerT.y,
       () => this.bcc.getAliveVisibleBossSnapshotsWithRadius(),
       this.onBossDamage);
-    this.renderer.render(this.orbPositions);
+    this.renderer.render(this.orbPositions, ctx.gameTime);
   }
 
   private onBossDamage = (bossId: string, damage: number, x: number, y: number): void => {
@@ -170,62 +173,73 @@ export class OrbSystem implements EntitySystem {
     getBossSnapshots: () => BossRadiusSnapshot[],
     onBossDamage: (bossId: string, damage: number, x: number, y: number) => void,
   ): void {
-    // 접시 충돌 (bomb 제외 — C_DishTag 쿼리)
-    for (const [entityId, , dp, t] of this.world.query(C_DishTag, C_DishProps, C_Transform)) {
-      const size = dp.size;
+    // 충돌 검색 반경: 오브 + 최대 엔티티 크기 (entities.json types 중 최대 size=60)
+    const collisionRange = (orbSize + 60) * 1.5;
 
-      let hit = false;
-      for (const orb of this.orbPositions) {
-        const dist = Phaser.Math.Distance.Between(orb.x, orb.y, t.x, t.y);
-        if (dist <= (orbSize + size) * 1.5) {
-          hit = true;
-          break;
-        }
-      }
+    // 접시 충돌 (bomb 제외 — dishGrid 사용)
+    const checkedDish = new Set<EntityId>();
+    for (const orb of this.orbPositions) {
+      this.spatialIndex.dishGrid.forEachInRadius(orb.x, orb.y, collisionRange, (entityId) => {
+        if (checkedDish.has(entityId)) return;
+        if (!this.world.isActive(entityId)) return;
+        const dp = this.world.dishProps.get(entityId);
+        const t = this.world.transform.get(entityId);
+        if (!dp || !t) return;
 
-      if (hit) {
+        const dx = orb.x - t.x;
+        const dy = orb.y - t.y;
+        const distSq = dx * dx + dy * dy;
+        const range = (orbSize + dp.size) * 1.5;
+        if (distSq > range * range) return;
+
+        checkedDish.add(entityId);
         const nextHitTime = this.lastHitTimes.get(entityId) || 0;
         if (gameTime >= nextHitTime) {
           this.damageService.applyUpgradeDamage(entityId, damage, 0, criticalChanceBonus);
           this.lastHitTimes.set(entityId, gameTime + hitInterval);
         }
-      }
+      });
     }
 
     // 폭탄 통합 충돌 (웨이브 + 낙하)
-    for (const [bombId, bp, bt] of this.world.query(C_BombProps, C_Transform)) {
-      // 스폰 완료 체크: 낙하 폭탄은 fullySpawned, 웨이브 폭탄은 spawnDuration
-      const fb = this.world.fallingBomb.get(bombId);
-      if (fb && !fb.fullySpawned) continue;
-      const lt = this.world.lifetime.get(bombId);
-      if (lt && lt.elapsedTime < lt.spawnDuration) continue;
+    const checkedBomb = new Set<EntityId>();
+    for (const orb of this.orbPositions) {
+      this.spatialIndex.bombGrid.forEachInRadius(orb.x, orb.y, collisionRange, (bombId) => {
+        if (checkedBomb.has(bombId)) return;
+        if (!this.world.isActive(bombId)) return;
+        const fb = this.world.fallingBomb.get(bombId);
+        if (fb && !fb.fullySpawned) return;
+        const lt = this.world.lifetime.get(bombId);
+        if (lt && lt.elapsedTime < lt.spawnDuration) return;
+        const bp = this.world.bombProps.get(bombId);
+        const bt = this.world.transform.get(bombId);
+        if (!bp || !bt) return;
 
-      const hitSize = bp.size;
-      let hit = false;
-      for (const orb of this.orbPositions) {
-        const dist = Phaser.Math.Distance.Between(orb.x, orb.y, bt.x, bt.y);
-        if (dist <= (orbSize + hitSize) * 1.5) {
-          hit = true;
-          break;
-        }
-      }
+        const dx = orb.x - bt.x;
+        const dy = orb.y - bt.y;
+        const distSq = dx * dx + dy * dy;
+        const range = (orbSize + bp.size) * 1.5;
+        if (distSq > range * range) return;
 
-      if (hit) {
+        checkedBomb.add(bombId);
         if (fb) {
           this.fallingBombSystem.forceDestroy(bombId, true);
         } else {
           this.damageService.forceDestroy(bombId, true);
         }
         this.activateOverclock(gameTime, overclockConfig);
-      }
+      });
     }
 
-    // Boss collision check
+    // Boss collision check (보스는 소수이므로 그리드 불필요)
     const bosses = getBossSnapshots();
     for (const boss of bosses) {
       for (const orb of this.orbPositions) {
-        const dist = Phaser.Math.Distance.Between(orb.x, orb.y, boss.x, boss.y);
-        if (dist <= orbSize + boss.radius) {
+        const dx = orb.x - boss.x;
+        const dy = orb.y - boss.y;
+        const distSq = dx * dx + dy * dy;
+        const range = orbSize + boss.radius;
+        if (distSq <= range * range) {
           const nextHitTime = this.bossLastHitTimes.get(boss.id) ?? 0;
           if (gameTime >= nextHitTime) {
             onBossDamage(boss.id, damage, orb.x, orb.y);

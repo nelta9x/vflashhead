@@ -102,7 +102,12 @@ export class SpaceshipProjectileSystem implements EntitySystem {
         p.x < -OFFSCREEN_MARGIN || p.x > GAME_WIDTH + OFFSCREEN_MARGIN ||
         p.y < -OFFSCREEN_MARGIN || p.y > GAME_HEIGHT + OFFSCREEN_MARGIN
       ) {
-        this.projectiles.splice(i, 1);
+        // swap-and-pop: O(1) removal instead of O(n) splice
+        const last = this.projectiles.length - 1;
+        if (i !== last) {
+          this.projectiles[i] = this.projectiles[last];
+        }
+        this.projectiles.pop();
       }
     }
 
@@ -143,14 +148,24 @@ export class SpaceshipProjectileSystem implements EntitySystem {
       // Cancel if spaceship died
       if (!this.world.isActive(charge.entityId)) {
         charge.handle.destroy();
-        this.pendingCharges.splice(i, 1);
+        // swap-and-pop: O(1) removal instead of O(n) splice
+        const last1 = this.pendingCharges.length - 1;
+        if (i !== last1) {
+          this.pendingCharges[i] = this.pendingCharges[last1];
+        }
+        this.pendingCharges.pop();
         continue;
       }
 
       const t = this.world.transform.get(charge.entityId);
       if (!t) {
         charge.handle.destroy();
-        this.pendingCharges.splice(i, 1);
+        // swap-and-pop: O(1) removal instead of O(n) splice
+        const last2 = this.pendingCharges.length - 1;
+        if (i !== last2) {
+          this.pendingCharges[i] = this.pendingCharges[last2];
+        }
+        this.pendingCharges.pop();
         continue;
       }
 
@@ -163,7 +178,12 @@ export class SpaceshipProjectileSystem implements EntitySystem {
       if (progress >= 1) {
         charge.handle.destroy();
         this.fireProjectile(t.x, t.y, charge.targetX, charge.targetY, gameTime);
-        this.pendingCharges.splice(i, 1);
+        // swap-and-pop: O(1) removal instead of O(n) splice
+        const last3 = this.pendingCharges.length - 1;
+        if (i !== last3) {
+          this.pendingCharges[i] = this.pendingCharges[last3];
+        }
+        this.pendingCharges.pop();
       }
     }
   }
@@ -198,9 +218,17 @@ export class SpaceshipProjectileSystem implements EntitySystem {
 
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const p = this.projectiles[i];
-      const dist = Phaser.Math.Distance.Between(cursorX, cursorY, p.x, p.y);
-      if (dist < cursorRadius + projConfig.hitboxRadius) {
-        this.projectiles.splice(i, 1);
+      const dx = cursorX - p.x;
+      const dy = cursorY - p.y;
+      const distSq = dx * dx + dy * dy;
+      const range = cursorRadius + projConfig.hitboxRadius;
+      if (distSq < range * range) {
+        // swap-and-pop: O(1) removal instead of O(n) splice
+        const last = this.projectiles.length - 1;
+        if (i !== last) {
+          this.projectiles[i] = this.projectiles[last];
+        }
+        this.projectiles.pop();
         this.lastHitTime = gameTime;
         this.healthSystem.takeDamage(projConfig.damage);
         return;

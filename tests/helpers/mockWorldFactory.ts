@@ -154,3 +154,38 @@ export function addBombToWorld(
   }
   return id;
 }
+
+/**
+ * 테스트용 SpatialIndex mock. 모든 활성 엔티티를 반환하여
+ * 시스템의 정밀 거리 체크 로직을 그대로 테스트할 수 있게 한다.
+ */
+export function createMockSpatialIndex(stores: MockWorldStores) {
+  return {
+    dishGrid: {
+      forEachInRadius: (_cx: number, _cy: number, _r: number, cb: (id: string) => void) => {
+        for (const [id] of stores.dishTagStore) {
+          if (stores.activeEntities.has(id)) cb(id);
+        }
+      },
+      forEachEntity: (cb: (id: string) => void) => {
+        for (const [id] of stores.dishTagStore) {
+          if (stores.activeEntities.has(id)) cb(id);
+        }
+      },
+    },
+    bombGrid: {
+      forEachInRadius: (_cx: number, _cy: number, _r: number, cb: (id: string) => void) => {
+        for (const [id] of stores.bombPropsStore) {
+          if (stores.activeEntities.has(id)) cb(id);
+        }
+      },
+      forEachEntity: (cb: (id: string) => void) => {
+        for (const [id] of stores.bombPropsStore) {
+          if (stores.activeEntities.has(id)) cb(id);
+        }
+      },
+    },
+    rebuild: vi.fn(),
+    clear: vi.fn(),
+  };
+}

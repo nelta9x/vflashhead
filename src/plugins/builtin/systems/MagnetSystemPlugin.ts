@@ -1,5 +1,6 @@
 import { MagnetSystem } from './MagnetSystem';
 import { EntityDamageService } from '../services/EntityDamageService';
+import { SpatialIndex } from '../../../systems/SpatialIndex';
 import { ParticleManager } from '../../../effects/ParticleManager';
 import { GameEnvironment } from '../../../scenes/game/GameEnvironment';
 import { AbilityProgressionService } from '../services/abilities/AbilityProgressionService';
@@ -14,6 +15,7 @@ export class MagnetSystemPlugin implements SystemPlugin {
     return [
       new MagnetSystem({
         world: ctx.world,
+        spatialIndex: ctx.services.get(SpatialIndex),
         damageService: ctx.services.get(EntityDamageService),
         abilityProgression: ctx.services.get(AbilityProgressionService),
         abilityRuntimeQuery: ctx.services.get(AbilityRuntimeQueryService),

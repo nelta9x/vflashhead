@@ -53,6 +53,7 @@ import { BlackHoleSystem } from '../src/plugins/builtin/systems/BlackHoleSystem'
 import {
   createMockWorldStores,
   createMockWorldApi,
+  createMockSpatialIndex,
   addDishToWorld as addDish,
   addBombToWorld as addBomb,
   resetEntityIdCounter,
@@ -108,10 +109,12 @@ describe('BlackHoleSystem', () => {
       getAliveVisibleBossSnapshotsWithRadius: () => bosses,
       damageBoss,
     };
+    const mockSpatialIndex = createMockSpatialIndex(mockStores);
     system = new BlackHoleSystem(
       mockAbilityProgression as never,
       mockAbilityRuntimeQuery as never,
       mockWorld as never,
+      mockSpatialIndex as never,
       mockDamageService as never,
       mockBcc as never,
       { render: vi.fn() } as never,

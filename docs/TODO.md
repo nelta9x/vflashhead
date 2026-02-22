@@ -106,3 +106,50 @@
 - [ ] `npm run dev` — 실행 후 플레이테스트
 - [ ] 웨이브 5 도달 시 체감 확인: "정신없다" → "조금 어려워졌다" 수준인지
 - [ ] 접시 파괴 후 시각적 여유가 느껴지는지
+
+---
+
+# Performance Optimization TODO
+
+## 1. Spatial Grid (공간 분할) — O(n²) → O(n)
+- [x] `SpatialGrid` 유틸리티 클래스 구현 (`src/utils/SpatialGrid.ts`)
+- [x] `BlackHoleSystem` — 그리드 기반 근접 엔티티 조회로 전환
+- [x] `OrbSystem` — 그리드 기반 충돌 감지로 전환
+- [x] `CursorAttackSystem` — 그리드 기반 범위 조회로 전환
+- [x] `MagnetSystem` — 그리드 기반 범위 조회로 전환
+- [x] `SpaceshipAISystem.findNearestDish()` — 그리드 기반 최근접 검색
+- [x] 테스트 작성
+
+## 2. Dirty Flag 렌더링 — 불필요 redraw 80%+ 감소
+- [x] `DishRenderer` — 시각 상태 해시 비교, 변경 시만 redraw
+- [x] `BossRenderer` — dirty flag 도입
+- [ ] `SpaceshipRenderer` — dirty flag 도입
+- [x] `CursorRenderer` — 매 프레임 애니메이션이므로 skip (electric sparks)
+- [x] `BlackHoleRenderer` — 매 프레임 애니메이션이므로 skip (rotation)
+- [x] `GridRenderer` — offset 양자화 기반 dirty flag
+- [x] `HealthPackRenderer` — dirty flag 도입
+- [ ] `FallingBombSystem` 렌더링 — dirty flag 도입 (DishRenderer.renderDangerDish 적용 완료)
+
+## 3. Query 튜플 최적화 — push 오버헤드 제거
+- [x] `World.query()` — pre-sized array + indexed assignment (push 리사이즈 오버헤드 제거)
+- [x] 테스트 통과 확인
+
+## 4. Graphics 오브젝트 풀 — GC 스파이크 제거
+- [x] `ParticleManager` — Graphics 오브젝트 풀 도입 (acquireGraphics/releaseGraphics, 50개 상한)
+- [ ] `BossShatterEffect` — Graphics 풀 재사용
+
+## 5. splice → swap-and-pop — 핫 루프 O(n) → O(1)
+- [x] `StatusEffectManager.tick()` — swap-and-pop 패턴
+- [x] `StarBackground` 유성 제거 — swap-and-pop
+- [x] `SpaceshipProjectileSystem` 발사체 제거 — swap-and-pop
+
+## 6. 이중 쿼리 제거 — 불필요 할당 50% 감소
+- [x] `MagnetSystem` — Spatial Grid 통합 시 해결 (단일 패스)
+- [x] `BlackHoleSystem.applyDamageTickForHole()` — Spatial Grid 통합 시 해결
+
+## 7. 기타 캐싱
+- [x] `CursorTrail` — 색상 파싱 1회 캐싱 (cachedColor 필드)
+- [x] `ObjectPool.acquire()` — free list(freeStack) 도입, O(n) → O(1)
+- [x] `WaveSpawnPlanner` — 제곱 거리 비교로 전환 (sqrt 제거)
+- [x] `OrbRenderer` — Math.random() → 결정적 sin/cos 기반 jitter
+- [x] `DamageText` — 풀 크기 상한 설정 (MAX_COMBO_POOL_SIZE = 40)

@@ -1,5 +1,6 @@
 import { BlackHoleSystem } from './BlackHoleSystem';
 import { EntityDamageService } from '../services/EntityDamageService';
+import { SpatialIndex } from '../../../systems/SpatialIndex';
 import { BlackHoleRenderer } from '../abilities/BlackHoleRenderer';
 import { BossCombatCoordinator } from '../services/BossCombatCoordinator';
 import { AbilityProgressionService } from '../services/abilities/AbilityProgressionService';
@@ -15,6 +16,7 @@ export class BlackHoleSystemPlugin implements SystemPlugin {
       ctx.services.get(AbilityProgressionService),
       ctx.services.get(AbilityRuntimeQueryService),
       ctx.world,
+      ctx.services.get(SpatialIndex),
       ctx.services.get(EntityDamageService),
       ctx.services.get(BossCombatCoordinator),
       ctx.services.get(BlackHoleRenderer),

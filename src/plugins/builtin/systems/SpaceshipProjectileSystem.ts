@@ -147,15 +147,15 @@ export class SpaceshipProjectileSystem implements EntitySystem {
 
     for (const p of this.projectiles) {
       // Outer glow
-      this.graphics.fillStyle(parsedProjectileColor, 0.15);
+      this.graphics.fillStyle(parsedProjectileColor, 0.3);
       this.graphics.fillCircle(p.x, p.y, projConfig.size * 3);
 
       // Mid glow
-      this.graphics.fillStyle(parsedProjectileColor, 0.35);
+      this.graphics.fillStyle(parsedProjectileColor, 0.6);
       this.graphics.fillCircle(p.x, p.y, projConfig.size * 2);
 
       // Body
-      this.graphics.fillStyle(parsedProjectileColor, 0.9);
+      this.graphics.fillStyle(parsedProjectileColor, 1);
       this.graphics.fillCircle(p.x, p.y, projConfig.size);
 
       // Core

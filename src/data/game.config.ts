@@ -29,7 +29,7 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
     antialias: Data.gameConfig.render.antialias,
   },
   fps: {
-    limit: 60,
+    limit: 120,
   },
   audio: {
     disableWebAudio: false,

@@ -84,7 +84,7 @@ export class DishSpawnService {
       entityId: INVALID_ENTITY_ID,
       entityType: type,
       hp: bombData?.hp ?? dishData?.hp ?? 10,
-      lifetime: bombData?.lifetime ?? dishData?.lifetime ?? 7000,
+      lifetime: (bombData?.lifetime !== undefined ? bombData.lifetime : dishData?.lifetime) ?? null,
       isGatekeeper: false,
       spawnAnimation: bombData?.spawnAnimation ?? dishData?.spawnAnimation,
       upgradeOptions: options,

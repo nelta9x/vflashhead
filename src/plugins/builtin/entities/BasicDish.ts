@@ -22,7 +22,7 @@ export class BasicDishPlugin implements EntityTypePlugin {
     this.config = {
       spawnCategory: 'pooled',
       poolSize: config.poolSize ?? 50,
-      defaultLifetime: config.defaultLifetime ?? 7000,
+      defaultLifetime: config.defaultLifetime !== undefined ? config.defaultLifetime : null,
       isGatekeeper: false,
       cursorInteraction: 'dps',
     };

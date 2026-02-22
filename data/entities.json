@@ -111,7 +111,7 @@
       "hp": 45,
       "color": "#1a8a5a",
       "size": 35,
-      "lifetime": 25000,
+      "lifetime": null,
       "poolSize": 8,
       "cursorInteraction": "dps",
       "playerDamage": 0,
